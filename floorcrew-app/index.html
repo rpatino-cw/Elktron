@@ -248,6 +248,7 @@
 
     .progress-fill.green { background: var(--green); color: var(--green); }
     .progress-fill.amber { background: var(--amber); color: var(--amber); }
+    .progress-fill.blue { background: var(--accent); color: var(--accent); }
 
     /* ─── Phase Display (shared) ─────────────────────────── */
     .phase-display {
@@ -691,6 +692,24 @@
       color: var(--accent-2);
     }
 
+    .btn:disabled, .btn[disabled] {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn--active {
+      background: rgba(52,211,153,0.12);
+      color: var(--green);
+      border-color: rgba(52,211,153,0.25);
+      animation: btnPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes btnPulse {
+      0%, 100% { box-shadow: none; }
+      50% { box-shadow: 0 0 12px rgba(52,211,153,0.15); }
+    }
+
     /* ─── Responsive ─────────────────────────────────────── */
     @media (max-width: 1024px) {
       .dashboard { grid-template-columns: 1fr 1fr; }
@@ -776,6 +795,10 @@
 
     .progress-fill.active {
       animation: barGlow 2s ease-in-out infinite;
+    }
+
+    .progress-fill {
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn::after {
@@ -1026,6 +1049,10 @@
 
   </main>
 
+  <footer style="text-align:center;padding:20px 16px 28px;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);opacity:0.5">
+    FloorCrew &middot; CoreWeave Hackathon 2026
+  </footer>
+
   <script>
   // ── Animation Helpers (must be defined before connect) ─────
 
@@ -1110,34 +1137,175 @@
   const WS_URL = `ws://${location.hostname || 'localhost'}:8888/ws`;
   let ws = null;
   let reconnectTimer = null;
+  let demoMode = false;
+  let demoInterval = null;
 
   function connect() {
-    ws = new WebSocket(WS_URL);
+    let wsTimeout = setTimeout(() => {
+      // WS didn't connect in 2s — fall back to demo mode
+      try { ws.close(); } catch(e) {}
+      startDemoMode();
+    }, 2000);
+
+    try {
+      ws = new WebSocket(WS_URL);
+    } catch(e) {
+      clearTimeout(wsTimeout);
+      startDemoMode();
+      return;
+    }
 
     ws.onopen = () => {
+      clearTimeout(wsTimeout);
       setConnected(true);
       if (reconnectTimer) { clearInterval(reconnectTimer); reconnectTimer = null; }
     };
 
     ws.onclose = () => {
+      clearTimeout(wsTimeout);
+      if (demoMode) return;
       setConnected(false);
       if (!reconnectTimer) {
-        reconnectTimer = setInterval(() => { try { connect(); } catch(e) {} }, 3000);
+        reconnectTimer = setTimeout(() => {
+          reconnectTimer = null;
+          startDemoMode();
+        }, 2000);
       }
     };
 
-    ws.onerror = () => ws.close();
+    ws.onerror = () => {
+      clearTimeout(wsTimeout);
+      ws.close();
+    };
 
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
-        // scan_history is one-time, process immediately; live data is rAF-throttled
         if (data.type === 'scan_history') {
           handleMessage(data);
         } else {
           scheduleUpdate(data);
         }
       } catch(err) {}
+    };
+  }
+
+  // ── Standalone Demo Mode (no server needed) ────────────────
+  function startDemoMode() {
+    if (demoMode) return;
+    demoMode = true;
+
+    DOM.connBadge.className = 'conn-badge connected';
+    DOM.connText.textContent = 'Demo';
+    DOM.navDot.style.background = 'var(--accent)';
+    DOM.navStatus.textContent = 'DEMO MODE';
+    DOM.navStatus.style.color = 'var(--accent)';
+    flashConnBadge();
+
+    // Seed scan history
+    const now = Date.now();
+    const mockScans = [
+      { id:'scan-001', timestamp: new Date(now - 3*3600000).toISOString(), vendor:'TechCo Field Eng.', ticket:'INC-40821', rack:'CAB-B3', authorized_ru:'RU-24', result:'clean', unauthorized:0, nodes_scanned:5, flags:['RU-22 PSU amber'], duration_s:285 },
+      { id:'scan-002', timestamp: new Date(now - 7*3600000).toISOString(), vendor:'NetServ Inc.', ticket:'INC-40798', rack:'CAB-A2', authorized_ru:'RU-16', result:'clean', unauthorized:0, nodes_scanned:8, flags:[], duration_s:340 },
+      { id:'scan-003', timestamp: new Date(now - 26*3600000).toISOString(), vendor:'DataLink Corp.', ticket:'INC-40712', rack:'CAB-B1', authorized_ru:'RU-30', result:'flagged', unauthorized:1, nodes_scanned:6, flags:['RU-29 unauthorized contact','RU-30 optic swapped'], duration_s:410 },
+    ];
+    updateScanLog(mockScans);
+
+    const start = performance.now() / 1000;
+
+    demoInterval = setInterval(() => {
+      const t = (performance.now() / 1000) - start;
+      scheduleUpdate(demoArmState(t));
+      scheduleUpdate(demoEscortState(t));
+      scheduleUpdate(demoTrainingState(t));
+    }, 100); // 10 Hz
+  }
+
+  function demoArmState(t) {
+    const cycle = t % 12;
+    let phase = 'idle', gripper = 'open', optic = false, joints = [0,0,0,0,0,0];
+
+    if (cycle < 2) {
+      phase = 'idle';
+    } else if (cycle < 4) {
+      phase = 'reaching';
+      const p = (cycle - 2) / 2;
+      joints = [-40*p, -3*p, -2*p, 5*Math.sin(p*Math.PI)*2, 0, 0];
+    } else if (cycle < 5) {
+      phase = 'gripping'; gripper = 'closing';
+      joints = [-40, -3, -2, 0, 0, 0];
+    } else if (cycle < 5.5) {
+      phase = 'gripping'; gripper = 'closed'; optic = true;
+      joints = [-40, -3, -2, 0, 0, 0];
+    } else if (cycle < 8) {
+      phase = 'transiting'; optic = true; gripper = 'closed';
+      const p = (cycle - 5.5) / 2.5;
+      joints = [-40+88*p, -3+6*p, -2+4*p, 3*Math.sin(p*Math.PI), 0, 0];
+    } else if (cycle < 9) {
+      phase = 'inserting'; optic = true; gripper = 'closed';
+      joints = [48, 3, 2, 0, 0, 0];
+    } else if (cycle < 9.5) {
+      phase = 'releasing'; gripper = 'open';
+      joints = [48, 3, 2, 0, 0, 0];
+    } else {
+      phase = 'retracting';
+      const p = (cycle - 9.5) / 2.5;
+      joints = [48*(1-p), 3*(1-p), 2*(1-p), 0, 0, 0];
+    }
+
+    joints = joints.map(j => +(j + (Math.random()-0.5)*0.6).toFixed(1));
+
+    return {
+      type: 'arm', phase, gripper, holding_optic: optic,
+      joints: { base:joints[0], shoulder:joints[1], elbow:joints[2], wrist_pitch:joints[3], wrist_roll:joints[4], wrist_yaw:joints[5] },
+      torque_avg: +(12 + (Math.random()-0.5)*2).toFixed(1),
+      temp_c: +(38 + (Math.random()-0.5)*6).toFixed(1),
+      cycle_count: Math.floor(t / 12),
+      accuracy_mm: +(0.8 + (Math.random()-0.5)*0.2).toFixed(2),
+    };
+  }
+
+  function demoEscortState(t) {
+    const cycle = t % 30;
+    let phase='idle', location='charging_bay', vendor=null, scan_pct=0, alert=null;
+
+    if (cycle < 3) { phase='idle'; }
+    else if (cycle < 5) { phase='dispatched'; location='aisle_a'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; }
+    else if (cycle < 12) { phase='escorting'; location='aisle_a'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; }
+    else if (cycle < 14) { phase='arrived'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; }
+    else if (cycle < 20) { phase='scanning'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; scan_pct=Math.min(100, Math.floor(((cycle-14)/6)*100)); }
+    else if (cycle < 22) {
+      phase='monitoring'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; scan_pct=100;
+      if (cycle > 20.5 && cycle < 21.5) alert={ru:'RU-25',type:'brief_contact',status:'checking'};
+      else if (cycle >= 21.5) alert={ru:'RU-25',type:'brief_contact',status:'cleared'};
+    }
+    else if (cycle < 24) { phase='verified'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; scan_pct=100; }
+    else { phase='returning'; location='aisle_a'; }
+
+    return {
+      type:'escort', phase, location, vendor, target_rack:'CAB-B3', authorized_ru:'RU-24',
+      scan_progress: scan_pct, alert,
+      battery_pct: Math.max(20, 95 - Math.floor(t/10)),
+      nodes_scanned: Math.min(5, Math.floor(scan_pct/20)),
+    };
+  }
+
+  function demoTrainingState(t) {
+    const stageCycle = Math.floor(t / 60) % 4;
+    const stages = ['idle','recording','uploading','training'];
+    const stage = stages[stageCycle];
+    const episodes = Math.floor(t / 15) % 50;
+    let progress = 0;
+    if (stage === 'recording') progress = (t % 60) / 60 * 100;
+    else if (stage === 'uploading') progress = Math.min(100, (t % 60) / 30 * 100);
+    else if (stage === 'training') progress = Math.min(100, (t % 60) / 50 * 100);
+
+    return {
+      type:'training', stage, episodes_recorded: episodes,
+      current_progress: +progress.toFixed(1), model:'ACT-v1', policy:'act',
+      last_loss: +(0.15 - 0.001*Math.min(episodes,40) + (Math.random()-0.5)*0.01).toFixed(4),
+      gpu: stage === 'training' ? 'A100-80G' : null,
+      cost_so_far: +(episodes * 0.12).toFixed(2),
     };
   }
 
@@ -1288,18 +1456,20 @@
       DOM.escortScanSection.style.display = '';
       DOM.escortScanPct.textContent = d.scan_progress + '%';
       DOM.escortScanBar.style.width = d.scan_progress + '%';
+      DOM.escortScanBar.classList.toggle('active', d.scan_progress < 100);
     } else {
       DOM.escortScanSection.style.display = 'none';
+      DOM.escortScanBar.classList.remove('active');
     }
 
     if (d.alert) {
-      DOM.escortAlert.style.display = 'block';
+      DOM.escortAlert.classList.add('visible');
       DOM.escortAlert.classList.toggle('cleared', d.alert.status === 'cleared');
       DOM.escortAlert.textContent = d.alert.status === 'checking'
         ? d.alert.ru + ': Contact detected \u2014 verifying...'
         : d.alert.ru + ': Cleared \u2014 no state change';
     } else {
-      DOM.escortAlert.style.display = 'none';
+      DOM.escortAlert.classList.remove('visible', 'cleared');
     }
 
     DOM.escortLoc.textContent = d.location.replace('_', ' ');
@@ -1365,16 +1535,32 @@
       DOM.trainingProgressSection.style.display = '';
       DOM.trainingProgressPct.textContent = Math.round(d.current_progress) + '%';
       DOM.trainingProgressBar.style.width = d.current_progress + '%';
+      DOM.trainingProgressBar.classList.add('active');
       DOM.trainingProgressLabel.textContent =
         d.stage === 'recording' ? 'Recording' : d.stage === 'uploading' ? 'Upload' : 'Training';
+      // Color the bar per stage
+      DOM.trainingProgressBar.className = 'progress-fill active ' +
+        (d.stage === 'recording' ? 'green' : d.stage === 'uploading' ? 'amber' : 'blue');
     } else {
       DOM.trainingProgressSection.style.display = 'none';
+      DOM.trainingProgressBar.classList.remove('active');
     }
 
     DOM.tEpisodes.textContent = d.episodes_recorded;
     DOM.tLoss.textContent = d.last_loss.toFixed(4);
     DOM.tGpu.textContent = d.gpu || '--';
     DOM.tCost.textContent = '$' + d.cost_so_far.toFixed(2);
+
+    // Button states per stage
+    DOM.btnRecord.disabled = d.stage !== 'idle' && d.stage !== 'recording';
+    DOM.btnUpload.disabled = d.stage !== 'idle';
+    DOM.btnTrain.disabled = d.stage !== 'idle';
+    DOM.btnDeploy.disabled = d.stage !== 'idle';
+
+    DOM.btnRecord.classList.toggle('btn--active', d.stage === 'recording');
+    DOM.btnRecord.textContent = d.stage === 'recording' ? 'Recording...' : 'Start Recording';
+    DOM.btnTrain.classList.toggle('btn--active', d.stage === 'training');
+    DOM.btnTrain.textContent = d.stage === 'training' ? 'Training...' : 'Train Model';
   }
 
   // ── Hardware Status ────────────────────────────────────────

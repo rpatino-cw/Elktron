@@ -143,6 +143,7 @@
     display: flex;
     gap: 20px;
     padding: 14px 48px;
+    flex-wrap: wrap;
     opacity: 0;
     animation: fadeUp 0.6s ease-out 0.5s forwards;
   }
@@ -170,6 +171,7 @@
   .legend-dot.sensor { background: var(--cyan); }
   .legend-dot.compute { background: var(--purple); }
   .legend-dot.learning { background: var(--pink); }
+  .legend-dot.ops { background: var(--amber); }
 
   /* ── Spec cards inside nodes ── */
   .spec-grid {
@@ -177,6 +179,10 @@
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     margin-bottom: 0.75rem;
+  }
+
+  .spec-grid.three-col {
+    grid-template-columns: 1fr 1fr 1fr;
   }
 
   .spec-item {
@@ -188,6 +194,23 @@
     padding: 5px 8px;
     border-radius: 6px;
     line-height: 1.4;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
+  }
+
+  .node.revealed .spec-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .node.revealed .spec-item:hover {
+    transform: translateY(-1px);
+    border-color: var(--border-hi);
+    box-shadow: 0 3px 8px var(--accent-glow);
   }
 
   .spec-item .spec-label {
@@ -205,6 +228,10 @@
     font-weight: 600;
     color: var(--text);
   }
+
+  .spec-item .spec-val.green { color: var(--green); }
+  .spec-item .spec-val.red { color: var(--red); }
+  .spec-item .spec-val.amber { color: var(--amber); }
 
   /* ── Signal flow diagrams inside nodes ── */
   .signal-flow {
@@ -245,6 +272,24 @@
     color: var(--accent-2);
   }
 
+  .flow-step.danger {
+    background: var(--red-glow);
+    border-color: rgba(220, 38, 38, 0.15);
+    color: var(--red);
+  }
+
+  .flow-step.success {
+    background: var(--green-glow);
+    border-color: rgba(22, 163, 74, 0.15);
+    color: var(--green);
+  }
+
+  .flow-step.warn {
+    background: var(--amber-glow);
+    border-color: rgba(217, 119, 6, 0.15);
+    color: var(--amber);
+  }
+
   /* ── Staggered reveal for inner elements ── */
   .flow-step,
   .flow-arrow {
@@ -260,26 +305,6 @@
   .node.revealed .flow-arrow {
     opacity: 1;
     transform: translateX(0);
-  }
-
-  .spec-item {
-    opacity: 0;
-    transform: translateY(6px);
-    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-                box-shadow 0.2s ease,
-                border-color 0.2s ease;
-  }
-
-  .node.revealed .spec-item {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .node.revealed .spec-item:hover {
-    transform: translateY(-1px);
-    border-color: var(--border-hi);
-    box-shadow: 0 3px 8px var(--accent-glow);
   }
 
   .pin-table tr {
@@ -299,7 +324,6 @@
     transform: translateX(0);
   }
 
-  /* Highlight pulse on key flow steps */
   .node.revealed .flow-step.highlight {
     animation: highlightPulse 2s ease-in-out 0.8s 1;
   }
@@ -342,6 +366,26 @@
     font-weight: 600;
   }
 
+  /* ── Code snippet inside expand ── */
+  .code-block {
+    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.62rem;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 6px 0;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .code-block .kw { color: var(--accent-2); font-weight: 600; }
+  .code-block .fn { color: var(--purple); }
+  .code-block .num { color: var(--green); }
+  .code-block .cmt { color: var(--text-muted); font-style: italic; }
+
   /* ── Canvas ── */
   .topology-wrapper {
     position: relative;
@@ -352,7 +396,7 @@
   .canvas-container {
     position: relative;
     width: 100%;
-    min-height: 1980px;
+    min-height: 2700px;
     transform-style: preserve-3d;
   }
 
@@ -563,6 +607,12 @@
     border: 1px solid rgba(22, 163, 74, 0.15);
   }
 
+  .badge-ops {
+    background: var(--amber-glow);
+    color: var(--amber);
+    border: 1px solid rgba(217, 119, 6, 0.15);
+  }
+
   .node-title {
     font-size: 0.95rem;
     font-weight: 700;
@@ -628,7 +678,7 @@
   .expand-panel.expand-visible {
     opacity: 1;
     transform: translateY(0);
-    max-height: 500px;
+    max-height: 600px;
   }
 
   .node.expanded { z-index: 30; }
@@ -646,6 +696,67 @@
     text-align: center;
     margin-top: 6px;
     font-style: italic;
+  }
+
+  /* ── Node count badge ── */
+  .node-count {
+    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent-2);
+    letter-spacing: 0.02em;
+  }
+
+  .header-sep {
+    color: var(--text-muted);
+    margin: 0 4px;
+    opacity: 0.4;
+  }
+
+  /* ── Scroll hint ── */
+  .scroll-hint {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    z-index: 100;
+    opacity: 0;
+    animation: scrollHintIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 1.5s forwards;
+    transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .scroll-hint.hidden {
+    opacity: 0 !important;
+    animation: none;
+  }
+
+  .scroll-hint-text {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+  }
+
+  .scroll-hint-arrow {
+    color: var(--accent-2);
+    opacity: 0.6;
+    animation: scrollBob 2s cubic-bezier(0.22, 1, 0.36, 1) infinite 2.3s;
+  }
+
+  @keyframes scrollHintIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  @keyframes scrollBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
   }
 
   /* ── Animations ── */
@@ -694,15 +805,104 @@
     svg.connections .data-line { opacity: 1; }
     .header, .legend { opacity: 1; transform: none; }
     .orb { display: none; }
+    .scroll-hint { display: none; }
   }
 
-  /* ── Responsive ── */
+  /* ── Responsive: Tablet ── */
   @media (max-width: 1200px) {
-    .node { width: 240px; padding: 1rem; }
-    .node.primary { width: 280px; }
-    .node.wide { width: 290px; }
-    .topology-wrapper { padding: 0 24px 32px; }
-    .header, .legend { padding-left: 24px; padding-right: 24px; }
+    .node { width: 220px; padding: 1rem; }
+    .node.primary { width: 260px; }
+    .node.wide { width: 270px; }
+    .topology-wrapper { padding: 0 20px 32px; }
+    .header { padding: 2rem 20px 0; }
+    .legend { padding: 14px 20px; }
+    .node-title { font-size: 0.88rem; }
+    .node-desc { font-size: 0.72rem; }
+    .spec-item { font-size: 0.6rem; }
+    .flow-step { font-size: 0.58rem; padding: 3px 6px; }
+    .pin-table { font-size: 0.58rem; }
+    .code-block { font-size: 0.58rem; }
+    .expand-detail { font-size: 0.68rem; }
+  }
+
+  /* ── Responsive: Small Tablet / Large Phone ── */
+  @media (max-width: 900px) {
+    .canvas-container {
+      min-height: auto !important;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-top: 16px;
+    }
+    .node {
+      position: relative !important;
+      left: auto !important;
+      right: auto !important;
+      top: auto !important;
+      width: 100% !important;
+      max-width: 480px;
+      margin: 0 auto;
+      opacity: 0;
+      transform: scale(0.92) translateY(30px);
+      filter: blur(6px);
+    }
+    .node.revealed {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      filter: blur(0);
+    }
+    svg.connections { display: none; }
+    .layer-divider { display: none; }
+    .layer-label {
+      position: relative !important;
+      top: auto !important;
+      writing-mode: horizontal-tb;
+      transform: none;
+      font-size: 0.65rem;
+      padding: 20px 0 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+      opacity: 1;
+      animation: none;
+    }
+    .scene-3d { perspective: none; }
+    .node.floating:hover {
+      transform: translateY(-3px);
+    }
+  }
+
+  /* ── Responsive: Mobile ── */
+  @media (max-width: 600px) {
+    .header { padding: 1.5rem 16px 0; }
+    .header h1 { font-size: 1.5rem; }
+    .header-sub { font-size: 0.78rem; }
+    .legend { padding: 10px 16px; gap: 12px; }
+    .legend-item { font-size: 0.62rem; }
+    .legend-item[style*="margin-left: auto"] { margin-left: 0 !important; }
+    .topology-wrapper { padding: 0 16px 24px; }
+    .node { padding: 1rem !important; min-height: 44px; }
+    .node-icon { width: 32px; height: 32px; font-size: 0.95rem; border-radius: 8px; }
+    .node-title { font-size: 0.85rem; }
+    .node-desc { font-size: 0.72rem; margin-bottom: 0.5rem; }
+    .node-section-label { font-size: 0.6rem; }
+    .spec-grid { gap: 4px; }
+    .spec-item { font-size: 0.62rem; padding: 5px 8px; min-height: 36px; display: flex; flex-direction: column; justify-content: center; }
+    .spec-item .spec-label { font-size: 0.56rem; }
+    .flow-step { font-size: 0.6rem; padding: 5px 8px; min-height: 32px; display: inline-flex; align-items: center; }
+    .flow-arrow { font-size: 10px; margin: 0 2px; }
+    .signal-flow { gap: 0; row-gap: 6px; }
+    .pin-table { font-size: 0.6rem; }
+    .pin-table th { font-size: 0.56rem; padding: 4px 6px; }
+    .pin-table td { padding: 4px 6px; }
+    .code-block { font-size: 0.6rem; padding: 8px 10px; }
+    .expand-detail { font-size: 0.68rem; }
+    .tech-tag { font-size: 0.6rem; padding: 3px 6px; }
+    .spec-grid.three-col { grid-template-columns: 1fr 1fr; }
+    .breadcrumb { font-size: 0.65rem; }
+    .orb { display: none; }
+    .scroll-hint { display: none; }
+    .header-sep { display: none; }
+    .header-sub { display: flex; flex-direction: column; gap: 2px; }
   }
 </style>
 </head>
@@ -718,7 +918,19 @@
 <div class="header">
   <div class="breadcrumb">FloorCrew / <span>Technical Topology</span></div>
   <h1>System <span>Architecture</span></h1>
-  <div class="header-sub">Servo control &middot; Detection pipeline &middot; Training architecture &middot; Hardware wiring</div>
+  <div class="header-sub">
+    <span class="node-count" aria-label="13 nodes across 5 layers">13 nodes &middot; 5 layers &middot; 18 connections</span>
+    <span class="header-sep">&mdash;</span>
+    Servo control &middot; Detection pipeline &middot; Training architecture
+  </div>
+</div>
+
+<!-- Scroll hint -->
+<div class="scroll-hint" id="scroll-hint" aria-hidden="true">
+  <span class="scroll-hint-text">Scroll to explore</span>
+  <svg class="scroll-hint-arrow" width="16" height="24" viewBox="0 0 16 24" fill="none">
+    <path d="M8 4L8 18M8 18L2 12M8 18L14 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
 </div>
 
 <!-- Legend -->
@@ -728,6 +940,7 @@
   <div class="legend-item"><div class="legend-dot sensor"></div>Sensors</div>
   <div class="legend-item"><div class="legend-dot compute"></div>Compute</div>
   <div class="legend-item"><div class="legend-dot learning"></div>Learning</div>
+  <div class="legend-item"><div class="legend-dot ops"></div>Operations</div>
   <div class="legend-item" style="margin-left: auto;">
     <span style="color: var(--accent-2);">&#9473;&#9473;</span> Control flow
   </div>
@@ -742,19 +955,21 @@
     <svg class="connections" id="svg-lines"></svg>
 
     <!-- Layer dividers -->
-    <div class="layer-divider" style="top: 430px;" data-show-at="600"></div>
-    <div class="layer-divider" style="top: 928px;" data-show-at="1200"></div>
-    <div class="layer-divider" style="top: 1408px;" data-show-at="1800"></div>
+    <div class="layer-divider" style="top: 480px;" data-show-at="600"></div>
+    <div class="layer-divider" style="top: 1060px;" data-show-at="1200"></div>
+    <div class="layer-divider" style="top: 1580px;" data-show-at="1800"></div>
+    <div class="layer-divider" style="top: 2060px;" data-show-at="2400"></div>
 
     <!-- Layer labels -->
     <div class="layer-label" style="top: 60px; animation-delay: 0.8s;">Systems</div>
-    <div class="layer-label" style="top: 520px; animation-delay: 0.9s;">Perception + Control</div>
-    <div class="layer-label" style="top: 1020px; animation-delay: 1.0s;">Hardware</div>
-    <div class="layer-label" style="top: 1500px; animation-delay: 1.1s;">Intelligence</div>
+    <div class="layer-label" style="top: 560px; animation-delay: 0.9s;">Perception + Control</div>
+    <div class="layer-label" style="top: 1140px; animation-delay: 1.0s;">Hardware + Power</div>
+    <div class="layer-label" style="top: 1660px; animation-delay: 1.1s;">Operations</div>
+    <div class="layer-label" style="top: 2140px; animation-delay: 1.2s;">Intelligence</div>
 
     <!-- ══════════ ROW 1: Robot Systems (top: 20px) ══════════ -->
 
-    <div class="node primary" id="node-arm-sys" style="left: 8%; top: 20px;" tabindex="0" role="button" aria-label="SO-101 Arm System details">
+    <div class="node primary wide" id="node-arm-sys" style="left: 4%; top: 20px;" tabindex="0" role="button" aria-label="SO-101 Arm System details">
       <div class="node-header">
         <div class="node-icon system">&#x1f9be;</div>
         <div class="node-badge badge-arm">SO-101</div>
@@ -766,120 +981,174 @@
         <div class="spec-item"><span class="spec-label">Servos</span><span class="spec-val">STS3215 x6</span></div>
         <div class="spec-item"><span class="spec-label">Protocol</span><span class="spec-val">SCS Serial</span></div>
         <div class="spec-item"><span class="spec-label">Framework</span><span class="spec-val">LeRobot</span></div>
+        <div class="spec-item"><span class="spec-label">Reach</span><span class="spec-val">~280mm</span></div>
+        <div class="spec-item"><span class="spec-label">Payload</span><span class="spec-val">~250g</span></div>
       </div>
       <div class="node-section-label">Joint Chain</div>
       <div class="signal-flow">
-        <span class="flow-step">Base</span>
+        <span class="flow-step">Base (ID1)</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Shoulder</span>
+        <span class="flow-step">Shoulder (ID2)</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Elbow</span>
+        <span class="flow-step">Elbow (ID3)</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Wrist Flex</span>
+        <span class="flow-step">Wrist Flex (ID4)</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Wrist Rot</span>
+        <span class="flow-step">Wrist Rot (ID5)</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step highlight">Gripper</span>
+        <span class="flow-step highlight">Gripper (ID6)</span>
       </div>
+      <div class="node-section-label" style="margin-top: 8px;">Joint Limits (degrees)</div>
+      <table class="pin-table">
+        <thead><tr><th>Joint</th><th>Min</th><th>Max</th><th>Home</th></tr></thead>
+        <tbody>
+        <tr><td>Base</td><td>0&deg;</td><td>360&deg;</td><td>180&deg;</td></tr>
+        <tr><td>Shoulder</td><td>60&deg;</td><td>240&deg;</td><td>180&deg;</td></tr>
+        <tr><td>Elbow</td><td>60&deg;</td><td>240&deg;</td><td>180&deg;</td></tr>
+        <tr><td>Gripper</td><td>150&deg;</td><td>210&deg;</td><td>180&deg;</td></tr>
+        </tbody>
+      </table>
     </div>
 
-    <div class="node primary" id="node-escort-sys" style="right: 8%; top: 20px;" tabindex="0" role="button" aria-label="Escort Bot System details">
+    <div class="node primary wide" id="node-escort-sys" style="right: 4%; top: 20px;" tabindex="0" role="button" aria-label="Escort Bot System details">
       <div class="node-header">
         <div class="node-icon system">&#x1f916;</div>
         <div class="node-badge badge-escort">Escort Bot</div>
       </div>
       <div class="node-title">Escort Bot System</div>
-      <div class="node-desc">Autonomous person-following robot for vendor escort on DC floor. Real-time detection + proportional steering.</div>
+      <div class="node-desc">Autonomous person-following robot for vendor escort on DC floor. Real-time detection + proportional steering + obstacle avoidance.</div>
       <div class="spec-grid">
         <div class="spec-item"><span class="spec-label">Compute</span><span class="spec-val">Pi 5 (8GB)</span></div>
-        <div class="spec-item"><span class="spec-label">Model</span><span class="spec-val">MobileNet SSD</span></div>
-        <div class="spec-item"><span class="spec-label">Chassis</span><span class="spec-val">4WD</span></div>
+        <div class="spec-item"><span class="spec-label">Model</span><span class="spec-val">MobileNet SSD v2</span></div>
+        <div class="spec-item"><span class="spec-label">Chassis</span><span class="spec-val">Freenove 4WD</span></div>
         <div class="spec-item"><span class="spec-label">Control</span><span class="spec-val">Proportional</span></div>
+        <div class="spec-item"><span class="spec-label">Loop Rate</span><span class="spec-val">~30 Hz</span></div>
+        <div class="spec-item"><span class="spec-label">Code</span><span class="spec-val">330 lines</span></div>
       </div>
-      <div class="node-section-label">Control Loop</div>
+      <div class="node-section-label">Main Control Loop</div>
       <div class="signal-flow">
-        <span class="flow-step">Camera</span>
+        <span class="flow-step">Capture</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step highlight">TFLite</span>
+        <span class="flow-step">Resize 300x300</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">BBox</span>
+        <span class="flow-step highlight">TFLite Infer</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">PID</span>
+        <span class="flow-step">NMS Filter</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Motors</span>
+        <span class="flow-step">BBox &rarr; Error</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">PWM Out</span>
+      </div>
+      <div class="node-section-label" style="margin-top: 8px;">Operating States</div>
+      <div class="signal-flow">
+        <span class="flow-step warn">IDLE</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">SEARCHING</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step success">TRACKING</span>
+        <span class="flow-arrow">&harr;</span>
+        <span class="flow-step danger">E_STOP</span>
       </div>
     </div>
 
-    <!-- ══════════ ROW 2: Perception + Control (top: 380px) ══════════ -->
+    <!-- ══════════ ROW 2: Perception + Control (top: 520px) ══════════ -->
 
-    <div class="node wide" id="node-servo" style="left: 4%; top: 460px;" tabindex="0" role="button" aria-label="Servo Control details">
+    <div class="node wide" id="node-servo" style="left: 4%; top: 520px;" tabindex="0" role="button" aria-label="Servo Control details">
       <div class="node-header">
         <div class="node-icon actuator">&#x2699;&#xfe0f;</div>
         <div class="node-badge badge-arm">Arm</div>
       </div>
       <div class="node-title">Servo Control</div>
-      <div class="node-desc">Feetech STS3215 smart servos. Daisy-chained on half-duplex UART via SCS serial protocol.</div>
+      <div class="node-desc">Feetech STS3215 smart servos. Daisy-chained on half-duplex UART via SCS serial protocol. Each servo has position, temperature, and load feedback.</div>
       <div class="spec-grid">
         <div class="spec-item"><span class="spec-label">Torque</span><span class="spec-val">19.5 kg.cm</span></div>
         <div class="spec-item"><span class="spec-label">Voltage</span><span class="spec-val">6-7.4V</span></div>
-        <div class="spec-item"><span class="spec-label">Feedback</span><span class="spec-val">Position, temp, load</span></div>
-        <div class="spec-item"><span class="spec-label">Baud</span><span class="spec-val">1M bps</span></div>
+        <div class="spec-item"><span class="spec-label">Feedback</span><span class="spec-val">Pos, temp, load</span></div>
+        <div class="spec-item"><span class="spec-label">Baud</span><span class="spec-val">1,000,000 bps</span></div>
+        <div class="spec-item"><span class="spec-label">Resolution</span><span class="spec-val">4096 steps/rev</span></div>
+        <div class="spec-item"><span class="spec-label">Speed</span><span class="spec-val">0.16s/60&deg;</span></div>
       </div>
-      <div class="node-section-label">Command Protocol</div>
+      <div class="node-section-label">Write Cycle</div>
       <div class="signal-flow">
-        <span class="flow-step">Python</span>
+        <span class="flow-step">MotorsBus</span>
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step highlight">sync_write()</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">UART TX</span>
+        <span class="flow-step">TX packet</span>
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step">SCS Bus</span>
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step">ID 1-6</span>
       </div>
+      <div class="node-section-label" style="margin-top: 8px;">Read Cycle</div>
+      <div class="signal-flow">
+        <span class="flow-step">ID 1-6</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">SCS Bus</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">sync_read()</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">[pos, temp, load]</span>
+      </div>
     </div>
 
-    <div class="node wide" id="node-detection" style="left: calc(50% - 170px); top: 460px;" tabindex="0" role="button" aria-label="Detection Pipeline details">
+    <div class="node wide" id="node-detection" style="left: calc(50% - 170px); top: 520px;" tabindex="0" role="button" aria-label="Detection Pipeline details">
       <div class="node-header">
         <div class="node-icon sensor">&#x1f4f7;</div>
         <div class="node-badge badge-escort">Escort</div>
       </div>
       <div class="node-title">Detection Pipeline</div>
-      <div class="node-desc">Pi Camera V3 captures 640x480 @ 30fps. TFLite MobileNet SSD v2 runs inference at ~15ms per frame on Pi 5.</div>
+      <div class="node-desc">Pi Camera V3 via CSI ribbon. TFLite MobileNet SSD v2 (INT8 quantized) runs inference at ~15ms/frame on Pi 5 CPU.</div>
       <div class="spec-grid">
-        <div class="spec-item"><span class="spec-label">Resolution</span><span class="spec-val">640 x 480</span></div>
+        <div class="spec-item"><span class="spec-label">Capture</span><span class="spec-val">640x480 @30fps</span></div>
+        <div class="spec-item"><span class="spec-label">Input tensor</span><span class="spec-val">300x300x3 uint8</span></div>
         <div class="spec-item"><span class="spec-label">Inference</span><span class="spec-val">~15ms / frame</span></div>
+        <div class="spec-item"><span class="spec-label">Model size</span><span class="spec-val">4.3 MB (INT8)</span></div>
         <div class="spec-item"><span class="spec-label">Confidence</span><span class="spec-val">&gt; 0.5 threshold</span></div>
-        <div class="spec-item"><span class="spec-label">Class</span><span class="spec-val">person (ID 0)</span></div>
+        <div class="spec-item"><span class="spec-label">Target class</span><span class="spec-val">person (COCO 0)</span></div>
       </div>
       <div class="node-section-label">Frame Pipeline</div>
       <div class="signal-flow">
-        <span class="flow-step">CSI Frame</span>
+        <span class="flow-step">picamera2</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">RGB 640x480</span>
+        <span class="flow-step">BGR &rarr; RGB</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step highlight">MobileNet SSD</span>
+        <span class="flow-step">resize 300x300</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">BBox [x,y,w,h]</span>
+        <span class="flow-step highlight">invoke()</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">center_x</span>
+        <span class="flow-step">NMS</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">bbox[x,y,w,h]</span>
+      </div>
+      <div class="node-section-label" style="margin-top: 8px;">Output Tensors</div>
+      <div class="signal-flow">
+        <span class="flow-step">boxes [10,4]</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step">classes [10]</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step">scores [10]</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step">count [1]</span>
       </div>
     </div>
 
-    <div class="node" id="node-steering" style="right: 4%; top: 460px;" tabindex="0" role="button" aria-label="Steering Control details">
+    <div class="node" id="node-steering" style="right: 4%; top: 520px;" tabindex="0" role="button" aria-label="Steering Control details">
       <div class="node-header">
         <div class="node-icon compute">&#x1f3af;</div>
         <div class="node-badge badge-escort">Escort</div>
       </div>
       <div class="node-title">Steering Control</div>
-      <div class="node-desc">Proportional control maps person bounding box position to differential motor speeds. Dead zone at center.</div>
+      <div class="node-desc">Proportional control maps person bounding box center to differential motor speeds. Dead zone prevents oscillation.</div>
       <div class="spec-grid">
-        <div class="spec-item"><span class="spec-label">Method</span><span class="spec-val">Proportional</span></div>
+        <div class="spec-item"><span class="spec-label">Kp (turn)</span><span class="spec-val">0.8</span></div>
         <div class="spec-item"><span class="spec-label">Dead zone</span><span class="spec-val">&plusmn;15% center</span></div>
-        <div class="spec-item"><span class="spec-label">Speed</span><span class="spec-val">0.3 - 0.8 PWM</span></div>
+        <div class="spec-item"><span class="spec-label">PWM range</span><span class="spec-val">0.3 - 0.8</span></div>
         <div class="spec-item"><span class="spec-label">Rate</span><span class="spec-val">~30 Hz loop</span></div>
+        <div class="spec-item"><span class="spec-label">Base speed</span><span class="spec-val">0.45</span></div>
+        <div class="spec-item"><span class="spec-label">Approach Kp</span><span class="spec-val">0.6 (depth)</span></div>
       </div>
-      <div class="node-section-label">Steering Logic</div>
+      <div class="node-section-label">Turn Steering</div>
       <div class="signal-flow">
         <span class="flow-step">error = cx - 0.5</span>
         <span class="flow-arrow">&rarr;</span>
@@ -887,140 +1156,263 @@
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step">R = base - Kp*e</span>
       </div>
+      <div class="node-section-label" style="margin-top: 8px;">Approach Speed</div>
+      <div class="signal-flow">
+        <span class="flow-step">bbox_h / frame_h</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">ratio &gt; 0.6?</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step danger">SLOW</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step success">CRUISE</span>
+      </div>
     </div>
 
-    <!-- ══════════ ROW 3: Hardware Layer (top: 890px) ══════════ -->
+    <!-- ══════════ ROW 3: Hardware + Power (top: 1100px) ══════════ -->
 
-    <div class="node" id="node-arm-hw" style="left: 4%; top: 960px;" tabindex="0" role="button" aria-label="Arm Hardware details">
+    <div class="node" id="node-arm-hw" style="left: 4%; top: 1100px;" tabindex="0" role="button" aria-label="Arm Hardware details">
       <div class="node-header">
         <div class="node-icon power">&#x1f50c;</div>
         <div class="node-badge badge-arm">Arm</div>
       </div>
       <div class="node-title">Arm Hardware</div>
-      <div class="node-desc">HiWonder SO-101 kit. 3D printed links + Feetech STS3215 servos. USB-to-TTL serial adapter to host.</div>
+      <div class="node-desc">HiWonder SO-101 pre-assembled kit. 3D printed links, Feetech STS3215 servos, USB-TTL serial adapter to host.</div>
       <div class="node-section-label">Wiring</div>
       <table class="pin-table">
-        <tr><th>Component</th><th>Connection</th></tr>
+        <thead><tr><th>Component</th><th>Connection</th></tr></thead>
+        <tbody>
         <tr><td>Servos x6</td><td>Daisy-chain SCS bus</td></tr>
-        <tr><td>USB-TTL</td><td>Host USB &rarr; SCS bus</td></tr>
-        <tr><td>PSU</td><td>7.4V 3A &rarr; servo rail</td></tr>
-        <tr><td>Camera</td><td>USB webcam (wrist)</td></tr>
+        <tr><td>USB-TTL (CH340)</td><td>Host USB &rarr; SCS bus</td></tr>
+        <tr><td>PSU 7.4V 3A</td><td>Barrel jack &rarr; servo rail</td></tr>
+        <tr><td>Wrist camera</td><td>USB webcam 720p</td></tr>
+        <tr><td>Leader arm</td><td>2nd USB-TTL (teleop)</td></tr>
+        </tbody>
       </table>
       <div class="node-tech">
         <span class="tech-tag">$270 kit</span>
-        <span class="tech-tag">STS3215</span>
-        <span class="tech-tag">USB-TTL</span>
+        <span class="tech-tag">CH340</span>
+        <span class="tech-tag">3D PLA</span>
       </div>
     </div>
 
-    <div class="node wide" id="node-escort-hw" style="left: calc(50% - 170px); top: 960px;" tabindex="0" role="button" aria-label="Chassis and Wiring details">
+    <div class="node wide" id="node-escort-hw" style="left: calc(50% - 170px); top: 1100px;" tabindex="0" role="button" aria-label="Chassis and Wiring details">
       <div class="node-header">
         <div class="node-icon power">&#x1f6de;</div>
         <div class="node-badge badge-escort">Escort</div>
       </div>
       <div class="node-title">Chassis + Wiring</div>
-      <div class="node-desc">Freenove 4WD chassis with L298N motor driver. Pi 5 runs detection + steering. 7.4V LiPo powers motors.</div>
+      <div class="node-desc">Freenove 4WD with L298N H-bridge. Pi 5 runs detection + steering. 7.4V 2S LiPo powers motors, 5V BEC for Pi.</div>
       <div class="node-section-label">GPIO Pin Map</div>
       <table class="pin-table">
-        <tr><th>Pin</th><th>Function</th><th>Device</th></tr>
+        <thead><tr><th>Pin</th><th>Function</th><th>Device</th></tr></thead>
+        <tbody>
         <tr><td>GPIO 17/18</td><td>Motor A (IN1/IN2)</td><td>L298N</td></tr>
         <tr><td>GPIO 22/23</td><td>Motor B (IN3/IN4)</td><td>L298N</td></tr>
         <tr><td>GPIO 12/13</td><td>PWM (ENA/ENB)</td><td>L298N</td></tr>
         <tr><td>GPIO 25/24</td><td>Trig / Echo</td><td>HC-SR04</td></tr>
-        <tr><td>CSI port</td><td>Camera data</td><td>Pi Cam V3</td></tr>
+        <tr><td>CSI-0</td><td>Camera data</td><td>Pi Cam V3</td></tr>
+        <tr><td>GPIO 4</td><td>Status LED</td><td>LED</td></tr>
+        </tbody>
       </table>
       <div class="node-tech">
         <span class="tech-tag">L298N</span>
         <span class="tech-tag">7.4V LiPo</span>
         <span class="tech-tag">HC-SR04</span>
         <span class="tech-tag">Pi Cam V3</span>
+        <span class="tech-tag">5V BEC</span>
       </div>
     </div>
 
-    <div class="node" id="node-safety" style="right: 4%; top: 960px;" tabindex="0" role="button" aria-label="Safety and Sensors details">
+    <div class="node" id="node-power" style="right: 4%; top: 1100px;" tabindex="0" role="button" aria-label="Power Distribution details">
+      <div class="node-header">
+        <div class="node-icon power">&#x26a1;</div>
+        <div class="node-badge badge-both">Both</div>
+      </div>
+      <div class="node-title">Power Distribution</div>
+      <div class="node-desc">Two separate power systems. Arm uses wall PSU (unlimited runtime). Escort uses 2S LiPo (limited by capacity).</div>
+      <div class="node-section-label">Arm Power Budget</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Rail</span><span class="spec-val">7.4V / 3A</span></div>
+        <div class="spec-item"><span class="spec-label">Per servo</span><span class="spec-val">~0.4A idle</span></div>
+        <div class="spec-item"><span class="spec-label">Peak</span><span class="spec-val">~2.4A (6 stall)</span></div>
+        <div class="spec-item"><span class="spec-label">Source</span><span class="spec-val">Wall PSU</span></div>
+      </div>
+      <div class="node-section-label" style="margin-top: 8px;">Escort Power Budget</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Battery</span><span class="spec-val">7.4V 2200mAh</span></div>
+        <div class="spec-item"><span class="spec-label">Motors</span><span class="spec-val">~1.2A cruise</span></div>
+        <div class="spec-item"><span class="spec-label">Pi 5</span><span class="spec-val">~0.8A (via BEC)</span></div>
+        <div class="spec-item"><span class="spec-label amber">Runtime</span><span class="spec-val amber">~45 min</span></div>
+      </div>
+    </div>
+
+    <!-- ══════════ ROW 4: Operations (top: 1620px) ══════════ -->
+
+    <div class="node wide" id="node-state" style="left: 8%; top: 1620px;" tabindex="0" role="button" aria-label="State Machine details">
+      <div class="node-header">
+        <div class="node-icon comms">&#x1f504;</div>
+        <div class="node-badge badge-escort">Escort</div>
+      </div>
+      <div class="node-title">State Machine</div>
+      <div class="node-desc">Finite state machine governs escort bot behavior. Transitions driven by detection confidence, ultrasonic distance, and timeout counters.</div>
+      <div class="node-section-label">States + Transitions</div>
+      <div class="signal-flow">
+        <span class="flow-step warn">IDLE</span>
+        <span class="flow-arrow">person&rarr;</span>
+        <span class="flow-step success">TRACKING</span>
+        <span class="flow-arrow">lost&rarr;</span>
+        <span class="flow-step">SEARCHING</span>
+        <span class="flow-arrow">3s&rarr;</span>
+        <span class="flow-step warn">IDLE</span>
+      </div>
+      <div class="signal-flow">
+        <span class="flow-step success">TRACKING</span>
+        <span class="flow-arrow">&lt;30cm&rarr;</span>
+        <span class="flow-step danger">E_STOP</span>
+        <span class="flow-arrow">clear&rarr;</span>
+        <span class="flow-step success">TRACKING</span>
+      </div>
+      <div class="node-section-label" style="margin-top: 8px;">Transition Triggers</div>
+      <table class="pin-table">
+        <thead><tr><th>From</th><th>To</th><th>Trigger</th></tr></thead>
+        <tbody>
+        <tr><td>IDLE</td><td>TRACKING</td><td>conf &gt; 0.5</td></tr>
+        <tr><td>TRACKING</td><td>E_STOP</td><td>dist &lt; 30cm</td></tr>
+        <tr><td>TRACKING</td><td>SEARCHING</td><td>conf &lt; 0.3</td></tr>
+        <tr><td>SEARCHING</td><td>IDLE</td><td>3s timeout</td></tr>
+        <tr><td>E_STOP</td><td>TRACKING</td><td>dist &gt; 50cm</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="node" id="node-safety" style="right: 8%; top: 1620px;" tabindex="0" role="button" aria-label="Safety and Sensors details">
       <div class="node-header">
         <div class="node-icon sensor">&#x1f6e1;&#xfe0f;</div>
         <div class="node-badge badge-escort">Escort</div>
       </div>
       <div class="node-title">Safety + Sensors</div>
-      <div class="node-desc">Ultrasonic obstacle detection with emergency stop. No-person timeout triggers idle mode after 3s.</div>
+      <div class="node-desc">Ultrasonic obstacle detection with emergency stop. No-person timeout triggers idle. Distance calculated from echo pulse width.</div>
       <div class="spec-grid">
         <div class="spec-item"><span class="spec-label">Sensor</span><span class="spec-val">HC-SR04</span></div>
         <div class="spec-item"><span class="spec-label">Range</span><span class="spec-val">2-400 cm</span></div>
-        <div class="spec-item"><span class="spec-label">E-stop</span><span class="spec-val">&lt; 30 cm</span></div>
+        <div class="spec-item"><span class="spec-label">E-stop</span><span class="spec-val red">&lt; 30 cm</span></div>
+        <div class="spec-item"><span class="spec-label">Resume</span><span class="spec-val green">&gt; 50 cm</span></div>
         <div class="spec-item"><span class="spec-label">Timeout</span><span class="spec-val">3s no person</span></div>
+        <div class="spec-item"><span class="spec-label">Accuracy</span><span class="spec-val">&plusmn;3mm</span></div>
       </div>
-      <div class="node-section-label">Safety Logic</div>
+      <div class="node-section-label">Distance Calculation</div>
       <div class="signal-flow">
-        <span class="flow-step">HC-SR04</span>
+        <span class="flow-step">GPIO 25 HIGH</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">&lt; 30cm?</span>
+        <span class="flow-step">10&micro;s pulse</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step highlight">E-STOP</span>
+        <span class="flow-step highlight">echo time</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">t&times;343/2</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">cm</span>
       </div>
     </div>
 
-    <!-- ══════════ ROW 4: Intelligence Layer (top: 1460px) ══════════ -->
+    <!-- ══════════ ROW 5: Intelligence (top: 2100px) ══════════ -->
 
-    <div class="node wide" id="node-imitation" style="left: 8%; top: 1440px;" tabindex="0" role="button" aria-label="Imitation Learning Pipeline details">
+    <div class="node wide" id="node-imitation" style="left: 4%; top: 2100px;" tabindex="0" role="button" aria-label="Imitation Learning Pipeline details">
       <div class="node-header">
         <div class="node-icon learning">&#x1f9e0;</div>
         <div class="node-badge badge-arm">Arm</div>
       </div>
-      <div class="node-title">Imitation Learning Pipeline</div>
-      <div class="node-desc">Record human demos via leader-follower teleop. Train ACT (Action Chunking with Transformers) policy. Deploy autonomous.</div>
+      <div class="node-title">Imitation Learning</div>
+      <div class="node-desc">Record human demos via leader-follower teleop. Train ACT (Action Chunking with Transformers) policy. Deploy closed-loop autonomous.</div>
       <div class="spec-grid">
         <div class="spec-item"><span class="spec-label">Policy</span><span class="spec-val">ACT</span></div>
         <div class="spec-item"><span class="spec-label">Episodes</span><span class="spec-val">50 target</span></div>
         <div class="spec-item"><span class="spec-label">Training</span><span class="spec-val">~2-4h (MPS)</span></div>
-        <div class="spec-item"><span class="spec-label">Input</span><span class="spec-val">joints + camera</span></div>
+        <div class="spec-item"><span class="spec-label">Chunk size</span><span class="spec-val">100 steps</span></div>
+        <div class="spec-item"><span class="spec-label">Backbone</span><span class="spec-val">ResNet18</span></div>
+        <div class="spec-item"><span class="spec-label">Optimizer</span><span class="spec-val">AdamW 1e-5</span></div>
       </div>
       <div class="node-section-label">Training Pipeline</div>
       <div class="signal-flow">
-        <span class="flow-step">Teleop Record</span>
+        <span class="flow-step">Teleop record</span>
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step">HF Dataset</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step highlight">ACT Training</span>
+        <span class="flow-step highlight">ACT train</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Policy .ckpt</span>
+        <span class="flow-step">.ckpt</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Autonomous</span>
+        <span class="flow-step success">Deploy</span>
       </div>
-      <div class="node-section-label" style="margin-top: 10px;">Scripts</div>
-      <div class="node-tech">
+      <div class="node-tech" style="margin-top: 8px;">
         <span class="tech-tag">record.py</span>
         <span class="tech-tag">train.py</span>
         <span class="tech-tag">deploy.py</span>
+        <span class="tech-tag">LeRobot</span>
       </div>
     </div>
 
-    <div class="node wide" id="node-tasks" style="right: 8%; top: 1440px;" tabindex="0" role="button" aria-label="DC Task Targets details">
+    <div class="node" id="node-obs" style="left: calc(50% - 140px); top: 2100px;" tabindex="0" role="button" aria-label="Observation Space details">
+      <div class="node-header">
+        <div class="node-icon learning">&#x1f4d0;</div>
+        <div class="node-badge badge-arm">Arm</div>
+      </div>
+      <div class="node-title">Observation Space</div>
+      <div class="node-desc">What the ACT policy sees at each timestep. Joint positions + wrist camera frame = full observation vector.</div>
+      <div class="node-section-label">Observation Vector</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Joint pos</span><span class="spec-val">6 &times; float32</span></div>
+        <div class="spec-item"><span class="spec-label">Joint vel</span><span class="spec-val">6 &times; float32</span></div>
+        <div class="spec-item"><span class="spec-label">Camera</span><span class="spec-val">480x640x3 uint8</span></div>
+        <div class="spec-item"><span class="spec-label">Timestep</span><span class="spec-val">float32</span></div>
+      </div>
+      <div class="node-section-label" style="margin-top: 8px;">Action Space</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Target pos</span><span class="spec-val">6 &times; float32</span></div>
+        <div class="spec-item"><span class="spec-label">Chunk len</span><span class="spec-val">100 actions</span></div>
+      </div>
+      <div class="node-section-label" style="margin-top: 8px;">ACT Architecture</div>
+      <div class="signal-flow">
+        <span class="flow-step">obs</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">ResNet18</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">Transformer</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">action[100,6]</span>
+      </div>
+    </div>
+
+    <div class="node wide" id="node-tasks" style="right: 4%; top: 2100px;" tabindex="0" role="button" aria-label="DC Task Targets details">
       <div class="node-header">
         <div class="node-icon comms">&#x1f3af;</div>
         <div class="node-badge badge-both">Both</div>
       </div>
       <div class="node-title">DC Task Targets</div>
-      <div class="node-desc">Three demonstration scenarios showing autonomous DC floor operations. Each trained separately via imitation learning or hardcoded control.</div>
+      <div class="node-desc">Three arm demonstration scenarios + one escort scenario. Each task has specific success criteria and training requirements.</div>
       <div class="node-section-label">Arm Tasks</div>
+      <table class="pin-table">
+        <thead><tr><th>Task</th><th>Episodes</th><th>Success Metric</th></tr></thead>
+        <tbody>
+        <tr><td>Optic seating</td><td>50</td><td>SFP+ clicks in</td></tr>
+        <tr><td>Rack inspect</td><td>20</td><td>All ports scanned</td></tr>
+        <tr><td>Cable dress</td><td>30</td><td>Cable routed clean</td></tr>
+        </tbody>
+      </table>
+      <div class="node-section-label" style="margin-top: 8px;">Escort Task</div>
       <div class="signal-flow">
-        <span class="flow-step highlight">Optic Seating</span>
-        <span class="flow-arrow">|</span>
-        <span class="flow-step">Rack Inspect</span>
-        <span class="flow-arrow">|</span>
-        <span class="flow-step">Cable Dress</span>
-      </div>
-      <div class="node-section-label" style="margin-top: 10px;">Escort Task</div>
-      <div class="signal-flow">
-        <span class="flow-step highlight">Vendor Follow</span>
+        <span class="flow-step highlight">Vendor follow</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Aisle Navigate</span>
+        <span class="flow-step">Maintain 1-3m</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step">Obstacle Avoid</span>
+        <span class="flow-step">Avoid obstacles</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step success">Arrive</span>
       </div>
-      <div class="spec-grid" style="margin-top: 10px;">
-        <div class="spec-item"><span class="spec-label">Demo Length</span><span class="spec-val">2-3 min</span></div>
+      <div class="spec-grid" style="margin-top: 8px;">
+        <div class="spec-item"><span class="spec-label">Demo length</span><span class="spec-val">2-3 min</span></div>
         <div class="spec-item"><span class="spec-label">Format</span><span class="spec-val">Pre-recorded</span></div>
+        <div class="spec-item"><span class="spec-label">Plus</span><span class="spec-val">Live dashboard</span></div>
+        <div class="spec-item"><span class="spec-label">Date</span><span class="spec-val">Mar 23-26</span></div>
       </div>
     </div>
 
@@ -1034,61 +1426,108 @@
   const EASE_OUT_QUINT = 'cubic-bezier(0.22, 1, 0.36, 1)';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ── Node Orchestrated Reveal ──
-  const layers = [
-    { ids: ['node-arm-sys', 'node-escort-sys'], delay: 400 },
-    { ids: ['node-servo', 'node-detection', 'node-steering'], delay: 1000 },
-    { ids: ['node-arm-hw', 'node-escort-hw', 'node-safety'], delay: 1600 },
-    { ids: ['node-imitation', 'node-tasks'], delay: 2200 },
-  ];
-
+  // ── Node Reveal System ──
+  // Row 1 reveals on a short timer (above the fold).
+  // All other rows reveal via IntersectionObserver on scroll.
   const allNodes = document.querySelectorAll('.node');
 
-  // Set staggered transition-delay on inner elements before reveal
   function setInnerStagger(node) {
-    // Section labels: fade in just before their flow steps
     const labels = node.querySelectorAll('.node-section-label');
     labels.forEach((el, j) => {
-      el.style.transitionDelay = `${0.18 + j * 0.3}s`;
+      el.style.transitionDelay = `${0.18 + j * 0.25}s`;
     });
-    // Flow steps + arrows: cascade left to right
     const flowEls = node.querySelectorAll('.flow-step, .flow-arrow');
     flowEls.forEach((el, j) => {
-      el.style.transitionDelay = `${0.3 + j * 0.06}s`;
+      el.style.transitionDelay = `${0.3 + j * 0.05}s`;
     });
-    // Spec grid items: cascade top-left to bottom-right
     const specItems = node.querySelectorAll('.spec-item');
     specItems.forEach((el, j) => {
-      el.style.transitionDelay = `${0.2 + j * 0.08}s`;
+      el.style.transitionDelay = `${0.2 + j * 0.06}s`;
     });
-    // Pin table rows: cascade top to bottom
     const rows = node.querySelectorAll('.pin-table tbody tr');
     rows.forEach((el, j) => {
-      el.style.transitionDelay = `${0.35 + j * 0.07}s`;
+      el.style.transitionDelay = `${0.35 + j * 0.06}s`;
     });
   }
 
-  layers.forEach(layer => {
-    layer.ids.forEach((id, i) => {
-      const node = document.getElementById(id);
-      if (!node) return;
-      const revealTime = layer.delay + i * 120;
-      if (reducedMotion) { node.classList.add('revealed', 'floating'); return; }
-      setInnerStagger(node);
-      node.style.transition = `opacity 0.7s ${EASE_OUT_QUINT}, transform 0.7s ${EASE_OUT_QUINT}, filter 0.7s ${EASE_OUT_QUINT}`;
+  function revealNode(node, staggerIndex) {
+    if (node.classList.contains('revealed')) return;
+    const delay = staggerIndex * 120;
+    if (reducedMotion) {
+      node.classList.add('revealed', 'floating');
+      return;
+    }
+    setInnerStagger(node);
+    node.style.transition = `opacity 0.7s ${EASE_OUT_QUINT}, transform 0.7s ${EASE_OUT_QUINT}, filter 0.7s ${EASE_OUT_QUINT}`;
+    setTimeout(() => {
+      node.classList.add('revealed');
+      // Schedule connection draw-in check after node appears
       setTimeout(() => {
-        node.classList.add('revealed');
-        setTimeout(() => {
-          node.style.setProperty('--float-duration', (5 + Math.random() * 3) + 's');
-          node.style.setProperty('--float-delay', (Math.random() * 2) + 's');
-          node.style.transition = 'border-color 0.3s ease, box-shadow 0.4s ease, opacity 0.35s ease, filter 0.35s ease';
-          node.classList.add('floating');
-          // Clear transition-delay so hover/interactions aren't delayed
-          node.querySelectorAll('.node-section-label, .flow-step, .flow-arrow, .spec-item, .pin-table tr').forEach(el => {
-            el.style.transitionDelay = '';
+        if (typeof tryDrawConnections === 'function') tryDrawConnections();
+      }, 300);
+      setTimeout(() => {
+        node.style.setProperty('--float-duration', (5 + Math.random() * 3) + 's');
+        node.style.setProperty('--float-delay', (Math.random() * 2) + 's');
+        node.style.transition = 'border-color 0.3s ease, box-shadow 0.4s ease, opacity 0.35s ease, filter 0.35s ease';
+        node.classList.add('floating');
+        node.querySelectorAll('.node-section-label, .flow-step, .flow-arrow, .spec-item, .pin-table tr').forEach(el => {
+          el.style.transitionDelay = '';
+        });
+      }, 800);
+    }, delay);
+  }
+
+  // Row 1: reveal on short timer (always visible on load)
+  const row1Ids = ['node-arm-sys', 'node-escort-sys'];
+  row1Ids.forEach((id, i) => {
+    const node = document.getElementById(id);
+    if (!node) return;
+    setTimeout(() => revealNode(node, i), 400);
+  });
+
+  // Rows 2-5: reveal via IntersectionObserver
+  const scrollRows = [
+    ['node-servo', 'node-detection', 'node-steering'],
+    ['node-arm-hw', 'node-escort-hw', 'node-power'],
+    ['node-state', 'node-safety'],
+    ['node-imitation', 'node-obs', 'node-tasks'],
+  ];
+
+  // Track which rows have been revealed to avoid re-triggering
+  const revealedRows = new Set();
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const nodeId = entry.target.id;
+      // Find which row this node belongs to
+      scrollRows.forEach((row, rowIdx) => {
+        if (revealedRows.has(rowIdx)) return;
+        if (row.includes(nodeId)) {
+          revealedRows.add(rowIdx);
+          // Reveal all nodes in this row with stagger
+          row.forEach((id, i) => {
+            const node = document.getElementById(id);
+            if (node) revealNode(node, i);
           });
-        }, 800);
-      }, revealTime);
+          // Unobserve all nodes in this row
+          row.forEach(id => {
+            const node = document.getElementById(id);
+            if (node) observer.unobserve(node);
+          });
+        }
+      });
+    });
+  }, {
+    rootMargin: '0px 0px -80px 0px',  // trigger 80px before fully in view
+    threshold: 0.1
+  });
+
+  // Observe the first node in each scroll row as the trigger
+  scrollRows.forEach(row => {
+    row.forEach(id => {
+      const node = document.getElementById(id);
+      if (node) observer.observe(node);
     });
   });
 
@@ -1109,44 +1548,46 @@
   }
 
   const connections = [
-    // Arm system → servo control
-    { from: 'node-arm-sys', fromSide: 'bottom', to: 'node-servo', toSide: 'top', type: 'critical', drawAt: 1000 },
-    // Escort system → detection
-    { from: 'node-escort-sys', fromSide: 'bottom', to: 'node-detection', toSide: 'top', type: 'critical', drawAt: 1100 },
-    // Escort system → steering
-    { from: 'node-escort-sys', fromSide: 'bottom', to: 'node-steering', toSide: 'top', type: 'critical', drawAt: 1200 },
-    // Detection → steering (data flow)
-    { from: 'node-detection', fromSide: 'right', to: 'node-steering', toSide: 'left', type: 'data', drawAt: 1400 },
-    // Servo → arm hardware
-    { from: 'node-servo', fromSide: 'bottom', to: 'node-arm-hw', toSide: 'top', type: 'critical', drawAt: 1600 },
-    // Detection → escort hardware
-    { from: 'node-detection', fromSide: 'bottom', to: 'node-escort-hw', toSide: 'top', type: 'dep', drawAt: 1700 },
-    // Steering → escort hardware
-    { from: 'node-steering', fromSide: 'bottom', to: 'node-escort-hw', toSide: 'top', type: 'critical', drawAt: 1750 },
-    // Steering → safety
-    { from: 'node-steering', fromSide: 'bottom', to: 'node-safety', toSide: 'top', type: 'dep', drawAt: 1800 },
-    // Safety → escort hardware
-    { from: 'node-safety', fromSide: 'left', to: 'node-escort-hw', toSide: 'right', type: 'critical', drawAt: 1850 },
-    // Arm hardware → imitation learning
-    { from: 'node-arm-hw', fromSide: 'bottom', to: 'node-imitation', toSide: 'top', type: 'critical', drawAt: 2200 },
-    // Servo → imitation learning (data: joint positions)
-    { from: 'node-servo', fromSide: 'bottom', to: 'node-imitation', toSide: 'top', type: 'data', drawAt: 2300 },
-    // Imitation → tasks
-    { from: 'node-imitation', fromSide: 'right', to: 'node-tasks', toSide: 'left', type: 'critical', drawAt: 2500 },
-    // Escort hw → tasks
-    { from: 'node-escort-hw', fromSide: 'bottom', to: 'node-tasks', toSide: 'top', type: 'dep', drawAt: 2400 },
+    // Row 1 → Row 2
+    { from: 'node-arm-sys', fromSide: 'bottom', to: 'node-servo', toSide: 'top', type: 'critical' },
+    { from: 'node-escort-sys', fromSide: 'bottom', to: 'node-detection', toSide: 'top', type: 'critical' },
+    { from: 'node-escort-sys', fromSide: 'bottom', to: 'node-steering', toSide: 'top', type: 'critical' },
+    { from: 'node-detection', fromSide: 'right', to: 'node-steering', toSide: 'left', type: 'data' },
+    // Row 2 → Row 3
+    { from: 'node-servo', fromSide: 'bottom', to: 'node-arm-hw', toSide: 'top', type: 'critical' },
+    { from: 'node-detection', fromSide: 'bottom', to: 'node-escort-hw', toSide: 'top', type: 'dep' },
+    { from: 'node-steering', fromSide: 'bottom', to: 'node-escort-hw', toSide: 'top', type: 'critical' },
+    { from: 'node-escort-hw', fromSide: 'right', to: 'node-power', toSide: 'left', type: 'dep' },
+    { from: 'node-arm-hw', fromSide: 'right', to: 'node-power', toSide: 'left', type: 'dep' },
+    // Row 3 → Row 4
+    { from: 'node-escort-hw', fromSide: 'bottom', to: 'node-state', toSide: 'top', type: 'critical' },
+    { from: 'node-steering', fromSide: 'bottom', to: 'node-state', toSide: 'top', type: 'data' },
+    { from: 'node-escort-hw', fromSide: 'bottom', to: 'node-safety', toSide: 'top', type: 'critical' },
+    { from: 'node-state', fromSide: 'right', to: 'node-safety', toSide: 'left', type: 'data' },
+    // Row 3/4 → Row 5
+    { from: 'node-arm-hw', fromSide: 'bottom', to: 'node-imitation', toSide: 'top', type: 'critical' },
+    { from: 'node-servo', fromSide: 'bottom', to: 'node-obs', toSide: 'top', type: 'data' },
+    { from: 'node-obs', fromSide: 'left', to: 'node-imitation', toSide: 'right', type: 'data' },
+    { from: 'node-imitation', fromSide: 'right', to: 'node-tasks', toSide: 'left', type: 'critical' },
+    { from: 'node-state', fromSide: 'bottom', to: 'node-tasks', toSide: 'top', type: 'dep' },
   ];
 
   let drawnLines = [];
 
+  function isMobileLayout() {
+    return window.matchMedia('(max-width: 900px)').matches;
+  }
+
+  // Pre-create all SVG paths (hidden), draw them in when both endpoints are revealed
   function createConnections() {
+    if (isMobileLayout()) return;
     const svg = document.getElementById('svg-lines');
     const canvas = document.getElementById('canvas');
     svg.setAttribute('width', canvas.offsetWidth);
     svg.setAttribute('height', canvas.offsetHeight);
     svg.innerHTML = '';
     drawnLines = [];
-    connections.forEach(conn => {
+    connections.forEach((conn, idx) => {
       const from = getNodeEdge(conn.from, conn.fromSide);
       const to = getNodeEdge(conn.to, conn.toSide);
       if (!from.x && !from.y) return;
@@ -1166,8 +1607,22 @@
       const len = path.getTotalLength();
       path.style.strokeDasharray = len;
       path.style.strokeDashoffset = reducedMotion ? 0 : len;
-      drawnLines.push({ path, conn, len });
-      if (reducedMotion) { path.classList.add('drawn'); return; }
+      drawnLines.push({ path, conn, len, drawn: false });
+      if (reducedMotion) { path.classList.add('drawn'); }
+    });
+  }
+
+  // Called after each row reveals — check if any connections can now draw in
+  function tryDrawConnections() {
+    drawnLines.forEach(({ path, conn, len, drawn }, idx) => {
+      if (drawn || reducedMotion) return;
+      const fromNode = document.getElementById(conn.from);
+      const toNode = document.getElementById(conn.to);
+      if (!fromNode || !toNode) return;
+      if (!fromNode.classList.contains('revealed') || !toNode.classList.contains('revealed')) return;
+      drawnLines[idx].drawn = true;
+      // Stagger draw-in slightly per connection index within same reveal batch
+      const stagger = idx * 80;
       setTimeout(() => {
         path.classList.add('drawn');
         path.style.transition = `stroke-dashoffset 0.8s ${EASE_OUT_QUINT}, opacity 0.5s ease`;
@@ -1179,11 +1634,15 @@
             path.style.transition = 'none';
           }, 900);
         }
-      }, conn.drawAt);
+      }, stagger);
     });
   }
 
+  // Also check connections for reduced-motion (everything revealed immediately)
+  if (reducedMotion) setTimeout(tryDrawConnections, 100);
+
   function redrawConnections() {
+    if (isMobileLayout()) return;
     const svg = document.getElementById('svg-lines');
     const canvas = document.getElementById('canvas');
     svg.setAttribute('width', canvas.offsetWidth);
@@ -1210,14 +1669,17 @@
   const connectionMap = {
     'node-arm-sys': ['node-servo'],
     'node-escort-sys': ['node-detection', 'node-steering'],
-    'node-servo': ['node-arm-sys', 'node-arm-hw', 'node-imitation'],
+    'node-servo': ['node-arm-sys', 'node-arm-hw', 'node-obs'],
     'node-detection': ['node-escort-sys', 'node-steering', 'node-escort-hw'],
-    'node-steering': ['node-escort-sys', 'node-detection', 'node-escort-hw', 'node-safety'],
-    'node-arm-hw': ['node-servo', 'node-imitation'],
-    'node-escort-hw': ['node-detection', 'node-steering', 'node-safety', 'node-tasks'],
-    'node-safety': ['node-steering', 'node-escort-hw'],
-    'node-imitation': ['node-arm-hw', 'node-servo', 'node-tasks'],
-    'node-tasks': ['node-imitation', 'node-escort-hw'],
+    'node-steering': ['node-escort-sys', 'node-detection', 'node-escort-hw', 'node-state'],
+    'node-arm-hw': ['node-servo', 'node-power', 'node-imitation'],
+    'node-escort-hw': ['node-detection', 'node-steering', 'node-power', 'node-state', 'node-safety'],
+    'node-power': ['node-arm-hw', 'node-escort-hw'],
+    'node-state': ['node-escort-hw', 'node-steering', 'node-safety', 'node-tasks'],
+    'node-safety': ['node-escort-hw', 'node-state'],
+    'node-imitation': ['node-arm-hw', 'node-obs', 'node-tasks'],
+    'node-obs': ['node-servo', 'node-imitation'],
+    'node-tasks': ['node-imitation', 'node-state'],
   };
 
   allNodes.forEach(node => {
@@ -1247,34 +1709,56 @@
   // ── Click to Expand ──
   const expandedData = {
     'node-arm-sys': {
-      detail: 'The SO-101 uses 6 Feetech STS3215 servos in a serial chain. Each servo has a unique ID (1-6) and accepts position/speed commands via the SCS protocol. The LeRobot framework wraps this into a MotorsBus class that handles sync reads and writes across all joints simultaneously. Keyboard teleop is possible without a leader arm using Haoran Xu\'s approach.'
+      detail: `The SO-101 uses 6 Feetech STS3215 servos in a serial daisy chain. Each servo is addressed by ID (1-6) and accepts position/speed commands via SCS protocol. The LeRobot framework wraps this into a <strong>MotorsBus</strong> class for sync reads/writes. Keyboard teleop is possible without a leader arm using Haoran Xu's approach — Copilot Agent generated ~400 lines of teleop glue code in 5 min.
+<div class="code-block"><span class="kw">from</span> lerobot.common.robot_devices.motors.feetech <span class="kw">import</span> <span class="fn">FeetechMotorsBus</span>
+bus = <span class="fn">FeetechMotorsBus</span>(port=<span class="num">"/dev/ttyUSB0"</span>)
+bus.<span class="fn">connect</span>()
+positions = bus.<span class="fn">sync_read</span>(<span class="num">"Present_Position"</span>)  <span class="cmt"># [6] int32</span>
+bus.<span class="fn">sync_write</span>(<span class="num">"Goal_Position"</span>, targets)   <span class="cmt"># [6] int32</span></div>`
     },
     'node-escort-sys': {
-      detail: 'The escort bot runs a tight control loop: capture frame → run TFLite inference → extract person bounding box → compute steering error → set motor PWM. The whole loop runs at ~30Hz on a Pi 5. MobileNet SSD v2 was chosen for its balance of accuracy and speed on edge hardware. The person class (COCO ID 0) is the only detection target.'
+      detail: `The escort bot runs a tight control loop at ~30Hz: capture frame → resize → TFLite inference → NMS filter → extract person bbox → compute steering error → set motor PWM. MobileNet SSD v2 was chosen for its balance of accuracy (~22% mAP on COCO) and speed (~15ms on Pi 5 CPU). The person class (COCO ID 0) is the only detection target. The state machine manages transitions between IDLE, SEARCHING, TRACKING, and E_STOP states based on detection confidence and ultrasonic distance.
+<div class="code-block"><span class="cmt"># Core loop (simplified)</span>
+<span class="kw">while</span> running:
+    frame = camera.<span class="fn">capture_array</span>()
+    detections = model.<span class="fn">detect</span>(frame)
+    person = <span class="fn">best_person</span>(detections)
+    <span class="kw">if</span> person <span class="kw">and</span> distance > <span class="num">30</span>:
+        error = person.center_x - <span class="num">0.5</span>
+        <span class="fn">set_motors</span>(base + Kp*error, base - Kp*error)</div>`
     },
     'node-servo': {
-      detail: 'STS3215 servos use a half-duplex UART protocol (SCS). All 6 servos share one data line, each addressed by ID. sync_write() sends position targets to all joints in a single packet, reducing latency. Feedback (position, temperature, load) is read via sync_read(). The USB-to-TTL adapter bridges the host computer to the SCS bus at 1Mbps.'
+      detail: `STS3215 servos use a half-duplex UART protocol (SCS). All 6 share one data line, each addressed by ID. <strong>sync_write()</strong> sends position targets to all joints in a single packet (~2ms total), reducing latency vs individual writes. Feedback is read via <strong>sync_read()</strong> which returns position (4096 steps/rev = 0.088° resolution), temperature (°C), and load (% of max torque). The USB-to-TTL adapter (CH340) bridges host USB to SCS bus at 1Mbps. Servo IDs must be pre-configured — each shipped as ID 1 and needs reprogramming.`
     },
     'node-detection': {
-      detail: 'Pi Camera V3 connects via CSI ribbon cable. Frames are captured using picamera2, resized to 300x300 for MobileNet SSD input. The TFLite interpreter runs quantized INT8 inference. Output tensors give bounding boxes, class IDs, and confidence scores. Only detections with class=0 (person) and confidence > 0.5 are used for steering.'
+      detail: `Pi Camera V3 connects via CSI ribbon cable. Frames captured with <strong>picamera2</strong> at 640×480, then resized to 300×300 for model input. The TFLite interpreter runs quantized INT8 inference — model is 4.3MB (vs 17MB float32). Output tensors: <strong>boxes[10,4]</strong> (normalized coords), <strong>classes[10]</strong> (COCO IDs), <strong>scores[10]</strong> (confidence 0-1), <strong>count[1]</strong>. Non-maximum suppression filters overlapping boxes. Only class 0 (person) with score &gt; 0.5 passes. The center_x of the largest qualifying bbox drives the steering error signal.`
     },
     'node-steering': {
-      detail: 'Proportional control: error = (bbox_center_x / frame_width) - 0.5. Left motor speed = base_speed + Kp * error. Right motor speed = base_speed - Kp * error. A ±15% dead zone around center prevents oscillation. Speed is clamped between 0.3 (minimum to overcome friction) and 0.8 (safety limit). Forward speed scales with bbox height (closer person → slower approach).'
+      detail: `Proportional control: <code>error = (bbox_center_x / frame_width) - 0.5</code>. Left motor = base_speed + Kp × error. Right motor = base_speed - Kp × error. A ±15% dead zone around center prevents oscillation when person is roughly centered. PWM clamped between 0.3 (minimum to overcome static friction) and 0.8 (safety). Forward speed modulates with bbox height — as person gets closer (larger bbox), base speed decreases from 0.45 to 0.25 to prevent collision. Kp=0.8 for turning, Kp=0.6 for approach depth control.`
     },
     'node-arm-hw': {
-      detail: 'HiWonder SO-101 kit includes pre-assembled 3D printed links and all 6 STS3215 servos. Assembly is mechanical — bolt servos into joints, route cables through links, connect to SCS daisy chain. A 7.4V 3A power supply feeds the servo rail. A USB-to-TTL adapter (CH340 or similar) connects the SCS bus to the host computer.'
+      detail: `HiWonder SO-101 kit ($270) includes pre-assembled 3D-printed PLA links and all 6 STS3215 servos already mounted. Assembly: bolt servo horns into joints, route 3-wire cables (power + data + GND) through link channels, daisy-chain into SCS bus. 7.4V 3A wall PSU feeds the servo rail via barrel jack. CH340 USB-to-TTL adapter connects host computer to the SCS bus. Wrist camera is a standard USB 720p webcam mounted on the end effector for visual observation during training.`
     },
     'node-escort-hw': {
-      detail: 'Freenove 4WD chassis has 4 DC motors wired in 2 pairs (left/right). L298N H-bridge driver accepts GPIO digital (direction) and PWM (speed) signals. HC-SR04 ultrasonic sensor measures forward distance via GPIO trigger/echo. Pi Camera V3 connects via CSI. All powered by a 7.4V 2S LiPo with a 5V BEC for the Pi.'
+      detail: `Freenove 4WD: 4 DC motors wired in 2 pairs (left/right) to L298N H-bridge. L298N takes GPIO digital signals for direction (IN1-IN4) and hardware PWM (ENA/ENB) for speed. HC-SR04 uses GPIO trigger pin to send 10μs ultrasonic pulse, measures echo return time on separate GPIO pin. Pi Camera V3 connects via CSI-0 flat cable. Status LED on GPIO 4 indicates current state (solid=tracking, blink=searching, off=idle, fast-blink=e-stop). 7.4V 2S LiPo with UBEC 5V/3A regulator powers Pi.`
+    },
+    'node-power': {
+      detail: `<strong>Arm:</strong> Wall PSU provides unlimited runtime. 7.4V/3A handles 6 servos comfortably — each draws ~0.4A idle, ~1.5A stall. Total draw during normal operation: 1.2-1.8A. Host laptop powers USB-TTL adapter.<br><br><strong>Escort:</strong> 7.4V 2200mAh 2S LiPo. Motors draw ~1.2A during cruise (4 motors × 0.3A each). Pi 5 draws ~0.8A through 5V BEC. Total: ~2A continuous. Battery life: 2200mAh / 2A = ~1.1h theoretical, ~45min practical (motor spikes, voltage sag). Low-voltage cutoff at 6.4V (3.2V/cell) to protect LiPo.`
+    },
+    'node-state': {
+      detail: `Four states with deterministic transitions:<br><br><strong>IDLE:</strong> Motors off, LED off. Waits for person detection with confidence > 0.5. Enters SEARCHING if brief detection then loss.<br><strong>SEARCHING:</strong> Rotates in place slowly. 3-second timeout → IDLE. Person re-detected → TRACKING.<br><strong>TRACKING:</strong> Active following with proportional steering. Continuously checks ultrasonic distance and detection confidence. Lost person (conf < 0.3) → SEARCHING. Obstacle (< 30cm) → E_STOP.<br><strong>E_STOP:</strong> All motors immediately off, LED fast-blink. Stays until obstacle clears (> 50cm). Then returns to TRACKING if person still visible, else SEARCHING.`
     },
     'node-safety': {
-      detail: 'HC-SR04 sends ultrasonic ping (GPIO 25 trigger), measures echo return time (GPIO 24). Distance = time * 343m/s / 2. If distance < 30cm, motors immediately stop (emergency brake). If no person detected for 3 consecutive seconds, bot enters idle mode (motors off, LED blinks). Re-detection resumes following automatically.'
+      detail: `HC-SR04 measurement cycle: GPIO 25 sends 10μs HIGH pulse → sensor emits 8-cycle 40kHz ultrasonic burst → echo pin (GPIO 24) goes HIGH when burst returns → <code>distance = pulse_width × 343m/s / 2</code>. Measurement rate: ~20Hz (limited by 50ms echo timeout). Resolution: ±3mm. Range: 2-400cm. E-stop threshold at 30cm provides ~0.5s reaction time at max cruise speed. Resume threshold at 50cm creates 20cm hysteresis to prevent jitter at boundary. 3-second no-person timeout uses a frame counter (90 frames at 30fps).`
     },
     'node-imitation': {
-      detail: 'LeRobot framework pipeline: (1) record.py captures 50 episodes of human teleop performing optic seating task. Each episode stores joint angles + wrist camera frames at 30Hz as a HuggingFace dataset. (2) train.py runs ACT policy training — a transformer that predicts action chunks (sequences of joint targets) from observation history. Training takes ~2-4h on Apple MPS or NVIDIA GPU. (3) deploy.py loads the trained checkpoint and runs inference in a closed loop.'
+      detail: `<strong>ACT (Action Chunking with Transformers)</strong> predicts 100-step action sequences from observation history. Architecture: ResNet18 visual backbone → spatial softmax → concatenate with joint state → Transformer encoder (4 layers, 256 dim, 8 heads) → decoder outputs action chunk [100, 6]. Training uses L1 loss on predicted vs recorded actions. AdamW optimizer, lr=1e-5, batch=8. Each episode is ~15 seconds of teleoperation at 30Hz = 450 timesteps. 50 episodes × 450 steps = 22,500 training examples. Training on Apple MPS: ~2-4 hours for convergence.`
+    },
+    'node-obs': {
+      detail: `<strong>Observation at timestep t:</strong><br>• <code>joint_positions[6]</code>: float32, normalized to [0,1] range from servo position register (0-4095)<br>• <code>joint_velocities[6]</code>: float32, estimated from position delta / dt<br>• <code>camera_frame[480,640,3]</code>: uint8 RGB from wrist-mounted USB camera<br>• <code>timestep[1]</code>: float32, seconds since episode start<br><br><strong>Action at timestep t:</strong><br>• <code>target_positions[6]</code>: float32, goal position for each joint<br>• ACT predicts a chunk of 100 future actions, executes first, re-predicts (receding horizon).`
     },
     'node-tasks': {
-      detail: 'Optic seating: arm picks SFP+ transceiver from staging tray, aligns with switch port, seats it. Trained via 50 imitation episodes. Rack inspection: wrist camera scans rack face, CV detects unseated cables or amber LEDs. Vendor escort: bot follows a person through DC aisles at safe distance, stops at obstacles, resumes when clear.'
+      detail: `<strong>Optic seating (primary demo):</strong> Arm picks SFP+ transceiver from 3D-printed staging tray, aligns with switch port using wrist camera, seats it with controlled force. Success = audible click + green link LED. 50 episodes needed for reliable grasping.<br><br><strong>Rack inspection:</strong> Arm sweeps across rack face, wrist camera captures each port. OpenCV post-processing flags amber LEDs or unseated cables. 20 episodes for consistent sweep trajectory.<br><br><strong>Vendor escort:</strong> Bot follows person through DC aisles at 1-3m distance, maintaining line of sight. Stops at obstacles, resumes when clear. E-stop within 30cm. Success = complete aisle traversal without manual intervention.`
     },
   };
 
@@ -1318,11 +1802,19 @@
 
   document.addEventListener('click', () => closeExpand());
 
-  // ── Layer divider reveal ──
+  // ── Layer divider reveal (scroll-triggered) ──
+  const dividerObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        dividerObserver.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -40px 0px', threshold: 0 });
+
   document.querySelectorAll('.layer-divider').forEach(div => {
-    const showAt = parseInt(div.dataset.showAt || 800);
     if (reducedMotion) { div.classList.add('visible'); return; }
-    setTimeout(() => div.classList.add('visible'), showAt);
+    dividerObserver.observe(div);
   });
 
   // ── Legend dot pulse ──
@@ -1331,6 +1823,18 @@
       dot.style.animation = `legendDotPulse 3s ${i * 0.5}s ease-in-out infinite`;
     }
   });
+
+  // ── Scroll hint dismiss ──
+  const scrollHint = document.getElementById('scroll-hint');
+  if (scrollHint) {
+    let dismissed = false;
+    window.addEventListener('scroll', () => {
+      if (!dismissed && window.scrollY > 60) {
+        dismissed = true;
+        scrollHint.classList.add('hidden');
+      }
+    }, { passive: true });
+  }
 </script>
 
 </body>

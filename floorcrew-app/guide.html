@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FloorCrew — Dashboard Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #060a10;
+      --bg-card: #0c1118;
+      --bg-inner: #111a26;
+      --border: rgba(255,255,255,0.06);
+      --text: #e8ecf2;
+      --text-muted: #8a96a6;
+      --text-dim: #536678;
+      --accent: #4a9eff;
+      --accent-dim: rgba(74,158,255,0.1);
+      --green: #34d399;
+      --green-dim: rgba(52,211,153,0.1);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251,191,36,0.08);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.08);
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', -apple-system, system-ui, sans-serif;
+    }
+
+    html {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      scroll-behavior: smooth;
+    }
+
+    body { min-height: 100vh; }
+
+    /* ── Header ─────────────────────────────────── */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(74,158,255,0.15);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ── Nav dots ──────────────────────────────── */
+    .toc {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 24px 48px;
+      flex-wrap: wrap;
+    }
+
+    .toc a {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+      border-color: rgba(74,158,255,0.25);
+      background: var(--accent-dim);
+    }
+
+    /* ── Section ───────────────────────────────── */
+    .section {
+      max-width: 800px;
+      margin: 0 auto 64px;
+      padding: 0 24px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .section-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .section-num.green { background: var(--green-dim); color: var(--green); }
+    .section-num.blue { background: var(--accent-dim); color: var(--accent); }
+    .section-num.red { background: var(--red-dim); color: var(--red); }
+    .section-num.amber { background: var(--amber-dim); color: var(--amber); }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    /* ── Panel mockup ──────────────────────────── */
+    .panel-mock {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .panel-mock-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-mock-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .mock-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .mock-badge.green { background: var(--green-dim); color: var(--green); }
+    .mock-badge.blue { background: var(--accent-dim); color: var(--accent); }
+    .mock-badge.amber { background: var(--amber-dim); color: var(--amber); }
+    .mock-badge.dim { background: rgba(255,255,255,0.03); color: var(--text-dim); }
+
+    /* ── Callout rows ──────────────────────────── */
+    .callouts {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .callout {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 16px;
+      background: var(--bg-inner);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .callout-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-weight: 800;
+    }
+
+    .callout-icon.green { background: var(--green-dim); color: var(--green); }
+    .callout-icon.blue { background: var(--accent-dim); color: var(--accent); }
+    .callout-icon.amber { background: var(--amber-dim); color: var(--amber); }
+    .callout-icon.red { background: var(--red-dim); color: var(--red); }
+
+    .callout-body h4 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .callout-body p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .callout-body code {
+      font-family: var(--mono);
+      font-size: 11px;
+      background: rgba(74,158,255,0.08);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* ── What it means blocks ──────────────────── */
+    .meaning-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .meaning-cell {
+      padding: 14px;
+      background: var(--bg-inner);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .meaning-cell .label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .meaning-cell .value {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .meaning-cell .explain {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* ── Status legend ─────────────────────────── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: var(--bg-inner);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* ── Tip box ───────────────────────────────── */
+    .tip {
+      background: var(--accent-dim);
+      border: 1px solid rgba(74,158,255,0.12);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-top: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .tip strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── Footer ────────────────────────────────── */
+    .guide-footer {
+      text-align: center;
+      padding: 48px 24px 40px;
+      border-top: 1px solid var(--border);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .guide-footer a {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      border: 1px solid rgba(74,158,255,0.25);
+      background: var(--accent-dim);
+      transition: all 0.2s;
+    }
+
+    .guide-footer a:hover {
+      background: rgba(74,158,255,0.15);
+      border-color: rgba(74,158,255,0.4);
+    }
+
+    .guide-footer p {
+      margin-top: 20px;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    /* ── Responsive ────────────────────────────── */
+    @media (max-width: 640px) {
+      .hero { padding: 48px 20px 40px; }
+      .hero h1 { font-size: 26px; }
+      .meaning-grid { grid-template-columns: 1fr; }
+      .section { margin-bottom: 48px; }
+    }
+
+    /* ── Animations ────────────────────────────── */
+    .section {
+      opacity: 0;
+      transform: translateY(16px);
+      animation: sectionIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .section:nth-child(1) { animation-delay: 0.1s; }
+    .section:nth-child(2) { animation-delay: 0.15s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+    .section:nth-child(4) { animation-delay: 0.25s; }
+    .section:nth-child(5) { animation-delay: 0.3s; }
+    .section:nth-child(6) { animation-delay: 0.35s; }
+    .section:nth-child(7) { animation-delay: 0.4s; }
+
+    @keyframes sectionIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero {
+      opacity: 0;
+      animation: sectionIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+      .section, .hero { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-badge">Visual Guide</div>
+    <h1>How to Read the FloorCrew Dashboard</h1>
+    <p>A plain-English walkthrough of every panel, badge, number, and button. No jargon. If you can read a car dashboard, you can read this.</p>
+  </div>
+
+  <nav class="toc">
+    <a href="#nav">Top Bar</a>
+    <a href="#arm">Arm Panel</a>
+    <a href="#escort">Escort Bot</a>
+    <a href="#cameras">Cameras</a>
+    <a href="#scans">Scan Log</a>
+    <a href="#training">Training</a>
+    <a href="#modes">Modes</a>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 0: TOP BAR -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="nav">
+    <div class="section-header">
+      <div class="section-num blue">0</div>
+      <div>
+        <div class="section-title">The Top Bar</div>
+        <div class="section-subtitle">Connection status + clock</div>
+      </div>
+    </div>
+
+    <div class="panel-mock">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="panel-dot" style="background:var(--green)"></div>
+            <span style="font-family:var(--mono);font-size:13px;font-weight:800;letter-spacing:0.06em">FloorCrew</span>
+          </div>
+          <span style="color:var(--text-dim)">|</span>
+          <span class="mock-badge blue">DEMO MODE</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="font-family:var(--mono);font-size:12px;color:var(--text-dim)">14:35:22</span>
+          <span class="mock-badge green">Connected</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon green">+</div>
+        <div class="callout-body">
+          <h4>Green dot = alive</h4>
+          <p>The green circle next to "FloorCrew" means the dashboard is receiving data. If it turns red, something disconnected.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon blue">M</div>
+        <div class="callout-body">
+          <h4>Mode badge</h4>
+          <p><code>DEMO MODE</code> = running simulated data (no real robots connected). <code>MOCK DATA</code> = server running but no hardware. <code>LIVE HARDWARE</code> = real robots connected.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon green">C</div>
+        <div class="callout-body">
+          <h4>Connection badge (top right)</h4>
+          <p><code>Connected</code> = getting live data. <code>Demo</code> = simulated. <code>Disconnected</code> = nothing coming in.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 1: ARM STATUS -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="arm">
+    <div class="section-header">
+      <div class="section-num green">1</div>
+      <div>
+        <div class="section-title">SO-ARM101 Panel</div>
+        <div class="section-subtitle">The robot arm that seats optics into switches</div>
+      </div>
+    </div>
+
+    <div class="panel-mock">
+      <div class="panel-mock-header">
+        <div class="panel-mock-title">
+          <div class="panel-dot" style="background:var(--green)"></div>
+          SO-ARM101
+        </div>
+        <div class="mock-badge blue">Active</div>
+      </div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">Transiting</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:20px">Carrying optic to switch</div>
+      <div class="meaning-grid">
+        <div class="meaning-cell">
+          <div class="label">Base</div>
+          <div class="value">-24.3</div>
+          <div class="explain">Rotation angle in degrees</div>
+        </div>
+        <div class="meaning-cell">
+          <div class="label">Shoulder</div>
+          <div class="value">-1.8</div>
+          <div class="explain">Up/down tilt of upper arm</div>
+        </div>
+        <div class="meaning-cell">
+          <div class="label">Torque</div>
+          <div class="value" style="color:var(--text)">12.4</div>
+          <div class="explain">How hard the motors are working</div>
+        </div>
+        <div class="meaning-cell">
+          <div class="label">Accuracy</div>
+          <div class="value" style="color:var(--green)">+/-0.8mm</div>
+          <div class="explain">How precise the placement is</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon green">P</div>
+        <div class="callout-body">
+          <h4>Phase (big text at top)</h4>
+          <p>What the arm is doing right now. Cycles through: <strong>Idle</strong> (waiting) > <strong>Reaching</strong> (moving to tray) > <strong>Gripping</strong> (picking up optic) > <strong>Transiting</strong> (carrying it) > <strong>Inserting</strong> (seating into port) > <strong>Releasing</strong> > <strong>Retracting</strong> (going home). One full cycle takes ~12 seconds.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon blue">J</div>
+        <div class="callout-body">
+          <h4>Joint angles (6 boxes)</h4>
+          <p>Each box is one motor in the arm. The number = rotation angle in degrees. They flash blue when they change. You don't need to understand the exact numbers — just know that movement = the arm is working.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon amber">G</div>
+        <div class="callout-body">
+          <h4>Gripper indicator</h4>
+          <p>Shows whether the claw is <strong>Open</strong>, <strong>Closed</strong>, or <strong>Holding Optic</strong>. When it says "Holding Optic" the arm has grabbed a transceiver and is carrying it.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Badge colors:</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Ready = idle, waiting</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Active = moving</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div> Inserting = critical step</div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Bottom stats:</strong> Torque = motor effort (higher = heavier load). Temp = motor temperature in Celsius (normal: 36-42). Accuracy = placement precision in millimeters. Cycles = total optics seated this session.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 2: ESCORT BOT -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="escort">
+    <div class="section-header">
+      <div class="section-num blue">2</div>
+      <div>
+        <div class="section-title">Escort Bot Panel</div>
+        <div class="section-subtitle">The robot that follows vendors and scans racks</div>
+      </div>
+    </div>
+
+    <div class="panel-mock">
+      <div class="panel-mock-header">
+        <div class="panel-mock-title">
+          <div class="panel-dot" style="background:var(--green)"></div>
+          Escort Bot
+        </div>
+        <div class="mock-badge amber">Scanning</div>
+      </div>
+      <div style="font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:4px">Scanning</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Scanning rack nodes top to bottom</div>
+      <div style="background:var(--bg-inner);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700">TechCo Field Eng.</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">INC-40821</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--amber);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);letter-spacing:0.06em">AUTHORIZED: CAB-B3 / RU-24 ONLY</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">
+        <span>Rack Scan</span><span>67%</span>
+      </div>
+      <div style="height:4px;background:rgba(255,255,255,0.04);border-radius:2px;overflow:hidden">
+        <div style="width:67%;height:100%;background:var(--green);border-radius:2px"></div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon blue">P</div>
+        <div class="callout-body">
+          <h4>Phase (big text)</h4>
+          <p>What the bot is doing: <strong>Idle</strong> (charging) > <strong>Dispatched</strong> (heading to vendor) > <strong>Escorting</strong> (walking with them) > <strong>Arrived</strong> (at rack) > <strong>Scanning</strong> (checking nodes) > <strong>Monitoring</strong> (watching for unauthorized touches) > <strong>Verified</strong> (all clear) > <strong>Returning</strong> (going back). Full cycle: ~30 seconds in demo.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon amber">V</div>
+        <div class="callout-body">
+          <h4>Vendor card</h4>
+          <p>Shows who the bot is escorting: vendor name, ticket number, and which rack + rack unit they're authorized to touch. Appears when a vendor is assigned, disappears when the escort is done.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon green">S</div>
+        <div class="callout-body">
+          <h4>Scan progress bar</h4>
+          <p>Green bar filling up = the bot is scanning each node in the rack from top to bottom. 100% = scan complete. The bar glows while actively scanning.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon red">!</div>
+        <div class="callout-body">
+          <h4>Alert banner (amber/green)</h4>
+          <p>Pops up when the bot detects someone touching an unauthorized rack unit. <strong>Amber</strong> = "checking..." (contact detected, verifying). <strong>Green</strong> = "cleared" (false alarm, no state change). A real alert that stays amber = problem.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Bottom stats:</strong> Location = where the bot is (aisle name or rack ID). Battery = charge level (starts at 95%, drains slowly). Nodes = how many rack units have been scanned so far.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 3: CAMERA FEEDS -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="cameras">
+    <div class="section-header">
+      <div class="section-num red">3</div>
+      <div>
+        <div class="section-title">Camera Feeds</div>
+        <div class="section-subtitle">Live video from both robots</div>
+      </div>
+    </div>
+
+    <div class="panel-mock">
+      <div class="panel-mock-header">
+        <div class="panel-mock-title">
+          <div class="panel-dot" style="background:var(--red)"></div>
+          Camera Feeds
+        </div>
+        <div class="mock-badge dim">2 Sources</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#000;border-radius:6px;height:100px;display:flex;align-items:center;justify-content:center;position:relative">
+          <span style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-transform:uppercase;position:absolute;top:8px;left:10px">Wrist Cam</span>
+          <span style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.1);letter-spacing:0.1em">NO SIGNAL</span>
+        </div>
+        <div style="background:#000;border-radius:6px;height:100px;display:flex;align-items:center;justify-content:center;position:relative">
+          <span style="font-family:var(--mono);font-size:8px;color:rgba(255,255,255,0.15);letter-spacing:0.1em;text-transform:uppercase;position:absolute;top:8px;left:10px">Escort Cam</span>
+          <span style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,0.1);letter-spacing:0.1em">NO SIGNAL</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon red">W</div>
+        <div class="callout-body">
+          <h4>Wrist Cam (left)</h4>
+          <p>Mounted on the SO-101 arm's wrist. Shows what the arm sees when picking up and placing optics. Used for visual inspection during insertion.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon red">E</div>
+        <div class="callout-body">
+          <h4>Escort Cam (right)</h4>
+          <p>Mounted on the escort bot. Shows the person it's following and the rack it's scanning. This is how the bot detects people and reads rack state.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>In demo mode:</strong> Cameras show "No Signal" with a static animation. When real hardware is connected, these show live video with bounding boxes around detected objects. The red "LIVE" dot in the corner pulses when the feed is active.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 4: SCAN LOG -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="scans">
+    <div class="section-header">
+      <div class="section-num amber">4</div>
+      <div>
+        <div class="section-title">Rack Scan Log</div>
+        <div class="section-subtitle">History of every vendor visit and rack scan</div>
+      </div>
+    </div>
+
+    <div class="panel-mock">
+      <div class="panel-mock-header">
+        <div class="panel-mock-title">
+          <div class="panel-dot" style="background:var(--amber)"></div>
+          Rack Scan Log
+        </div>
+        <div class="mock-badge dim">3 Scans</div>
+      </div>
+      <div style="font-size:12px">
+        <div style="display:grid;grid-template-columns:70px 1fr 70px 60px;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">
+          <span>Time</span><span>Vendor</span><span>Result</span><span>Flags</span>
+        </div>
+        <div style="display:grid;grid-template-columns:70px 1fr 70px 60px;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.02);align-items:center">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">11:35</span>
+          <span style="font-weight:600">TechCo Field Eng.</span>
+          <span><span class="mock-badge green" style="font-size:8px">Clean</span></span>
+          <span style="font-size:10px;color:var(--amber)">1</span>
+        </div>
+        <div style="display:grid;grid-template-columns:70px 1fr 70px 60px;gap:12px;padding:12px 0;align-items:center">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim)">Yesterday</span>
+          <span style="font-weight:600">DataLink Corp.</span>
+          <span><span class="mock-badge" style="font-size:8px;background:var(--red-dim);color:var(--red)">Flagged</span></span>
+          <span style="font-size:10px;color:var(--red)">2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon green">C</div>
+        <div class="callout-body">
+          <h4>Clean = all good</h4>
+          <p>The vendor only touched what they were authorized to touch. Rack state before and after matches. No concerns.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon red">F</div>
+        <div class="callout-body">
+          <h4>Flagged = something changed</h4>
+          <p>The bot detected unauthorized contact or unexpected state changes. The "Flags" column shows exactly what happened (e.g., "RU-29 unauthorized contact" or "RU-30 optic swapped").</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon blue">D</div>
+        <div class="callout-body">
+          <h4>Other columns</h4>
+          <p><strong>Rack</strong> = which cabinet. <strong>Auth RU</strong> = which rack unit the vendor was allowed to touch. <strong>Nodes</strong> = how many units were scanned. <strong>Duration</strong> = how long the whole escort took.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 5: TRAINING CONSOLE -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="training">
+    <div class="section-header">
+      <div class="section-num blue">5</div>
+      <div>
+        <div class="section-title">Training Console</div>
+        <div class="section-subtitle">How the arm learns new tasks</div>
+      </div>
+    </div>
+
+    <div class="panel-mock">
+      <div class="panel-mock-header">
+        <div class="panel-mock-title">
+          <div class="panel-dot" style="background:var(--accent)"></div>
+          Training Console
+        </div>
+        <div class="mock-badge green">Recording</div>
+      </div>
+      <div style="font-size:24px;font-weight:800;margin-bottom:4px">Recording</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px">Recording teleoperation episodes</div>
+      <div class="meaning-grid">
+        <div class="meaning-cell">
+          <div class="label">Episodes</div>
+          <div class="value">23</div>
+          <div class="explain">Demonstrations recorded so far</div>
+        </div>
+        <div class="meaning-cell">
+          <div class="label">Loss</div>
+          <div class="value">0.1280</div>
+          <div class="explain">Lower = model is learning better</div>
+        </div>
+        <div class="meaning-cell">
+          <div class="label">GPU</div>
+          <div class="value" style="font-size:13px">--</div>
+          <div class="explain">Shows GPU when training runs</div>
+        </div>
+        <div class="meaning-cell">
+          <div class="label">Cost</div>
+          <div class="value" style="color:var(--green)">$2.76</div>
+          <div class="explain">Cloud compute cost so far</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon green">1</div>
+        <div class="callout-body">
+          <h4>Start Recording</h4>
+          <p>A human demonstrates the task (e.g., seat an optic) while the arm mirrors and records the movement. Each demo = 1 episode. We need ~50 episodes for the arm to learn.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon amber">2</div>
+        <div class="callout-body">
+          <h4>Upload Data</h4>
+          <p>Sends all recorded episodes to the cloud for training. Progress bar shows upload status.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon blue">3</div>
+        <div class="callout-body">
+          <h4>Train Model</h4>
+          <p>Starts training on a cloud GPU (A100). The model watches all 50 demos and learns the pattern. Takes 2-4 hours, runs unattended. The "Loss" number goes down as it gets better.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon blue">4</div>
+        <div class="callout-body">
+          <h4>Deploy</h4>
+          <p>Downloads the trained model and loads it onto the arm. After this, the arm can do the task autonomously — no human needed.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>Button behavior:</strong> During recording, only the Record button is active (pulsing green). During training, only the Train button is active. Other buttons are dimmed out. This prevents you from accidentally starting two things at once.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SECTION 6: MODES -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="section" id="modes">
+    <div class="section-header">
+      <div class="section-num amber">?</div>
+      <div>
+        <div class="section-title">Dashboard Modes</div>
+        <div class="section-subtitle">What the different connection states mean</div>
+      </div>
+    </div>
+
+    <div class="callouts">
+      <div class="callout">
+        <div class="callout-icon blue">D</div>
+        <div class="callout-body">
+          <h4>Demo Mode (what you see now)</h4>
+          <p>No server, no robots. The dashboard generates fake data so you can see how everything looks and moves. Opens from a file — just double-click <code>index.html</code>. All panels animate with realistic simulated cycles.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon amber">M</div>
+        <div class="callout-body">
+          <h4>Mock Mode (server, no hardware)</h4>
+          <p>The Python server is running (<code>uvicorn server:app</code>) but no robots are plugged in. Server generates the same simulated data but over a real WebSocket. Good for testing the full stack.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon green">L</div>
+        <div class="callout-body">
+          <h4>Live Hardware Mode</h4>
+          <p>Real robots connected via USB. The arm sends actual joint angles, the escort bot sends real camera frames and sensor readings. This is the goal for demo day.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip">
+      <strong>How to tell which mode you're in:</strong> Look at the top bar. "DEMO MODE" (blue) = standalone. "MOCK DATA" (gray) = server without hardware. "LIVE HARDWARE" (green) = the real thing.
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <div class="guide-footer">
+    <a href="index.html">Open Dashboard</a>
+    <p>FloorCrew &middot; CoreWeave Hackathon 2026</p>
+  </div>
+
+</body>
+</html>
