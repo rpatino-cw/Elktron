@@ -40,8 +40,10 @@ data/
 outputs/
 recordings/
 
-# Blender backups
+# Blender backups + exports
 *.blend1
+*.mtl
+*.obj
 
 # Logs
 *.log

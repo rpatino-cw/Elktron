@@ -42,8 +42,8 @@
     body::after {
       content: '';
       position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
-      background-size: 256px;
+      background-image: url("data:image/svg+xml,%3Csvg width='128' height='128' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='128' height='128' fill='%23808080' opacity='0.015'/%3E%3C/svg%3E");
+      background-size: 128px;
       pointer-events: none; z-index: 9990;
     }
 
@@ -283,7 +283,7 @@
     }
 
     /* ─── Sections ─── */
-    .section { margin-bottom: 4rem; }
+    .section { margin-bottom: 4rem; content-visibility: auto; contain-intrinsic-size: auto 600px; }
 
     .section-label {
       font-size: 0.62rem;
@@ -609,8 +609,10 @@
       border-radius: 50%;
       pointer-events: none;
       z-index: -1;
-      filter: blur(80px);
-      opacity: 0.4;
+      filter: blur(60px);
+      opacity: 0.35;
+      will-change: transform;
+      contain: strict;
     }
 
     .orb-1 {
@@ -690,7 +692,7 @@
     <h1>SO-101 Robot Arm — Project Scope</h1>
     <p>Open-source 6-DOF robot arm trained via imitation learning to perform repetitive DC floor tasks autonomously. A DCT physically demonstrates the task, the arm learns it, then executes it on its own.</p>
     <div class="meta-row">
-      <span><strong>Status:</strong> Code scaffolded, hardware not ordered</span>
+      <span><strong>Status:</strong> Code scaffolded, hardware ordered 3/9 (ETA ~3/18)</span>
       <span><strong>Track:</strong> Build with Velocity</span>
       <span><strong>Owner:</strong> Romeo Patino</span>
       <span><strong>Path:</strong> hackathon/robotics-site/so101/</span>
@@ -728,7 +730,7 @@
         </div>
       </div>
       <div class="hero-img-wrap">
-        <img src="../so101-real.png" alt="SO-101 Robot Arm" />
+        <img src="../so101-real.png" alt="SO-101 Robot Arm" width="440" height="320" />
         <span class="img-badge">SO-ARM101</span>
       </div>
     </div>
@@ -955,7 +957,7 @@ ls /dev/cu.usbmodem*     <span class="cm"># Mac</span>
     <table>
       <thead><tr><th>Risk</th><th>Severity</th><th>Mitigation</th></tr></thead>
       <tbody>
-        <tr><td>Hardware doesn't arrive in time</td><td><span class="tag tag-red">High</span></td><td>Order ASAP. HiWonder ships US warehouse (2-5 days).</td></tr>
+        <tr><td>Hardware doesn't arrive in time</td><td><span class="tag tag-amber">Medium</span></td><td>Ordered 3/9. HiWonder ships from China — ETA ~3/18. 5 days buffer before hackathon.</td></tr>
         <tr><td>Assembly takes longer than expected</td><td><span class="tag tag-amber">Medium</span></td><td>Budget 3 hours. Or buy Starter kit ($390, pre-assembled).</td></tr>
         <tr><td>50 demos isn't enough</td><td><span class="tag tag-amber">Medium</span></td><td>ACT works with 50 for simple manipulation. Record more if needed.</td></tr>
         <tr><td>Training takes too long</td><td><span class="tag tag-amber">Medium</span></td><td>Google Colab free T4. Or train overnight on Mac.</td></tr>
@@ -972,7 +974,7 @@ ls /dev/cu.usbmodem*     <span class="cm"># Mac</span>
     <div class="timeline">
       <div class="timeline-item done"><div class="timeline-title">Code scaffolded</div><div class="timeline-meta">record.py, train.py, deploy.py, install.sh, HARDWARE.md</div></div>
       <div class="timeline-item done"><div class="timeline-title">Architecture designed</div><div class="timeline-meta">Leader-follower pipeline, ACT policy, task registry</div></div>
-      <div class="timeline-item"><div class="timeline-title">Order SO-ARM101 kit</div><div class="timeline-meta">HiWonder DIY ($270) or Starter ($390) — order this week</div></div>
+      <div class="timeline-item done"><div class="timeline-title">Order SO-ARM101 kit</div><div class="timeline-meta">HiWonder DIY ($270) — ordered 3/9, ETA ~3/18</div></div>
       <div class="timeline-item"><div class="timeline-title">Assemble arms</div><div class="timeline-meta">Follow HiWonder guide — ~2-3 hrs</div></div>
       <div class="timeline-item"><div class="timeline-title">Install LeRobot + calibrate</div><div class="timeline-meta">Run install.sh, connect USB-C, calibrate servos — ~1 hr</div></div>
       <div class="timeline-item"><div class="timeline-title">Record 50 demonstrations</div><div class="timeline-meta">~30 sec per demo, plus setup = ~1-2 hrs</div></div>
@@ -1017,7 +1019,7 @@ ls /dev/cu.usbmodem*     <span class="cm"># Mac</span>
 
 <footer>
   <p>FloorCrew SO-101 Arm — CoreWeave Hackathon 2026</p>
-  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; DCT @ EWR01</p>
+  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; DCT @ EVI01</p>
 </footer>
 
 <script>
@@ -1052,14 +1054,21 @@ ls /dev/cu.usbmodem*     <span class="cm"># Mac</span>
 
   document.querySelectorAll('.timeline').forEach(t => tlObs.observe(t));
 
-  // Parallax on hero zone
+  // Parallax on hero zone (rAF-throttled)
+  let ticking = false;
+  const zone = document.querySelector('.hero-zone');
+  const img = document.querySelector('.hero-img-wrap');
   window.addEventListener('scroll', () => {
-    const zone = document.querySelector('.hero-zone');
-    const img = document.querySelector('.hero-img-wrap');
-    if (zone && img) {
-      const y = window.scrollY;
-      zone.style.backgroundPosition = `center ${y * 0.3}px`;
-      img.style.transform = `rotateY(-4deg) rotateX(2deg) translateY(${-y * 0.08}px)`;
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        if (zone && img) {
+          const y = window.scrollY;
+          zone.style.backgroundPosition = `center ${y * 0.3}px`;
+          img.style.transform = `rotateY(-4deg) rotateX(2deg) translateY(${-y * 0.08}px)`;
+        }
+        ticking = false;
+      });
+      ticking = true;
     }
   }, { passive: true });
 </script>

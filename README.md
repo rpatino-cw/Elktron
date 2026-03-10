@@ -1,57 +1,88 @@
-# CoreWeave Hackathon 2026 — More. Better. Faster.
+# FloorCrew — Two Robots for the DC Floor
+
+> CoreWeave Hackathon 2026 · "More. Better. Faster." · Build with Velocity
+
+## What Is This
+
+Two robots that automate repetitive data center floor tasks:
+
+1. **SO-101 Robot Arm** — Learns DC tasks (optic seating, rack inspection) via imitation learning. You demonstrate, it repeats autonomously.
+2. **Escort Bot** — Follows vendors through the DC floor using computer vision. Monitors rack interactions, logs everything.
+3. **FloorCrew Dashboard** — Unified control panel showing arm status, escort tracking, camera feeds, and scan logs.
+
+## Why
+
+DCTs spend hours on tasks that are mechanical, repetitive, and physically demanding. Vendor escorts tie up a technician who could be doing real work. FloorCrew puts robots on those tasks so humans focus on what requires judgment.
+
+## Tech Stack
+
+| Component | Stack |
+|-----------|-------|
+| SO-101 Arm | LeRobot (HuggingFace) · ACT policy · Feetech servos · Python |
+| Escort Bot | Raspberry Pi 5 · TFLite MobileNet SSD v2 · gpiozero · 4WD chassis |
+| Dashboard | FastAPI · WebSocket · Vanilla JS · CSS Grid |
+
+## Repo Structure
+
+```
+├── robotics-site/          # SO-101 arm — landing page + code
+│   └── so101/              # record.py, train.py, deploy.py, install.sh
+├── escort-bot/             # Escort bot — main.py, wiring, setup
+├── floorcrew-app/          # Dashboard — FastAPI + WebSocket UI
+│   └── api/server.py
+├── CHECKLIST-SO101.md       # Full build checklist (10 phases, ~150 items)
+├── CHECKLIST-ESCORT-BOT.md  # Full build checklist (11 phases, ~160 items)
+├── PROGRESS.md              # What's done, what's next, hardware status
+├── PARTS-LIST.md            # Hardware shopping list + costs
+├── VELOCITY.md              # Engineering philosophy
+├── WORKFLOW.md              # Day-of timeline
+└── TEAM.md                  # Team info
+```
 
 ## Key Dates
+
 | Date | Event |
 |------|-------|
-| **March 12** | Project submissions close — SIGN UP BY THIS DATE |
-| **March 23–25** | Hackathon |
-| **March 26** | Demo Day (11am–2pm PT / 2pm–5pm ET) |
-| **April 3** | Winners announced |
+| **March 12** | Sign-up deadline |
+| **March 23–25** | Hackathon build days |
+| **March 26** | Demo Day (2–5pm ET) |
 
-## Deliverable
-**2–3 minute pre-recorded demo** (not live!)
-- Optional: slide deck with problem/impact statement
-- Optional: GitHub repo
+## Getting Started
 
-## Themes (Judging Categories)
+**Escort Bot (Pi 5):**
+```bash
+cd escort-bot
+chmod +x install.sh && ./install.sh
+# Wire motors + ultrasonic per WIRING.md
+python3 main.py
+```
 
-### 1. Build with Velocity – Accelerate with AI
-- **Sponsors:** Chen Goldberg & Sachin Jain
-- How do we use AI to unblock/accelerate from software dev to DC construction?
-- Examples: agentic coding, MVPs, supply chain automation, DC builds
+**SO-101 Arm (Mac/Linux):**
+```bash
+cd robotics-site/so101
+chmod +x install.sh && ./install.sh
+# Assemble arms per HARDWARE.md
+python record.py    # Record demos
+python train.py     # Train policy
+python deploy.py    # Run autonomous
+```
 
-### 2. Productivity at Scale – Multiply Our Output
-- **Sponsors:** Michelle O'Rourke & Sandy Venugopal
-- What would it take to make workflows 10x faster?
-- Examples: onboarding, communications, compliance, documentation, knowledge sharing
+## Hardware Cost
 
-### 3. Win the Customer – Speed to Production
-- **Sponsors:** Jean English, Jon Jones & Corey Sanders
-- How do we help customers/developers get to production faster?
-- Examples: new products, demos, customer support, personalized content
+| Item | Cost | Status |
+|------|------|--------|
+| Freenove 4WD Kit | $65 | Ordered 3/9 |
+| HiWonder SO-ARM101 | $270 | Ordered 3/9 |
+| Batteries + power bank | $48 | Ordered 3/9 |
+| Webcam | $25 | Ordered 3/9 |
+| **Total** | **$408** | All ordered |
 
-## Awards
-- **5,000 AwardCo Points** per winning team (per theme)
-- **Hackathon jackets** for each winning team member
-- **Bonus:** People's Choice | Cross Functional Team | Most Company OKRs (also jackets)
+## Demo Story (3 minutes)
 
-## Approved Tools
-**Developers:** Claude, Cursor, Junie Labs, GitHub Copilot
-**Non-devs:** ChatGPT, Gemini, Glean Agents, ZoomAI, SlackAI, NotebookLLM, Workato
+1. **Arm** (60s) — SO-101 picks optic from tray, seats it into switch port. Dashboard shows live joint angles.
+2. **Escort** (60s) — Bot follows "vendor" through aisle, stops at rack, monitors work. Dashboard shows tracking.
+3. **Review** (30s) — Scan log shows vendor visits, flagged events, clean/flagged status.
 
-## NOT Approved
-- Okta access
-- **Slack API Keys** (use Slack Sandboxes instead for any Slack integrations)
+## Team
 
-## Key Judging Insight
-> "Rather than focusing solely on net-new features, this hackathon emphasizes **strengthening and optimizing existing processes** — reducing friction, increasing clarity, unlocking performance gains."
-
-Fixing real pain > building shiny new things.
-
-## My Plan
-- [ ] Pick a track
-- [ ] Form a cross-functional team (engineer + someone else = bonus category eligibility)
-- [ ] Define project idea from a real pain point
-- [ ] Sign up by **March 12** in #more-faster-better-2026
-- [ ] Build during March 23–25
-- [ ] Record 2–3 min demo video, submit by March 26
+See `TEAM.md`

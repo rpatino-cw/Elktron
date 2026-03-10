@@ -1,5 +1,0 @@
-.env
-*.db
-state.db
-reports/
-data/

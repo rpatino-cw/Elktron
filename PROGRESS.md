@@ -18,6 +18,28 @@
 
 ## What's Been Done
 
+### Session: 2026-03-09 (late night)
+
+**Parts List Finalized + Verified**
+- Created `PARTS-LIST.md` — detailed BOM with Amazon links, checkboxes, wiring diagrams, cost summary
+- Verified Freenove 4WD kit (FNK0043) includes: integrated motor driver (Smart Car Board PCB), HC-SR04 ultrasonic + servo mount, Pi Camera (CSI), 2x servos for pan-tilt, IR line tracking, LEDs, buzzer
+- Confirmed: L298N, HC-SR04P, USB webcam, camera mount are NOT needed separately — all in Freenove kit
+- Savings: ~$37 off original estimate
+- Added Raspberry Pi 5 Official Active Cooler (~$5) — REQUIRED to prevent thermal throttle under TFLite CV workload
+
+**Pi 5 Setup Guide**
+- Created `escort-bot/PI-SETUP.md` — complete SD flashing + first boot + software setup guide
+- **OS choice: Raspberry Pi OS Lite (64-bit) — Bookworm** — only OS that supports Pi 5, 64-bit for TFLite perf, Lite for headless (saves ~500MB RAM), ships Python 3.11 + lgpio
+- Covers: Imager download, pre-configured WiFi/SSH, first boot, install.sh, verification tests, troubleshooting, demo-day perf tips
+
+**Updated Cost**
+- Escort bot: ~$145 (down from ~$177 after removing kit duplicates + adding cooler)
+- SO-101 arm: ~$311
+- Shared/demo: ~$17-47
+- Grand total: ~$468-498
+
+---
+
 ### Session: 2026-03-09 (evening)
 
 **Hardware Ordered**
@@ -101,18 +123,30 @@
 
 ## What's Next
 
-### Immediate (this week)
+### Immediate (before March 12)
 1. [x] Order Freenove kit + batteries + power bank — **Done 3/9**
 2. [x] Order SO-ARM101 DIY kit + webcam — **Done 3/9**
-3. [ ] Sign up for hackathon (deadline: March 12) — **3 DAYS LEFT**
-4. [ ] Camera-only detection test on Pi 5 (validate pipeline before hardware arrives)
+3. [x] Create detailed parts list with Amazon links — **Done 3/9** (`PARTS-LIST.md`)
+4. [x] Verify Freenove kit contents (motor driver, sensor, camera) — **Done 3/9**
+5. [x] Create Pi 5 setup guide — **Done 3/9** (`escort-bot/PI-SETUP.md`)
+6. [ ] **Sign up for hackathon (deadline: March 12) — 3 DAYS LEFT**
+7. [ ] Order Pi 5 Active Cooler (~$5) — Amazon
+8. [ ] Flash Pi 5 SD card (Bookworm Lite 64-bit) — see `PI-SETUP.md`
+9. [ ] Camera-only detection test on Pi 5 (`python3 test_camera.py`)
 
-### Week of March 16
-4. [ ] Assemble Freenove chassis + wire motors/ultrasonic (~3.5 hrs)
-5. [ ] Flash Pi 5, run escort-bot install.sh (~45 min)
-6. [ ] First escort bot test — person detection + motor control
-7. [ ] Assemble SO-101 arms (~2-3 hrs)
-8. [ ] Install LeRobot, calibrate servos (~1 hr)
+### Week of March 11-15 (Escort Bot assembly)
+10. [ ] Assemble Freenove chassis + connect motors/sensors (~2 hrs, kit has instructions)
+11. [ ] Run escort-bot `install.sh` on Pi 5 (~45 min)
+12. [ ] First escort bot test — person detection + motor control
+13. [x] Write `floorcrew-app/api/arm.py` — LeRobot serial interface — **Done 3/10**
+14. [x] Write `floorcrew-app/api/escort.py` — escort telemetry — **Done 3/10**
+15. [x] Write `floorcrew-app/api/models.py` — Pydantic schemas — **Done 3/10**
+16. [x] Build dashboard panels in `floorcrew-app/index.html` — **Already complete** (all 5 panels + JS + WebSocket)
+
+### Week of March 16-19 (SO-101 Arm assembly)
+17. [ ] Assemble SO-101 arms when kit arrives (~2-3 hrs)
+18. [ ] Install LeRobot, calibrate servos (~1 hr)
+19. [ ] First autonomous test — keyboard teleop if leader arm not working
 
 ### Week of March 20-22
 9. [ ] Tune escort bot on DC floor (Kp, speed, thresholds) (~2-4 hrs)
@@ -132,27 +166,36 @@
 hackathon/
 ├── CLAUDE.md                          # Hackathon root config
 ├── PROGRESS.md                        # THIS FILE — single source of truth
+├── PARTS-LIST.md                      # Hardware BOM + Amazon links + costs
+├── CHECKLIST-SO101.md                 # 10-phase arm build checklist
+├── CHECKLIST-ESCORT-BOT.md            # 11-phase bot build checklist
+├── VELOCITY.md                        # Engineering philosophy
+├── WORKFLOW.md                        # Demo day timeline
 ├── escort-bot/
-│   ├── main.py                        # Person-following robot brain
+│   ├── main.py                        # Person-following robot brain (211 lines, complete)
 │   ├── test_camera.py                 # Camera-only detection test (no motors)
-│   ├── install.sh                     # Pi 5 setup
+│   ├── install.sh                     # Pi 5 software setup
 │   ├── requirements.txt
 │   ├── WIRING.md                      # GPIO + wiring diagrams
-│   └── showcase.html                  # Scope page (CodePen-ready)
+│   ├── PI-SETUP.md                    # Pi 5 OS flashing + first boot guide
+│   └── showcase.html                  # Scope page
 ├── robotics-site/
 │   ├── index.html                     # FloorCrew landing page
-│   ├── so101-real.png                 # Arm photo
-│   ├── guide-render.png
 │   ├── CLAUDE.md                      # Robotics site config
 │   └── so101/
-│       ├── record.py                  # Record demos
-│       ├── train.py                   # Train ACT policy
-│       ├── deploy.py                  # Deploy autonomous
+│       ├── record.py                  # Record demos (scaffolded, ready)
+│       ├── train.py                   # Train ACT policy (scaffolded, ready)
+│       ├── deploy.py                  # Deploy autonomous (scaffolded, ready)
 │       ├── install.sh                 # LeRobot setup
 │       ├── requirements.txt
 │       ├── HARDWARE.md                # BOM + assembly
-│       └── showcase.html              # Scope page (CodePen-ready)
+│       └── showcase.html              # Scope page
 └── floorcrew-app/
-    ├── index.html                     # Dashboard (FastAPI + vanilla JS)
-    └── api/server.py                  # Backend
+    ├── CLAUDE.md                      # Dashboard architecture spec
+    ├── index.html                     # Dashboard UI (layout only, needs panels)
+    └── api/
+        ├── server.py                  # FastAPI + WebSocket (mock data, working)
+        ├── arm.py                     # ✅ LeRobot Feetech motor bus interface
+        ├── escort.py                  # ✅ Pi 5 telemetry + scan management
+        └── models.py                  # ✅ Pydantic schemas (arm, escort, scan, training)
 ```

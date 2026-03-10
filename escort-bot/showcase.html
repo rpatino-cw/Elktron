@@ -41,9 +41,10 @@
     body::after {
       content: '';
       position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
-      background-size: 256px;
+      background-image: url("data:image/svg+xml,%3Csvg width='128' height='128' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='128' height='128' fill='%23808080' opacity='0.015'/%3E%3C/svg%3E");
+      background-size: 128px;
       pointer-events: none; z-index: 9990;
+      will-change: auto;
     }
 
     .container { max-width: 920px; margin: 0 auto; padding: 0 2rem; }
@@ -215,7 +216,7 @@
     }
 
     /* ─── Sections ─── */
-    .section { margin-bottom: 4rem; }
+    .section { margin-bottom: 4rem; content-visibility: auto; contain-intrinsic-size: auto 600px; }
 
     .section-label {
       font-size: 0.62rem;
@@ -440,7 +441,7 @@
     .timeline-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
 
     /* ─── Floating orbs ─── */
-    .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(80px); opacity: 0.4; }
+    .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(60px); opacity: 0.35; will-change: transform; contain: strict; }
     .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(10,47,107,0.12), transparent 70%); top: -10%; right: -10%; animation: float-orb 20s ease-in-out infinite; }
     .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(26,90,170,0.08), transparent 70%); bottom: 20%; left: -8%; animation: float-orb 25s ease-in-out infinite reverse; }
 
@@ -496,7 +497,7 @@
     <h1>Escort Bot — Project Scope</h1>
     <p>Autonomous person-following robot for vendor escort on the data center floor. Replaces a DCT babysitting a vendor with a Pi-powered bot that tracks and follows them through the aisles.</p>
     <div class="meta-row">
-      <span><strong>Status:</strong> Code scaffolded, awaiting hardware</span>
+      <span><strong>Status:</strong> Code scaffolded, hardware ordered 3/9 (ETA 3/11)</span>
       <span><strong>Track:</strong> Build with Velocity</span>
       <span><strong>Owner:</strong> Romeo Patino</span>
       <span><strong>Path:</strong> hackathon/escort-bot/</span>
@@ -539,7 +540,7 @@
     <div class="section-label">Problem Statement</div>
     <h2>Why this exists</h2>
     <p>When a vendor or visitor arrives on the DC floor, security policy requires a DCT to escort them at all times. This means one technician stops their actual work — break-fix tickets, optic installs, rack builds — to walk alongside someone who may be there for 30 minutes to several hours.</p>
-    <p>At a facility like EWR01, this happens multiple times per shift. Each escort is a compounding delay on the ticket queue. The DCT isn't fixing anything — they're walking.</p>
+    <p>At a facility like EVI01, this happens multiple times per shift. Each escort is a compounding delay on the ticket queue. The DCT isn't fixing anything — they're walking.</p>
 
     <h3>What the escort bot does</h3>
     <div class="cards">
@@ -775,7 +776,7 @@ python3 -c "from gpiozero import Robot; ..."             <span class="cm"># moto
     <div class="timeline">
       <div class="timeline-item done"><div class="timeline-title">Code scaffolded</div><div class="timeline-meta">main.py, install.sh, WIRING.md, requirements.txt</div></div>
       <div class="timeline-item done"><div class="timeline-title">Architecture designed</div><div class="timeline-meta">Detection pipeline, steering algorithm, GPIO map</div></div>
-      <div class="timeline-item"><div class="timeline-title">Order hardware</div><div class="timeline-meta">Freenove kit + batteries + power bank — ~15 min</div></div>
+      <div class="timeline-item done"><div class="timeline-title">Order hardware</div><div class="timeline-meta">Freenove kit + batteries + power bank — ordered 3/9, ETA 3/11</div></div>
       <div class="timeline-item"><div class="timeline-title">Assemble chassis</div><div class="timeline-meta">Mount motors, wheels, Pi, camera, ultrasonic — ~2 hrs</div></div>
       <div class="timeline-item"><div class="timeline-title">Wire L298N + HC-SR04</div><div class="timeline-meta">Jumper wires, voltage divider — ~1.5 hrs</div></div>
       <div class="timeline-item"><div class="timeline-title">Flash Pi + install</div><div class="timeline-meta">Pi OS Bookworm, run install.sh — ~45 min</div></div>
@@ -819,7 +820,7 @@ python3 -c "from gpiozero import Robot; ..."             <span class="cm"># moto
 
 <footer>
   <p>FloorCrew Escort Bot — CoreWeave Hackathon 2026</p>
-  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; DCT @ EWR01</p>
+  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; DCT @ EVI01</p>
 </footer>
 
 <script>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FloorCrew — Project Topology</title>
+<title>FloorCrew — Technical Topology</title>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -32,6 +32,8 @@
     --purple-glow: rgba(124, 58, 237, 0.08);
     --cyan: #0891b2;
     --cyan-glow: rgba(8, 145, 178, 0.08);
+    --pink: #db2777;
+    --pink-glow: rgba(219, 39, 119, 0.08);
   }
 
   html { scroll-behavior: smooth; }
@@ -45,28 +47,24 @@
     line-height: 1.6;
   }
 
-  /* Grain texture overlay — matches showcase */
   body::after {
     content: '';
     position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
-    background-size: 256px;
+    background-image: url("data:image/svg+xml,%3Csvg width='128' height='128' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='128' height='128' fill='%23808080' opacity='0.015'/%3E%3C/svg%3E");
+    background-size: 128px;
     pointer-events: none; z-index: 9990;
   }
 
-  /* ── Floating orbs — matches showcase ── */
-  .bg-grid {
-    position: fixed; inset: 0;
-    pointer-events: none; z-index: 0;
-  }
-
+  /* ── Floating orbs ── */
   .orb {
     position: fixed;
     border-radius: 50%;
     pointer-events: none;
     z-index: -1;
-    filter: blur(80px);
-    opacity: 0.5;
+    filter: blur(60px);
+    opacity: 0.35;
+    will-change: transform;
+    contain: strict;
   }
 
   .orb-1 {
@@ -96,10 +94,7 @@
     66% { transform: translate(-20px, 15px) scale(0.95); }
   }
 
-  /* Remove old dot-grid */
-  .dot-grid { display: none; }
-
-  /* ── 3D perspective container ── */
+  /* ── 3D perspective ── */
   .scene-3d {
     perspective: 1400px;
     perspective-origin: 50% 30%;
@@ -113,13 +108,6 @@
     opacity: 0;
     transform: translateY(-20px);
     animation: fadeDown 0.8s ease-out 0.2s forwards;
-  }
-
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
   }
 
   .breadcrumb {
@@ -140,26 +128,12 @@
     color: var(--accent);
   }
 
-  .header h1 span {
-    color: var(--accent-2);
-  }
-
-  .countdown {
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-    font-size: 0.78rem;
-    color: var(--amber);
-    background: var(--amber-glow);
-    border: 1px solid rgba(217, 119, 6, 0.15);
-    padding: 6px 14px;
-    border-radius: 100px;
-    letter-spacing: 0.02em;
-    font-weight: 600;
-  }
+  .header h1 span { color: var(--accent-2); }
 
   .header-sub {
     font-size: 0.88rem;
     color: var(--text-dim);
-    margin-top: 4px;
+    margin-top: 6px;
   }
 
   /* ── Legend ── */
@@ -191,165 +165,184 @@
     flex-shrink: 0;
   }
 
-  .legend-dot.built { background: var(--green); }
-  .legend-dot.scaffolded { background: var(--amber); }
-  .legend-dot.concept { background: var(--purple); }
-  .legend-dot.blocked { background: var(--red); }
+  .legend-dot.system { background: var(--accent-2); }
+  .legend-dot.actuator { background: var(--green); }
+  .legend-dot.sensor { background: var(--cyan); }
+  .legend-dot.compute { background: var(--purple); }
+  .legend-dot.learning { background: var(--pink); }
 
-  /* ── Stats bar ── */
-  .stats-bar {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    gap: 12px;
-    padding: 0 48px 20px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease-out 0.8s forwards;
+  /* ── Spec cards inside nodes ── */
+  .spec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 0.75rem;
   }
 
-  .stat-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 18px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
-    transform-style: preserve-3d;
-  }
-
-  .stat-card:hover {
-    transform: translateY(-4px) rotateX(2deg);
-    border-color: var(--border-hi);
-    box-shadow: 0 12px 32px var(--accent-glow);
-  }
-
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 800;
+  .spec-item {
+    font-size: 0.65rem;
     font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-    letter-spacing: -0.03em;
+    color: var(--text-dim);
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    padding: 5px 8px;
+    border-radius: 6px;
+    line-height: 1.4;
   }
 
-  .stat-label {
-    font-size: 0.62rem;
+  .spec-item .spec-label {
+    display: block;
+    font-size: 0.55rem;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
+    margin-bottom: 1px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-weight: 600;
   }
 
-  .stat-value.green { color: var(--green); }
-  .stat-value.amber { color: var(--amber); }
-  .stat-value.red { color: var(--red); }
-  .stat-value.blue { color: var(--accent-2); }
-  .stat-value.purple { color: var(--purple); }
-
-  /* ── Critical path callout ── */
-  .critical-callout {
-    position: relative;
-    z-index: 10;
-    margin: 0 48px 20px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--red);
-    border-radius: 0 14px 14px 0;
-    padding: 18px 24px;
-    opacity: 0;
-    animation: fadeUp 0.6s ease-out 1.2s forwards;
+  .spec-item .spec-val {
+    font-weight: 600;
+    color: var(--text);
   }
 
-  .critical-callout h3 {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--red);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .critical-callout h3::before {
-    content: '';
-    display: block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--red);
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-
-  .critical-steps {
+  /* ── Signal flow diagrams inside nodes ── */
+  .signal-flow {
     display: flex;
     align-items: center;
     gap: 0;
+    margin-bottom: 0.75rem;
     flex-wrap: wrap;
   }
 
-  .critical-step {
-    font-size: 0.76rem;
+  .flow-step {
+    font-size: 0.62rem;
     font-weight: 600;
     color: var(--text);
-    background: var(--bg);
+    background: var(--bg-2);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 12px;
+    border-radius: 6px;
+    padding: 4px 8px;
     white-space: nowrap;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
-  .critical-step:hover {
+  .node.revealed .flow-step:hover {
     transform: translateY(-2px);
+    border-color: var(--border-hi);
     box-shadow: 0 4px 12px var(--accent-glow);
   }
 
-  .critical-arrow {
+  .flow-arrow {
     color: var(--text-muted);
-    font-size: 14px;
-    margin: 0 4px;
+    font-size: 11px;
+    margin: 0 3px;
+    flex-shrink: 0;
   }
 
-  .critical-step.done {
-    border-color: rgba(22, 163, 74, 0.25);
-    background: var(--green-glow);
-    color: var(--green);
-  }
-
-  .critical-step.current {
-    border-color: var(--border-hi);
+  .flow-step.highlight {
     background: var(--accent-glow);
+    border-color: rgba(10, 42, 107, 0.15);
     color: var(--accent-2);
-    box-shadow: 0 0 12px var(--accent-glow);
   }
 
-  .critical-step.pending {
-    opacity: 0.45;
-  }
-
-  /* Critical path step cascade */
-  .critical-step,
-  .critical-arrow {
+  /* ── Staggered reveal for inner elements ── */
+  .flow-step,
+  .flow-arrow {
     opacity: 0;
-    transform: translateX(-12px);
-    transition: opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateX(-8px);
+    transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
   }
 
-  .critical-step.cascade-in,
-  .critical-arrow.cascade-in {
+  .node.revealed .flow-step,
+  .node.revealed .flow-arrow {
     opacity: 1;
     transform: translateX(0);
   }
 
-  .critical-step.pending.cascade-in {
-    opacity: 0.45;
+  .spec-item {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
   }
 
-  /* ── Canvas (SVG connections) ── */
+  .node.revealed .spec-item {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .node.revealed .spec-item:hover {
+    transform: translateY(-1px);
+    border-color: var(--border-hi);
+    box-shadow: 0 3px 8px var(--accent-glow);
+  }
+
+  .pin-table tr {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .pin-table thead tr {
+    opacity: 1;
+    transform: none;
+  }
+
+  .node.revealed .pin-table tr {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Highlight pulse on key flow steps */
+  .node.revealed .flow-step.highlight {
+    animation: highlightPulse 2s ease-in-out 0.8s 1;
+  }
+
+  @keyframes highlightPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(10, 47, 107, 0); }
+    40% { box-shadow: 0 0 0 6px rgba(10, 47, 107, 0.12); }
+    70% { box-shadow: 0 0 0 3px rgba(10, 47, 107, 0.06); }
+  }
+
+  /* ── Pin map table ── */
+  .pin-table {
+    width: 100%;
+    font-size: 0.62rem;
+    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    border-collapse: collapse;
+    margin-bottom: 0.75rem;
+  }
+
+  .pin-table th {
+    text-align: left;
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pin-table td {
+    padding: 3px 6px;
+    color: var(--text-dim);
+    border-bottom: 1px solid rgba(10, 22, 40, 0.04);
+  }
+
+  .pin-table td:first-child {
+    color: var(--accent-2);
+    font-weight: 600;
+  }
+
+  /* ── Canvas ── */
   .topology-wrapper {
     position: relative;
     z-index: 5;
@@ -359,23 +352,16 @@
   .canvas-container {
     position: relative;
     width: 100%;
-    min-height: 1700px;
+    min-height: 1980px;
     transform-style: preserve-3d;
   }
 
   svg.connections {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     pointer-events: none;
     z-index: 1;
-  }
-
-  svg.connections line,
-  svg.connections path {
-    stroke-linecap: round;
   }
 
   svg.connections .dep-line {
@@ -388,7 +374,6 @@
 
   svg.connections .dep-line.drawn {
     opacity: 1;
-    stroke-dashoffset: 0;
     animation: dashCrawl 25s linear infinite;
   }
 
@@ -399,8 +384,19 @@
     transition: opacity 0.5s ease;
   }
 
-  svg.connections .critical-line.drawn {
-    opacity: 0.35;
+  svg.connections .critical-line.drawn { opacity: 0.35; }
+
+  svg.connections .data-line {
+    stroke: var(--purple);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  svg.connections .data-line.drawn {
+    opacity: 0.3;
+    animation: dashCrawl 20s linear infinite;
   }
 
   /* ── Layer labels ── */
@@ -418,11 +414,9 @@
     animation: fadeIn 0.6s ease-out forwards;
   }
 
-  /* ── Layer dividers ── */
   .layer-divider {
     position: absolute;
-    left: 24px;
-    right: 24px;
+    left: 24px; right: 24px;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--border) 15%, var(--border) 85%, transparent);
     opacity: 0;
@@ -441,8 +435,8 @@
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 1.5rem;
-    width: 260px;
-    cursor: default;
+    width: 280px;
+    cursor: pointer;
     z-index: 10;
     opacity: 0;
     transform: scale(0.92) translateY(30px);
@@ -483,8 +477,23 @@
     transition: opacity 0.2s ease, filter 0.2s ease;
   }
 
+  .node:focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 3px;
+    border-color: var(--border-hi);
+  }
+
+  .node:active {
+    transform: translateY(0px) scale(0.99);
+    transition: transform 0.1s ease;
+  }
+
+  .node.wide {
+    width: 340px;
+  }
+
   .node.primary {
-    width: 300px;
+    width: 320px;
     border-color: var(--border-hi);
     box-shadow: 0 4px 24px var(--accent-glow);
   }
@@ -512,15 +521,13 @@
     border: 1px solid var(--border);
   }
 
-  .node-icon.arm { background: var(--accent-glow); }
-  .node-icon.escort { background: var(--cyan-glow); }
-  .node-icon.dashboard { background: var(--green-glow); }
-  .node-icon.site { background: var(--purple-glow); }
-  .node-icon.pulse { background: var(--amber-glow); }
-  .node-icon.brief { background: var(--bg-2); }
-  .node-icon.hardware { background: var(--red-glow); }
-  .node-icon.training { background: rgba(236, 72, 153, 0.08); }
-  .node-icon.demo { background: var(--amber-glow); }
+  .node-icon.system { background: var(--accent-glow); }
+  .node-icon.actuator { background: var(--green-glow); }
+  .node-icon.sensor { background: var(--cyan-glow); }
+  .node-icon.compute { background: var(--purple-glow); }
+  .node-icon.learning { background: var(--pink-glow); }
+  .node-icon.power { background: var(--red-glow); }
+  .node-icon.comms { background: var(--amber-glow); }
 
   .node-badge {
     font-size: 0.6rem;
@@ -532,34 +539,28 @@
     white-space: nowrap;
   }
 
-  .badge-locked {
+  .badge-arm {
     background: var(--accent-glow);
     color: var(--accent-2);
     border: 1px solid rgba(10, 42, 107, 0.15);
   }
 
-  .badge-built {
-    background: var(--green-glow);
-    color: var(--green);
-    border: 1px solid rgba(22, 163, 74, 0.15);
+  .badge-escort {
+    background: var(--cyan-glow);
+    color: var(--cyan);
+    border: 1px solid rgba(8, 145, 178, 0.15);
   }
 
-  .badge-scaffolded {
-    background: var(--amber-glow);
-    color: var(--amber);
-    border: 1px solid rgba(217, 119, 6, 0.15);
-  }
-
-  .badge-concept {
+  .badge-shared {
     background: var(--purple-glow);
     color: var(--purple);
     border: 1px solid rgba(124, 58, 237, 0.15);
   }
 
-  .badge-blocked {
-    background: var(--red-glow);
-    color: var(--red);
-    border: 1px solid rgba(220, 38, 38, 0.15);
+  .badge-both {
+    background: var(--green-glow);
+    color: var(--green);
+    border: 1px solid rgba(22, 163, 74, 0.15);
   }
 
   .node-title {
@@ -571,21 +572,21 @@
   }
 
   .node-desc {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: var(--text-dim);
     line-height: 1.6;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.75rem;
   }
 
   .node-tech {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.75rem;
   }
 
   .tech-tag {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
     color: var(--text-dim);
     background: var(--bg-2);
@@ -594,201 +595,25 @@
     border-radius: 4px;
   }
 
-  /* ── Progress bar ── */
-  .node-progress {
-    margin-bottom: 0.65rem;
-  }
-
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 5px;
-  }
-
-  .progress-label {
-    font-size: 0.6rem;
-    color: var(--text-muted);
+  .node-section-label {
+    font-size: 0.55rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    font-weight: 600;
-  }
-
-  .progress-pct {
-    font-size: 0.72rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-    font-weight: 700;
-  }
-
-  .progress-bar {
-    height: 4px;
-    background: var(--surface-2);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    width: 0%;
-    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .fill-green { background: var(--green); }
-  .fill-amber { background: var(--amber); }
-  .fill-red { background: var(--red); }
-  .fill-blue { background: var(--accent-2); }
-  .fill-purple { background: var(--purple); }
-  .fill-cyan { background: var(--cyan); }
-
-  /* ── Checklist ── */
-  .node-checklist {
-    list-style: none;
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    line-height: 1.9;
-  }
-
-  .node-checklist li::before {
-    content: '';
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    margin-right: 8px;
-    vertical-align: middle;
-    position: relative;
-    top: -1px;
-  }
-
-  .node-checklist li.done::before {
-    background: var(--green);
-    content: '\2713';
-    color: #fff;
-    font-size: 9px;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .node-checklist li.pending::before {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-  }
-
-  .node-checklist li.blocked::before {
-    background: var(--red-glow);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-  }
-
-  .node-checklist li.done { color: var(--text); }
-  .node-checklist li.blocked { color: var(--red); }
-
-  /* ── File path ── */
-  .node-path {
-    font-size: 0.65rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
     color: var(--text-muted);
-    margin-top: 0.65rem;
-    padding-top: 0.65rem;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ── Timeline strip ── */
-  .timeline {
-    position: relative;
-    z-index: 10;
-    padding: 0 48px 60px;
+    margin-bottom: 6px;
     opacity: 0;
-    animation: fadeUp 0.8s ease-out 2.6s forwards;
+    transform: translateY(4px);
+    transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .timeline-label {
-    font-size: 0.62rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--accent-2);
-    margin-bottom: 12px;
-  }
-
-  .timeline-track {
-    display: flex;
-    align-items: stretch;
-    gap: 2px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    height: 64px;
-    transform-style: preserve-3d;
-    transform: rotateX(1deg);
-    transition: transform 0.4s ease, box-shadow 0.4s ease;
-    box-shadow: 0 8px 32px var(--accent-glow);
-  }
-
-  .timeline-track:hover {
-    transform: rotateX(0deg);
-    box-shadow: 0 12px 40px rgba(10, 47, 107, 0.1);
-  }
-
-  .timeline-segment {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 4px;
-    position: relative;
-    transition: background 0.3s;
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s;
-  }
-
-  .timeline-segment.seg-in {
+  .node.revealed .node-section-label {
     opacity: 1;
     transform: translateY(0);
   }
 
-  .timeline-segment:hover {
-    background: var(--bg-2);
-  }
-
-  .timeline-segment.today {
-    background: var(--accent-glow);
-    border-left: 2px solid var(--accent-2);
-    border-right: 2px solid var(--accent-2);
-  }
-
-  .timeline-segment.demo-day {
-    background: linear-gradient(135deg, var(--accent), #1a5aaa);
-  }
-
-  .timeline-date {
-    font-size: 0.62rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .timeline-segment.today .timeline-date { color: var(--accent); }
-  .timeline-segment.demo-day .timeline-date { color: #fff; }
-
-  .timeline-task {
-    font-size: 0.58rem;
-    color: var(--text-dim);
-    text-align: center;
-    margin-top: 3px;
-    line-height: 1.3;
-    font-weight: 500;
-  }
-
-  .timeline-segment.today .timeline-task { color: var(--accent-2); font-weight: 700; }
-  .timeline-segment.demo-day .timeline-task { color: rgba(255,255,255,0.8); font-weight: 700; }
-
-  /* ── Expand Panel (click-to-expand) ── */
+  /* ── Click expand panel ── */
   .expand-panel {
     margin-top: 0.85rem;
     padding-top: 0.85rem;
@@ -803,70 +628,16 @@
   .expand-panel.expand-visible {
     opacity: 1;
     transform: translateY(0);
-    max-height: 400px;
+    max-height: 500px;
   }
 
-  .node.expanded {
-    z-index: 30;
-  }
+  .node.expanded { z-index: 30; }
 
   .expand-detail {
     font-size: 0.72rem;
     color: var(--text-dim);
     line-height: 1.7;
-    margin-bottom: 0.75rem;
-  }
-
-  .expand-section {
-    margin-bottom: 0.65rem;
-  }
-
-  .expand-section-title {
-    font-size: 0.58rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--text-muted);
-    margin-bottom: 5px;
-  }
-
-  .expand-files {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-
-  .expand-file {
-    font-size: 0.65rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
-    color: var(--text-dim);
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    padding: 3px 8px;
-    border-radius: 4px;
-  }
-
-  .expand-actions {
-    display: flex;
-    gap: 6px;
-  }
-
-  .expand-action {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: var(--accent-2);
-    background: var(--accent-glow);
-    border: 1px solid rgba(10, 42, 107, 0.15);
-    padding: 5px 12px;
-    border-radius: 100px;
-    text-decoration: none;
-    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  }
-
-  .expand-action:hover {
-    background: rgba(10, 47, 107, 0.12);
-    border-color: var(--border-hi);
-    transform: translateY(-1px);
+    margin-bottom: 0.5rem;
   }
 
   .expand-hint {
@@ -901,11 +672,6 @@
     to { stroke-dashoffset: 0; }
   }
 
-  @keyframes pulse-dot {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-  }
-
   @keyframes legendDotPulse {
     0%, 100% { box-shadow: 0 0 4px currentColor; }
     50% { box-shadow: 0 0 10px currentColor; }
@@ -921,105 +687,52 @@
     }
     .node { opacity: 1; transform: none; filter: none; }
     .node.floating { animation: none; }
+    .flow-step, .flow-arrow, .spec-item, .pin-table tr, .node-section-label { opacity: 1; transform: none; }
+    .node.revealed .flow-step.highlight { animation: none; }
     svg.connections .dep-line,
-    svg.connections .critical-line { opacity: 1; }
-    .critical-step, .critical-arrow { opacity: 1; transform: none; }
-    .critical-step.pending { opacity: 0.45; }
-    .timeline-segment { opacity: 1; transform: none; }
-    .header, .legend, .stats-bar, .critical-callout, .timeline { opacity: 1; transform: none; }
+    svg.connections .critical-line,
+    svg.connections .data-line { opacity: 1; }
+    .header, .legend { opacity: 1; transform: none; }
     .orb { display: none; }
   }
 
   /* ── Responsive ── */
   @media (max-width: 1200px) {
-    .node { width: 220px; padding: 1rem; }
-    .node.primary { width: 260px; }
+    .node { width: 240px; padding: 1rem; }
+    .node.primary { width: 280px; }
+    .node.wide { width: 290px; }
     .topology-wrapper { padding: 0 24px 32px; }
-    .header, .legend, .stats-bar, .timeline { padding-left: 24px; padding-right: 24px; }
-    .critical-callout { margin-left: 24px; margin-right: 24px; }
+    .header, .legend { padding-left: 24px; padding-right: 24px; }
   }
 </style>
 </head>
 <body>
 
-<!-- Floating orbs — matches showcase.html -->
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 <div class="orb orb-3"></div>
-<div class="bg-grid"></div>
-<div class="dot-grid"></div>
 
 <div class="scene-3d">
 
 <!-- Header -->
 <div class="header">
-  <div class="breadcrumb">FloorCrew / <span>Project Topology</span></div>
-  <div class="header-top">
-    <h1>FloorCrew <span>Topology</span></h1>
-    <div class="countdown" id="countdown"></div>
-  </div>
-  <div class="header-sub">Project hierarchy &middot; Dependencies &middot; Critical path to Demo Day</div>
+  <div class="breadcrumb">FloorCrew / <span>Technical Topology</span></div>
+  <h1>System <span>Architecture</span></h1>
+  <div class="header-sub">Servo control &middot; Detection pipeline &middot; Training architecture &middot; Hardware wiring</div>
 </div>
 
 <!-- Legend -->
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot built"></div>Built</div>
-  <div class="legend-item"><div class="legend-dot scaffolded"></div>Scaffolded</div>
-  <div class="legend-item"><div class="legend-dot concept"></div>Concept</div>
-  <div class="legend-item"><div class="legend-dot blocked"></div>Blocked</div>
+  <div class="legend-item"><div class="legend-dot system"></div>System</div>
+  <div class="legend-item"><div class="legend-dot actuator"></div>Actuators</div>
+  <div class="legend-item"><div class="legend-dot sensor"></div>Sensors</div>
+  <div class="legend-item"><div class="legend-dot compute"></div>Compute</div>
+  <div class="legend-item"><div class="legend-dot learning"></div>Learning</div>
   <div class="legend-item" style="margin-left: auto;">
-    <span style="color: var(--accent-2);">&#9473;&#9473;</span> Critical path
+    <span style="color: var(--accent-2);">&#9473;&#9473;</span> Control flow
   </div>
   <div class="legend-item">
-    <span style="color: var(--text-muted);">&#9548;&#9548;&#9548;</span> Dependency
-  </div>
-</div>
-
-<!-- Stats bar -->
-<div class="stats-bar">
-  <div class="stat-card">
-    <div class="stat-value blue" data-count="5">0</div>
-    <div class="stat-label">Sub-projects</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value green" data-count="2">0</div>
-    <div class="stat-label">Locked in</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value amber" data-count="3">0</div>
-    <div class="stat-label">Scaffolded</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value red" data-count="2">0</div>
-    <div class="stat-label">Hardware blocked</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value purple" id="days-left">--</div>
-    <div class="stat-label">Days to demo</div>
-  </div>
-</div>
-
-<!-- Critical path -->
-<div class="critical-callout">
-  <h3>Critical Path to Demo Day</h3>
-  <div class="critical-steps">
-    <div class="critical-step done">Landing page</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step done">Code scaffold</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step current">Order hardware</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step pending">Assemble arms</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step pending">Calibrate servos</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step pending">Record demos</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step pending">Train ACT policy</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step pending">Deploy + film</div>
-    <span class="critical-arrow">&rarr;</span>
-    <div class="critical-step pending" style="border-color: rgba(10,42,107,0.3); color: var(--accent);">Demo Day</div>
+    <span style="color: var(--purple);">&#9548;&#9548;&#9548;</span> Data flow
   </div>
 </div>
 
@@ -1028,251 +741,287 @@
   <div class="canvas-container" id="canvas">
     <svg class="connections" id="svg-lines"></svg>
 
-    <!-- Layer dividers (between rows) -->
-    <div class="layer-divider" style="top: 375px;" data-show-at="800"></div>
-    <div class="layer-divider" style="top: 825px;" data-show-at="1400"></div>
-    <div class="layer-divider" style="top: 1255px;" data-show-at="2000"></div>
+    <!-- Layer dividers -->
+    <div class="layer-divider" style="top: 430px;" data-show-at="600"></div>
+    <div class="layer-divider" style="top: 928px;" data-show-at="1200"></div>
+    <div class="layer-divider" style="top: 1408px;" data-show-at="1800"></div>
 
     <!-- Layer labels -->
-    <div class="layer-label" style="top: 60px; animation-delay: 1s;">Presentation</div>
-    <div class="layer-label" style="top: 460px; animation-delay: 1.1s;">Software</div>
-    <div class="layer-label" style="top: 910px; animation-delay: 1.2s;">Hardware</div>
-    <div class="layer-label" style="top: 1330px; animation-delay: 1.3s;">Pipeline</div>
+    <div class="layer-label" style="top: 60px; animation-delay: 0.8s;">Systems</div>
+    <div class="layer-label" style="top: 520px; animation-delay: 0.9s;">Perception + Control</div>
+    <div class="layer-label" style="top: 1020px; animation-delay: 1.0s;">Hardware</div>
+    <div class="layer-label" style="top: 1500px; animation-delay: 1.1s;">Intelligence</div>
 
-    <!-- Row 1: Presentation Layer -->
-    <div class="node" id="node-site" style="left: calc(50% - 130px); top: 20px;" data-delay="0.4">
+    <!-- ══════════ ROW 1: Robot Systems (top: 20px) ══════════ -->
+
+    <div class="node primary" id="node-arm-sys" style="left: 8%; top: 20px;" tabindex="0" role="button" aria-label="SO-101 Arm System details">
       <div class="node-header">
-        <div class="node-icon site">&#x1f310;</div>
-        <div class="node-badge badge-built">Built</div>
+        <div class="node-icon system">&#x1f9be;</div>
+        <div class="node-badge badge-arm">SO-101</div>
       </div>
-      <div class="node-title">robotics-site</div>
-      <div class="node-desc">FloorCrew landing page. Dark luxury-tech. Pitch + vision.</div>
-      <div class="node-tech">
-        <span class="tech-tag">HTML</span>
-        <span class="tech-tag">CSS</span>
-        <span class="tech-tag">3D renders</span>
+      <div class="node-title">SO-101 Arm System</div>
+      <div class="node-desc">6-DOF robot arm for DC floor tasks. Leader-follower teleoperation + autonomous deployment via imitation learning.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">DOF</span><span class="spec-val">6 joints</span></div>
+        <div class="spec-item"><span class="spec-label">Servos</span><span class="spec-val">STS3215 x6</span></div>
+        <div class="spec-item"><span class="spec-label">Protocol</span><span class="spec-val">SCS Serial</span></div>
+        <div class="spec-item"><span class="spec-label">Framework</span><span class="spec-val">LeRobot</span></div>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--green);">90%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-green" data-width="90"></div></div>
+      <div class="node-section-label">Joint Chain</div>
+      <div class="signal-flow">
+        <span class="flow-step">Base</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Shoulder</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Elbow</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Wrist Flex</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Wrist Rot</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">Gripper</span>
       </div>
-      <ul class="node-checklist">
-        <li class="done">Landing page built</li>
-        <li class="done">3D assets rendered</li>
-        <li class="done">Hero + arm renders</li>
-        <li class="pending">Final copy polish</li>
-      </ul>
-      <div class="node-path">hackathon/robotics-site/index.html</div>
     </div>
 
-    <!-- Row 2: Software Layer -->
-    <div class="node primary" id="node-app" style="left: 4%; top: 400px;" data-delay="0.6">
+    <div class="node primary" id="node-escort-sys" style="right: 8%; top: 20px;" tabindex="0" role="button" aria-label="Escort Bot System details">
       <div class="node-header">
-        <div class="node-icon dashboard">&#x1f4ca;</div>
-        <div class="node-badge badge-scaffolded">Scaffolded</div>
+        <div class="node-icon system">&#x1f916;</div>
+        <div class="node-badge badge-escort">Escort Bot</div>
       </div>
-      <div class="node-title">floorcrew-app</div>
-      <div class="node-desc">Real-time dashboard: arm status, escort monitoring, scan logs, training controls, camera feeds.</div>
-      <div class="node-tech">
-        <span class="tech-tag">FastAPI</span>
-        <span class="tech-tag">WebSocket</span>
-        <span class="tech-tag">Vanilla JS</span>
-        <span class="tech-tag">10Hz</span>
+      <div class="node-title">Escort Bot System</div>
+      <div class="node-desc">Autonomous person-following robot for vendor escort on DC floor. Real-time detection + proportional steering.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Compute</span><span class="spec-val">Pi 5 (8GB)</span></div>
+        <div class="spec-item"><span class="spec-label">Model</span><span class="spec-val">MobileNet SSD</span></div>
+        <div class="spec-item"><span class="spec-label">Chassis</span><span class="spec-val">4WD</span></div>
+        <div class="spec-item"><span class="spec-label">Control</span><span class="spec-val">Proportional</span></div>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--amber);">40%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-amber" data-width="40"></div></div>
+      <div class="node-section-label">Control Loop</div>
+      <div class="signal-flow">
+        <span class="flow-step">Camera</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">TFLite</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">BBox</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">PID</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Motors</span>
       </div>
-      <ul class="node-checklist">
-        <li class="done">Mock server scaffolded</li>
-        <li class="done">WebSocket 10Hz stream</li>
-        <li class="done">Arm + escort panels</li>
-        <li class="blocked">Real hardware connection</li>
-        <li class="pending">Camera feed streaming</li>
-      </ul>
-      <div class="node-path">hackathon/floorcrew-app/</div>
     </div>
 
-    <div class="node primary" id="node-escort" style="left: 36%; top: 400px;" data-delay="0.8">
+    <!-- ══════════ ROW 2: Perception + Control (top: 380px) ══════════ -->
+
+    <div class="node wide" id="node-servo" style="left: 4%; top: 460px;" tabindex="0" role="button" aria-label="Servo Control details">
       <div class="node-header">
-        <div class="node-icon escort">&#x1f916;</div>
-        <div class="node-badge badge-locked">Locked</div>
+        <div class="node-icon actuator">&#x2699;&#xfe0f;</div>
+        <div class="node-badge badge-arm">Arm</div>
       </div>
-      <div class="node-title">escort-bot</div>
-      <div class="node-desc">Person-following vendor escort. TFLite MobileNet SSD + proportional steering + obstacle avoidance.</div>
-      <div class="node-tech">
-        <span class="tech-tag">Python</span>
-        <span class="tech-tag">TFLite</span>
-        <span class="tech-tag">Pi 5</span>
-        <span class="tech-tag">gpiozero</span>
+      <div class="node-title">Servo Control</div>
+      <div class="node-desc">Feetech STS3215 smart servos. Daisy-chained on half-duplex UART via SCS serial protocol.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Torque</span><span class="spec-val">19.5 kg.cm</span></div>
+        <div class="spec-item"><span class="spec-label">Voltage</span><span class="spec-val">6-7.4V</span></div>
+        <div class="spec-item"><span class="spec-label">Feedback</span><span class="spec-val">Position, temp, load</span></div>
+        <div class="spec-item"><span class="spec-label">Baud</span><span class="spec-val">1M bps</span></div>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--amber);">55%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-cyan" data-width="55"></div></div>
+      <div class="node-section-label">Command Protocol</div>
+      <div class="signal-flow">
+        <span class="flow-step">Python</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">sync_write()</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">UART TX</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">SCS Bus</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">ID 1-6</span>
       </div>
-      <ul class="node-checklist">
-        <li class="done">main.py complete (~330 lines)</li>
-        <li class="done">Wiring spec done</li>
-        <li class="done">Install script ready</li>
-        <li class="blocked">Hardware field test</li>
-        <li class="pending">Obstacle avoidance tuning</li>
-      </ul>
-      <div class="node-path">hackathon/escort-bot/</div>
     </div>
 
-    <div class="node" id="node-pulse" style="left: 71%; top: 400px;" data-delay="1.0">
+    <div class="node wide" id="node-detection" style="left: calc(50% - 170px); top: 460px;" tabindex="0" role="button" aria-label="Detection Pipeline details">
       <div class="node-header">
-        <div class="node-icon pulse">&#x1f4a1;</div>
-        <div class="node-badge badge-concept">Optional</div>
+        <div class="node-icon sensor">&#x1f4f7;</div>
+        <div class="node-badge badge-escort">Escort</div>
       </div>
-      <div class="node-title">floor-pulse</div>
-      <div class="node-desc">Ambient awareness layer. Tap = wave on shared floor map. WebSocket broadcast.</div>
-      <div class="node-tech">
-        <span class="tech-tag">Node.js</span>
-        <span class="tech-tag">WebSocket</span>
-        <span class="tech-tag">Canvas</span>
+      <div class="node-title">Detection Pipeline</div>
+      <div class="node-desc">Pi Camera V3 captures 640x480 @ 30fps. TFLite MobileNet SSD v2 runs inference at ~15ms per frame on Pi 5.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Resolution</span><span class="spec-val">640 x 480</span></div>
+        <div class="spec-item"><span class="spec-label">Inference</span><span class="spec-val">~15ms / frame</span></div>
+        <div class="spec-item"><span class="spec-label">Confidence</span><span class="spec-val">&gt; 0.5 threshold</span></div>
+        <div class="spec-item"><span class="spec-label">Class</span><span class="spec-val">person (ID 0)</span></div>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--text-muted);">5%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-purple" data-width="5"></div></div>
+      <div class="node-section-label">Frame Pipeline</div>
+      <div class="signal-flow">
+        <span class="flow-step">CSI Frame</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">RGB 640x480</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">MobileNet SSD</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">BBox [x,y,w,h]</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">center_x</span>
       </div>
-      <ul class="node-checklist">
-        <li class="pending">Spec written</li>
-        <li class="pending">No code yet</li>
-      </ul>
-      <div class="node-path">hackathon/floor-pulse/</div>
     </div>
 
-    <!-- Row 3: Hardware Layer -->
-    <div class="node primary" id="node-arm" style="left: 14%; top: 850px;" data-delay="1.2">
+    <div class="node" id="node-steering" style="right: 4%; top: 460px;" tabindex="0" role="button" aria-label="Steering Control details">
       <div class="node-header">
-        <div class="node-icon arm">&#x1f9be;</div>
-        <div class="node-badge badge-blocked">Needs HW</div>
+        <div class="node-icon compute">&#x1f3af;</div>
+        <div class="node-badge badge-escort">Escort</div>
       </div>
-      <div class="node-title">SO-101 Robot Arm</div>
-      <div class="node-desc">6-DOF arm, Feetech STS3215 servos. $270 HiWonder kit or $275 DIY. Leader-follower teleoperation.</div>
+      <div class="node-title">Steering Control</div>
+      <div class="node-desc">Proportional control maps person bounding box position to differential motor speeds. Dead zone at center.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Method</span><span class="spec-val">Proportional</span></div>
+        <div class="spec-item"><span class="spec-label">Dead zone</span><span class="spec-val">&plusmn;15% center</span></div>
+        <div class="spec-item"><span class="spec-label">Speed</span><span class="spec-val">0.3 - 0.8 PWM</span></div>
+        <div class="spec-item"><span class="spec-label">Rate</span><span class="spec-val">~30 Hz loop</span></div>
+      </div>
+      <div class="node-section-label">Steering Logic</div>
+      <div class="signal-flow">
+        <span class="flow-step">error = cx - 0.5</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">L = base + Kp*e</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">R = base - Kp*e</span>
+      </div>
+    </div>
+
+    <!-- ══════════ ROW 3: Hardware Layer (top: 890px) ══════════ -->
+
+    <div class="node" id="node-arm-hw" style="left: 4%; top: 960px;" tabindex="0" role="button" aria-label="Arm Hardware details">
+      <div class="node-header">
+        <div class="node-icon power">&#x1f50c;</div>
+        <div class="node-badge badge-arm">Arm</div>
+      </div>
+      <div class="node-title">Arm Hardware</div>
+      <div class="node-desc">HiWonder SO-101 kit. 3D printed links + Feetech STS3215 servos. USB-to-TTL serial adapter to host.</div>
+      <div class="node-section-label">Wiring</div>
+      <table class="pin-table">
+        <tr><th>Component</th><th>Connection</th></tr>
+        <tr><td>Servos x6</td><td>Daisy-chain SCS bus</td></tr>
+        <tr><td>USB-TTL</td><td>Host USB &rarr; SCS bus</td></tr>
+        <tr><td>PSU</td><td>7.4V 3A &rarr; servo rail</td></tr>
+        <tr><td>Camera</td><td>USB webcam (wrist)</td></tr>
+      </table>
       <div class="node-tech">
-        <span class="tech-tag">6-DOF</span>
+        <span class="tech-tag">$270 kit</span>
         <span class="tech-tag">STS3215</span>
-        <span class="tech-tag">3D printed</span>
-        <span class="tech-tag">Serial</span>
+        <span class="tech-tag">USB-TTL</span>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--red);">10%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-red" data-width="10"></div></div>
-      </div>
-      <ul class="node-checklist">
-        <li class="done">HARDWARE.md spec</li>
-        <li class="blocked">Parts not ordered</li>
-        <li class="pending">3D print / assemble</li>
-        <li class="pending">Calibrate servos</li>
-        <li class="pending">Serial connection test</li>
-      </ul>
-      <div class="node-path">robotics-site/so101/HARDWARE.md</div>
     </div>
 
-    <div class="node" id="node-chassis" style="left: 55%; top: 850px;" data-delay="1.3">
+    <div class="node wide" id="node-escort-hw" style="left: calc(50% - 170px); top: 960px;" tabindex="0" role="button" aria-label="Chassis and Wiring details">
       <div class="node-header">
-        <div class="node-icon hardware">&#x1f6de;</div>
-        <div class="node-badge badge-blocked">Needs HW</div>
+        <div class="node-icon power">&#x1f6de;</div>
+        <div class="node-badge badge-escort">Escort</div>
       </div>
-      <div class="node-title">Freenove 4WD + Pi 5</div>
-      <div class="node-desc">Chassis, L298N motor driver, ultrasonic sensor, Pi Camera. Wired per WIRING.md.</div>
+      <div class="node-title">Chassis + Wiring</div>
+      <div class="node-desc">Freenove 4WD chassis with L298N motor driver. Pi 5 runs detection + steering. 7.4V LiPo powers motors.</div>
+      <div class="node-section-label">GPIO Pin Map</div>
+      <table class="pin-table">
+        <tr><th>Pin</th><th>Function</th><th>Device</th></tr>
+        <tr><td>GPIO 17/18</td><td>Motor A (IN1/IN2)</td><td>L298N</td></tr>
+        <tr><td>GPIO 22/23</td><td>Motor B (IN3/IN4)</td><td>L298N</td></tr>
+        <tr><td>GPIO 12/13</td><td>PWM (ENA/ENB)</td><td>L298N</td></tr>
+        <tr><td>GPIO 25/24</td><td>Trig / Echo</td><td>HC-SR04</td></tr>
+        <tr><td>CSI port</td><td>Camera data</td><td>Pi Cam V3</td></tr>
+      </table>
       <div class="node-tech">
-        <span class="tech-tag">GPIO</span>
         <span class="tech-tag">L298N</span>
         <span class="tech-tag">7.4V LiPo</span>
-        <span class="tech-tag">CSI cam</span>
+        <span class="tech-tag">HC-SR04</span>
+        <span class="tech-tag">Pi Cam V3</span>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--red);">15%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-red" data-width="15"></div></div>
-      </div>
-      <ul class="node-checklist">
-        <li class="done">Wiring spec complete</li>
-        <li class="done">GPIO pin map defined</li>
-        <li class="pending">Flash Pi 5 OS</li>
-        <li class="pending">Motor + sensor test</li>
-      </ul>
-      <div class="node-path">escort-bot/WIRING.md</div>
     </div>
 
-    <!-- Row 4: Training Pipeline -->
-    <div class="node" id="node-training" style="left: 14%; top: 1280px;" data-delay="1.5">
+    <div class="node" id="node-safety" style="right: 4%; top: 960px;" tabindex="0" role="button" aria-label="Safety and Sensors details">
       <div class="node-header">
-        <div class="node-icon training">&#x1f9e0;</div>
-        <div class="node-badge badge-scaffolded">Scaffolded</div>
+        <div class="node-icon sensor">&#x1f6e1;&#xfe0f;</div>
+        <div class="node-badge badge-escort">Escort</div>
       </div>
-      <div class="node-title">Training Pipeline</div>
-      <div class="node-desc">Record teleop demos &rarr; train ACT policy &rarr; deploy autonomous. LeRobot framework.</div>
-      <div class="node-tech">
-        <span class="tech-tag">LeRobot</span>
-        <span class="tech-tag">ACT</span>
-        <span class="tech-tag">HuggingFace</span>
-        <span class="tech-tag">MPS/CUDA</span>
+      <div class="node-title">Safety + Sensors</div>
+      <div class="node-desc">Ultrasonic obstacle detection with emergency stop. No-person timeout triggers idle mode after 3s.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Sensor</span><span class="spec-val">HC-SR04</span></div>
+        <div class="spec-item"><span class="spec-label">Range</span><span class="spec-val">2-400 cm</span></div>
+        <div class="spec-item"><span class="spec-label">E-stop</span><span class="spec-val">&lt; 30 cm</span></div>
+        <div class="spec-item"><span class="spec-label">Timeout</span><span class="spec-val">3s no person</span></div>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--amber);">30%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-amber" data-width="30"></div></div>
+      <div class="node-section-label">Safety Logic</div>
+      <div class="signal-flow">
+        <span class="flow-step">HC-SR04</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">&lt; 30cm?</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">E-STOP</span>
       </div>
-      <ul class="node-checklist">
-        <li class="done">record.py written</li>
-        <li class="done">train.py written</li>
-        <li class="done">deploy.py written</li>
-        <li class="blocked">Needs assembled arm</li>
-        <li class="pending">50 episodes optic seating</li>
-        <li class="pending">ACT policy training (~2-4h)</li>
-      </ul>
-      <div class="node-path">robotics-site/so101/</div>
     </div>
 
-    <div class="node" id="node-demo" style="left: 55%; top: 1280px;" data-delay="1.7">
+    <!-- ══════════ ROW 4: Intelligence Layer (top: 1460px) ══════════ -->
+
+    <div class="node wide" id="node-imitation" style="left: 8%; top: 1440px;" tabindex="0" role="button" aria-label="Imitation Learning Pipeline details">
       <div class="node-header">
-        <div class="node-icon demo">&#x1f3ac;</div>
-        <div class="node-badge badge-concept">Pending</div>
+        <div class="node-icon learning">&#x1f9e0;</div>
+        <div class="node-badge badge-arm">Arm</div>
       </div>
-      <div class="node-title">Demo Day</div>
-      <div class="node-desc">2-3 min pre-recorded video. Optic seating, rack inspection, vendor escort. Live dashboard.</div>
+      <div class="node-title">Imitation Learning Pipeline</div>
+      <div class="node-desc">Record human demos via leader-follower teleop. Train ACT (Action Chunking with Transformers) policy. Deploy autonomous.</div>
+      <div class="spec-grid">
+        <div class="spec-item"><span class="spec-label">Policy</span><span class="spec-val">ACT</span></div>
+        <div class="spec-item"><span class="spec-label">Episodes</span><span class="spec-val">50 target</span></div>
+        <div class="spec-item"><span class="spec-label">Training</span><span class="spec-val">~2-4h (MPS)</span></div>
+        <div class="spec-item"><span class="spec-label">Input</span><span class="spec-val">joints + camera</span></div>
+      </div>
+      <div class="node-section-label">Training Pipeline</div>
+      <div class="signal-flow">
+        <span class="flow-step">Teleop Record</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">HF Dataset</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step highlight">ACT Training</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Policy .ckpt</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Autonomous</span>
+      </div>
+      <div class="node-section-label" style="margin-top: 10px;">Scripts</div>
       <div class="node-tech">
-        <span class="tech-tag">Video</span>
-        <span class="tech-tag">Slides</span>
-        <span class="tech-tag">Live demo</span>
+        <span class="tech-tag">record.py</span>
+        <span class="tech-tag">train.py</span>
+        <span class="tech-tag">deploy.py</span>
       </div>
-      <div class="node-progress">
-        <div class="progress-header">
-          <span class="progress-label">Progress</span>
-          <span class="progress-pct" style="color: var(--text-muted);">0%</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill fill-amber" data-width="0"></div></div>
+    </div>
+
+    <div class="node wide" id="node-tasks" style="right: 8%; top: 1440px;" tabindex="0" role="button" aria-label="DC Task Targets details">
+      <div class="node-header">
+        <div class="node-icon comms">&#x1f3af;</div>
+        <div class="node-badge badge-both">Both</div>
       </div>
-      <ul class="node-checklist">
-        <li class="pending">Demo scenarios scripted</li>
-        <li class="pending">Video recorded</li>
-        <li class="pending">Slides done</li>
-        <li class="pending">Repo pushed to GitHub</li>
-      </ul>
-      <div class="node-path">March 23-26, 2026</div>
+      <div class="node-title">DC Task Targets</div>
+      <div class="node-desc">Three demonstration scenarios showing autonomous DC floor operations. Each trained separately via imitation learning or hardcoded control.</div>
+      <div class="node-section-label">Arm Tasks</div>
+      <div class="signal-flow">
+        <span class="flow-step highlight">Optic Seating</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step">Rack Inspect</span>
+        <span class="flow-arrow">|</span>
+        <span class="flow-step">Cable Dress</span>
+      </div>
+      <div class="node-section-label" style="margin-top: 10px;">Escort Task</div>
+      <div class="signal-flow">
+        <span class="flow-step highlight">Vendor Follow</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Aisle Navigate</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="flow-step">Obstacle Avoid</span>
+      </div>
+      <div class="spec-grid" style="margin-top: 10px;">
+        <div class="spec-item"><span class="spec-label">Demo Length</span><span class="spec-val">2-3 min</span></div>
+        <div class="spec-item"><span class="spec-label">Format</span><span class="spec-val">Pre-recorded</span></div>
+      </div>
     </div>
 
   </div>
@@ -1280,102 +1029,44 @@
 
 </div><!-- /scene-3d -->
 
-<!-- Timeline -->
-<div class="timeline">
-  <div class="timeline-label">Timeline to Demo Day</div>
-  <div class="timeline-track" id="timeline-track">
-    <!-- Filled by JS -->
-  </div>
-</div>
-
 <script>
   // ── Config ──
   const EASE_OUT_QUINT = 'cubic-bezier(0.22, 1, 0.36, 1)';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ── Countdown ──
-  function updateCountdown() {
-    const demo = new Date('2026-03-23T09:00:00');
-    const now = new Date();
-    const diff = demo - now;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    document.getElementById('countdown').textContent = `${days}d ${hours}h to Demo Day`;
-    document.getElementById('days-left').textContent = days;
-  }
-  updateCountdown();
-  setInterval(updateCountdown, 60000);
-
-  // ── Stat Counter Animation ──
-  function animateCounter(el, target, duration = 1200) {
-    if (reducedMotion) { el.textContent = target; return; }
-    const start = performance.now();
-    function tick(now) {
-      const t = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - t, 4);
-      el.textContent = Math.round(eased * target);
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  setTimeout(() => {
-    document.querySelectorAll('.stat-value[data-count]').forEach(el => {
-      animateCounter(el, parseInt(el.dataset.count), 1000);
-    });
-  }, 1000);
-
-  // ── Timeline ──
-  const milestones = [
-    { date: 'Mar 9',  task: 'TODAY', today: true },
-    { date: 'Mar 10', task: 'Order HW' },
-    { date: 'Mar 11', task: 'Sign up!' },
-    { date: 'Mar 12', task: 'Deadline' },
-    { date: 'Mar 13', task: '' },
-    { date: 'Mar 14', task: 'HW arrives?' },
-    { date: 'Mar 15', task: 'Assemble' },
-    { date: 'Mar 16', task: 'Calibrate' },
-    { date: 'Mar 17', task: 'Record' },
-    { date: 'Mar 18', task: 'Train' },
-    { date: 'Mar 19', task: 'Deploy' },
-    { date: 'Mar 20', task: 'Test escort' },
-    { date: 'Mar 21', task: 'Film demo' },
-    { date: 'Mar 22', task: 'Polish' },
-    { date: 'Mar 23', task: 'DEMO DAY', demo: true },
-  ];
-
-  const track = document.getElementById('timeline-track');
-  milestones.forEach((m, i) => {
-    const seg = document.createElement('div');
-    seg.className = 'timeline-segment' + (m.today ? ' today' : '') + (m.demo ? ' demo-day' : '');
-    seg.innerHTML = `<div class="timeline-date">${m.date}</div><div class="timeline-task">${m.task}</div>`;
-    track.appendChild(seg);
-    if (!reducedMotion) {
-      setTimeout(() => seg.classList.add('seg-in'), 2800 + i * 60);
-    } else {
-      seg.classList.add('seg-in');
-    }
-  });
-
-  // ── Critical Path Cascade ──
-  const critElements = document.querySelectorAll('.critical-step, .critical-arrow');
-  critElements.forEach((el, i) => {
-    if (!reducedMotion) {
-      setTimeout(() => el.classList.add('cascade-in'), 1400 + i * 80);
-    } else {
-      el.classList.add('cascade-in');
-    }
-  });
-
   // ── Node Orchestrated Reveal ──
   const layers = [
-    { ids: ['node-site'], delay: 400 },
-    { ids: ['node-app', 'node-escort', 'node-pulse'], delay: 900 },
-    { ids: ['node-arm', 'node-chassis'], delay: 1500 },
-    { ids: ['node-training', 'node-demo'], delay: 2100 },
+    { ids: ['node-arm-sys', 'node-escort-sys'], delay: 400 },
+    { ids: ['node-servo', 'node-detection', 'node-steering'], delay: 1000 },
+    { ids: ['node-arm-hw', 'node-escort-hw', 'node-safety'], delay: 1600 },
+    { ids: ['node-imitation', 'node-tasks'], delay: 2200 },
   ];
 
   const allNodes = document.querySelectorAll('.node');
+
+  // Set staggered transition-delay on inner elements before reveal
+  function setInnerStagger(node) {
+    // Section labels: fade in just before their flow steps
+    const labels = node.querySelectorAll('.node-section-label');
+    labels.forEach((el, j) => {
+      el.style.transitionDelay = `${0.18 + j * 0.3}s`;
+    });
+    // Flow steps + arrows: cascade left to right
+    const flowEls = node.querySelectorAll('.flow-step, .flow-arrow');
+    flowEls.forEach((el, j) => {
+      el.style.transitionDelay = `${0.3 + j * 0.06}s`;
+    });
+    // Spec grid items: cascade top-left to bottom-right
+    const specItems = node.querySelectorAll('.spec-item');
+    specItems.forEach((el, j) => {
+      el.style.transitionDelay = `${0.2 + j * 0.08}s`;
+    });
+    // Pin table rows: cascade top to bottom
+    const rows = node.querySelectorAll('.pin-table tbody tr');
+    rows.forEach((el, j) => {
+      el.style.transitionDelay = `${0.35 + j * 0.07}s`;
+    });
+  }
 
   layers.forEach(layer => {
     layer.ids.forEach((id, i) => {
@@ -1383,6 +1074,7 @@
       if (!node) return;
       const revealTime = layer.delay + i * 120;
       if (reducedMotion) { node.classList.add('revealed', 'floating'); return; }
+      setInnerStagger(node);
       node.style.transition = `opacity 0.7s ${EASE_OUT_QUINT}, transform 0.7s ${EASE_OUT_QUINT}, filter 0.7s ${EASE_OUT_QUINT}`;
       setTimeout(() => {
         node.classList.add('revealed');
@@ -1391,16 +1083,16 @@
           node.style.setProperty('--float-delay', (Math.random() * 2) + 's');
           node.style.transition = 'border-color 0.3s ease, box-shadow 0.4s ease, opacity 0.35s ease, filter 0.35s ease';
           node.classList.add('floating');
+          // Clear transition-delay so hover/interactions aren't delayed
+          node.querySelectorAll('.node-section-label, .flow-step, .flow-arrow, .spec-item, .pin-table tr').forEach(el => {
+            el.style.transitionDelay = '';
+          });
         }, 800);
       }, revealTime);
-      setTimeout(() => {
-        const bar = node.querySelector('.progress-fill');
-        if (bar) bar.style.width = bar.dataset.width + '%';
-      }, revealTime + 300);
     });
   });
 
-  // ── SVG Connection Lines with Draw-In ──
+  // ── SVG Connection Lines ──
   function getNodeEdge(id, side) {
     const el = document.getElementById(id);
     if (!el) return { x: 0, y: 0 };
@@ -1417,14 +1109,32 @@
   }
 
   const connections = [
-    { from: 'node-site', fromSide: 'bottom', to: 'node-app', toSide: 'top', type: 'dep', drawAt: 900 },
-    { from: 'node-pulse', fromSide: 'bottom', to: 'node-app', toSide: 'right', type: 'dep', drawAt: 1100 },
-    { from: 'node-app', fromSide: 'bottom', to: 'node-arm', toSide: 'top', type: 'dep', drawAt: 1500 },
-    { from: 'node-app', fromSide: 'bottom', to: 'node-chassis', toSide: 'top', type: 'dep', drawAt: 1600 },
-    { from: 'node-escort', fromSide: 'bottom', to: 'node-chassis', toSide: 'top', type: 'critical', drawAt: 1550 },
-    { from: 'node-arm', fromSide: 'bottom', to: 'node-training', toSide: 'top', type: 'critical', drawAt: 2100 },
-    { from: 'node-training', fromSide: 'right', to: 'node-demo', toSide: 'left', type: 'critical', drawAt: 2300 },
-    { from: 'node-chassis', fromSide: 'bottom', to: 'node-demo', toSide: 'top', type: 'dep', drawAt: 2200 },
+    // Arm system → servo control
+    { from: 'node-arm-sys', fromSide: 'bottom', to: 'node-servo', toSide: 'top', type: 'critical', drawAt: 1000 },
+    // Escort system → detection
+    { from: 'node-escort-sys', fromSide: 'bottom', to: 'node-detection', toSide: 'top', type: 'critical', drawAt: 1100 },
+    // Escort system → steering
+    { from: 'node-escort-sys', fromSide: 'bottom', to: 'node-steering', toSide: 'top', type: 'critical', drawAt: 1200 },
+    // Detection → steering (data flow)
+    { from: 'node-detection', fromSide: 'right', to: 'node-steering', toSide: 'left', type: 'data', drawAt: 1400 },
+    // Servo → arm hardware
+    { from: 'node-servo', fromSide: 'bottom', to: 'node-arm-hw', toSide: 'top', type: 'critical', drawAt: 1600 },
+    // Detection → escort hardware
+    { from: 'node-detection', fromSide: 'bottom', to: 'node-escort-hw', toSide: 'top', type: 'dep', drawAt: 1700 },
+    // Steering → escort hardware
+    { from: 'node-steering', fromSide: 'bottom', to: 'node-escort-hw', toSide: 'top', type: 'critical', drawAt: 1750 },
+    // Steering → safety
+    { from: 'node-steering', fromSide: 'bottom', to: 'node-safety', toSide: 'top', type: 'dep', drawAt: 1800 },
+    // Safety → escort hardware
+    { from: 'node-safety', fromSide: 'left', to: 'node-escort-hw', toSide: 'right', type: 'critical', drawAt: 1850 },
+    // Arm hardware → imitation learning
+    { from: 'node-arm-hw', fromSide: 'bottom', to: 'node-imitation', toSide: 'top', type: 'critical', drawAt: 2200 },
+    // Servo → imitation learning (data: joint positions)
+    { from: 'node-servo', fromSide: 'bottom', to: 'node-imitation', toSide: 'top', type: 'data', drawAt: 2300 },
+    // Imitation → tasks
+    { from: 'node-imitation', fromSide: 'right', to: 'node-tasks', toSide: 'left', type: 'critical', drawAt: 2500 },
+    // Escort hw → tasks
+    { from: 'node-escort-hw', fromSide: 'bottom', to: 'node-tasks', toSide: 'top', type: 'dep', drawAt: 2400 },
   ];
 
   let drawnLines = [];
@@ -1439,12 +1149,19 @@
     connections.forEach(conn => {
       const from = getNodeEdge(conn.from, conn.fromSide);
       const to = getNodeEdge(conn.to, conn.toSide);
-      const midY = (from.y + to.y) / 2;
-      const d = `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
+      if (!from.x && !from.y) return;
+      let d;
+      if (conn.fromSide === 'right' || conn.fromSide === 'left') {
+        const midX = (from.x + to.x) / 2;
+        d = `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`;
+      } else {
+        const midY = (from.y + to.y) / 2;
+        d = `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
+      }
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', d);
       path.setAttribute('fill', 'none');
-      path.classList.add(conn.type === 'critical' ? 'critical-line' : 'dep-line');
+      path.classList.add(conn.type === 'critical' ? 'critical-line' : conn.type === 'data' ? 'data-line' : 'dep-line');
       svg.appendChild(path);
       const len = path.getTotalLength();
       path.style.strokeDasharray = len;
@@ -1455,9 +1172,9 @@
         path.classList.add('drawn');
         path.style.transition = `stroke-dashoffset 0.8s ${EASE_OUT_QUINT}, opacity 0.5s ease`;
         path.style.strokeDashoffset = '0';
-        if (conn.type === 'dep') {
+        if (conn.type === 'dep' || conn.type === 'data') {
           setTimeout(() => {
-            path.style.strokeDasharray = '6 4';
+            path.style.strokeDasharray = conn.type === 'data' ? '4 3' : '6 4';
             path.style.strokeDashoffset = '100';
             path.style.transition = 'none';
           }, 900);
@@ -1474,8 +1191,14 @@
     drawnLines.forEach(({ path, conn }) => {
       const from = getNodeEdge(conn.from, conn.fromSide);
       const to = getNodeEdge(conn.to, conn.toSide);
-      const midY = (from.y + to.y) / 2;
-      const d = `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
+      let d;
+      if (conn.fromSide === 'right' || conn.fromSide === 'left') {
+        const midX = (from.x + to.x) / 2;
+        d = `M ${from.x} ${from.y} C ${midX} ${from.y}, ${midX} ${to.y}, ${to.x} ${to.y}`;
+      } else {
+        const midY = (from.y + to.y) / 2;
+        d = `M ${from.x} ${from.y} C ${from.x} ${midY}, ${to.x} ${midY}, ${to.x} ${to.y}`;
+      }
       path.setAttribute('d', d);
     });
   }
@@ -1483,16 +1206,18 @@
   setTimeout(createConnections, 300);
   window.addEventListener('resize', redrawConnections);
 
-  // ── Hover: Dim unconnected, highlight connected ──
+  // ── Hover: Dim unconnected ──
   const connectionMap = {
-    'node-site': ['node-app'],
-    'node-app': ['node-site', 'node-arm', 'node-chassis', 'node-pulse'],
-    'node-escort': ['node-chassis'],
-    'node-arm': ['node-app', 'node-training'],
-    'node-chassis': ['node-app', 'node-escort', 'node-demo'],
-    'node-training': ['node-arm', 'node-demo'],
-    'node-demo': ['node-training', 'node-chassis'],
-    'node-pulse': ['node-app'],
+    'node-arm-sys': ['node-servo'],
+    'node-escort-sys': ['node-detection', 'node-steering'],
+    'node-servo': ['node-arm-sys', 'node-arm-hw', 'node-imitation'],
+    'node-detection': ['node-escort-sys', 'node-steering', 'node-escort-hw'],
+    'node-steering': ['node-escort-sys', 'node-detection', 'node-escort-hw', 'node-safety'],
+    'node-arm-hw': ['node-servo', 'node-imitation'],
+    'node-escort-hw': ['node-detection', 'node-steering', 'node-safety', 'node-tasks'],
+    'node-safety': ['node-steering', 'node-escort-hw'],
+    'node-imitation': ['node-arm-hw', 'node-servo', 'node-tasks'],
+    'node-tasks': ['node-imitation', 'node-escort-hw'],
   };
 
   allNodes.forEach(node => {
@@ -1519,54 +1244,46 @@
     });
   });
 
-  // ── Click to Expand Node Details ──
+  // ── Click to Expand ──
   const expandedData = {
-    'node-site': {
-      files: ['index.html', 'topology.html', 'arm-render.png', 'hero-render.png', 'floorcrew-robots.blend'],
-      actions: [{ label: 'Open site', path: 'file:///Users/rpatino/hackathon/robotics-site/index.html' },
-                { label: 'Open topology', path: 'file:///Users/rpatino/hackathon/robotics-site/topology.html' }],
-      details: 'Landing page is 90% done. Needs final copy review and maybe one more render for the escort bot section.'
+    'node-arm-sys': {
+      detail: 'The SO-101 uses 6 Feetech STS3215 servos in a serial chain. Each servo has a unique ID (1-6) and accepts position/speed commands via the SCS protocol. The LeRobot framework wraps this into a MotorsBus class that handles sync reads and writes across all joints simultaneously. Keyboard teleop is possible without a leader arm using Haoran Xu\'s approach.'
     },
-    'node-app': {
-      files: ['index.html', 'CLAUDE.md', 'README.md', 'api/server.py', 'data/scans/', 'data/logs/'],
-      actions: [{ label: 'Open dashboard', path: 'file:///Users/rpatino/hackathon/floorcrew-app/index.html' }],
-      details: 'Dashboard runs on mock data at 10Hz via WebSocket. Needs real hardware serial/GPIO bridge in server.py.'
+    'node-escort-sys': {
+      detail: 'The escort bot runs a tight control loop: capture frame → run TFLite inference → extract person bounding box → compute steering error → set motor PWM. The whole loop runs at ~30Hz on a Pi 5. MobileNet SSD v2 was chosen for its balance of accuracy and speed on edge hardware. The person class (COCO ID 0) is the only detection target.'
     },
-    'node-escort': {
-      files: ['main.py', 'install.sh', 'WIRING.md', 'showcase.html', 'requirements.txt'],
-      actions: [{ label: 'View showcase', path: 'file:///Users/rpatino/hackathon/escort-bot/showcase.html' }],
-      details: '330-line person-following loop complete. TFLite + proportional steering. Blocked on Pi 5 hardware test.'
+    'node-servo': {
+      detail: 'STS3215 servos use a half-duplex UART protocol (SCS). All 6 servos share one data line, each addressed by ID. sync_write() sends position targets to all joints in a single packet, reducing latency. Feedback (position, temperature, load) is read via sync_read(). The USB-to-TTL adapter bridges the host computer to the SCS bus at 1Mbps.'
     },
-    'node-pulse': {
-      files: ['CLAUDE.md', 'server.js (planned)', 'public/app.js (planned)', 'public/floor.json (planned)'],
-      actions: [],
-      details: 'Optional project. Spec is done but no code written. WebSocket broadcast + Canvas wave animation concept.'
+    'node-detection': {
+      detail: 'Pi Camera V3 connects via CSI ribbon cable. Frames are captured using picamera2, resized to 300x300 for MobileNet SSD input. The TFLite interpreter runs quantized INT8 inference. Output tensors give bounding boxes, class IDs, and confidence scores. Only detections with class=0 (person) and confidence > 0.5 are used for steering.'
     },
-    'node-arm': {
-      files: ['so101/HARDWARE.md', 'so101/record.py', 'so101/train.py', 'so101/deploy.py', 'so101/requirements.txt'],
-      actions: [],
-      details: 'HiWonder kit ($270) or DIY ($275). 6-DOF, Feetech STS3215 servos. Must order ASAP for March 14 arrival.'
+    'node-steering': {
+      detail: 'Proportional control: error = (bbox_center_x / frame_width) - 0.5. Left motor speed = base_speed + Kp * error. Right motor speed = base_speed - Kp * error. A ±15% dead zone around center prevents oscillation. Speed is clamped between 0.3 (minimum to overcome friction) and 0.8 (safety limit). Forward speed scales with bbox height (closer person → slower approach).'
     },
-    'node-chassis': {
-      files: ['escort-bot/WIRING.md'],
-      actions: [],
-      details: 'Freenove 4WD + Pi 5. GPIO mapped: L298N driver, ultrasonic (GPIO 25/24), Pi Camera CSI. Needs OS flash + motor test.'
+    'node-arm-hw': {
+      detail: 'HiWonder SO-101 kit includes pre-assembled 3D printed links and all 6 STS3215 servos. Assembly is mechanical — bolt servos into joints, route cables through links, connect to SCS daisy chain. A 7.4V 3A power supply feeds the servo rail. A USB-to-TTL adapter (CH340 or similar) connects the SCS bus to the host computer.'
     },
-    'node-training': {
-      files: ['so101/record.py', 'so101/train.py', 'so101/deploy.py'],
-      actions: [],
-      details: 'LeRobot pipeline: record 50 eps optic seating \u2192 train ACT policy (MPS ~2-4h) \u2192 deploy autonomous. All scripts written.'
+    'node-escort-hw': {
+      detail: 'Freenove 4WD chassis has 4 DC motors wired in 2 pairs (left/right). L298N H-bridge driver accepts GPIO digital (direction) and PWM (speed) signals. HC-SR04 ultrasonic sensor measures forward distance via GPIO trigger/echo. Pi Camera V3 connects via CSI. All powered by a 7.4V 2S LiPo with a 5V BEC for the Pi.'
     },
-    'node-demo': {
-      files: [],
-      actions: [],
-      details: '2-3 min pre-recorded video. Three scenarios: optic seating, rack inspection, vendor escort. Plus live dashboard. March 23-26.'
+    'node-safety': {
+      detail: 'HC-SR04 sends ultrasonic ping (GPIO 25 trigger), measures echo return time (GPIO 24). Distance = time * 343m/s / 2. If distance < 30cm, motors immediately stop (emergency brake). If no person detected for 3 consecutive seconds, bot enters idle mode (motors off, LED blinks). Re-detection resumes following automatically.'
+    },
+    'node-imitation': {
+      detail: 'LeRobot framework pipeline: (1) record.py captures 50 episodes of human teleop performing optic seating task. Each episode stores joint angles + wrist camera frames at 30Hz as a HuggingFace dataset. (2) train.py runs ACT policy training — a transformer that predicts action chunks (sequences of joint targets) from observation history. Training takes ~2-4h on Apple MPS or NVIDIA GPU. (3) deploy.py loads the trained checkpoint and runs inference in a closed loop.'
+    },
+    'node-tasks': {
+      detail: 'Optic seating: arm picks SFP+ transceiver from staging tray, aligns with switch port, seats it. Trained via 50 imitation episodes. Rack inspection: wrist camera scans rack face, CV detects unseated cables or amber LEDs. Vendor escort: bot follows a person through DC aisles at safe distance, stops at obstacles, resumes when clear.'
     },
   };
 
   let expandedNode = null;
 
   allNodes.forEach(node => {
+    node.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); node.click(); }
+    });
     node.addEventListener('click', (e) => {
       e.stopPropagation();
       const data = expandedData[node.id];
@@ -1577,26 +1294,8 @@
       const panel = document.createElement('div');
       panel.className = 'expand-panel';
       panel.id = 'expand-panel';
-      let filesHtml = '';
-      if (data.files.length) {
-        filesHtml = `<div class="expand-section">
-          <div class="expand-section-title">Files</div>
-          <div class="expand-files">${data.files.map(f => `<div class="expand-file">${f}</div>`).join('')}</div>
-        </div>`;
-      }
-      let actionsHtml = '';
-      if (data.actions.length) {
-        actionsHtml = `<div class="expand-section">
-          <div class="expand-section-title">Actions</div>
-          <div class="expand-actions">${data.actions.map(a =>
-            `<a class="expand-action" href="${a.path}" target="_blank">${a.label}</a>`
-          ).join('')}</div>
-        </div>`;
-      }
       panel.innerHTML = `
-        <div class="expand-detail">${data.details}</div>
-        ${filesHtml}
-        ${actionsHtml}
+        <div class="expand-detail">${data.detail}</div>
         <div class="expand-hint">Click again to close</div>
       `;
       node.appendChild(panel);
@@ -1626,7 +1325,7 @@
     setTimeout(() => div.classList.add('visible'), showAt);
   });
 
-  // ── Legend dot subtle pulse ──
+  // ── Legend dot pulse ──
   document.querySelectorAll('.legend-dot').forEach((dot, i) => {
     if (!reducedMotion) {
       dot.style.animation = `legendDotPulse 3s ${i * 0.5}s ease-in-out infinite`;

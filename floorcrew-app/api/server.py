@@ -1,11 +1,12 @@
 """
 FloorCrew Dashboard — FastAPI WebSocket Server
-Serves mock data for arm status, escort bot, scan logs, training state.
-Replace mock generators with real hardware interfaces when ready.
+Bridges hardware interfaces (arm + escort bot) to the frontend via WebSocket.
+Falls back to mock data when hardware is not connected.
 """
 
 import asyncio
 import json
+import logging
 import math
 import random
 import time
@@ -16,6 +17,11 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from arm import arm
+from escort import escort
+
+logger = logging.getLogger("floorcrew.server")
+
 app = FastAPI(title="FloorCrew Dashboard")
 
 # Serve frontend
@@ -24,6 +30,44 @@ ROOT = Path(__file__).parent.parent
 @app.get("/")
 async def index():
     return FileResponse(ROOT / "index.html")
+
+
+# ── Hardware lifecycle ────────────────────────────────────────
+
+USE_MOCK = True  # Set False when hardware is connected
+
+@app.on_event("startup")
+async def startup():
+    global USE_MOCK
+    # Try connecting to real hardware
+    arm_ok = arm.connect()
+    escort_ok = await escort.connect()
+    if arm_ok or escort_ok:
+        USE_MOCK = False
+        logger.info(f"Hardware mode — arm:{arm_ok} escort:{escort_ok}")
+    else:
+        logger.info("No hardware detected — running in mock mode")
+
+@app.on_event("shutdown")
+async def shutdown():
+    arm.disconnect()
+
+
+# ── REST endpoints ────────────────────────────────────────────
+
+@app.get("/api/scans")
+async def get_scans():
+    """Return scan history from disk."""
+    return escort.load_scan_history()
+
+@app.get("/api/status")
+async def get_status():
+    """Quick health check with hardware status."""
+    return {
+        "arm_connected": arm.connected,
+        "escort_connected": escort.connected,
+        "mock_mode": USE_MOCK,
+    }
 
 # ── Mock Data Generators ────────────────────────────────────
 
@@ -251,20 +295,64 @@ async def websocket_endpoint(ws: WebSocket):
     start = time.time()
 
     # Send scan history once on connect
-    await ws.send_json({"type": "scan_history", "scans": MOCK_SCANS})
+    scans = escort.load_scan_history() if not USE_MOCK else MOCK_SCANS
+    await ws.send_json({"type": "scan_history", "scans": scans})
+
+    # Send initial hardware status
+    await ws.send_json({
+        "type": "status",
+        "arm_connected": arm.connected,
+        "escort_connected": escort.connected,
+        "mock_mode": USE_MOCK,
+    })
 
     try:
         while True:
             t = time.time() - start
 
-            # Send all state updates
-            await ws.send_json(mock_arm_state(t))
-            await ws.send_json(mock_escort_state(t))
+            if USE_MOCK:
+                await ws.send_json(mock_arm_state(t))
+                await ws.send_json(mock_escort_state(t))
+            else:
+                # Real hardware state
+                if arm.connected:
+                    arm_state = arm.get_state()
+                    await ws.send_json(arm_state.model_dump())
+                else:
+                    await ws.send_json(mock_arm_state(t))
+
+                if escort.connected:
+                    escort_state = await escort.poll_state()
+                    await ws.send_json(escort_state.model_dump())
+                else:
+                    await ws.send_json(mock_escort_state(t))
+
             await ws.send_json(mock_training_state(t))
 
-            await asyncio.sleep(0.1)  # 10Hz update rate
+            # Check for incoming commands from frontend
+            try:
+                data = await asyncio.wait_for(ws.receive_json(), timeout=0.09)
+                await handle_ws_command(data)
+            except asyncio.TimeoutError:
+                pass
+
+            await asyncio.sleep(0.01)  # ~10Hz with the timeout above
     except WebSocketDisconnect:
         pass
+
+
+async def handle_ws_command(data: dict):
+    """Route commands from the frontend to the right hardware interface."""
+    target = data.get("target")
+    action = data.get("action")
+    params = data.get("params", {})
+
+    if target == "arm":
+        arm.handle_command(action, **params)
+    elif target == "escort":
+        await escort.handle_command(action, **params)
+    else:
+        logger.warning(f"Unknown command target: {target}")
 
 
 if __name__ == "__main__":

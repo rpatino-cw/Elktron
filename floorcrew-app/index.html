@@ -1165,6 +1165,7 @@
       case 'escort': updateEscort(data); break;
       case 'training': updateTraining(data); break;
       case 'scan_history': updateScanLog(data.scans); break;
+      case 'status': updateHardwareStatus(data); break;
     }
   }
 
@@ -1376,6 +1377,12 @@
     DOM.tCost.textContent = '$' + d.cost_so_far.toFixed(2);
   }
 
+  // ── Hardware Status ────────────────────────────────────────
+  function updateHardwareStatus(d) {
+    DOM.navStatus.textContent = d.mock_mode ? 'MOCK DATA' : 'LIVE HARDWARE';
+    DOM.navStatus.style.color = d.mock_mode ? '' : 'var(--green)';
+  }
+
   // ── Clock ───────────────────────────────────────────────────
   function updateClock() {
     DOM.navTime.textContent =
@@ -1385,10 +1392,17 @@
   updateClock();
 
   // ── Button placeholders ─────────────────────────────────────
-  DOM.btnRecord.addEventListener('click', () => { DOM.navStatus.textContent = 'RECORDING'; });
-  DOM.btnUpload.addEventListener('click', () => { DOM.navStatus.textContent = 'UPLOADING'; });
-  DOM.btnTrain.addEventListener('click', () => { DOM.navStatus.textContent = 'TRAINING'; });
-  DOM.btnDeploy.addEventListener('click', () => { DOM.navStatus.textContent = 'DEPLOYING'; });
+  function sendCommand(target, action, params = {}) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ target, action, params }));
+    }
+    DOM.navStatus.textContent = action.toUpperCase().replace('_', ' ');
+  }
+
+  DOM.btnRecord.addEventListener('click', () => sendCommand('arm', 'start_recording', { task: 'optic_seating' }));
+  DOM.btnUpload.addEventListener('click', () => sendCommand('arm', 'upload_data'));
+  DOM.btnTrain.addEventListener('click', () => sendCommand('arm', 'start_training', { device: 'mps' }));
+  DOM.btnDeploy.addEventListener('click', () => sendCommand('arm', 'deploy'));
 
   // ── Init ────────────────────────────────────────────────────
   connect();
