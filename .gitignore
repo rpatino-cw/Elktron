@@ -15,10 +15,18 @@ venv/
 .env.*
 config.py
 *.db
+*.key
+*.pem
+*.crt
+credentials.json
 
 # IDE
 .vscode/
 .idea/
+
+# Node
+node_modules/
+package-lock.json
 
 # Models (too large for git)
 *.tflite
@@ -34,3 +42,7 @@ recordings/
 
 # Blender backups
 *.blend1
+
+# Logs
+*.log
+logs/
