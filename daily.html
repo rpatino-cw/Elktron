@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elktron Daily Ops</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+/* Local overrides — design-system.css provides :root tokens and reset */
+html { font-size: 15px; scroll-behavior: smooth; }
+body {
+  padding-top: 44px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Particles ── */
+.particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.particle {
+  position: absolute; border-radius: 50%; opacity: 0;
+  animation: particleFloat linear infinite;
+}
+@keyframes particleFloat {
+  0% { opacity: 0; transform: translateY(100vh) translateX(0) scale(0.5); }
+  10% { opacity: var(--p-op, 0.12); }
+  90% { opacity: var(--p-op, 0.12); }
+  100% { opacity: 0; transform: translateY(-10vh) translateX(var(--p-drift, 30px)) scale(1); }
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px 48px;
+  overflow: hidden;
+  background: linear-gradient(170deg, #f4f6fa 0%, #edf0f7 40%, #fafbfd 100%);
+}
+#heroCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: linear-gradient(135deg, rgba(39,65,231,0.06) 0%, rgba(108,92,231,0.04) 50%, rgba(39,65,231,0.03) 100%);
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero-date {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s var(--ease-out) 0.2s forwards;
+}
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: center;
+  color: var(--text-primary);
+  opacity: 0;
+  animation: fadeSlideUp 0.6s var(--ease-out) 0.3s forwards;
+}
+.hero-title span {
+  color: var(--accent-primary);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Skip navigation ── */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 1000;
+  padding: 0.75rem 1.5rem;
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+.skip-link:focus {
+  position: fixed;
+  left: 1rem;
+  top: 0;
+  width: auto;
+  height: auto;
+  z-index: 9999;
+}
+.hero-sub {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s var(--ease-out) 0.4s forwards;
+}
+.hero-countdown {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 24px;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s var(--ease-out) 0.5s forwards;
+}
+.countdown-block { text-align: center; }
+.countdown-num {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.countdown-num.urgent { color: var(--status-error); animation: urgentPulse 2.5s ease-in-out infinite; }
+.countdown-label-text {
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.countdown-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-default);
+}
+.signup-pill {
+  margin-top: 16px;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, var(--status-error), var(--status-warning));
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 100px;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s var(--ease-out) 0.6s forwards, pillPulse 3s ease-in-out 1.5s infinite;
+}
+.signup-pill.hidden { display: none; }
+@keyframes pillPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+.hero-quote {
+  margin-top: 20px;
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 420px;
+  text-align: center;
+  line-height: 1.5;
+  opacity: 0;
+  animation: fadeSlideUp 0.5s var(--ease-out) 0.7s forwards;
+}
+
+/* ── Topbar / Tabs ── */
+.nav-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,251,253,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  gap: 0;
+}
+.nav-tab {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 0.875rem 1.25rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s var(--ease-in-out), border-color 0.2s var(--ease-in-out);
+  user-select: none;
+}
+.nav-tab:hover { color: var(--text-secondary); }
+.nav-tab.active { color: var(--text-primary); border-bottom-color: var(--accent-primary); }
+
+/* ── Pages ── */
+.page { display: none; padding: 2rem; max-width: 960px; margin: 0 auto; }
+.page.active { display: block; animation: fadeIn 0.3s var(--ease-in-out); }
+.section-head {
+  font-family: var(--font-sans);
+  font-size: 0.625rem; font-weight: 500;
+  color: var(--text-tertiary); letter-spacing: 0.14em;
+  text-transform: uppercase; margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.section + .section { margin-top: 2.5rem; }
+
+/* ── Quote bar ── */
+.quote-bar {
+  padding: 0.875rem 1.25rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--status-warning);
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  font-style: italic;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+/* ── Progress ── */
+.progress-bar-wrap { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem; }
+.progress-track { flex: 1; height: 4px; background: var(--border-subtle); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--status-success); border-radius: 2px; width: 0%; transition: width 0.4s var(--ease-out); }
+.progress-label { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-tertiary); min-width: 2.5rem; text-align: right; }
+
+/* ── Checklist ── */
+.checklist-group + .checklist-group { margin-top: 1.5rem; }
+.checklist-group-label {
+  font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.badge {
+  font-family: var(--font-sans); font-size: 0.6rem;
+  padding: 0.15rem 0.5rem; border-radius: 100px; font-weight: 500;
+  letter-spacing: 0.04em;
+}
+.badge-red { background: var(--status-error-muted); color: var(--status-error); }
+.badge-green { background: var(--status-success-muted); color: var(--status-success); }
+.badge-yellow { background: var(--status-warning-muted); color: var(--status-warning); }
+.check-item {
+  padding: 0.5rem 0.625rem; border-radius: var(--radius-sm);
+  font-size: 0.875rem; color: var(--text-secondary); line-height: 1.45;
+  transition: background 0.15s var(--ease-in-out);
+}
+.check-item label {
+  display: flex; align-items: flex-start; gap: 0.625rem;
+  cursor: pointer;
+}
+.check-item:hover { background: var(--bg-hover); }
+.check-item input[type="checkbox"] {
+  appearance: none; width: 16px; height: 16px;
+  border: 1.5px solid var(--border-default); border-radius: 5px;
+  margin-top: 2px; flex-shrink: 0; cursor: pointer;
+  position: relative; background: transparent;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.check-item input::after {
+  content: ''; position: absolute; top: 2px; left: 5px;
+  width: 4px; height: 8px; border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) scale(0);
+  transition: transform 0.2s var(--ease-out);
+}
+.check-item input:hover { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--glow-soft); }
+.check-item input:checked { background: var(--status-success); border-color: var(--status-success); box-shadow: none; }
+.check-item input:checked::after { transform: rotate(45deg) scale(1); }
+.check-item input:checked + span { color: var(--text-tertiary); text-decoration: line-through; opacity: 0.4; }
+.check-item span a { color: var(--accent-primary); text-decoration: none; font-weight: 500; border-bottom: 1px solid var(--border-accent); transition: border-color 0.15s; }
+.check-item span a:hover { border-color: var(--accent-primary); }
+.check-item input:checked + span a { color: var(--text-tertiary); border-color: transparent; }
+
+/* ── Repo cards ── */
+.repo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+.repo-card {
+  padding: 1.125rem 1.25rem; background: var(--bg-surface);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s var(--ease-in-out), border-color 0.2s;
+}
+.repo-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-default); }
+.repo-card a { text-decoration: none; color: var(--text-primary); font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; }
+.repo-card a:hover { color: var(--accent-primary); }
+.repo-card .repo-desc { font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.375rem; line-height: 1.4; }
+.repo-card .repo-meta { margin-top: 0.5rem; display: flex; gap: 0.75rem; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-tertiary); }
+.repo-card .repo-meta span { display: flex; align-items: center; gap: 0.25rem; }
+.lang-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.lang-py { background: #3572A5; }
+.lang-html { background: #e34c26; }
+
+/* ── Parts table ── */
+.parts-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.parts-table th {
+  font-family: var(--font-sans); font-size: 0.625rem;
+  font-weight: 500; color: var(--text-tertiary); letter-spacing: 0.08em;
+  text-transform: uppercase; text-align: left;
+  padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border-subtle);
+}
+.parts-table td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); vertical-align: top; }
+.parts-table tr:last-child td { border-bottom: none; }
+.parts-table .part-name { color: var(--text-primary); font-weight: 500; }
+.status-tag {
+  font-family: var(--font-sans); font-size: 0.6rem;
+  padding: 0.15rem 0.5rem; border-radius: 100px;
+  font-weight: 500; letter-spacing: 0.02em; white-space: nowrap;
+}
+.status-ordered { background: var(--status-success-muted); color: var(--status-success); }
+.status-needed { background: var(--status-warning-muted); color: var(--status-warning); }
+.status-owned { background: var(--accent-primary-muted); color: var(--accent-primary); }
+.status-alex { background: var(--accent-secondary-muted); color: var(--accent-secondary); }
+.parts-summary { margin-top: 1.25rem; display: flex; gap: 2rem; padding: 1rem 0; border-top: 1px solid var(--border-subtle); }
+.parts-summary-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.parts-summary-item .val { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.parts-summary-item .lbl { font-family: var(--font-sans); font-size: 0.6rem; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ── Team ── */
+.role-card {
+  background: var(--bg-surface); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg); padding: 1.25rem 1.5rem;
+  margin-bottom: 0.75rem; box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s var(--ease-in-out), border-color 0.2s;
+}
+.role-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); border-color: var(--border-default); }
+.role-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
+.role-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+.role-title { font-family: var(--font-sans); font-size: 0.65rem; color: var(--accent-primary); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; }
+.role-objective { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; line-height: 1.5; }
+.role-scope { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+.role-scope li { font-size: 0.8125rem; color: var(--text-secondary); padding-left: 1rem; position: relative; line-height: 1.45; }
+.role-scope li::before { content: '\2014'; position: absolute; left: 0; color: var(--text-tertiary); }
+.role-hardware { margin-top: 0.625rem; font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-tertiary); }
+
+.comm-block { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.7; }
+.comm-block strong { color: var(--text-primary); }
+.comm-block a { color: var(--accent-primary); text-decoration: none; }
+.comm-block a:hover { text-decoration: underline; }
+
+.page-footer {
+  margin-top: 3rem; padding-top: 1rem;
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-sans);
+  font-size: 0.65rem; color: var(--text-tertiary);
+  text-align: center; letter-spacing: 0.04em;
+  padding-bottom: 2rem;
+}
+
+/* ── Keyframes ── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeSlideUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes urgentPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .particle { display: none; }
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .nav-bar { padding: 0 1rem; overflow-x: auto; }
+  .nav-tab { padding: 0.75rem 0.875rem; white-space: nowrap; }
+  .page { padding: 1.5rem 1rem; }
+  .hero { padding: 48px 16px 36px; min-height: 280px; }
+  .hero-title { font-size: 2.25rem; }
+  .countdown-num { font-size: 2rem; }
+  .repo-grid { grid-template-columns: 1fr; }
+  .parts-table { font-size: 0.75rem; }
+  .parts-summary { flex-wrap: wrap; }
+}
+
+/* ─── THREE.JS DOT GRID BACKGROUND ───────────────────── */
+#bg-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #bg-canvas { display: none; }
+}
+</style>
+</head>
+<body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.35);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Daily Ops</span></nav>
+
+<canvas id="bg-canvas"></canvas>
+
+<a href="#page-checklist" class="skip-link">Skip to content</a>
+
+<div class="particles" id="particles"></div>
+
+<!-- ── Hero with Three.js ── -->
+<section class="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-date" id="dateLine"></div>
+    <h1 class="hero-title">Floor<span>Crew</span></h1>
+    <div class="hero-sub">Daily Ops</div>
+    <div class="hero-countdown">
+      <div class="countdown-block">
+        <div class="countdown-num" id="daysLeft"></div>
+        <div class="countdown-label-text">days to demo</div>
+      </div>
+      <div class="countdown-divider"></div>
+      <div class="countdown-block" id="signupBlock">
+        <div class="countdown-num" id="signupDays" style="font-size:1.75rem; font-weight:600;"></div>
+        <div class="countdown-label-text">to sign-up</div>
+      </div>
+    </div>
+    <div class="signup-pill" id="signupPill">Sign-up deadline approaching</div>
+    <div class="hero-quote" id="encouragement"></div>
+  </div>
+</section>
+
+<!-- ── Nav Tabs ── -->
+<div class="nav-bar" role="tablist" aria-label="Page sections">
+  <div class="nav-tab active" id="tab-checklist" data-tab="checklist" role="tab" tabindex="0" aria-selected="true" aria-controls="page-checklist">Checklist</div>
+  <div class="nav-tab" id="tab-repos" data-tab="repos" role="tab" tabindex="-1" aria-selected="false" aria-controls="page-repos">Repos</div>
+  <div class="nav-tab" id="tab-parts" data-tab="parts" role="tab" tabindex="-1" aria-selected="false" aria-controls="page-parts">Parts</div>
+  <div class="nav-tab" id="tab-team" data-tab="team" role="tab" tabindex="-1" aria-selected="false" aria-controls="page-team">Team</div>
+</div>
+
+<!-- ── Checklist ── -->
+<div class="page active" id="page-checklist" role="tabpanel" aria-labelledby="tab-checklist">
+  <div class="quote-bar" id="quoteBar"></div>
+  <div class="progress-bar-wrap">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0%</div>
+  </div>
+  <div id="checklistContainer"></div>
+  <footer class="page-footer">Elktron &mdash; CoreWeave Hackathon 2026</footer>
+</div>
+
+<!-- ── Repos ── -->
+<div class="page" id="page-repos" role="tabpanel" aria-labelledby="tab-repos">
+  <div class="section">
+    <div class="section-head">Our Repos</div>
+    <div class="repo-grid" id="ourRepos"></div>
+  </div>
+  <div class="section">
+    <div class="section-head">Reference Repos</div>
+    <div class="repo-grid" id="refRepos"></div>
+  </div>
+  <footer class="page-footer">Share this link in Slack every morning.</footer>
+</div>
+
+<!-- ── Parts ── -->
+<div class="page" id="page-parts" role="tabpanel" aria-labelledby="tab-parts">
+  <div class="section">
+    <div class="section-head">SO-101 Arm</div>
+    <table class="parts-table" id="partsArm"></table>
+  </div>
+  <div class="section">
+    <div class="section-head">Escort Bot</div>
+    <table class="parts-table" id="partsBot"></table>
+  </div>
+  <div class="section">
+    <div class="section-head">Shared / Demo</div>
+    <table class="parts-table" id="partsShared"></table>
+  </div>
+  <div class="parts-summary" id="partsSummary"></div>
+  <footer class="page-footer">Last updated: 2026-03-10 &middot; All prices approximate.</footer>
+</div>
+
+<!-- ── Team ── -->
+<div class="page" id="page-team" role="tabpanel" aria-labelledby="tab-team">
+  <div class="section">
+    <div class="section-head">Team Roster</div>
+    <div id="teamCards"></div>
+  </div>
+  <div class="section">
+    <div class="section-head">Communication</div>
+    <div class="comm-block">
+      <strong>Slack:</strong> <a href="https://coreweave.slack.com/archives/more-better-faster-2026" target="_blank">#more-better-faster-2026</a><br>
+      <strong>Daily sync:</strong> Drop this daily.html link in team DM each morning<br>
+      <strong>Decisions:</strong> Update PROGRESS.md &mdash; single source of truth
+    </div>
+  </div>
+  <footer class="page-footer">Everyone owns their lane. Nobody waits for permission.</footer>
+</div>
+
+<!-- ── Three.js CDN ── -->
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js" } }
+</script>
+
+<script type="module">
+// ── Lazy-loaded Three.js Hero Scene ──
+// Three.js (~600KB) only fetched when hero is visible AND reduced motion is off.
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const heroSection = document.querySelector('.hero');
+  const observer = new IntersectionObserver(async (entries) => {
+    if (!entries[0].isIntersecting) return;
+    observer.disconnect();
+
+    const THREE = await import('three');
+
+    const canvas = document.getElementById('heroCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(canvas.parentElement.offsetWidth, canvas.parentElement.offsetHeight);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, canvas.parentElement.offsetWidth / canvas.parentElement.offsetHeight, 0.1, 100);
+    camera.position.set(0, 0, 6);
+
+    // Clean lighting for light theme
+    const ambientLight = new THREE.AmbientLight(0xd0d8e8, 1.2);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0x2741E7, 0.7);
+    dirLight.position.set(3, 5, 4);
+    scene.add(dirLight);
+    const rimLight = new THREE.DirectionalLight(0x6c5ce7, 0.5);
+    rimLight.position.set(-3, -2, 2);
+    scene.add(rimLight);
+
+    // Custom warm gradient shader
+    const gradientMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0 },
+        uColor1: { value: new THREE.Color(0x2741E7) }, // accent-primary
+        uColor2: { value: new THREE.Color(0x6c5ce7) }, // accent-secondary
+        uMouse: { value: new THREE.Vector2(0, 0) }
+      },
+      vertexShader: `
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+        uniform float uTime;
+        void main() {
+          vPosition = position;
+          vNormal = normalize(normalMatrix * normal);
+          vec3 pos = position;
+          pos += normal * sin(pos.x * 3.0 + uTime * 0.8) * 0.04;
+          pos += normal * cos(pos.y * 2.5 + uTime * 0.6) * 0.03;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vPosition;
+        varying vec3 vNormal;
+        uniform float uTime;
+        uniform vec3 uColor1;
+        uniform vec3 uColor2;
+        uniform vec2 uMouse;
+        void main() {
+          float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0, 0.0, 1.0))), 2.5);
+          float gradient = (sin(vPosition.y * 2.0 + uTime * 0.4) + 1.0) * 0.5;
+          gradient += uMouse.x * 0.15;
+          vec3 color = mix(uColor1, uColor2, gradient);
+          color += fresnel * 0.35;
+          float alpha = 0.12 + fresnel * 0.3;
+          gl_FragColor = vec4(color, alpha);
+        }
+      `,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    // Geometric shapes — robot-inspired
+    const group = new THREE.Group();
+
+    // Central torus — like a joint
+    const torus = new THREE.Mesh(
+      new THREE.TorusGeometry(0.8, 0.2, 24, 48),
+      gradientMaterial
+    );
+    group.add(torus);
+
+    // Floating octahedrons — like sensors
+    for (let i = 0; i < 6; i++) {
+      const geo = new THREE.OctahedronGeometry(0.15 + Math.random() * 0.1, 0);
+      const mesh = new THREE.Mesh(geo, gradientMaterial);
+      const angle = (i / 6) * Math.PI * 2;
+      const radius = 1.5 + Math.random() * 0.5;
+      mesh.position.set(
+        Math.cos(angle) * radius,
+        (Math.random() - 0.5) * 1.5,
+        Math.sin(angle) * radius * 0.3
+      );
+      mesh.userData = { angle, radius, speed: 0.2 + Math.random() * 0.3, yBase: mesh.position.y };
+      group.add(mesh);
+    }
+
+    // Wireframe icosphere — like a force field
+    const icoGeo = new THREE.IcosahedronGeometry(1.8, 1);
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: 0x2741E7, wireframe: true, transparent: true, opacity: 0.1
+    });
+    const wireIco = new THREE.Mesh(icoGeo, wireMat);
+    group.add(wireIco);
+
+    // Ring — like an orbit path
+    const ringGeo = new THREE.TorusGeometry(2.2, 0.01, 8, 80);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x6c5ce7, transparent: true, opacity: 0.15
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.rotation.x = Math.PI * 0.4;
+    group.add(ring);
+
+    scene.add(group);
+
+    // Mouse tracking
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    // Animation loop
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      gradientMaterial.uniforms.uTime.value = t;
+      gradientMaterial.uniforms.uMouse.value.set(mouseX, mouseY);
+
+      // Rotate group with mouse influence
+      group.rotation.y = t * 0.15 + mouseX * 0.3;
+      group.rotation.x = Math.sin(t * 0.1) * 0.1 + mouseY * 0.15;
+
+      // Torus breathes
+      torus.scale.setScalar(1 + Math.sin(t * 0.8) * 0.05);
+
+      // Octahedrons orbit
+      group.children.forEach(child => {
+        if (child.userData.angle !== undefined) {
+          const d = child.userData;
+          const a = d.angle + t * d.speed;
+          child.position.x = Math.cos(a) * d.radius;
+          child.position.z = Math.sin(a) * d.radius * 0.3;
+          child.position.y = d.yBase + Math.sin(t * 0.7 + d.angle) * 0.3;
+          child.rotation.x = t * 0.5;
+          child.rotation.y = t * 0.3;
+        }
+      });
+
+      // Wireframe rotates slowly
+      wireIco.rotation.y = t * 0.05;
+      wireIco.rotation.x = t * 0.03;
+
+      // Ring tilts
+      ring.rotation.z = t * 0.08;
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      const w = canvas.parentElement.offsetWidth;
+      const h = canvas.parentElement.offsetHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    });
+  }, { threshold: 0.1 });
+
+  observer.observe(heroSection);
+}
+</script>
+
+<script>
+// ── Particles ──
+(function() {
+  var c = document.getElementById('particles');
+  var colors = ['rgba(39,65,231,','rgba(108,92,231,','rgba(52,211,153,','rgba(39,65,231,','rgba(108,92,231,'];
+  for (var i = 0; i < 30; i++) {
+    var p = document.createElement('div');
+    p.className = 'particle';
+    var s = 4 + Math.random() * 14;
+    var dur = 20 + Math.random() * 28;
+    var del = Math.random() * dur;
+    var drift = -50 + Math.random() * 100;
+    var op = 0.06 + Math.random() * 0.1;
+    p.style.cssText = 'width:' + s + 'px;height:' + s + 'px;left:' + Math.random() * 100 + '%;background:' + colors[i % colors.length] + (op * 2.5) + ');animation-duration:' + dur + 's;animation-delay:-' + del + 's;--p-drift:' + drift + 'px;--p-op:' + op;
+    c.appendChild(p);
+  }
+})();
+
+// ── Date ──
+document.getElementById('dateLine').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+
+// ── Countdown ──
+var DEMO_DAY = new Date('2026-03-23T00:00:00');
+var SIGNUP_DEADLINE = new Date('2026-03-12T23:59:59');
+(function() {
+  var now = new Date();
+  var dd = Math.ceil((DEMO_DAY - now) / 864e5);
+  var el = document.getElementById('daysLeft');
+  el.textContent = dd;
+  if (dd <= 5) el.classList.add('urgent');
+  var se = document.getElementById('signupDays');
+  var pill = document.getElementById('signupPill');
+  if (now < SIGNUP_DEADLINE) {
+    var sd = Math.ceil((SIGNUP_DEADLINE - now) / 864e5);
+    se.textContent = sd;
+    pill.textContent = 'Sign-up: ' + sd + ' day' + (sd !== 1 ? 's' : '') + ' left';
+  } else {
+    document.getElementById('signupBlock').style.display = 'none';
+    document.querySelector('.countdown-divider').style.display = 'none';
+    pill.classList.add('hidden');
+  }
+})();
+
+// ── Encouragement ──
+var LINES = ["You don't need more ideas. You need more commits.", "Ship it or it didn't happen.", "Consistency beats intensity. You're here.", "Aliyah's dad is building something real today.", "Small steps compound. Go get it.", "Closed loops win hackathons. Open one, close one.", "You're building what most people only talk about.", "One focused hour beats eight distracted ones.", "Specificity beats generality. Nail the demo.", "Physical world beats software toys. You chose right.", "Momentum is a choice. Choose it.", "The robot doesn't care about your excuses. Ship."];
+var dayLine = LINES[Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 864e5) % LINES.length];
+document.getElementById('encouragement').textContent = dayLine;
+document.getElementById('quoteBar').textContent = dayLine;
+
+// ── Tab navigation ──
+var tabs = Array.prototype.slice.call(document.querySelectorAll('.nav-tab'));
+function activateTab(tab) {
+  tabs.forEach(function(x) {
+    x.classList.remove('active');
+    x.setAttribute('aria-selected', 'false');
+    x.setAttribute('tabindex', '-1');
+  });
+  document.querySelectorAll('.page').forEach(function(x) { x.classList.remove('active'); });
+  tab.classList.add('active');
+  tab.setAttribute('aria-selected', 'true');
+  tab.setAttribute('tabindex', '0');
+  tab.focus();
+  document.getElementById('page-' + tab.dataset.tab).classList.add('active');
+}
+tabs.forEach(function(t) {
+  t.addEventListener('click', function() { activateTab(t); });
+  t.addEventListener('keydown', function(e) {
+    var idx = tabs.indexOf(t);
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      activateTab(t);
+    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      activateTab(tabs[(idx + 1) % tabs.length]);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      activateTab(tabs[(idx - 1 + tabs.length) % tabs.length]);
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      activateTab(tabs[0]);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      activateTab(tabs[tabs.length - 1]);
+    }
+  });
+});
+
+// ── Checklist ──
+var CHECKLIST = [
+  { group: 'Every Morning', badge: 'DAILY', bc: 'badge-red', items: [
+    {t: 'Read <a href="#">PROGRESS.md</a> \u2014 know what\'s done, what\'s next'},
+    {t: 'Check <a href="https://coreweave.slack.com/archives/more-better-faster-2026" target="_blank">#more-better-faster-2026</a> for announcements'},
+    {t: 'Post this <a href="daily.html">daily.html</a> link in team DM'}
+  ]},
+  { group: 'Build', badge: 'CORE', bc: 'badge-green', items: [
+    {t: 'Pick one task from What\'s Next in <a href="#">PROGRESS.md</a>'},
+    {t: 'Push at least one commit to a Elktron repo'},
+    {t: 'Test something physical \u2014 camera, motor, sensor'}
+  ]},
+  { group: 'End of Day', badge: 'CLOSE', bc: 'badge-yellow', items: [
+    {t: 'Update <a href="#">PROGRESS.md</a> with what you did'},
+    {t: 'Flag any blockers in team DM'},
+    {t: 'Confirm hardware ETA \u2014 check <a href="#">PARTS-LIST.md</a>'}
+  ]},
+  { group: 'This Week (March 10\u201315)', badge: 'SPRINT', bc: 'badge-yellow', items: [
+    {t: 'Sign up for hackathon (deadline: March 12) \u2014 <a href="https://coreweave.slack.com/archives/more-better-faster-2026" target="_blank">channel</a>'},
+    {t: 'Alex: LK-COKOINO chassis arrives, start assembly'},
+    {t: 'Romeo: Flash Pi 5, run camera test \u2014 <a href="#">PI-SETUP.md</a>'},
+    {t: 'Romeo: Order Arducam + pan/tilt + PVC mast \u2014 <a href="#">parts list</a>'},
+    {t: 'Josh: Review <a href="https://github.com/huggingface/lerobot" target="_blank">LeRobot</a> SO-101 docs, plan end effector'},
+    {t: 'Create GitHub org or repos for team code'}
+  ]}
+];
+var TK = 'fc-daily-' + new Date().toISOString().slice(0, 10);
+(function() {
+  var total = CHECKLIST.reduce(function(s, g) { return s + g.items.length; }, 0);
+  var saved = JSON.parse(localStorage.getItem(TK) || 'null') || new Array(total).fill(false);
+  var c = document.getElementById('checklistContainer'), idx = 0;
+  CHECKLIST.forEach(function(g) {
+    var d = document.createElement('div'); d.className = 'checklist-group';
+    d.innerHTML = '<div class="checklist-group-label">' + g.group + ' <span class="badge ' + g.bc + '">' + g.badge + '</span></div>';
+    g.items.forEach(function(item) {
+      var text = typeof item === 'string' ? item : item.t;
+      var i = idx++, r = document.createElement('div'); r.className = 'check-item';
+      r.innerHTML = '<label><input type="checkbox"' + (saved[i] ? ' checked' : '') + '><span>' + text + '</span></label>';
+      r.querySelector('input').addEventListener('change', function(e) { saved[i] = e.target.checked; localStorage.setItem(TK, JSON.stringify(saved)); up(saved); });
+      d.appendChild(r);
+    });
+    c.appendChild(d);
+  });
+  function up(s) { var d = s.filter(Boolean).length, p = Math.round(d / s.length * 100); document.getElementById('progressFill').style.width = p + '%'; document.getElementById('progressLabel').textContent = p + '%'; }
+  requestAnimationFrame(function() { up(saved); });
+})();
+
+// ── Repos ──
+var GH = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>';
+function rr(repos, id) {
+  document.getElementById(id).innerHTML = repos.map(function(r) {
+    return '<div class="repo-card"><a href="' + r.url + '"' + (r.url.startsWith('http') ? ' target="_blank"' : '') + '>' + GH + ' ' + r.name + '</a><div class="repo-desc">' + r.desc + '</div><div class="repo-meta"><span><span class="lang-dot ' + r.lc + '"></span> ' + r.lang + '</span><span>' + r.extra + '</span></div></div>';
+  }).join('');
+}
+rr([
+  { name: 'elktron-app', url: 'elktron-app/index.html', desc: 'Unified dashboard \u2014 arm status, escort tracking, camera feeds', lang: 'Python', lc: 'lang-py', extra: 'FastAPI + vanilla JS' },
+  { name: 'escort-bot', url: 'escort-bot/showcase.html', desc: 'Person-following vendor escort. Pi 5 + TFLite MobileNet SSD', lang: 'Python', lc: 'lang-py', extra: 'gpiozero + picamera2' },
+  { name: 'so101-arm', url: 'robotics-site/so101/showcase.html', desc: 'Imitation learning for DC tasks \u2014 optic seating, rack inspection', lang: 'Python', lc: 'lang-py', extra: 'LeRobot + ACT policy' },
+  { name: 'robotics-site', url: 'robotics-site/index.html', desc: 'Elktron landing page + showcase pages', lang: 'HTML', lc: 'lang-html', extra: 'Static site' }
+], 'ourRepos');
+rr([
+  { name: 'huggingface/lerobot', url: 'https://github.com/huggingface/lerobot', desc: 'State-of-the-art ML for real-world robotics', lang: 'Python', lc: 'lang-py', extra: 'ACT, Diffusion' },
+  { name: 'TheRobotStudio/SO-ARM100', url: 'https://github.com/TheRobotStudio/SO-ARM100', desc: 'SO-100 arm STL files + assembly docs', lang: 'Python', lc: 'lang-py', extra: '3D print files' },
+  { name: 'Freenove/4WD_Smart_Car', url: 'https://github.com/Freenove/Freenove_4WD_Smart_Car_Kit_for_Raspberry_Pi', desc: 'Freenove chassis kit code + wiring', lang: 'Python', lc: 'lang-py', extra: 'Kit reference' },
+  { name: 'mshakeelt/Human-Following-Robot', url: 'https://github.com/mshakeelt/Human-Following-Robot', desc: 'Person-following robot reference', lang: 'Python', lc: 'lang-py', extra: 'Forkable' }
+], 'refRepos');
+
+// ── Parts ──
+function pt(parts, id) {
+  document.getElementById(id).innerHTML = '<thead><tr><th>Item</th><th>Price</th><th>Status</th><th>ETA</th><th>Who</th></tr></thead><tbody>' + parts.map(function(p) {
+    return '<tr><td class="part-name">' + p.n + '</td><td>' + p.p + '</td><td><span class="status-tag ' + p.sc + '">' + p.s + '</span></td><td>' + p.e + '</td><td>' + p.w + '</td></tr>';
+  }).join('') + '</tbody>';
+}
+pt([
+  { n: 'HiWonder SO-ARM101 Kit', p: '~$270', s: 'ORDERED', sc: 'status-ordered', e: '~3/18', w: 'Romeo' },
+  { n: 'NexiGo N60 1080P Webcam', p: '~$25', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' },
+  { n: 'Raspberry Pi 5 (8GB)', p: '\u2014', s: 'OWNED', sc: 'status-owned', e: '\u2014', w: 'Romeo' }
+], 'partsArm');
+pt([
+  { n: 'LK-COKOINO 4WD Chassis Kit', p: '~$25', s: 'ALEX', sc: 'status-alex', e: '3/11', w: 'Alex' },
+  { n: 'Arducam 120\u00b0 Wide Camera', p: '~$30', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
+  { n: 'Arducam Pan Tilt Platform', p: '~$25', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
+  { n: 'PVC Pipe + T-connector', p: '~$7', s: 'NEEDED', sc: 'status-needed', e: 'pickup', w: 'Romeo' },
+  { n: 'Velcro strips + foam tape', p: '~$10', s: 'NEEDED', sc: 'status-needed', e: 'pickup', w: 'Romeo' },
+  { n: 'USB-C Power Bank 20000mAh', p: '~$25', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
+  { n: 'MicroSD Card 32\u201364GB', p: '~$10', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
+  { n: "Raspberry Pi (Alex's)", p: '\u2014', s: 'OWNED', sc: 'status-owned', e: '\u2014', w: 'Alex' },
+  { n: 'Freenove 4WD Kit (backup)', p: '~$65', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' },
+  { n: '18650 Batteries + Charger', p: '~$18', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' },
+  { n: 'MakerFocus Pi Battery Pack', p: '~$30', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' }
+], 'partsBot');
+pt([
+  { n: 'Laptop (Mac M-series)', p: '\u2014', s: 'OWNED', sc: 'status-owned', e: '\u2014', w: 'Romeo' },
+  { n: 'USB-A Hub (4-port)', p: '~$12', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
+  { n: 'Ethernet Cable', p: '~$5', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
+  { n: 'Sample optic / fiber tray', p: '\u2014', s: 'NEEDED', sc: 'status-needed', e: 'DC floor', w: 'Romeo' }
+], 'partsShared');
+document.getElementById('partsSummary').innerHTML = '<div class="parts-summary-item"><span class="val">~$468</span><span class="lbl">Total Budget</span></div><div class="parts-summary-item"><span class="val">~$311</span><span class="lbl">SO-101 Arm</span></div><div class="parts-summary-item"><span class="val">~$105</span><span class="lbl">Escort Bot</span></div><div class="parts-summary-item"><span class="val">~$17</span><span class="lbl">Shared</span></div>';
+
+// ── Team ──
+var TEAM = [
+  { name: 'Romeo Patino', title: 'Project Management (PM)', obj: 'Own the system architecture, LeRobot integration, and demo narrative. All three components connect into one coherent story.', scope: ['Overall architecture and technical decisions', 'LeRobot framework integration for SO-101', 'Escort bot software (main.py, test_camera.py)', 'Elktron dashboard (elktron-app)', 'Pi 5 setup and configuration', 'Demo script, video, and presentation', 'PROGRESS.md \u2014 single source of truth', 'Hardware ordering'], hw: 'Pi 4, Pi 5, Pico, MacBook' },
+  { name: 'Alex Murillo', title: 'Escort Bot Hardware', obj: 'Own the physical escort bot build \u2014 chassis assembly, wiring, motor tuning, and field testing.', scope: ['LK-COKOINO chassis assembly + wiring', 'PVC mast construction + camera mounting', 'Motor + ultrasonic sensor integration', 'DC floor field testing', 'Power system \u2014 battery charging, cable routing'], hw: 'Her Pi, LK-COKOINO chassis' },
+  { name: 'Josh Tapia', title: 'Robot Arm CV/IK', obj: "Own the SO-101 arm's task execution \u2014 CV to IK to end effector. Make the optic seating demo work.", scope: ['Computer vision for optic detection', 'Inverse kinematics + motion planning', 'End effector design \u2014 gripper for optics', 'LeRobot ACT policy training + eval', 'Record 50 optic seating demos', 'Arm calibration + servo tuning'], hw: "Romeo's laptop for training, arm kit ~3/18" },
+  { name: 'Parth Patel', title: 'Backend Lead', obj: 'Own the dashboard backend \u2014 FastAPI server, Jira/NetBox data integration, WebSocket pipeline.', scope: ['FastAPI server improvements (server.py)', 'Jira/NetBox data integration', 'WebSocket data pipeline to frontend', 'Scan report JSON generation', 'Wire arm.py and escort.py telemetry'], hw: 'Laptop' },
+  { name: 'Andrew Westberg', title: 'Observer', obj: 'Watch and learn. Available to help if needed.', scope: ['Observing the build process', 'Learning robotics, Pi setup, hackathon workflow'], hw: 'None' },
+  { name: 'Raphael Rodea', title: 'Build Crew + Logistics', obj: 'Own all physical assembly, parts inventory, battery management, and demo day logistics.', scope: ['Chassis assembly with Alex', 'PVC mast build', 'Wiring verification against WIRING.md', 'Cable management', 'Parts inventory + labeling', 'Battery management + hot-swap', 'Demo day packing checklist'], hw: "Works with Alex's hardware" },
+  { name: 'Talha Shakil', title: 'Media & Presentations', obj: 'Own all final deliverables \u2014 demo video, pitch deck, team logo, and presentation materials.', scope: ['Team logo design', 'Demo video production', 'Pitch deck / slides (5-7 slides)', 'Screen recordings of dashboard', 'Final video export and upload', 'B-roll footage'], hw: 'Phone/camera, laptop for editing' }
+];
+document.getElementById('teamCards').innerHTML = TEAM.map(function(m) {
+  var scopeHtml = m.scope.length ? '<ul class="role-scope">' + m.scope.map(function(s) { return '<li>' + s + '</li>'; }).join('') + '</ul>' : '';
+  return '<div class="role-card"><div class="role-header"><span class="role-name">' + m.name + '</span><span class="role-title">' + m.title + '</span></div><div class="role-objective">' + m.obj + '</div>' + scopeHtml + '<div class="role-hardware">Hardware: ' + m.hw + '</div></div>';
+}).join('');
+</script>
+
+<!-- ─── DOT GRID BACKGROUND ───────────────────────────── -->
+<script type="module">
+const canvas = document.getElementById('bg-canvas');
+if (canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const THREE = await import('three');
+
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setClearColor(0x000000, 0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.OrthographicCamera(
+    -window.innerWidth / 2, window.innerWidth / 2,
+    window.innerHeight / 2, -window.innerHeight / 2, 0.1, 10
+  );
+  camera.position.z = 1;
+
+  const DOT_COUNT = 350;
+  const positions = new Float32Array(DOT_COUNT * 3);
+  const phases = new Float32Array(DOT_COUNT);
+  for (let i = 0; i < DOT_COUNT; i++) {
+    positions[i * 3] = (Math.random() - 0.5) * window.innerWidth;
+    positions[i * 3 + 1] = (Math.random() - 0.5) * window.innerHeight;
+    positions[i * 3 + 2] = 0;
+    phases[i] = Math.random() * Math.PI * 2;
+  }
+
+  const dotGeo = new THREE.BufferGeometry();
+  dotGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  dotGeo.setAttribute('phase', new THREE.BufferAttribute(phases, 1));
+
+  const dotMat = new THREE.ShaderMaterial({
+    transparent: true, depthTest: false,
+    uniforms: {
+      time: { value: 0 },
+      mouse: { value: new THREE.Vector2(9999, 9999) },
+      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      baseColor: { value: new THREE.Color(0x2741E7) },
+    },
+    vertexShader: `
+      attribute float phase;
+      uniform float time;
+      uniform vec2 mouse;
+      varying float vAlpha;
+      varying float vGlow;
+      void main() {
+        vec3 pos = position;
+        pos.y += sin(time * 0.4 + phase) * 3.0;
+        pos.x += cos(time * 0.3 + phase * 1.3) * 2.0;
+        float dist = distance(pos.xy, mouse);
+        vGlow = smoothstep(200.0, 0.0, dist);
+        vAlpha = 0.07 + sin(time * 0.5 + phase) * 0.03 + vGlow * 0.3;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        gl_PointSize = 2.0 + vGlow * 3.0;
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 baseColor;
+      varying float vAlpha;
+      varying float vGlow;
+      void main() {
+        float d = length(gl_PointCoord - 0.5);
+        if (d > 0.5) discard;
+        float soft = 1.0 - smoothstep(0.2, 0.5, d);
+        vec3 col = mix(baseColor, vec3(0.7, 0.75, 0.85), 1.0 - vGlow);
+        gl_FragColor = vec4(col, vAlpha * soft);
+      }
+    `
+  });
+  scene.add(new THREE.Points(dotGeo, dotMat));
+
+  const LINE_COUNT = 50;
+  const linePositions = new Float32Array(LINE_COUNT * 6);
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+  const lineMat = new THREE.LineBasicMaterial({ color: 0x2741E7, transparent: true, opacity: 0.04, depthTest: false });
+  scene.add(new THREE.LineSegments(lineGeo, lineMat));
+
+  function updateLines() {
+    const pos = dotGeo.attributes.position.array;
+    let idx = 0;
+    for (let i = 0; i < DOT_COUNT && idx < LINE_COUNT * 6; i++) {
+      for (let j = i + 1; j < DOT_COUNT && idx < LINE_COUNT * 6; j++) {
+        const dx = pos[i*3] - pos[j*3], dy = pos[i*3+1] - pos[j*3+1];
+        if (Math.sqrt(dx*dx + dy*dy) < 110) {
+          linePositions[idx++] = pos[i*3]; linePositions[idx++] = pos[i*3+1]; linePositions[idx++] = 0;
+          linePositions[idx++] = pos[j*3]; linePositions[idx++] = pos[j*3+1]; linePositions[idx++] = 0;
+        }
+      }
+    }
+    for (let k = idx; k < LINE_COUNT * 6; k++) linePositions[k] = 0;
+    lineGeo.attributes.position.needsUpdate = true;
+  }
+
+  let mouseX = 9999, mouseY = 9999;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX - window.innerWidth / 2;
+    mouseY = -(e.clientY - window.innerHeight / 2);
+  });
+
+  window.addEventListener('resize', () => {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.left = -w / 2; camera.right = w / 2;
+    camera.top = h / 2; camera.bottom = -h / 2;
+    camera.updateProjectionMatrix();
+    dotMat.uniforms.resolution.value.set(w, h);
+  });
+
+  const clock = new THREE.Clock();
+  let f = 0;
+  (function animate() {
+    requestAnimationFrame(animate);
+    dotMat.uniforms.time.value = clock.getElapsedTime();
+    dotMat.uniforms.mouse.value.set(mouseX, mouseY);
+    if (f++ % 4 === 0) updateLines();
+    renderer.render(scene, camera);
+  })();
+}
+</script>
+</body>
+</html>
