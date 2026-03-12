@@ -48,3 +48,9 @@ recordings/
 # Logs
 *.log
 logs/
+
+# Archives
+*.zip
+
+# Reference PDFs (large, not needed in repo)
+img/*.pdf

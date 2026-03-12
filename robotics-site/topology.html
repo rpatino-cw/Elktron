@@ -3,37 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FloorCrew — Technical Topology</title>
+<title>Elktron — Technical Topology</title>
+<link rel="stylesheet" href="../design-system.css">
 <style>
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
+  /* ── Local tokens mapped to design system ── */
   :root {
-    --bg: #ffffff;
-    --bg-2: #f4f6fa;
-    --bg-card: #ffffff;
-    --surface: #ffffff;
-    --surface-2: #f0f2f7;
-    --surface-3: #e5e9f0;
-    --border: rgba(10, 22, 40, 0.08);
-    --border-hi: rgba(10, 42, 107, 0.25);
-    --text: #0a1628;
-    --text-dim: #5a6b85;
-    --text-muted: #94a3b8;
-    --accent: #0a2f6b;
-    --accent-2: #1a5aaa;
-    --accent-glow: rgba(10, 47, 107, 0.08);
-    --green: #16a34a;
-    --green-glow: rgba(22, 163, 74, 0.08);
-    --amber: #d97706;
-    --amber-glow: rgba(217, 119, 6, 0.08);
-    --red: #dc2626;
-    --red-glow: rgba(220, 38, 38, 0.08);
-    --purple: #7c3aed;
-    --purple-glow: rgba(124, 58, 237, 0.08);
-    --cyan: #0891b2;
-    --cyan-glow: rgba(8, 145, 178, 0.08);
-    --pink: #db2777;
-    --pink-glow: rgba(219, 39, 119, 0.08);
+    --bg: var(--bg-primary);
+    --bg-2: var(--bg-surface);
+    --bg-card: var(--bg-elevated);
+    --surface: var(--bg-primary);
+    --surface-2: var(--bg-surface);
+    --surface-3: var(--bg-elevated);
+    --border: var(--border-subtle);
+    --border-hi: var(--border-accent);
+    --text: var(--text-primary);
+    --text-dim: var(--text-secondary);
+    --text-muted: var(--text-tertiary);
+    --accent: var(--accent-primary);
+    --accent-2: var(--accent-primary-hover);
+    --accent-glow: var(--glow-soft);
+    --green: var(--status-success);
+    --green-glow: var(--status-success-muted);
+    --amber: var(--status-warning);
+    --amber-glow: var(--status-warning-muted);
+    --red: var(--status-error);
+    --red-glow: var(--status-error-muted);
+    --purple: var(--accent-secondary);
+    --purple-glow: var(--accent-secondary-muted);
+    --cyan: var(--accent-primary);
+    --cyan-glow: var(--accent-primary-muted);
+    --pink: var(--status-error);
+    --pink-glow: var(--status-error-muted);
   }
 
   html { scroll-behavior: smooth; }
@@ -41,10 +41,11 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--font-sans);
     min-height: 100vh;
     overflow-x: hidden;
     line-height: 1.6;
+    padding-top: 44px;
   }
 
   body::after {
@@ -69,21 +70,21 @@
 
   .orb-1 {
     width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(10, 47, 107, 0.1), transparent 70%);
+    background: radial-gradient(circle, var(--glow-soft), transparent 70%);
     top: -10%; right: -10%;
     animation: floatOrb 20s ease-in-out infinite;
   }
 
   .orb-2 {
     width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(26, 90, 170, 0.07), transparent 70%);
+    background: radial-gradient(circle, var(--glow-soft), transparent 70%);
     bottom: 20%; left: -8%;
     animation: floatOrb 25s ease-in-out infinite reverse;
   }
 
   .orb-3 {
     width: 350px; height: 350px;
-    background: radial-gradient(circle, rgba(124, 58, 237, 0.05), transparent 70%);
+    background: radial-gradient(circle, var(--accent-secondary-muted), transparent 70%);
     top: 40%; right: 15%;
     animation: floatOrb 22s ease-in-out infinite 5s;
   }
@@ -187,7 +188,6 @@
 
   .spec-item {
     font-size: 0.65rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
     color: var(--text-dim);
     background: var(--bg-2);
     border: 1px solid var(--border);
@@ -220,7 +220,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 1px;
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--font-sans);
     font-weight: 600;
   }
 
@@ -268,25 +268,25 @@
 
   .flow-step.highlight {
     background: var(--accent-glow);
-    border-color: rgba(10, 42, 107, 0.15);
+    border-color: var(--border-accent);
     color: var(--accent-2);
   }
 
   .flow-step.danger {
     background: var(--red-glow);
-    border-color: rgba(220, 38, 38, 0.15);
+    border-color: rgba(248, 113, 113, 0.2);
     color: var(--red);
   }
 
   .flow-step.success {
     background: var(--green-glow);
-    border-color: rgba(22, 163, 74, 0.15);
+    border-color: rgba(52, 211, 153, 0.2);
     color: var(--green);
   }
 
   .flow-step.warn {
     background: var(--amber-glow);
-    border-color: rgba(217, 119, 6, 0.15);
+    border-color: rgba(251, 191, 36, 0.2);
     color: var(--amber);
   }
 
@@ -329,16 +329,16 @@
   }
 
   @keyframes highlightPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(10, 47, 107, 0); }
-    40% { box-shadow: 0 0 0 6px rgba(10, 47, 107, 0.12); }
-    70% { box-shadow: 0 0 0 3px rgba(10, 47, 107, 0.06); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(74, 158, 255, 0); }
+    40% { box-shadow: 0 0 0 6px var(--glow-soft); }
+    70% { box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.05); }
   }
 
   /* ── Pin map table ── */
   .pin-table {
     width: 100%;
     font-size: 0.62rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    font-family: var(--font-mono);
     border-collapse: collapse;
     margin-bottom: 0.75rem;
   }
@@ -349,7 +349,7 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-muted);
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--font-sans);
     font-weight: 700;
     padding: 3px 6px;
     border-bottom: 1px solid var(--border);
@@ -358,7 +358,7 @@
   .pin-table td {
     padding: 3px 6px;
     color: var(--text-dim);
-    border-bottom: 1px solid rgba(10, 22, 40, 0.04);
+    border-bottom: 1px solid var(--border-subtle);
   }
 
   .pin-table td:first-child {
@@ -368,7 +368,7 @@
 
   /* ── Code snippet inside expand ── */
   .code-block {
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    font-family: var(--font-mono);
     font-size: 0.62rem;
     background: var(--bg-2);
     border: 1px solid var(--border);
@@ -409,7 +409,7 @@
   }
 
   svg.connections .dep-line {
-    stroke: rgba(10, 42, 107, 0.12);
+    stroke: var(--border-accent);
     stroke-width: 1.5;
     stroke-dasharray: 6 4;
     opacity: 0;
@@ -543,7 +543,7 @@
   }
 
   .node.primary.floating:hover {
-    box-shadow: 0 20px 60px rgba(10, 47, 107, 0.12);
+    box-shadow: var(--shadow-lg);
   }
 
   .node-header {
@@ -586,31 +586,31 @@
   .badge-arm {
     background: var(--accent-glow);
     color: var(--accent-2);
-    border: 1px solid rgba(10, 42, 107, 0.15);
+    border: 1px solid var(--border-accent);
   }
 
   .badge-escort {
     background: var(--cyan-glow);
     color: var(--cyan);
-    border: 1px solid rgba(8, 145, 178, 0.15);
+    border: 1px solid var(--border-accent);
   }
 
   .badge-shared {
     background: var(--purple-glow);
     color: var(--purple);
-    border: 1px solid rgba(124, 58, 237, 0.15);
+    border: 1px solid rgba(108, 92, 231, 0.2);
   }
 
   .badge-both {
     background: var(--green-glow);
     color: var(--green);
-    border: 1px solid rgba(22, 163, 74, 0.15);
+    border: 1px solid rgba(52, 211, 153, 0.2);
   }
 
   .badge-ops {
     background: var(--amber-glow);
     color: var(--amber);
-    border: 1px solid rgba(217, 119, 6, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.2);
   }
 
   .node-title {
@@ -637,7 +637,6 @@
 
   .tech-tag {
     font-size: 0.62rem;
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
     color: var(--text-dim);
     background: var(--bg-2);
     border: 1px solid var(--border);
@@ -700,7 +699,7 @@
 
   /* ── Node count badge ── */
   .node-count {
-    font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+    font-family: var(--font-mono);
     font-size: 0.72rem;
     font-weight: 600;
     color: var(--accent-2);
@@ -907,6 +906,7 @@
 </style>
 </head>
 <body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.06);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.8);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Topology</span></nav>
 
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
@@ -916,7 +916,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="breadcrumb">FloorCrew / <span>Technical Topology</span></div>
+  <div class="breadcrumb">Elktron / <span>Technical Topology</span></div>
   <h1>System <span>Architecture</span></h1>
   <div class="header-sub">
     <span class="node-count" aria-label="13 nodes across 5 layers">13 nodes &middot; 5 layers &middot; 18 connections</span>

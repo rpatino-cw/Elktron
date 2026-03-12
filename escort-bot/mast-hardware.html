@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elktron — Ordered Parts</title>
+<link rel="stylesheet" href="../design-system.css">
+<style>
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    height: 100vh;
+    cursor: grab;
+    padding-top: 44px;
+  }
+  body:active { cursor: grabbing; }
+
+  #canvas-container { position: absolute; inset: 0; z-index: 1; }
+  canvas { display: block; }
+
+  /* Vignette */
+  .vignette {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(200,206,220,0.35) 100%);
+  }
+
+  /* Corner marks */
+  .corner { position: absolute; z-index: 3; pointer-events: none; opacity: 0; animation: cornerDraw 0.8s 0.9s var(--ease-in-out) forwards; }
+  .corner::before, .corner::after { content: ''; position: absolute; background: var(--border-subtle); }
+  .corner-tl { top: 16px; left: 16px; } .corner-tl::before { width: 28px; height: 1px; } .corner-tl::after { width: 1px; height: 28px; }
+  .corner-tr { top: 16px; right: 16px; } .corner-tr::before { width: 28px; height: 1px; right: 0; } .corner-tr::after { width: 1px; height: 28px; right: 0; }
+  .corner-bl { bottom: 16px; left: 16px; } .corner-bl::before { width: 28px; height: 1px; bottom: 0; } .corner-bl::after { width: 1px; height: 28px; bottom: 0; }
+  .corner-br { bottom: 16px; right: 16px; } .corner-br::before { width: 28px; height: 1px; bottom: 0; right: 0; } .corner-br::after { width: 1px; height: 28px; bottom: 0; right: 0; }
+
+  /* Page load entrance */
+  @keyframes hudFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes controlsSlideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  @keyframes cornerDraw {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* HUD panels */
+  .hud {
+    position: absolute; z-index: 10; pointer-events: none;
+    opacity: 0;
+    animation: hudFadeIn 0.6s var(--ease-out) forwards;
+  }
+
+  .hud-top-left    { top: 28px; left: 28px;   animation-delay: 0.3s; }
+  .hud-top-right   { top: 28px; right: 28px; text-align: right; animation-delay: 0.45s; }
+  .hud-bottom-left { bottom: 80px; left: 28px;  animation-delay: 0.6s; }
+  .hud-bottom-right{ bottom: 80px; right: 28px; text-align: right; animation-delay: 0.75s; }
+
+  .project-title {
+    font-family: var(--font-sans);
+    font-size: 17px; font-weight: 700;
+    color: var(--text-primary); letter-spacing: -0.3px;
+    margin-bottom: 2px;
+  }
+  .project-sub {
+    font-size: 9px; color: var(--text-tertiary);
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+
+  .hud-label {
+    font-size: 9px; font-weight: 500; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-tertiary);
+    margin-bottom: 4px; margin-top: 12px;
+  }
+  .hud-label:first-child { margin-top: 0; }
+
+  .hud-value {
+    font-family: var(--font-mono);
+    font-size: 12px; font-weight: 400; color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .hud-value .accent { color: var(--accent-primary); }
+  .hud-value .green { color: var(--status-success); }
+  .hud-value .yellow { color: var(--status-warning); }
+  .hud-value .blue { color: var(--accent-primary); }
+  .hud-value .cyan { color: var(--accent-primary); }
+  .hud-value .dim { color: var(--text-tertiary); }
+
+  /* Controls */
+  .controls {
+    position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 10; display: flex; gap: 6px; pointer-events: all;
+    opacity: 0;
+    animation: controlsSlideUp 0.6s 1.0s var(--ease-out) forwards;
+  }
+  .controls button, .controls a {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.5px;
+    padding: 8px 16px; border: 1px solid var(--border-subtle);
+    background: var(--bg-surface); color: var(--text-tertiary);
+    cursor: pointer; transition: border-color 0.2s, color 0.2s, background-color 0.2s, transform 0.12s; border-radius: var(--radius-xs);
+    text-decoration: none; display: inline-flex; align-items: center;
+  }
+  .controls button:hover, .controls a:hover {
+    border-color: var(--accent-primary); color: var(--accent-primary);
+    background: var(--accent-primary-muted);
+  }
+  .controls button:active { transform: scale(0.94); }
+  .controls button:focus-visible, .controls a:focus-visible {
+    outline: 2px solid var(--accent-primary); outline-offset: 2px;
+  }
+  .controls button.active {
+    background: var(--accent-primary); border-color: var(--accent-primary); color: var(--text-inverse);
+  }
+  @keyframes btnFlash {
+    0% { box-shadow: 0 0 0 0 var(--glow-medium); }
+    50% { box-shadow: 0 0 12px 2px var(--glow-medium); }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .controls button.flash { animation: btnFlash 0.4s var(--ease-in-out); }
+
+  /* Callout labels (3D projected) */
+  .callout {
+    position: absolute; z-index: 15; pointer-events: none;
+    opacity: 0; transform: translate(-50%, -100%) scale(0.92);
+    transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+    cursor: pointer; text-decoration: none; display: flex; flex-direction: column; align-items: center;
+    filter: drop-shadow(0 2px 8px rgba(10,14,26,0.15));
+    will-change: transform, opacity;
+  }
+  .callout.visible {
+    opacity: 1; transform: translate(-50%, -100%) scale(var(--label-scale, 1));
+    pointer-events: auto;
+  }
+
+  .callout:hover .callout-card {
+    background: var(--accent-primary-muted); border-color: var(--accent-primary);
+    box-shadow: 0 0 16px 2px var(--glow-medium), inset 0 0 12px var(--accent-primary-muted);
+  }
+  .callout:hover .callout-price { color: var(--status-success); }
+  .callout:hover .callout-dot { transform: scale(1.6); box-shadow: 0 0 12px 4px var(--glow-medium); }
+
+  /* Dot anchor at the 3D point */
+  .callout-dot {
+    position: relative;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent-primary); border: 2px solid rgba(10,14,26,0.2);
+    box-shadow: 0 0 8px 2px var(--glow-medium);
+    transition: transform 0.25s var(--ease-out), box-shadow 0.25s;
+    flex-shrink: 0;
+  }
+
+  /* Connector line from dot to card */
+  .callout-stem {
+    width: 1px; height: 32px;
+    background: linear-gradient(to top, var(--accent-primary), var(--glow-soft));
+    flex-shrink: 0;
+  }
+
+  /* Card container */
+  .callout-card {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border-accent);
+    border-radius: 4px; padding: 7px 12px;
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+    white-space: nowrap; text-align: center;
+  }
+
+  .callout-name {
+    font-family: var(--font-sans);
+    font-size: 11px; font-weight: 600; color: var(--text-primary);
+    letter-spacing: 0.2px; line-height: 1.3;
+  }
+
+  .callout-meta {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-top: 4px; white-space: nowrap;
+  }
+
+  .callout-price {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 700; color: var(--status-success);
+    transition: color 0.2s;
+  }
+
+  .callout-store {
+    font-size: 8px; letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 2px 6px; border-radius: var(--radius-xs); color: #fff; font-weight: 600;
+  }
+  .callout-store.amazon { background: #e09520; }
+  .callout-store.homedepot { background: #ee5a00; }
+
+  .callout-hint {
+    font-size: 7px; color: var(--text-tertiary); letter-spacing: 0.5px;
+    margin-top: 3px; opacity: 0; transition: opacity 0.2s;
+  }
+  .callout:hover .callout-hint { opacity: 1; }
+
+  /* Pulse ring on dot */
+  .callout-dot::after {
+    content: ''; position: absolute; inset: -4px;
+    border-radius: 50%; border: 1px solid var(--accent-primary);
+    animation: dotPulse 2.5s var(--ease-out) infinite;
+  }
+  @keyframes dotPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    70% { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
+  }
+
+  /* Stagger dot pulse per label */
+  .callout:nth-child(2) .callout-dot::after { animation-delay: 0.3s; }
+  .callout:nth-child(3) .callout-dot::after { animation-delay: 0.6s; }
+  .callout:nth-child(4) .callout-dot::after { animation-delay: 0.9s; }
+  .callout:nth-child(5) .callout-dot::after { animation-delay: 1.2s; }
+  .callout:nth-child(6) .callout-dot::after { animation-delay: 1.5s; }
+  .callout:nth-child(7) .callout-dot::after { animation-delay: 1.8s; }
+  .callout:nth-child(8) .callout-dot::after { animation-delay: 2.1s; }
+
+  /* Component info panel */
+  .info-panel {
+    position: absolute; top: 50%; right: 28px; transform: translateY(-50%);
+    z-index: 15; width: 220px; pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-in-out), transform 0.3s var(--ease-in-out);
+    transform: translateY(-50%) translateX(10px);
+  }
+  .info-panel.visible {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+
+  .info-panel-inner {
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border-subtle);
+    border-left: 2px solid var(--accent-primary);
+    padding: 16px 18px;
+    border-radius: var(--radius-xs);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+
+  .info-panel-title {
+    font-family: var(--font-sans);
+    font-size: 14px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .info-panel-sub {
+    font-size: 9px; color: var(--text-tertiary);
+    letter-spacing: 1px; margin-bottom: 12px;
+  }
+
+  .info-panel-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 4px 0; border-bottom: 1px solid rgba(10,14,26,0.06);
+  }
+  .info-panel-row:last-child { border-bottom: none; }
+
+  .info-panel-key {
+    font-size: 9px; color: var(--text-tertiary);
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .info-panel-val {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--text-secondary);
+  }
+
+  /* Shop panel */
+  .shop-panel {
+    position: absolute; top: 0; right: -380px; width: 370px; height: 100vh;
+    z-index: 20; background: var(--bg-surface);
+    border-left: 1px solid var(--border-subtle);
+    transition: right 0.45s var(--ease-out);
+    overflow-y: auto; padding: 28px 22px;
+    pointer-events: all;
+  }
+  .shop-panel.open { right: 0; }
+
+  .shop-header {
+    font-family: var(--font-sans);
+    font-size: 16px; font-weight: 700; color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .shop-subheader {
+    font-size: 10px; color: var(--text-tertiary);
+    letter-spacing: 1px; margin-bottom: 20px;
+  }
+
+  .shop-section-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-tertiary); margin-bottom: 10px; margin-top: 18px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle);
+  }
+  .shop-section-label:first-of-type { margin-top: 0; }
+
+  .shop-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid rgba(10,14,26,0.06);
+    opacity: 0; transform: translateX(12px);
+    transition: opacity 0.3s var(--ease-in-out), transform 0.3s var(--ease-in-out), background 0.2s;
+  }
+  .shop-panel.open .shop-item {
+    opacity: 1; transform: translateX(0);
+  }
+  .shop-panel.open .shop-item:nth-child(1) { transition-delay: 0.08s; }
+  .shop-panel.open .shop-item:nth-child(2) { transition-delay: 0.14s; }
+  .shop-panel.open .shop-item:nth-child(3) { transition-delay: 0.20s; }
+  .shop-panel.open .shop-item:nth-child(4) { transition-delay: 0.26s; }
+  .shop-panel.open .shop-item:nth-child(5) { transition-delay: 0.32s; }
+  .shop-panel.open .shop-item:nth-child(6) { transition-delay: 0.38s; }
+  .shop-panel.open .shop-item:nth-child(7) { transition-delay: 0.44s; }
+  .shop-panel.open .shop-item:nth-child(8) { transition-delay: 0.50s; }
+  .shop-item:last-child { border-bottom: none; }
+  .shop-item:hover { background: var(--accent-primary-muted); }
+
+  .shop-item input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 16px; height: 16px; border: 1px solid var(--border-subtle);
+    background: var(--bg-elevated); border-radius: var(--radius-xs);
+    cursor: pointer; flex-shrink: 0; margin-top: 2px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .shop-item input[type="checkbox"]:checked {
+    background: var(--status-success); border-color: var(--status-success);
+    animation: checkPop 0.3s var(--ease-out);
+  }
+  .shop-item input[type="checkbox"]:checked::after {
+    content: '\2713'; display: block; text-align: center;
+    color: #000; font-size: 11px; line-height: 16px; font-weight: 700;
+  }
+
+  @keyframes checkPop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .shop-item-info { flex: 1; }
+  .shop-item-name {
+    font-family: var(--font-sans);
+    font-size: 12px; font-weight: 500; color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .shop-item-price {
+    font-family: var(--font-mono);
+    font-size: 11px; color: var(--status-success);
+    margin-top: 2px;
+  }
+  .shop-item-buy {
+    font-size: 9px; font-weight: 500; letter-spacing: 0.5px;
+    padding: 5px 12px; border: none; border-radius: var(--radius-xs);
+    cursor: pointer; text-decoration: none; color: #fff;
+    margin-top: 4px; display: inline-block;
+    transition: opacity 0.15s;
+  }
+  .shop-item-buy:hover { opacity: 0.85; }
+  .shop-item-buy.amazon { background: #f0a030; }
+  .shop-item-buy.homedepot { background: #f96302; }
+
+  /* Checkbox focus */
+  .shop-item input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent-primary); outline-offset: 2px;
+  }
+
+  /* Dark scrollbar for shop panel */
+  .shop-panel::-webkit-scrollbar { width: 6px; }
+  .shop-panel::-webkit-scrollbar-track { background: transparent; }
+  .shop-panel::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: var(--radius-xs); }
+  .shop-panel::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+  .shop-panel { scrollbar-width: thin; scrollbar-color: var(--border-subtle) transparent; }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01s !important;
+      transition-duration: 0.01s !important;
+    }
+  }
+
+</style>
+</head>
+<body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Parts</span></nav>
+
+<div id="canvas-container"></div>
+<div class="vignette"></div>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<!-- HUD: Top Left -->
+<div class="hud hud-top-left">
+  <div class="project-title">Elktron</div>
+  <div class="project-sub">Ordered Parts</div>
+</div>
+
+<!-- HUD: Top Right -->
+<div class="hud hud-top-right">
+  <div class="hud-label">Camera</div>
+  <div class="hud-value">
+    <span class="cyan">IMX708</span> <span class="dim">/</span> <span class="green">120&deg; FOV</span><br>
+    <span class="dim">1080p @ 30fps</span> <span class="dim">/</span> <span class="blue">CSI-2</span>
+  </div>
+</div>
+
+<!-- HUD: Bottom Left -->
+<div class="hud hud-bottom-left">
+  <div class="hud-label">Drivetrain</div>
+  <div class="hud-value">
+    <span class="accent">4WD</span> <span class="dim">TT Gear Motors</span><br>
+    <span class="dim">Mast:</span> <span class="yellow">1" PVC Sch40</span> <span class="dim">~4ft</span>
+  </div>
+</div>
+
+<!-- HUD: Bottom Right -->
+<div class="hud hud-bottom-right">
+  <div class="hud-label">Build Cost</div>
+  <div class="hud-value">
+    <span class="green">~$143</span> <span class="dim">/</span> <span class="accent">8 items</span><br>
+    <span class="dim">~1.8kg assembled</span>
+  </div>
+</div>
+
+<!-- Info panel (hover) -->
+<div class="info-panel" id="info-panel">
+  <div class="info-panel-inner">
+    <div class="info-panel-title" id="info-title"></div>
+    <div class="info-panel-sub" id="info-sub"></div>
+    <div id="info-rows"></div>
+  </div>
+</div>
+
+<!-- Callout labels container -->
+<div id="callouts"></div>
+
+<!-- Controls -->
+<div class="controls">
+  <button id="btn-explode" aria-label="Explode view (E)">Explode [E]</button>
+  <button id="btn-rotate" aria-label="Toggle auto-rotate (A)">Auto-Rotate [A]</button>
+  <button id="btn-reset" aria-label="Reset camera (R)">Reset [R]</button>
+  <button id="btn-wires" aria-label="Toggle wire overlay (W)">Wires [W]</button>
+  <button id="btn-labels" class="active" aria-label="Toggle part labels (L)">Labels [L]</button>
+  <button id="btn-shop" aria-label="Open shopping list ($)">Buy Parts [$]</button>
+  <a href="hardware.html" aria-label="View full hardware page">Hardware &rarr;</a>
+</div>
+
+<!-- Shop panel -->
+<div class="shop-panel" id="shop-panel">
+  <div class="shop-header">~$143 &mdash; 8 items ordered</div>
+  <div class="shop-subheader">Elktron Escort Bot Parts</div>
+
+  <div class="shop-section-label">Amazon (4)</div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="cam">
+    <div class="shop-item-info">
+      <div class="shop-item-name">Arducam IMX708 120&deg; Wide Camera</div>
+      <div class="shop-item-price">$59.99</div>
+      <a class="shop-item-buy amazon" href="https://www.amazon.com/Arducam-Raspberry-Camera-Autofocus-Acrylic/dp/B0BX7VFT8Q" target="_blank">Amazon</a>
+    </div>
+  </div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="pantilt">
+    <div class="shop-item-info">
+      <div class="shop-item-name">Arducam Pan-Tilt Platform</div>
+      <div class="shop-item-price">$26.99</div>
+      <a class="shop-item-buy amazon" href="https://www.amazon.com/Arducam-Upgraded-Camera-Platform-Raspberry/dp/B08PK9N9T4" target="_blank">Amazon</a>
+    </div>
+  </div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="cooler">
+    <div class="shop-item-info">
+      <div class="shop-item-name">Pi 5 Active Cooler</div>
+      <div class="shop-item-price">$9.98</div>
+      <a class="shop-item-buy amazon" href="https://www.amazon.com/Raspberry-Pi-Active-Cooler/dp/B0CLXZBR5P" target="_blank">Amazon</a>
+    </div>
+  </div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="chassis">
+    <div class="shop-item-info">
+      <div class="shop-item-name">LK-COKOINO 4WD Robot Car Chassis Kit</div>
+      <div class="shop-item-price">$26.99</div>
+      <a class="shop-item-buy amazon" href="https://www.amazon.com/Arduino-LK-COKOINO-Raspberry-Building/dp/B0B5JPJ9R4" target="_blank">Amazon</a>
+    </div>
+  </div>
+
+  <div class="shop-section-label">Home Depot (4)</div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="pvc">
+    <div class="shop-item-info">
+      <div class="shop-item-name">PVC Pipe 1&Prime; x 10ft Schedule 40</div>
+      <div class="shop-item-price">$7.68</div>
+      <a class="shop-item-buy homedepot" href="https://www.homedepot.com/p/JM-EAGLE-1-in-x-10-ft-White-PVC-Schedule-40-Pressure-Plain-End-Pipe-531194/202280936" target="_blank">Home Depot</a>
+    </div>
+  </div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="tee">
+    <div class="shop-item-info">
+      <div class="shop-item-name">PVC T-Connector 1&Prime;</div>
+      <div class="shop-item-price">$2.07</div>
+      <a class="shop-item-buy homedepot" href="https://www.homedepot.com/p/Charlotte-Pipe-1-in-PVC-Schedule-40-S-x-S-x-S-Tee-PVC024001000HD/203812199" target="_blank">Home Depot</a>
+    </div>
+  </div>
+
+  <div class="shop-item">
+    <input type="checkbox" data-key="zipties">
+    <div class="shop-item-info">
+      <div class="shop-item-name">Velcro Cable Ties (reusable)</div>
+      <div class="shop-item-price">~$5.00</div>
+      <a class="shop-item-buy amazon" href="https://www.amazon.com/s?k=velcro+cable+ties+reusable" target="_blank">Amazon</a>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+/* ── Renderer ── */
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.65;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+container.appendChild(renderer.domElement);
+
+/* ── Scene ── */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe8eaf0);
+
+/* ── Camera ── */
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(6, 8, 10);
+
+/* ── Controls ── */
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 3, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 4;
+controls.maxDistance = 25;
+controls.maxPolarAngle = Math.PI * 0.55;
+controls.update();
+
+/* ── Post-processing ── */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.02, 0.4, 0.99);
+composer.addPass(bloom);
+
+/* ── Lighting ── */
+const ambient = new THREE.AmbientLight(0x8090b0, 0.35);
+scene.add(ambient);
+
+const hemi = new THREE.HemisphereLight(0xb0c0e0, 0x202030, 0.25);
+scene.add(hemi);
+
+const keyLight = new THREE.DirectionalLight(0xfff0e0, 0.5);
+keyLight.position.set(6, 10, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(1024, 1024);
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 30;
+keyLight.shadow.camera.left = -10;
+keyLight.shadow.camera.right = 10;
+keyLight.shadow.camera.top = 10;
+keyLight.shadow.camera.bottom = -10;
+keyLight.shadow.bias = -0.001;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0xc0d0f0, 0.12);
+fillLight.position.set(-5, 6, -3);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0x4a9eff, 0.1);
+rimLight.position.set(-3, 4, 8);
+scene.add(rimLight);
+
+/* ── Materials ── */
+const mat = {
+  pvc: new THREE.MeshStandardMaterial({ color: 0xf5f5f0, roughness: 0.7, metalness: 0.05 }),
+  pvcConnector: new THREE.MeshStandardMaterial({ color: 0xeeeee8, roughness: 0.65, metalness: 0.05 }),
+  camera: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.3, metalness: 0.4 }),
+  cameraLens: new THREE.MeshStandardMaterial({ color: 0x0a0a18, roughness: 0.05, metalness: 0.95 }),
+  silver: new THREE.MeshStandardMaterial({ color: 0xd0d4da, roughness: 0.2, metalness: 0.9 }),
+  gold: new THREE.MeshStandardMaterial({ color: 0xd4a840, roughness: 0.25, metalness: 0.9 }),
+  servo: new THREE.MeshStandardMaterial({ color: 0x1a1a20, roughness: 0.4, metalness: 0.2 }),
+  servoHorn: new THREE.MeshStandardMaterial({ color: 0xf5f5f5, roughness: 0.5, metalness: 0.05 }),
+  chassis: new THREE.MeshStandardMaterial({ color: 0xcc3333, roughness: 0.35, metalness: 0.1 }),
+  chassisAccent: Object.assign(new THREE.MeshStandardMaterial({ color: 0x2741E7, roughness: 0.4, metalness: 0.2, emissive: new THREE.Color(0x2741E7), emissiveIntensity: 0.12 }), { _isAccent: true }),
+  wheel: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.85, metalness: 0.05 }),
+  wheelHub: new THREE.MeshStandardMaterial({ color: 0xdddde0, roughness: 0.25, metalness: 0.8 }),
+  tire: new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.92, metalness: 0.0 }),
+  motor: new THREE.MeshStandardMaterial({ color: 0xf0d020, roughness: 0.35, metalness: 0.3 }),
+  motorBody: new THREE.MeshStandardMaterial({ color: 0xb0b4b8, roughness: 0.3, metalness: 0.7 }),
+  battery: new THREE.MeshStandardMaterial({ color: 0x1a1e24, roughness: 0.6, metalness: 0.1 }),
+  heatsink: new THREE.MeshStandardMaterial({ color: 0xb8bcc4, roughness: 0.25, metalness: 0.85 }),
+  pcb: new THREE.MeshStandardMaterial({ color: 0x2a8048, roughness: 0.55, metalness: 0.1 }),
+  chipBlack: new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.3, metalness: 0.4 }),
+  zipTie: new THREE.MeshStandardMaterial({ color: 0xf0f0ea, roughness: 0.6, metalness: 0.1 }),
+  ribbon: new THREE.MeshStandardMaterial({ color: 0xe0ddd8, roughness: 0.4, metalness: 0.05 }),
+  led: Object.assign(new THREE.MeshStandardMaterial({ color: 0x34d399, emissive: new THREE.Color(0x34d399), emissiveIntensity: 0.8, roughness: 0.2, metalness: 0.3 }), { _isAccent: true }),
+  ground: new THREE.MeshStandardMaterial({ color: 0xc0c4cc, roughness: 0.9, metalness: 0.0 }),
+};
+
+/* ── Shared geometries ── */
+const boxGeo = new THREE.BoxGeometry(1,1,1);
+
+function box(sx,sy,sz,m){ const me=new THREE.Mesh(boxGeo,m); me.scale.set(sx,sy,sz); me.castShadow=true; me.receiveShadow=true; return me; }
+function cyl(r,h,m,seg){ const g=new THREE.CylinderGeometry(r,r,h,seg||24); const me=new THREE.Mesh(g,m); me.castShadow=true; me.receiveShadow=true; return me; }
+function sph(r,m){ const me=new THREE.Mesh(new THREE.SphereGeometry(r,16,16),m); me.castShadow=true; return me; }
+
+/* ════════════════════════════════════════════════════════
+   GROUP 1: Arducam IMX708 120deg Camera
+   ════════════════════════════════════════════════════════ */
+const cameraGroup = new THREE.Group();
+cameraGroup.name = 'camera';
+
+// Camera body
+const camBody = box(0.55, 0.12, 0.35, mat.camera);
+cameraGroup.add(camBody);
+
+// PCB board underneath
+const camPcb = box(0.55, 0.06, 0.35, mat.pcb);
+camPcb.position.y = -0.09;
+cameraGroup.add(camPcb);
+
+// Lens barrel (silver ring)
+const lensBarrel = cyl(0.1, 0.08, mat.silver);
+lensBarrel.rotation.x = Math.PI / 2;
+lensBarrel.position.set(0, 0.02, 0.2);
+cameraGroup.add(lensBarrel);
+
+// Convex lens glass (hemisphere)
+const lensGlass = new THREE.Mesh(
+  new THREE.SphereGeometry(0.08, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+  mat.cameraLens
+);
+lensGlass.rotation.x = -Math.PI / 2;
+lensGlass.position.set(0, 0.02, 0.24);
+cameraGroup.add(lensGlass);
+
+// Status LED
+const ledMesh = sph(0.02, mat.led);
+ledMesh.position.set(0.2, 0.07, 0.1);
+cameraGroup.add(ledMesh);
+
+// CSI-2 connector on PCB edge
+const csiConn = box(0.18, 0.04, 0.05, mat.chipBlack);
+csiConn.position.set(0, -0.12, -0.15);
+cameraGroup.add(csiConn);
+
+// Acrylic lens protector (semi-transparent)
+const protectorMat = new THREE.MeshStandardMaterial({ color: 0xccddee, roughness: 0.1, metalness: 0.0, transparent: true, opacity: 0.25 });
+const protector = box(0.6, 0.01, 0.4, protectorMat);
+protector.position.y = 0.07;
+cameraGroup.add(protector);
+
+/* ════════════════════════════════════════════════════════
+   GROUP 2: Pan-Tilt Platform
+   ════════════════════════════════════════════════════════ */
+const panTiltGroup = new THREE.Group();
+panTiltGroup.name = 'pantilt';
+
+// Mounting bracket base
+const ptBase = cyl(0.25, 0.12, mat.silver);
+panTiltGroup.add(ptBase);
+
+// Pan servo
+const panServo = box(0.45, 0.28, 0.25, mat.servo);
+panServo.position.y = 0.2;
+panTiltGroup.add(panServo);
+
+// Pan servo horn (flat disc)
+const panHorn = cyl(0.12, 0.03, mat.servoHorn);
+panHorn.position.y = 0.35;
+panTiltGroup.add(panHorn);
+
+// Two tilt bracket arms
+const tiltArmL = box(0.04, 0.4, 0.04, mat.silver);
+tiltArmL.position.set(-0.18, 0.55, 0);
+panTiltGroup.add(tiltArmL);
+
+const tiltArmR = box(0.04, 0.4, 0.04, mat.silver);
+tiltArmR.position.set(0.18, 0.55, 0);
+panTiltGroup.add(tiltArmR);
+
+// Tilt servo
+const tiltServo = box(0.25, 0.2, 0.2, mat.servo);
+tiltServo.position.set(0.25, 0.6, 0);
+panTiltGroup.add(tiltServo);
+
+// Camera mounting plate on top
+const camPlate = box(0.5, 0.04, 0.35, mat.silver);
+camPlate.position.y = 0.77;
+panTiltGroup.add(camPlate);
+
+// I2C controller board (small green PCB + black chip)
+const i2cPcb = box(0.2, 0.03, 0.15, mat.pcb);
+i2cPcb.position.set(-0.15, 0.08, 0.15);
+panTiltGroup.add(i2cPcb);
+
+const i2cChip = box(0.08, 0.03, 0.08, mat.chipBlack);
+i2cChip.position.set(-0.15, 0.11, 0.15);
+panTiltGroup.add(i2cChip);
+
+/* ════════════════════════════════════════════════════════
+   GROUP 3: Pi 5 Active Cooler
+   ════════════════════════════════════════════════════════ */
+const coolerGroup = new THREE.Group();
+coolerGroup.name = 'cooler';
+
+// Aluminum heatsink base
+const hsBase = box(0.6, 0.04, 0.6, mat.heatsink);
+coolerGroup.add(hsBase);
+
+// 8 heatsink fins
+for (let i = 0; i < 8; i++) {
+  const fin = box(0.55, 0.2, 0.03, mat.heatsink);
+  fin.position.set(0, 0.12, -0.24 + i * 0.07);
+  coolerGroup.add(fin);
+}
+
+// Blower fan housing
+const fanHousing = cyl(0.2, 0.12, mat.servo);
+fanHousing.position.set(0, 0.28, 0);
+coolerGroup.add(fanHousing);
+
+// Fan blade spokes (4 radial)
+const fanSpokes = [];
+for (let i = 0; i < 4; i++) {
+  const spoke = box(0.32, 0.02, 0.03, mat.silver);
+  spoke.rotation.y = (i / 4) * Math.PI;
+  spoke.position.set(0, 0.28, 0);
+  coolerGroup.add(spoke);
+  fanSpokes.push(spoke);
+}
+
+// 4-pin PWM connector
+const pwmConn = box(0.08, 0.05, 0.04, mat.chipBlack);
+const pwmColors = box(0.06, 0.03, 0.03, new THREE.MeshStandardMaterial({ color: 0x4a9eff, roughness: 0.5 }));
+pwmConn.position.set(0.28, 0.04, 0.2);
+pwmColors.position.set(0.28, 0.07, 0.2);
+coolerGroup.add(pwmConn);
+coolerGroup.add(pwmColors);
+
+// Spring-loaded mounting pins underneath (2 gold cylinders)
+const pin1 = cyl(0.025, 0.12, mat.gold);
+pin1.position.set(-0.18, -0.08, -0.18);
+coolerGroup.add(pin1);
+
+const pin2 = cyl(0.025, 0.12, mat.gold);
+pin2.position.set(0.18, -0.08, 0.18);
+coolerGroup.add(pin2);
+
+/* ════════════════════════════════════════════════════════
+   GROUP 4: LK-COKOINO 4WD Robot Car Chassis Kit
+   ════════════════════════════════════════════════════════ */
+const chassisGroup = new THREE.Group();
+chassisGroup.name = 'chassis';
+
+// Translucent acrylic material
+const acrylicMat = new THREE.MeshStandardMaterial({ color: 0xcc3333, roughness: 0.3, metalness: 0.05, transparent: true, opacity: 0.6 });
+
+// Two-tier acrylic chassis plates
+const bottomPlate = box(3.2, 0.12, 4.8, acrylicMat);
+bottomPlate.position.y = 0;
+chassisGroup.add(bottomPlate);
+
+const topPlate = box(3.2, 0.12, 4.8, acrylicMat);
+topPlate.position.y = 1.0;
+chassisGroup.add(topPlate);
+
+// 6 hex standoffs between plates
+const standoffPositions = [
+  [-1.2, 0.5, -1.8], [1.2, 0.5, -1.8],
+  [-1.2, 0.5, 0],    [1.2, 0.5, 0],
+  [-1.2, 0.5, 1.8],  [1.2, 0.5, 1.8],
+];
+standoffPositions.forEach(([x,y,z]) => {
+  const standoff = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.88, 6), mat.silver);
+  standoff.position.set(x, y, z);
+  standoff.castShadow = true;
+  chassisGroup.add(standoff);
+});
+
+// 4 TT gear motors + wheels at corners
+const motorPositions = [
+  [-1.7, -0.1, -1.5], [1.7, -0.1, -1.5],
+  [-1.7, -0.1, 1.5],  [1.7, -0.1, 1.5],
+];
+motorPositions.forEach(([x,y,z], i) => {
+  // Motor body (gray)
+  const motorMesh = cyl(0.18, 0.5, mat.motorBody);
+  motorMesh.rotation.z = Math.PI / 2;
+  motorMesh.position.set(x, y, z);
+  chassisGroup.add(motorMesh);
+
+  // Yellow end cap
+  const endCap = cyl(0.18, 0.08, mat.motor);
+  endCap.rotation.z = Math.PI / 2;
+  endCap.position.set(x + (i % 2 === 0 ? -0.28 : 0.28), y, z);
+  chassisGroup.add(endCap);
+
+  // Wheel
+  const wheelDir = (i % 2 === 0) ? -1 : 1;
+  const wheelX = x + wheelDir * 0.45;
+  const wheelMesh = cyl(0.35, 0.25, mat.wheel);
+  wheelMesh.rotation.z = Math.PI / 2;
+  wheelMesh.position.set(wheelX, y, z);
+  chassisGroup.add(wheelMesh);
+
+  // Wheel hub
+  const hubMesh = cyl(0.15, 0.26, mat.wheelHub);
+  hubMesh.rotation.z = Math.PI / 2;
+  hubMesh.position.set(wheelX, y, z);
+  chassisGroup.add(hubMesh);
+
+  // Tire tread (torus)
+  const tread = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.06, 8, 24), mat.tire);
+  tread.rotation.y = Math.PI / 2;
+  tread.position.set(wheelX, y, z);
+  tread.castShadow = true;
+  chassisGroup.add(tread);
+
+  // Metal motor bracket (L-shaped)
+  const bracketA = box(0.04, 0.3, 0.15, mat.silver);
+  bracketA.position.set(x + wheelDir * -0.08, y + 0.1, z);
+  chassisGroup.add(bracketA);
+  const bracketB = box(0.15, 0.04, 0.15, mat.silver);
+  bracketB.position.set(x + wheelDir * -0.02, y + 0.25, z);
+  chassisGroup.add(bracketB);
+});
+
+// Battery case
+const batteryCase = box(0.8, 0.35, 1.2, mat.battery);
+batteryCase.position.set(0, 0.5, 0);
+chassisGroup.add(batteryCase);
+
+// Red/black wire stubs
+const redWire = box(0.03, 0.15, 0.03, new THREE.MeshStandardMaterial({ color: 0xcc2222, roughness: 0.5 }));
+redWire.position.set(0.15, 0.72, 0.5);
+chassisGroup.add(redWire);
+
+const blackWire = box(0.03, 0.15, 0.03, mat.chipBlack);
+blackWire.position.set(-0.15, 0.72, 0.5);
+chassisGroup.add(blackWire);
+
+// Side accent rails (accent orange)
+const railL = box(0.08, 0.08, 4.6, mat.chassisAccent);
+railL.position.set(-1.55, 0, 0);
+chassisGroup.add(railL);
+
+const railR = box(0.08, 0.08, 4.6, mat.chassisAccent);
+railR.position.set(1.55, 0, 0);
+chassisGroup.add(railR);
+
+// Front bumper accent
+const bumper = box(3.0, 0.08, 0.08, mat.chassisAccent);
+bumper.position.set(0, 0, -2.35);
+chassisGroup.add(bumper);
+
+/* ════════════════════════════════════════════════════════
+   GROUP 5: PVC Pipe 1" x 10ft (cut to ~4ft)
+   ════════════════════════════════════════════════════════ */
+const mastGroup = new THREE.Group();
+mastGroup.name = 'mast';
+
+// Long white cylinder representing ~4ft cut
+const mastPipe = cyl(0.17, 6.0, mat.pvc);
+mastPipe.position.y = 3.0;
+mastGroup.add(mastPipe);
+
+// 3 printed text markings (thin dark lines along pipe)
+for (let i = 0; i < 3; i++) {
+  const marking = box(0.005, 0.35, 0.35, new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.5 }));
+  marking.position.set(0.17, 1.5 + i * 1.8, 0);
+  mastGroup.add(marking);
+}
+
+/* ════════════════════════════════════════════════════════
+   GROUP 6: PVC T-Connector 1"
+   ════════════════════════════════════════════════════════ */
+const tConnectorGroup = new THREE.Group();
+tConnectorGroup.name = 'tconnector';
+
+// Central hub
+const tHub = cyl(0.28, 0.5, mat.pvcConnector);
+tConnectorGroup.add(tHub);
+
+// Horizontal crossbar (rotated Z)
+const tCross = cyl(0.22, 2.0, mat.pvcConnector);
+tCross.rotation.z = Math.PI / 2;
+tCross.position.y = 0;
+tConnectorGroup.add(tCross);
+
+// Lip rings at 3 openings
+const lipGeo = new THREE.TorusGeometry(0.28, 0.03, 8, 24);
+const lipTop = new THREE.Mesh(lipGeo, mat.pvcConnector);
+lipTop.position.y = 0.25;
+tConnectorGroup.add(lipTop);
+
+const lipBottom = new THREE.Mesh(lipGeo.clone(), mat.pvcConnector);
+lipBottom.position.y = -0.25;
+tConnectorGroup.add(lipBottom);
+
+const lipLeft = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 8, 24), mat.pvcConnector);
+lipLeft.rotation.z = Math.PI / 2;
+lipLeft.position.set(-1.0, 0, 0);
+tConnectorGroup.add(lipLeft);
+
+const lipRight = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 8, 24), mat.pvcConnector);
+lipRight.rotation.z = Math.PI / 2;
+lipRight.position.set(1.0, 0, 0);
+tConnectorGroup.add(lipRight);
+
+/* ════════════════════════════════════════════════════════
+   GROUP 7: Zip Ties + Adhesive Mounts Combo
+   ════════════════════════════════════════════════════════ */
+const zipTieGroup = new THREE.Group();
+zipTieGroup.name = 'zipties';
+
+// 6 zip tie bands around mast
+for (let i = 0; i < 6; i++) {
+  const yOff = 1.2 + i * 0.85;
+
+  // Band (torus around mast)
+  const band = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.015, 8, 24), mat.zipTie);
+  band.position.y = yOff;
+  zipTieGroup.add(band);
+
+  // Tail sticking out (angled thin box)
+  const tail = box(0.25, 0.015, 0.03, mat.zipTie);
+  tail.position.set(0.22, yOff, 0);
+  tail.rotation.z = -0.4;
+  zipTieGroup.add(tail);
+
+  // Adhesive mount pad on mast surface
+  const pad = box(0.12, 0.12, 0.02, mat.zipTie);
+  pad.position.set(0, yOff, 0.19);
+  zipTieGroup.add(pad);
+}
+
+/* ════════════════════════════════════════════════════════
+   GROUP 8: Zip Tie Mounting Bases (10pk)
+   ════════════════════════════════════════════════════════ */
+const mountBaseGroup = new THREE.Group();
+mountBaseGroup.name = 'mountbases';
+
+// 4 mounting bases at intervals along mast
+for (let i = 0; i < 4; i++) {
+  const yOff = 1.6 + i * 1.2;
+
+  // Base pad
+  const basePad = box(0.12, 0.04, 0.12, mat.zipTie);
+  basePad.position.set(-0.19, yOff, 0);
+  mountBaseGroup.add(basePad);
+
+  // Screw hole detail
+  const screwHole = cyl(0.02, 0.05, mat.chipBlack);
+  screwHole.position.set(-0.19, yOff + 0.02, 0);
+  mountBaseGroup.add(screwHole);
+
+  // Slot for zip tie threading
+  const slot = box(0.08, 0.01, 0.04, mat.chipBlack);
+  slot.position.set(-0.19, yOff - 0.01, 0.03);
+  mountBaseGroup.add(slot);
+}
+
+/* ════════════════════════════════════════════════════════
+   ASSEMBLY — Position groups in assembled layout
+   ════════════════════════════════════════════════════════ */
+
+// Chassis on ground plane
+chassisGroup.position.set(0, 0.5, 0);
+scene.add(chassisGroup);
+
+// T-connector on top of chassis
+tConnectorGroup.position.set(0, 1.3, 0);
+scene.add(tConnectorGroup);
+
+// Mast stands vertical from T-connector
+mastGroup.position.set(0, 1.55, 0);
+scene.add(mastGroup);
+
+// Pan-tilt at top of mast
+panTiltGroup.position.set(0, 7.55, 0);
+scene.add(panTiltGroup);
+
+// Camera on top of pan-tilt
+cameraGroup.position.set(0, 8.5, 0);
+scene.add(cameraGroup);
+
+// Zip ties wrap around mast
+zipTieGroup.position.set(0, 1.55, 0);
+scene.add(zipTieGroup);
+
+// Mounting bases attached to mast
+mountBaseGroup.position.set(0, 1.55, 0);
+scene.add(mountBaseGroup);
+
+// Pi 5 Active Cooler offset to the left as standalone part
+coolerGroup.position.set(-2.5, 0.5, 0);
+scene.add(coolerGroup);
+
+/* ── Wires group (W toggle) ── */
+const wiresGroup = new THREE.Group();
+wiresGroup.name = 'wires';
+wiresGroup.visible = false;
+
+// CSI ribbon cable — camera down to T-connector base
+const csiPoints = [
+  new THREE.Vector3(0, 8.38, -0.15),
+  new THREE.Vector3(0.15, 7.0, -0.2),
+  new THREE.Vector3(0.15, 5.0, -0.22),
+  new THREE.Vector3(0.12, 3.0, -0.2),
+  new THREE.Vector3(0.1, 1.5, -0.18),
+];
+const csiCurve = new THREE.CatmullRomCurve3(csiPoints);
+const csiTube = new THREE.TubeGeometry(csiCurve, 32, 0.03, 8, false);
+const csiMesh = new THREE.Mesh(csiTube, mat.ribbon);
+wiresGroup.add(csiMesh);
+
+// Servo power wire (orange)
+const servoPowerMat = new THREE.MeshStandardMaterial({ color: 0x4a9eff, roughness: 0.5, metalness: 0.1 });
+const spPoints = [
+  new THREE.Vector3(0.2, 7.55, 0.12),
+  new THREE.Vector3(0.25, 6.0, 0.15),
+  new THREE.Vector3(0.23, 4.0, 0.18),
+  new THREE.Vector3(0.2, 2.0, 0.15),
+  new THREE.Vector3(0.18, 1.5, 0.12),
+];
+const spCurve = new THREE.CatmullRomCurve3(spPoints);
+const spTube = new THREE.Mesh(new THREE.TubeGeometry(spCurve, 32, 0.015, 8, false), servoPowerMat);
+wiresGroup.add(spTube);
+
+// Servo signal wire (blue)
+const servoSignalMat = new THREE.MeshStandardMaterial({ color: 0x4a9eff, roughness: 0.5, metalness: 0.1 });
+const ssPoints = [
+  new THREE.Vector3(-0.18, 7.55, 0.12),
+  new THREE.Vector3(-0.22, 6.0, 0.16),
+  new THREE.Vector3(-0.2, 4.0, 0.18),
+  new THREE.Vector3(-0.18, 2.0, 0.15),
+  new THREE.Vector3(-0.16, 1.5, 0.12),
+];
+const ssCurve = new THREE.CatmullRomCurve3(ssPoints);
+const ssTube = new THREE.Mesh(new THREE.TubeGeometry(ssCurve, 32, 0.015, 8, false), servoSignalMat);
+wiresGroup.add(ssTube);
+
+// Ground wire (yellow)
+const gndMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.5, metalness: 0.1 });
+const gndPoints = [
+  new THREE.Vector3(0, 7.55, -0.12),
+  new THREE.Vector3(-0.05, 6.0, -0.2),
+  new THREE.Vector3(-0.04, 4.0, -0.22),
+  new THREE.Vector3(-0.02, 2.0, -0.2),
+  new THREE.Vector3(0, 1.5, -0.18),
+];
+const gndCurve = new THREE.CatmullRomCurve3(gndPoints);
+const gndTube = new THREE.Mesh(new THREE.TubeGeometry(gndCurve, 32, 0.015, 8, false), gndMat);
+wiresGroup.add(gndTube);
+
+scene.add(wiresGroup);
+
+/* ── Ground plane ── */
+const groundMesh = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), mat.ground);
+groundMesh.rotation.x = -Math.PI / 2;
+groundMesh.receiveShadow = true;
+scene.add(groundMesh);
+
+const gridHelper = new THREE.GridHelper(40, 40, 0xa0a8b4, 0xb0b8c4);
+gridHelper.position.y = 0.01;
+scene.add(gridHelper);
+
+/* ════════════════════════════════════════════════════════
+   Component Groups — exactly 8
+   ════════════════════════════════════════════════════════ */
+const componentGroups = [
+  { group: cameraGroup, explodeOffset: new THREE.Vector3(0, 3.5, -2.0), label: 'Arducam IMX708 120\u00b0', price: '$59.99', store: 'amazon', url: 'https://www.amazon.com/Arducam-Raspberry-Camera-Autofocus-Acrylic/dp/B0BX7VFT8Q', sub: '$59.99 \u2014 Amazon', info: { 'Sensor': 'Sony IMX708', 'FOV': '120\u00b0 diagonal', 'Resolution': '4608\u00d72592', 'Video': '1080p @ 30fps', 'Interface': 'CSI-2 (15-pin)', 'Autofocus': 'PDAF' } },
+  { group: panTiltGroup, explodeOffset: new THREE.Vector3(0, 2.5, 0), label: 'Pan-Tilt Platform', price: '$26.99', store: 'amazon', url: 'https://www.amazon.com/Arducam-Upgraded-Camera-Platform-Raspberry/dp/B08PK9N9T4', sub: '$26.99 \u2014 Amazon', info: { 'Servos': '2\u00d7 SG90 micro', 'Range': '180\u00b0 pan / 90\u00b0 tilt', 'Control': 'I2C (PCA9685)', 'Voltage': '5V', 'Weight': '~45g' } },
+  { group: coolerGroup, explodeOffset: new THREE.Vector3(-3.0, 1.0, 0), label: 'Pi 5 Active Cooler', price: '$9.98', store: 'amazon', url: 'https://www.amazon.com/Raspberry-Pi-Active-Cooler/dp/B0CLXZBR5P', sub: '$9.98 \u2014 Amazon', info: { 'Type': 'PWM blower + heatsink', 'Material': 'Anodized aluminum', 'Fan': '8000 RPM max', 'Airflow': '1.09 CFM', 'Mount': 'Spring pins' } },
+  { group: chassisGroup, explodeOffset: new THREE.Vector3(0, -2.0, 0), label: 'LK-COKOINO 4WD Kit', price: '$26.99', store: 'amazon', url: 'https://www.amazon.com/Arduino-LK-COKOINO-Raspberry-Building/dp/B0B5JPJ9R4', sub: '$26.99 \u2014 Amazon', info: { 'Wheels': '4\u00d7 65mm rubber', 'Motors': '4\u00d7 TT DC gear', 'Voltage': '3-12V (6-8V best)', 'Chassis': '2-tier acrylic', 'Load': '1kg max', 'Battery': '2\u00d7 18650 case' } },
+  { group: mastGroup, explodeOffset: new THREE.Vector3(0, 0, 0), label: 'PVC Pipe 1\u2033 Sch40', price: '$7.68', store: 'homedepot', url: 'https://www.homedepot.com/p/JM-EAGLE-1-in-x-10-ft-White-PVC-Schedule-40-Pressure-Plain-End-Pipe-531194/202280936', sub: '$7.68 \u2014 Home Depot', info: { 'Brand': 'JM Eagle', 'Size': '1\u2033 \u00d7 10ft', 'Cut to': '~4ft for mast', 'Material': 'White PVC', 'OD': '1.315\u2033' } },
+  { group: tConnectorGroup, explodeOffset: new THREE.Vector3(0, -1.5, 0), label: 'PVC T-Connector 1\u2033', price: '$2.07', store: 'homedepot', url: 'https://www.homedepot.com/p/Charlotte-Pipe-1-in-PVC-Schedule-40-S-x-S-x-S-Tee-PVC024001000HD/203812199', sub: '$2.07 \u2014 Home Depot', info: { 'Brand': 'Charlotte Pipe', 'Type': 'S\u00d7S\u00d7S Tee', 'Size': '1\u2033 Sch40', 'Use': 'Mount mast to chassis' } },
+  { group: zipTieGroup, explodeOffset: new THREE.Vector3(2.5, 0, 0), label: 'Velcro Cable Ties', price: '~$5.00', store: 'amazon', url: 'https://www.amazon.com/s?k=velcro+cable+ties+reusable', sub: '~$5 \u2014 Amazon', info: { 'Type': 'Reusable velcro', 'Use': 'Cable management', 'Advantage': 'Easy to reposition' } },
+];
+
+// Store rest positions
+componentGroups.forEach(c => {
+  c.restPosition = c.group.position.clone();
+  c.targetPosition = c.group.position.clone();
+});
+
+/* ── State ── */
+let exploded = false;
+let autoRotate = false;
+let labelsVisible = true;
+let shopOpen = false;
+let hoveredComp = null;
+let frameCount = 0;
+let introTime = 0;
+const INTRO_DURATION = 3.0;
+
+const mouse = new THREE.Vector2(-10, -10);
+const raycaster = new THREE.Raycaster();
+
+const savedCamera = { pos: camera.position.clone(), target: controls.target.clone() };
+
+/* ── Callout DOM elements ── */
+const calloutsContainer = document.getElementById('callouts');
+const calloutEls = componentGroups.map(c => {
+  const el = document.createElement('a');
+  el.className = 'callout';
+  el.href = c.url;
+  el.target = '_blank';
+  el.rel = 'noopener';
+  el.title = `Buy: ${c.label}`;
+  const storeName = c.store === 'amazon' ? 'Amazon' : 'Home Depot';
+  el.innerHTML = `<div class="callout-card"><div class="callout-name">${c.label}</div><div class="callout-meta"><span class="callout-price">${c.price}</span><span class="callout-store ${c.store}">${storeName}</span></div><div class="callout-hint">Click to buy</div></div><div class="callout-stem"></div><div class="callout-dot"></div>`;
+  calloutsContainer.appendChild(el);
+  return el;
+});
+
+/* ── Info panel ── */
+const infoPanel = document.getElementById('info-panel');
+const infoTitle = document.getElementById('info-title');
+const infoSub = document.getElementById('info-sub');
+const infoRows = document.getElementById('info-rows');
+
+function showInfo(comp) {
+  if (shopOpen) return;
+  infoTitle.textContent = comp.label;
+  infoSub.textContent = comp.sub;
+  infoRows.innerHTML = '';
+  for (const [k, v] of Object.entries(comp.info)) {
+    const row = document.createElement('div');
+    row.className = 'info-panel-row';
+    row.innerHTML = `<span class="info-panel-key">${k}</span><span class="info-panel-val">${v}</span>`;
+    infoRows.appendChild(row);
+  }
+  infoPanel.classList.add('visible');
+}
+function hideInfo() { infoPanel.classList.remove('visible'); }
+
+/* ── Shop panel localStorage ── */
+const STORAGE_KEY = 'elktron-ordered-parts';
+function loadChecks() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveChecks(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+const shopPanel = document.getElementById('shop-panel');
+const checkboxes = shopPanel.querySelectorAll('input[type="checkbox"]');
+const stored = loadChecks();
+checkboxes.forEach(cb => {
+  const key = cb.dataset.key;
+  if (stored[key]) cb.checked = true;
+  cb.addEventListener('change', () => {
+    const data = loadChecks();
+    data[key] = cb.checked;
+    saveChecks(data);
+  });
+});
+
+/* ── Controls ── */
+const btnExplode = document.getElementById('btn-explode');
+const btnRotate = document.getElementById('btn-rotate');
+const btnReset = document.getElementById('btn-reset');
+const btnWires = document.getElementById('btn-wires');
+const btnLabels = document.getElementById('btn-labels');
+const btnShop = document.getElementById('btn-shop');
+
+function toggleExplode() {
+  exploded = !exploded;
+  btnExplode.classList.toggle('active', exploded);
+  componentGroups.forEach(c => {
+    c.targetPosition = exploded
+      ? c.restPosition.clone().add(c.explodeOffset)
+      : c.restPosition.clone();
+  });
+}
+
+function toggleAutoRotate() {
+  autoRotate = !autoRotate;
+  btnRotate.classList.toggle('active', autoRotate);
+  controls.autoRotate = autoRotate;
+  controls.autoRotateSpeed = 1.2;
+}
+
+function resetView() {
+  exploded = false;
+  autoRotate = false;
+  btnExplode.classList.remove('active');
+  btnRotate.classList.remove('active');
+  controls.autoRotate = false;
+  componentGroups.forEach(c => {
+    c.targetPosition = c.restPosition.clone();
+  });
+  camera.position.copy(savedCamera.pos);
+  controls.target.copy(savedCamera.target);
+}
+
+function toggleWires() {
+  wiresGroup.visible = !wiresGroup.visible;
+  btnWires.classList.toggle('active', wiresGroup.visible);
+}
+
+function toggleLabels() {
+  labelsVisible = !labelsVisible;
+  btnLabels.classList.toggle('active', labelsVisible);
+}
+
+function toggleShop() {
+  shopOpen = !shopOpen;
+  shopPanel.classList.toggle('open', shopOpen);
+  btnShop.classList.toggle('active', shopOpen);
+  if (shopOpen) hideInfo();
+}
+
+btnExplode.addEventListener('click', toggleExplode);
+btnRotate.addEventListener('click', toggleAutoRotate);
+btnReset.addEventListener('click', resetView);
+btnWires.addEventListener('click', toggleWires);
+btnLabels.addEventListener('click', toggleLabels);
+btnShop.addEventListener('click', toggleShop);
+
+/* ── Keyboard shortcuts ── */
+function flashBtn(btn) {
+  btn.classList.remove('flash');
+  void btn.offsetWidth;
+  btn.classList.add('flash');
+  btn.addEventListener('animationend', () => btn.classList.remove('flash'), { once: true });
+}
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  switch (e.key.toLowerCase()) {
+    case 'e': toggleExplode(); flashBtn(btnExplode); break;
+    case 'a': toggleAutoRotate(); flashBtn(btnRotate); break;
+    case 'r': resetView(); flashBtn(btnReset); break;
+    case 'w': toggleWires(); flashBtn(btnWires); break;
+    case 'l': toggleLabels(); flashBtn(btnLabels); break;
+    case '$': case '4': toggleShop(); flashBtn(btnShop); break;
+    case 'escape': if (shopOpen) { toggleShop(); } break;
+  }
+});
+
+/* ── Mouse tracking ── */
+document.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+/* ── Click to open purchase link ── */
+renderer.domElement.addEventListener('click', (e) => {
+  if (hoveredComp && hoveredComp.url) {
+    window.open(hoveredComp.url, '_blank', 'noopener');
+  }
+});
+
+/* ── Window resize ── */
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ── 3D label projection helper ── */
+const tempV = new THREE.Vector3();
+// Per-component label anchor offsets (Y above group origin)
+const labelYOffsets = {
+  'camera': 0.15,
+  'pantilt': 0.9,
+  'cooler': 0.4,
+  'chassis': 1.2,
+  'mast': 6.2,
+  'tconnector': 0.4,
+  'zipties': 0.3,
+  'mountbases': 0.2,
+};
+
+// Smoothed screen positions per callout
+const smoothedPositions = componentGroups.map(() => ({ x: 0, y: 0, initialized: false }));
+
+function projectToScreen(obj, yOffset) {
+  obj.getWorldPosition(tempV);
+  tempV.y += (yOffset || 0.5);
+  tempV.project(camera);
+  return {
+    x: (tempV.x * 0.5 + 0.5) * window.innerWidth,
+    y: (-tempV.y * 0.5 + 0.5) * window.innerHeight,
+    z: tempV.z,
+  };
+}
+
+/* ════════════════════════════════════════════════════════
+   ANIMATION LOOP
+   ════════════════════════════════════════════════════════ */
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  frameCount++;
+
+  // Cinematic intro orbit
+  introTime += dt;
+  if (introTime < INTRO_DURATION && !autoRotate) {
+    const progress = introTime / INTRO_DURATION;
+    const ease = 1 - Math.pow(1 - progress, 3);
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.5 * (1 - ease);
+  } else if (introTime >= INTRO_DURATION && introTime < INTRO_DURATION + dt * 2 && !autoRotate) {
+    controls.autoRotate = false;
+  }
+
+  controls.update();
+
+  // Smooth explode/assemble lerp
+  componentGroups.forEach(c => {
+    c.group.position.lerp(c.targetPosition, dt * 4);
+  });
+
+  // LED pulse on camera
+  mat.led.emissiveIntensity = 0.5 + Math.sin(frameCount * 0.08) * 0.3;
+
+  // Chassis accent emissive glow (subtle)
+  mat.chassisAccent.emissiveIntensity = 0.1 + Math.sin(frameCount * 0.04) * 0.06;
+
+  // Callout label updates (every frame, smoothed)
+  componentGroups.forEach((c, i) => {
+    const el = calloutEls[i];
+    if (!labelsVisible) {
+      el.classList.remove('visible');
+      return;
+    }
+    const yOff = labelYOffsets[c.group.name] || 0.5;
+    const screen = projectToScreen(c.group, yOff);
+    if (screen.z > 1) {
+      el.classList.remove('visible');
+      return;
+    }
+
+    // Smooth interpolation for buttery movement
+    const sp = smoothedPositions[i];
+    const lerpFactor = sp.initialized ? 0.18 : 1.0;
+    sp.x += (screen.x - sp.x) * lerpFactor;
+    sp.y += (screen.y - sp.y) * lerpFactor;
+    sp.initialized = true;
+
+    // Scale labels by camera distance for depth feel
+    c.group.getWorldPosition(tempV);
+    const dist = camera.position.distanceTo(tempV);
+    const labelScale = THREE.MathUtils.clamp(12 / dist, 0.6, 1.2);
+
+    // Closer labels on top (z-index from distance)
+    const zIdx = Math.round(100 - dist);
+    el.style.left = sp.x + 'px';
+    el.style.top = sp.y + 'px';
+    el.style.zIndex = Math.max(15, zIdx);
+    el.style.setProperty('--label-scale', labelScale);
+    el.classList.add('visible');
+  });
+
+  // Cooler fan rotation
+  fanHousing.rotation.y += dt * 12;
+  fanSpokes.forEach(spoke => { spoke.rotation.y += dt * 12; });
+
+  // Hover raycaster (throttled every 4 frames)
+  if (frameCount % 4 === 0) {
+    raycaster.setFromCamera(mouse, camera);
+    let found = null;
+    for (const c of componentGroups) {
+      const hits = raycaster.intersectObjects(c.group.children, true);
+      if (hits.length > 0) {
+        found = c;
+        break;
+      }
+    }
+    if (found !== hoveredComp) {
+      // Reset previous hover glow
+      if (hoveredComp) {
+        hoveredComp.group.traverse(child => {
+          if (child.isMesh && child.material && child.material.emissive && !child.material._isAccent) {
+            child.material.emissiveIntensity = child.material._baseEmissive || 0;
+          }
+        });
+      }
+      hoveredComp = found;
+      if (hoveredComp) {
+        // Apply hover glow
+        hoveredComp.group.traverse(child => {
+          if (child.isMesh && child.material && child.material.emissive) {
+            if (child.material._baseEmissive === undefined) {
+              child.material._baseEmissive = child.material.emissiveIntensity;
+            }
+            if (!child.material._isAccent) {
+              child.material.emissiveIntensity = Math.max(child.material._baseEmissive, 0.3);
+            }
+          }
+        });
+        showInfo(hoveredComp);
+        document.body.style.cursor = 'pointer';
+      } else {
+        hideInfo();
+        document.body.style.cursor = 'grab';
+      }
+    }
+  }
+
+  composer.render();
+}
+
+animate();
+
+</script>
+</body>
+</html>

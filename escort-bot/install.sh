@@ -1,11 +1,11 @@
 #!/bin/bash
-# FloorCrew Escort Bot — Pi 5 Setup Script
+# Elktron Escort Bot — Pi 5 Setup Script
 # Run on a fresh Raspberry Pi OS (Bookworm) install
 # Usage: chmod +x install.sh && ./install.sh
 
 set -e
 
-echo "=== FloorCrew Escort Bot — Pi 5 Setup ==="
+echo "=== Elktron Escort Bot — Pi 5 Setup ==="
 
 # 1. System updates
 echo "[1/5] Updating system packages..."

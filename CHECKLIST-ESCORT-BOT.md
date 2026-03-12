@@ -1,6 +1,6 @@
 # Escort Bot — Full Build Checklist
 
-> FloorCrew Hackathon | CoreWeave March 2026
+> Elktron Hackathon | CoreWeave March 2026
 > Platform: Raspberry Pi 5 + 4WD Chassis | CV: TFLite MobileNet SSD v2
 
 ---
@@ -37,7 +37,7 @@
 - [ ] Small Phillips and flathead screwdrivers
 - [ ] Wire strippers (if using raw wire)
 - [ ] Electrical tape or heat shrink tubing
-- [ ] Zip ties for cable management
+- [ ] Velcro strips for cable management
 - [ ] Double-sided tape or mounting brackets for Pi + camera
 
 ---
@@ -48,10 +48,10 @@
 - [ ] Download Raspberry Pi OS (64-bit, Bookworm) — use Raspberry Pi Imager
 - [ ] Flash to MicroSD card
 - [ ] Pre-configure WiFi + SSH in Imager settings (for headless access)
-- [ ] Set hostname: `floorcrew-escort`
+- [ ] Set hostname: `elktron-escort`
 - [ ] Set username/password
 - [ ] Insert MicroSD into Pi 5, boot up
-- [ ] Verify boot — SSH in: `ssh <user>@floorcrew-escort.local`
+- [ ] Verify boot — SSH in: `ssh <user>@elktron-escort.local`
 - [ ] Run system update: `sudo apt update && sudo apt upgrade -y`
 - [ ] Verify Python 3.11+: `python3 --version`
 
@@ -175,7 +175,7 @@ ECHO           →    Voltage divider → GPIO 24   Echo return (input)
 #### HC-SR04 Assembly
 - [ ] Mount HC-SR04 on front of chassis — facing forward, slightly angled down
 - [ ] Sensor should be ~5–10cm above ground level
-- [ ] Secure with hot glue, mounting bracket, or zip ties
+- [ ] Secure with hot glue, mounting bracket, or velcro
 - [ ] Connect VCC → Pi 5V
 - [ ] Connect GND → Pi GND
 - [ ] Connect TRIG → GPIO 25
@@ -200,7 +200,7 @@ while True:
 ### Camera Mounting
 - [ ] Mount camera on TOP of chassis, facing forward
 - [ ] Angle: slightly downward (~10–15 degrees) to see both floor and standing person
-- [ ] Secure camera with bracket, zip ties, or double-sided tape
+- [ ] Secure camera with bracket, velcro, or double-sided tape
 - [ ] Verify camera has clear FOV — no chassis parts blocking view
 - [ ] Camera cable routed cleanly — not near motor wires (EMI interference)
 - [ ] Test camera still works after mounting: `libcamera-hello` or OpenCV test
@@ -288,7 +288,7 @@ Loop:
 | `FRAME_WIDTH` | 320 | 160–640 | Detection resolution (lower = faster, less accurate) |
 
 ### Implementation Checklist
-- [ ] Copy `escort-bot/main.py` to Pi: `scp main.py pi@floorcrew-escort.local:~/`
+- [ ] Copy `escort-bot/main.py` to Pi: `scp main.py pi@elktron-escort.local:~/`
 - [ ] Edit config section at top of `main.py` — set GPIO pins to match wiring
 - [ ] Edit camera index (0 for USB, or picamera2 path for CSI)
 - [ ] Edit model path to match where model was downloaded
@@ -390,7 +390,7 @@ Loop:
 ## Phase 9: Dashboard Integration
 
 ### WebSocket Connection
-- [ ] `main.py` sends telemetry to FloorCrew dashboard via WebSocket
+- [ ] `main.py` sends telemetry to Elktron dashboard via WebSocket
 - [ ] Telemetry payload:
 ```json
 {
@@ -431,7 +431,7 @@ Loop:
 - [ ] Clear demo area: 3m x 5m minimum, no tripping hazards
 - [ ] Good lighting in demo area
 - [ ] WiFi connection stable (for dashboard communication)
-- [ ] Laptop showing FloorCrew dashboard nearby
+- [ ] Laptop showing Elktron dashboard nearby
 - [ ] "Vendor" (team member) knows the walk route
 
 ### Demo Script (60 seconds)

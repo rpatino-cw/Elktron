@@ -1,6 +1,6 @@
 # SO-101 Robot Arm — Full Build Checklist
 
-> FloorCrew Hackathon | CoreWeave March 2026
+> Elktron Hackathon | CoreWeave March 2026
 > Framework: LeRobot (HuggingFace) | Hardware: HiWonder SO-ARM101 kit
 
 ---
@@ -26,7 +26,7 @@
 - [ ] 5V PSU present and tested
 - [ ] Webcam present and working on laptop
 - [ ] Small Phillips screwdriver set
-- [ ] Zip ties, velcro strips (for cable management demo)
+- [ ] Velcro strips (for cable management demo)
 - [ ] Optic transceivers (real or dummy) for seating demo
 
 ---
@@ -42,7 +42,7 @@
 - [ ] Mount S4 (wrist pitch) servo
 - [ ] Mount S5 (wrist roll) servo
 - [ ] Mount S6 (gripper) servo — attach gripper fingers
-- [ ] Route all servo cables cleanly down the arm — zip tie at each joint
+- [ ] Route all servo cables cleanly down the arm — velcro strap at each joint
 - [ ] Connect all 6 servo cables to BusLinker V3.0 board (daisy chain bus)
 - [ ] Connect 5V PSU to leader BusLinker
 - [ ] Connect USB-C from leader BusLinker to laptop
@@ -51,7 +51,7 @@
 ### Follower Arm (autonomous output)
 - [ ] Repeat full assembly for follower arm (same steps as leader)
 - [ ] Mount S1–S6 servos in identical positions to leader
-- [ ] Route cables, zip tie at joints
+- [ ] Route cables, velcro strap at joints
 - [ ] Connect all 6 servo cables to follower BusLinker V3.0 board
 - [ ] Connect 12V 5A PSU to follower BusLinker (higher voltage = more torque)
 - [ ] Connect USB-C from follower BusLinker to laptop
@@ -284,9 +284,9 @@ Power (separate from data):
 
 ---
 
-## Phase 10: Integration with FloorCrew Dashboard
+## Phase 10: Integration with Elktron Dashboard
 
-- [ ] FastAPI server (`floorcrew-app/api/server.py`) receives arm telemetry via WebSocket
+- [ ] FastAPI server (`elktron-app/api/server.py`) receives arm telemetry via WebSocket
 - [ ] Dashboard shows: current joint angles (6 values), gripper state, current task name
 - [ ] Dashboard shows: task status (IDLE → RUNNING → COMPLETE)
 - [ ] Camera feed from wrist/overhead cam streams to dashboard (WebSocket binary frames)

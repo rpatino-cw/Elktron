@@ -1,4 +1,4 @@
-# FloorCrew — Complete Parts List
+# Elktron — Complete Parts List
 
 > **Last updated:** 2026-03-09
 > **Budget estimate:** ~$430–$455 total (before owned items)
@@ -41,7 +41,7 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 - [ ] 🛒 **USB webcam (arm-mounted)** — ~$25 — Logitech C270 or similar, 1080p, OpenCV-compatible
 - [ ] 🛒 USB-C data cable (to laptop, 6ft) — ~$8 — Amazon
 - [ ] 🛒 Webcam mount/bracket — ~$5 — 3D-print or flex gooseneck clamp
-- [ ] 🛒 Cable ties (small, 100-pack) — ~$3 — Amazon
+- [ ] 🛒 Velcro cable ties / strips — ~$5 — Amazon (reusable, easier to reposition during prototyping)
 
 **Arm subtotal (Option A + add-ons): ~$311**
 
@@ -54,9 +54,8 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 - [x] ✅ **Raspberry Pi 5** (8GB) — OWNED
 - [x] ✅ **Raspberry Pi 4** — OWNED (backup)
 - [x] ✅ **Raspberry Pi Pico** — OWNED (not ideal for CV)
-- [ ] 🛒 MicroSD card 32GB+ (Class 10 / A2) — ~$8 — Amazon (Samsung EVO Select or SanDisk Extreme)
-- [ ] 🛒 **Raspberry Pi 5 Active Cooler (OFFICIAL)** — ~$5
-  - Amazon: https://www.amazon.com/Raspberry-Pi-Active-Cooler/dp/B0CLXZBR5P
+- [x] ✅ **MicroSD card** — OWNED
+- [x] ✅ **Raspberry Pi 5 Active Cooler (OFFICIAL)** — DELIVERED 3/11
   - PWM temp-controlled blower + aluminum heatsink + thermal tape
   - REQUIRED — TFLite CV workload will thermal throttle Pi 5 without cooling
 
@@ -66,71 +65,121 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 
 ### Chassis + Drivetrain
 
-- [ ] 🛒 **Freenove 4WD Smart Car Kit** — ~$65
-  - Amazon: https://www.amazon.com/Freenove-Raspberry-Tracking-Avoidance-Ultrasonic/dp/B07YD2LT9D
-  - Kit includes (VERIFIED from Freenove docs):
-    - **Smart Car Board** — integrated motor driver PCB (replaces standalone L298N)
-    - **Connection Board** — PCB V1.0/V2.0, bridges Pi GPIO to smart car board
-    - **HC-SR04 ultrasonic sensor** + servo mount for panning
-    - **Pi Camera** (CSI ribbon, Pi3/4 and Pi5 compatible versions)
-    - **2x Servo motors** — pan-tilt assembly for camera + ultrasonic
-    - **Infrared line tracking module** (XH-2.54-5Pin)
-    - **2x Photoresistors** — light tracing
-    - **LEDs + Buzzer** — built into board
-    - 4x DC geared motors with aluminum brackets
-    - 4x Mecanum wheels (A-B-A-B configuration)
-    - Battery holder (18650 x2, 7.4V nominal)
-    - All hardware: M2/M2.5/M3 screws, nuts, standoffs
-  - **NOT included:** Raspberry Pi, 2x 18650 batteries, battery charger
+- [x] ✅ **LK-COKOINO 4WD Chassis Kit** — $26.99 — Alex ordering
+  - Amazon: https://www.amazon.com/Arduino-LK-COKOINO-Raspberry-Building/dp/B0B5JPJ9R4
+  - Kit includes (BARE CHASSIS ONLY):
+    - Acrylic frame pieces
+    - 4x TT DC geared motors + dupont wires
+    - 4x metal motor brackets
+    - 4x wheels (rubber, 2.56" diameter)
+    - 1x 18650 battery holder (2-slot)
+    - Screws, nuts, copper standoffs, zip ties
+    - Screwdriver + wrench
+  - **NOT included:** motor driver, sensors, camera, servos, Pi, batteries
+  - **Docs:** `CKK0011-main/` — assembly PDFs, wiring tutorials
 
-### ~~Motor Control~~ — INCLUDED IN KIT
+### Motor Control
 
-- [x] ~~L298N motor driver~~ — **NOT NEEDED** — Kit has integrated Smart Car Board motor driver
-- [ ] 🛒 Jumper wires M-F x20 (20cm) — ~$5 — Amazon (still useful for custom wiring)
+- [x] ✅ **L298N motor driver (2-pack)** — ORDERED 3/10, arriving 3/12
+  - WWZMDiB 2x L298N DC Dual H-Bridge — have a spare
+  - Wiring: GPIO 17/27 (left motor), 22/23 (right motor). See WIRING.md.
+- [ ] 🛒 Jumper wires M-F x20 (20cm) — ~$5 — Amazon (GPIO → L298N)
 - [ ] 🛒 Jumper wires M-M x10 (20cm) — ~$3 — Amazon
 
-**Wiring: handled by kit's Connection Board → Smart Car Board. Custom GPIO map only needed if bypassing kit PCB.**
+### Sensors
 
-### ~~Sensors~~ — INCLUDED IN KIT
+- [x] ✅ **HC-SR04 ultrasonic sensors** — ORDERED 3/10
+  - DIYables 2-pack (arriving 3/12) + ELEGOO 5-pack (arriving 3/14) — plenty of spares
+  - ⚠️ ECHO pin is 5V — needs voltage divider (1kΩ + 2kΩ) or use HC-SR04P
+- [ ] 🛒 Resistor kit (1kΩ + 2kΩ for voltage divider) — ~$3 — Amazon
 
-- [x] ~~HC-SR04P ultrasonic sensor~~ — **NOT NEEDED** — Kit includes HC-SR04 + servo mount
+### Vision
 
-### ~~Vision~~ — INCLUDED IN KIT
+- [x] ✅ **Arducam Camera Module 3 Wide (IMX708, 120°)** — ORDERED 3/10, arriving Saturday 3/15
+  - Autofocus, Pi 5 compatible, includes 15cm 15-22 pin FFC cable + acrylic case
+- [x] ✅ **Arducam Pan/Tilt Platform** — ORDERED 3/10, arriving 3/12
+  - Compatible with Pi Camera Module 3/V1/V2
+  - Pan on GPIO 12, tilt on GPIO 13. Controlled by `pan_tilt.py`.
 
-- [x] ~~USB webcam / Pi Camera~~ — **NOT NEEDED** — Kit includes Pi Camera (CSI)
-- [x] ~~Camera mount~~ — **NOT NEEDED** — Kit includes pan-tilt assembly
+### Power (ALL PORTABLE — no wall outlets on DC floor)
 
-### Power
-
-- [ ] 🛒 **18650 Li-ion batteries (4-pack)** — ~$13
-  - Amazon: https://www.amazon.com/QOJH-18650-Rechargeable-Landscape-Flashlight/dp/B0D5YYRCYV
+- [x] ✅ **18650 Li-ion batteries (4-pack)** — $33.86 — ORDERED 3/11, arriving Saturday 3/15
   - QOJH 3.7V 3000mAh, button top, protected
-- [ ] 🛒 **18650 dual-slot charger** — ~$9
-  - Amazon: https://www.amazon.com/ACEBOTT-Battery-Dual-Slot-Rechargeable-Batteries/dp/B0DHKNC1Z1
+  - WHY 4-PACK: 2 in the bot, 2 charged and ready to hot-swap during demo
+- [x] ✅ **18650 dual-slot charger** — (in same order) — ORDERED 3/11, arriving Saturday 3/15
   - ACEBOTT smart charger, auto-shutoff, US plug
-- [ ] 🛒 **USB-C power bank (Pi power)** — ~$22
-  - Amazon: https://www.amazon.com/Anker-Travel-Ready-Technology-High-Speed-Output%EF%BC%89%EF%BC%891pack/dp/B0D5CLSMFB
+  - CHARGE NIGHT BEFORE DEMO — full charge takes ~4 hours
+- [x] ✅ **18650 battery holder bundle (8-pack)** — ORDERED 3/10, arriving 3/12
+  - QTEATAK — 1-slot (3.7V), 2-slot (7.4V), 3-slot (11.1V), 4-slot (14.8V) — 2 of each
+  - Gives flexibility if chassis holder breaks or need different voltage configs
+- [x] ✅ **USB-C power bank (Pi power)** — $22 — ORDERED 3/11, arriving Friday 3/14
   - Anker PowerCore 10K, 10000mAh, 5V/3A USB-C
+  - MUST support 5V/3A output — Pi 5 will brownout on weak banks
+  - Runtime: ~3-4 hours continuous CV workload
+- [ ] 🛒 **Second USB-C power bank (backup/swap)** — ~$22
+  - Same model. Demo runs 2-5pm — one bank may not last. Swap takes 10 seconds.
 - [ ] 🛒 Short USB-C cable (6-12 inches, power bank → Pi) — ~$5 — Amazon
+- [x] ✅ **USB-C right-angle adapter (2-pack)** — $9.11 — ORDERED 3/11, arriving 3/12
+  - Silkland 90° adapter, 240W/40Gbps — overkill specs but keeps cable flush on chassis
+- [x] ✅ **CanaKit 3.5A Pi Power Supply with PiSwitch** — $13.93 — ORDERED 3/11, arriving 3/12
+  - Wall adapter with inline on/off switch — USE FOR BENCH TESTING + DEVELOPMENT
+  - NOT portable — still need USB-C power bank for untethered DC floor demo
 
-**Power architecture:**
+### Power — SO-101 Arm (Demo Day)
+
+- [ ] 🛒 **Extension cord / power strip** — ~$0 (bring from home)
+  - The arm's 12V/5V power supplies need wall power — arm is NOT portable
+  - Confirm demo area has outlets or bring a 20ft extension cord
+
+**Power architecture (escort bot — fully portable):**
 ```
-Pi 5       ← USB-C power bank (separate, clean 5V/3A)
-Motors     ← 18650 x2 in series (7.4V) through Smart Car Board
-Sensors    ← Pi 5V rail (via Connection Board)
-CRITICAL   → Common GND between Pi and Smart Car Board!
+Pi 5       ← USB-C power bank (5V/3A, mounted on chassis)
+Motors     ← 18650 x2 in series (7.4V) through L298N
+Sensors    ← Pi 5V rail (HC-SR04 VCC)
+Pan/Tilt   ← Pi 5V rail (2x MG90S servos, ~150mA each)
+Camera     ← Pi CSI port (powered by Pi internally)
+CRITICAL   → Common GND between Pi and L298N!
 ```
+
+**Power checklist for demo day:**
+- [ ] All 4x 18650s fully charged night before
+- [ ] Both power banks fully charged night before
+- [ ] Test runtime: time how long the bot runs on one set of batteries
+- [ ] Bring the 18650 charger to venue (charge spares during other demos)
+- [ ] Extension cord for SO-101 arm wall power
+
+### Mast (Camera Height — CRITICAL for Rack Scans)
+
+- [ ] 🛒 **1" Schedule 40 PVC pipe, 3-4 ft** — ~$3 — Home Depot
+  - Raises camera from chassis height (~4") to mid-rack height (~36-48")
+  - Without this, camera only sees bottom 2-3 rack units — rack scans useless
+  - Cut to length at Home Depot (free cuts)
+- [ ] 🛒 **1" PVC T-connector x1** — ~$1 — Home Depot
+  - Mounts pipe vertically to chassis frame
+  - Horizontal arm bolts/zip-ties to acrylic frame mounting holes
+- [ ] 🛒 **1" PVC elbow x1** — ~$1 — Home Depot
+  - Top of mast — angles camera toward rack face
+  - Pan/tilt platform mounts here
+- [ ] 🛒 **1" PVC end cap x1** — ~$0.50 — Home Depot
+  - Bottom of T-connector, optional stability
+- [ ] 🛒 **PVC cement (small can)** — ~$4 — Home Depot
+  - Glues T-connector and elbow permanently
+  - OR skip cement and use friction fit + zip ties (faster, adjustable during prototyping)
+- [ ] 🛒 **Hose clamps x2 (1" diameter)** — ~$2 — Home Depot
+  - Secures PVC T-connector to chassis frame
+  - Alternative: heavy-duty zip ties through chassis mounting holes
 
 ### Misc Hardware
 
-- [ ] 🛒 Zip ties (assorted pack) — ~$3
+- [ ] 🛒 Velcro strips / cable ties (reusable) — ~$5
 - [ ] 🛒 Double-sided foam tape (1 roll) — ~$5
 - [ ] 🛒 Half-size breadboard — ~$4
 - [ ] 🛒 Electrical tape (1 roll) — ~$3
-- [ ] 🛒 Velcro strips x4 — ~$5
+- [ ] 🛒 Heat shrink tubing assortment — ~$5 — Home Depot / Amazon (for voltage divider solder joints, cleaner than tape)
+- [ ] 🛒 Rubber bumper pads (self-adhesive) — ~$3 — Home Depot (chassis corner protection for demo day)
 - [ ] Rubber bands x5 — ~$0 (around the house)
 
-**Escort bot subtotal: ~$140** (saved ~$37 — motor driver, ultrasonic, camera all in kit)
+**Escort bot subtotal: ~$202** (chassis from Alex, all electronics bought separately — L298N, HC-SR04, camera, pan/tilt, power, mast)
 
 ---
 
@@ -140,11 +189,14 @@ CRITICAL   → Common GND between Pi and Smart Car Board!
 - [ ] 🛒 USB-A hub (4-port, if laptop is USB-C only) — ~$12 — Amazon
 - [ ] 🛒 Ethernet cable (for SSH into Pi) — ~$5 — Amazon
 - [ ] 🛒 HDMI cable + portable monitor (optional, Pi debug) — ~$0-30
-- [ ] Extension cord / power strip (demo day) — bring from home
+- [ ] 🛒 **Extension cord (25ft)** — ~$10 — Home Depot / Amazon
+  - SO-101 arm needs wall power (12V + 5V supplies). Demo area may not have outlets nearby.
+- [ ] 🛒 **Power strip (6-outlet, surge protector)** — ~$10 — Amazon
+  - Arm 12V supply + arm 5V supply + laptop charger + 18650 charger (charging spares during demo)
 - [ ] Sample optic / fiber tray (arm demo task) — grab from DC floor
 - [ ] Hard hat / safety vest (demo realism) — already have from DC
 
-**Shared subtotal: ~$17-47**
+**Shared subtotal: ~$37-67**
 
 ---
 
@@ -153,13 +205,14 @@ CRITICAL   → Common GND between Pi and Smart Car Board!
 | Category | Estimate |
 |----------|----------|
 | SO-101 Arm (HiWonder kit + add-ons) | ~$311 |
-| Escort Bot (all parts — kit covers driver/sensor/camera) | ~$145 |
-| Shared / Demo gear | ~$17-47 |
-| **GRAND TOTAL** | **~$468-498** |
+| Escort Bot (all parts — kit covers driver/sensor/camera) | ~$175 |
+| Shared / Demo gear | ~$37-67 |
+| **GRAND TOTAL** | **~$523-553** |
 | Minus owned items (Pi 5, Pi 4, laptop, DC gear) | -$0 saved (no price on owned) |
 
-### Savings from Freenove kit overlap:
-Motor driver (~$10) + HC-SR04P (~$4) + webcam/camera (~$20) + camera mount (~$3) = **~$37 saved**
+### Savings:
+- Alex providing chassis kit (~$27 saved)
+- CanaKit PiSwitch replaces standalone power switch (~$7 saved)
 
 ---
 

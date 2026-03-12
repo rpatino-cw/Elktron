@@ -1,4 +1,4 @@
-# FloorCrew — DC Robotics
+# Elktron — DC Robotics
 
 ## One-Line
 SO-101 robot arm for autonomous DC floor tasks — optic seating, rack inspection, cable management.
@@ -40,8 +40,8 @@ DCTs perform repetitive physical tasks (seating optics, inspecting racks, dressi
 ```
 robotics-site/
 ├── CLAUDE.md              # this file
-├── index.html             # FloorCrew landing page (dark luxury-tech)
-├── floorcrew-robots.blend # 3D assets
+├── index.html             # Elktron landing page (dark luxury-tech)
+├── elktron-robots.blend # 3D assets
 └── (future)
     ├── teleop/            # keyboard teleop scripts
     ├── training/          # imitation learning configs
@@ -50,7 +50,7 @@ robotics-site/
 
 ## Status
 - [x] Landing page built (index.html)
-- [x] 3D assets created (floorcrew-robots.blend)
+- [x] 3D assets created (elktron-robots.blend)
 - [ ] SO-101 parts sourced
 - [ ] Arms 3D printed
 - [ ] Arms assembled & calibrated

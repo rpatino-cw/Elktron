@@ -1,11 +1,11 @@
 #!/bin/bash
-# FloorCrew SO-101 — Setup Script
+# Elktron SO-101 — Setup Script
 # Works on: Mac (MPS), Linux (CUDA), Raspberry Pi 5
 # Usage: chmod +x install.sh && ./install.sh
 
 set -e
 
-echo "=== FloorCrew SO-101 — LeRobot Setup ==="
+echo "=== Elktron SO-101 — LeRobot Setup ==="
 
 # 1. Create venv
 echo "[1/4] Creating virtual environment..."

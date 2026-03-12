@@ -1,4 +1,4 @@
-# FloorCrew SO-101 — Hardware Guide
+# Elktron SO-101 — Hardware Guide
 
 ## What to Buy
 

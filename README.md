@@ -1,4 +1,4 @@
-# FloorCrew — Two Robots for the DC Floor
+# Elktron — Two Robots for the DC Floor
 
 > CoreWeave Hackathon 2026 · "More. Better. Faster." · Build with Velocity
 
@@ -8,11 +8,11 @@ Two robots that automate repetitive data center floor tasks:
 
 1. **SO-101 Robot Arm** — Learns DC tasks (optic seating, rack inspection) via imitation learning. You demonstrate, it repeats autonomously.
 2. **Escort Bot** — Follows vendors through the DC floor using computer vision. Monitors rack interactions, logs everything.
-3. **FloorCrew Dashboard** — Unified control panel showing arm status, escort tracking, camera feeds, and scan logs.
+3. **Elktron Dashboard** — Unified control panel showing arm status, escort tracking, camera feeds, and scan logs.
 
 ## Why
 
-DCTs spend hours on tasks that are mechanical, repetitive, and physically demanding. Vendor escorts tie up a technician who could be doing real work. FloorCrew puts robots on those tasks so humans focus on what requires judgment.
+DCTs spend hours on tasks that are mechanical, repetitive, and physically demanding. Vendor escorts tie up a technician who could be doing real work. Elktron puts robots on those tasks so humans focus on what requires judgment.
 
 ## Tech Stack
 
@@ -28,7 +28,7 @@ DCTs spend hours on tasks that are mechanical, repetitive, and physically demand
 ├── robotics-site/          # SO-101 arm — landing page + code
 │   └── so101/              # record.py, train.py, deploy.py, install.sh
 ├── escort-bot/             # Escort bot — main.py, wiring, setup
-├── floorcrew-app/          # Dashboard — FastAPI + WebSocket UI
+├── elktron-app/          # Dashboard — FastAPI + WebSocket UI
 │   └── api/server.py
 ├── CHECKLIST-SO101.md       # Full build checklist (10 phases, ~150 items)
 ├── CHECKLIST-ESCORT-BOT.md  # Full build checklist (11 phases, ~160 items)

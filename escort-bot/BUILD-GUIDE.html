@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elktron — Escort Bot | Build Guide</title>
+  <link rel="stylesheet" href="../design-system.css">
+  <style>
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+      padding-top: 44px;
+    }
+
+    .container { max-width: 920px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ─── Floating orbs (match showcase) ─── */
+    .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(60px); opacity: 0.35; will-change: transform; contain: strict; }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(74,158,255,0.08), transparent 70%); top: -10%; right: -10%; animation: float-orb 20s ease-in-out infinite; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(74,158,255,0.05), transparent 70%); bottom: 20%; left: -8%; animation: float-orb 25s ease-in-out infinite reverse; }
+
+    @keyframes float-orb {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -20px) scale(1.05); }
+      66% { transform: translate(-20px, 15px) scale(0.95); }
+    }
+
+    /* ─── Header (match showcase) ─── */
+    header {
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 3rem;
+    }
+
+    .breadcrumb {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.5rem;
+      text-transform: uppercase;
+    }
+    .breadcrumb span { color: var(--accent-primary); font-weight: 600; }
+
+    header h1 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+      color: var(--accent-primary);
+    }
+
+    header p {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 650px;
+      line-height: 1.7;
+    }
+
+    .meta-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+    .meta-row strong { color: var(--text-primary); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Section ─── */
+    .section {
+      margin-bottom: 4rem;
+      content-visibility: auto;
+      contain-intrinsic-size: auto 600px;
+    }
+    .section-label {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--accent-primary);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 1.25rem;
+      color: var(--accent-primary);
+    }
+
+    /* ─── Part cards ─── */
+    .parts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1rem;
+    }
+
+    .part {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s, border-color 0.3s;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    .part.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .part:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-accent);
+      box-shadow: 0 12px 40px var(--glow-soft);
+    }
+
+    .part-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-tertiary);
+      margin-bottom: 12px;
+    }  /* part number value — keep monospace */
+    .part-name {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .part-role {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .part-section {
+      margin-bottom: 14px;
+    }
+    .part-section:last-child { margin-bottom: 0; }
+    .part-section-label {
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }
+    .part-section p,
+    .part-section li {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+    .part-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .part-section li::before {
+      content: '>';
+      color: var(--accent-primary);
+      margin-right: 8px;
+      font-size: 11px;
+    }
+
+    .code-ref {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--accent-primary-muted);
+      color: var(--accent-primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
+      margin: 2px 2px 2px 0;
+    }
+    .pin-ref {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--accent-primary-muted);
+      color: var(--accent-primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-xs);
+      margin: 2px 2px 2px 0;
+    }
+
+    /* ─── Wiring section ─── */
+    .wiring-block {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 2rem;
+      font-family: var(--font-mono);  /* wiring diagram — keep monospace */
+      font-size: 0.7rem;
+      line-height: 1.75;
+      color: var(--text-secondary);
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+      opacity: 0; transform: translateY(30px);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .wiring-block:hover {
+      border-color: var(--border-accent);
+      box-shadow: 0 4px 24px var(--glow-soft);
+    }
+    .wiring-block.visible { opacity: 1; transform: translateY(0); }
+    .wiring-block .h { color: var(--text-primary); font-weight: 600; }
+    .wiring-block .r { color: var(--status-error); }
+    .wiring-block .g { color: var(--status-success); }
+    .wiring-block .b { color: var(--accent-primary); }
+    .wiring-block .y { color: var(--status-warning); }
+
+    /* ─── Command section ─── */
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1rem;
+    }
+    .cmd-card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.5rem;
+      opacity: 0; transform: translateY(30px);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .cmd-card:hover {
+      border-color: var(--border-accent);
+      box-shadow: 0 4px 24px var(--glow-soft);
+    }
+    .cmd-card.visible { opacity: 1; transform: translateY(0); }
+    .cmd-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-primary);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    .cmd-code {
+      font-family: var(--font-mono);  /* command block — keep monospace */
+      font-size: 0.76rem;
+      line-height: 1.85;
+      color: var(--text-primary);
+      background: var(--bg-elevated);
+      border-radius: 8px;
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .cmd-code .c { color: var(--text-tertiary); }
+
+    .cmd-note {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.75rem;
+      line-height: 1.6;
+    }
+    .cmd-note a { color: var(--accent-primary); text-decoration: none; }
+    .cmd-note a:hover { text-decoration: underline; }
+
+    /* ─── Footer ─── */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      border-top: 1px solid var(--border-subtle);
+      margin-top: 2rem;
+    }
+
+    /* ─── Reduced motion ─── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+      .part, .wiring-block, .cmd-card { opacity: 1; transform: none; }
+    }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 640px) {
+      .parts-grid, .cmd-grid { grid-template-columns: 1fr; }
+      .hero { padding-bottom: 48px; }
+      .hero-stats { flex-wrap: wrap; gap: 20px; }
+      .wiring-block { font-size: 10px; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Build Guide</span></nav>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="container">
+
+  <header>
+    <div class="breadcrumb">Elktron / Escort Bot / <span>Build Guide</span></div>
+    <h1>Build Guide</h1>
+    <p>Every part. Where it goes. What code it runs. Follow in order, top to bottom.</p>
+    <div class="meta-row">
+      <span><strong>Parts:</strong> 11 components</span>
+      <span><strong>Code:</strong> 6 files</span>
+      <span><strong>Build time:</strong> ~3 hours</span>
+      <span><strong>Owner:</strong> Romeo Patino / Alex Murillo</span>
+    </div>
+  </header>
+
+  <!-- ═══ PARTS ═══ -->
+  <div class="section">
+    <div class="section-label">01 — Parts + Code Map</div>
+    <div class="parts-grid">
+
+      <!-- 01 RASPBERRY PI 5 -->
+      <div class="part" data-delay="0">
+        <div class="part-num">01</div>
+        <div class="part-name">Raspberry Pi 5</div>
+        <div class="part-role">The brain. Runs everything.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Flash SD card with Pi OS Lite 64-bit (Bookworm)</li>
+            <li>Enable SSH + WiFi in Imager settings</li>
+            <li>Hostname: <strong>escort-bot</strong></li>
+            <li>Boot, SSH in: <code>ssh pi@escort-bot.local</code></li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <span class="code-ref">main.py</span>
+          <span class="code-ref">pan_tilt.py</span>
+          <span class="code-ref">install.sh</span>
+        </div>
+      </div>
+
+      <!-- 02 ACTIVE COOLER -->
+      <div class="part" data-delay="50">
+        <div class="part-num">02</div>
+        <div class="part-name">Active Cooler</div>
+        <div class="part-role">Keeps Pi from thermal throttling under CV load.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Power off Pi</li>
+            <li>Peel thermal tape, press heatsink onto SoC chip</li>
+            <li>Plug 4-pin fan header into Pi 5 fan connector</li>
+            <li>PWM auto-adjusts speed by temp</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <p style="font-size:12px;color:var(--text-tertiary)">No code. Hardware-level cooling.</p>
+        </div>
+      </div>
+
+      <!-- 03 ARDUCAM CAMERA -->
+      <div class="part" data-delay="100">
+        <div class="part-num">03</div>
+        <div class="part-name">Arducam Camera Module 3 Wide</div>
+        <div class="part-role">The eyes. 120° FOV, autofocus, person detection input.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Connect 15-to-22pin FFC cable (included)</li>
+            <li>Pi 5 CSI port is between the two HDMI ports</li>
+            <li>Lift latch, slide cable in (contacts facing board), close latch</li>
+            <li>Route cable down through PVC mast before connecting</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <span class="code-ref">main.py → init_camera()</span>
+          <span class="code-ref">main.py → detect_person()</span>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Uses picamera2 → libcamera stack. Feeds 640x480 RGB frames to TFLite.</p>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Test</div>
+          <p style="font-size:12px;color:var(--status-success);font-family:var(--font-mono)">libcamera-hello --timeout 5000</p>
+        </div>
+      </div>
+
+      <!-- 04 PAN TILT PLATFORM -->
+      <div class="part" data-delay="150">
+        <div class="part-num">04</div>
+        <div class="part-name">Arducam Pan Tilt Platform</div>
+        <div class="part-role">The neck. 2 servos sweep camera for rack scanning.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Screw camera module onto pan-tilt bracket</li>
+            <li>Mount platform base on top of PVC mast (zip-tie)</li>
+            <li>Route servo wires down inside the pipe</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Pins</div>
+          <span class="pin-ref">GPIO 12 → Pan</span>
+          <span class="pin-ref">GPIO 13 → Tilt</span>
+          <span class="pin-ref">5V (Pin 4) → VCC</span>
+          <span class="pin-ref">GND (Pin 9)</span>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <span class="code-ref">pan_tilt.py → PanTilt class</span>
+          <span class="code-ref">pan_tilt.py → scan_rack()</span>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">AngularServo via gpiozero. Sweeps -60° to +60° tilt for full 42U rack scan.</p>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Test</div>
+          <p style="font-size:12px;color:var(--status-success);font-family:var(--font-mono)">python3 pan_tilt.py --scan</p>
+        </div>
+      </div>
+
+      <!-- 05 CHASSIS -->
+      <div class="part" data-delay="200">
+        <div class="part-num">05</div>
+        <div class="part-name">LK-COKOINO 4WD Chassis</div>
+        <div class="part-role">The legs. 4 DC motors, tank steering.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Mount 4 motors to bottom plate with brackets</li>
+            <li>Shafts face outward. Attach wheels.</li>
+            <li>Wire LEFT pair (FL+RL) in parallel</li>
+            <li>Wire RIGHT pair (FR+RR) in parallel</li>
+            <li>Quick test: touch battery to wires → verify forward spin</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <span class="code-ref">main.py → Robot(left=(17,27), right=(22,23))</span>
+          <span class="code-ref">main.py → compute_steering()</span>
+          <span class="code-ref">main.py → drive()</span>
+        </div>
+      </div>
+
+      <!-- 06 L298N MOTOR DRIVER -->
+      <div class="part" data-delay="250">
+        <div class="part-num">06</div>
+        <div class="part-name">L298N Motor Driver</div>
+        <div class="part-role">The muscle. Converts Pi signals into motor power.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Mount on top chassis plate</li>
+            <li>LEFT motors → OUT1 + OUT2</li>
+            <li>RIGHT motors → OUT3 + OUT4</li>
+            <li>Battery (+) → +12V terminal</li>
+            <li>Battery (-) → GND terminal</li>
+            <li>REMOVE the 5V jumper</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Pins</div>
+          <span class="pin-ref">GPIO 17 → IN1 (left fwd)</span>
+          <span class="pin-ref">GPIO 27 → IN2 (left bwd)</span>
+          <span class="pin-ref">GPIO 22 → IN3 (right fwd)</span>
+          <span class="pin-ref">GPIO 23 → IN4 (right bwd)</span>
+          <span class="pin-ref">GND → Pi GND (Pin 6) CRITICAL</span>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <span class="code-ref">main.py:34 → LEFT_MOTOR = (17, 27)</span>
+          <span class="code-ref">main.py:35 → RIGHT_MOTOR = (22, 23)</span>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Test</div>
+          <p style="font-size:12px;color:var(--status-success);font-family:var(--font-mono)">python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"</p>
+        </div>
+      </div>
+
+      <!-- 07 HC-SR04 -->
+      <div class="part" data-delay="300">
+        <div class="part-num">07</div>
+        <div class="part-name">HC-SR04 Ultrasonic Sensor</div>
+        <div class="part-role">Proximity. Emergency stop if obstacle < 30cm.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Mount on front of chassis, facing forward</li>
+            <li>ECHO pin is 5V — MUST use voltage divider</li>
+            <li>ECHO → 1kΩ → GPIO 24 junction → 2kΩ → GND</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Pins</div>
+          <span class="pin-ref">GPIO 25 → TRIG</span>
+          <span class="pin-ref">GPIO 24 → ECHO (via divider)</span>
+          <span class="pin-ref">5V (Pin 2) → VCC</span>
+          <span class="pin-ref">GND (Pin 6)</span>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <span class="code-ref">main.py:40 → ULTRASONIC_ECHO = 24</span>
+          <span class="code-ref">main.py:41 → ULTRASONIC_TRIG = 25</span>
+          <span class="code-ref">main.py:254 → sonar.distance < STOP_DISTANCE</span>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Test</div>
+          <p style="font-size:12px;color:var(--status-success);font-family:var(--font-mono)">python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"</p>
+        </div>
+      </div>
+
+      <!-- 08 PVC MAST -->
+      <div class="part" data-delay="350">
+        <div class="part-num">08</div>
+        <div class="part-name">PVC Mast + Tee</div>
+        <div class="part-role">The spine. Raises camera to mid-rack height (~4ft).</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Cut 1" pipe to ~48 inches</li>
+            <li>Cut two 4" stubs for tee horizontal arms</li>
+            <li>Glue with PVC cement (or friction-fit + tape)</li>
+            <li>Mount tee flat on REAR of chassis</li>
+            <li>Zip-tie tee arms down through adhesive mounts</li>
+            <li>Drill hole at pipe bottom for wire exit</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <p style="font-size:12px;color:var(--text-tertiary)">No code. Structural only.</p>
+        </div>
+      </div>
+
+      <!-- 09 BATTERIES -->
+      <div class="part" data-delay="400">
+        <div class="part-num">09</div>
+        <div class="part-name">18650 Batteries (x2)</div>
+        <div class="part-role">Motor power. 7.4V through L298N.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Charge fully before assembly</li>
+            <li>Insert into 2-cell holder (series = 7.4V)</li>
+            <li>Connect holder to L298N +12V / GND terminals</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <p style="font-size:12px;color:var(--text-tertiary)">No code. Powers motors only.</p>
+        </div>
+      </div>
+
+      <!-- 10 POWER BANK -->
+      <div class="part" data-delay="450">
+        <div class="part-num">10</div>
+        <div class="part-name">USB-C Power Bank</div>
+        <div class="part-role">Pi power. Clean 5V/3A, separate from motor circuit.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Velcro or strap to chassis (weight = stability)</li>
+            <li>Short USB-C cable to Pi 5</li>
+            <li>Do NOT power Pi from L298N 5V regulator</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <p style="font-size:12px;color:var(--text-tertiary)">No code. Pi power source.</p>
+        </div>
+      </div>
+
+      <!-- 11 ZIP TIES + MOUNTS -->
+      <div class="part" data-delay="500">
+        <div class="part-num">11</div>
+        <div class="part-name">Zip Ties + Adhesive Mounts</div>
+        <div class="part-role">The skeleton. Holds everything together.</div>
+        <div class="part-section">
+          <div class="part-section-label">Install</div>
+          <ul>
+            <li>Clean surfaces with alcohol before sticking mounts</li>
+            <li>4+ mounts on chassis for mast tee arms</li>
+            <li>Cable management: group wires, tie along mast</li>
+            <li>Screw-down bases for permanent anchor points</li>
+          </ul>
+        </div>
+        <div class="part-section">
+          <div class="part-section-label">Code</div>
+          <p style="font-size:12px;color:var(--text-tertiary)">No code. Physical structure.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ WIRING ═══ -->
+  <div class="section">
+    <div class="section-label">02 — Wiring</div>
+
+    <div class="wiring-block"><span class="h">FULL GPIO MAP</span>
+
+  <span class="b">Pin 2  (5V)</span>  ─── HC-SR04 VCC
+  <span class="b">Pin 4  (5V)</span>  ─── Servo VCC (both)
+  <span class="b">Pin 6  (GND)</span> ─── HC-SR04 GND + L298N GND  <span class="r">← COMMON GROUND</span>
+  <span class="b">Pin 9  (GND)</span> ─── Servo GND (both)
+
+  <span class="y">Pin 11 (GPIO 17)</span> ─── L298N IN1  (left fwd)
+  <span class="y">Pin 13 (GPIO 27)</span> ─── L298N IN2  (left bwd)
+  <span class="y">Pin 15 (GPIO 22)</span> ─── L298N IN3  (right fwd)
+  <span class="y">Pin 16 (GPIO 23)</span> ─── L298N IN4  (right bwd)
+
+  <span class="g">Pin 18 (GPIO 24)</span> ─── HC-SR04 ECHO  <span class="r">via 1kΩ+2kΩ voltage divider</span>
+  <span class="g">Pin 22 (GPIO 25)</span> ─── HC-SR04 TRIG
+
+  <span class="b">Pin 32 (GPIO 12)</span> ─── Pan servo signal
+  <span class="b">Pin 33 (GPIO 13)</span> ─── Tilt servo signal</div>
+
+    <div class="wiring-block"><span class="h">POWER LAYOUT</span>
+
+  <span class="g">USB-C Power Bank (5V/3A)</span> ──── Pi 5 USB-C
+       └── Pi 5V rail ─── HC-SR04 + Servos
+
+  <span class="y">18650 x2 (7.4V)</span> ──── L298N +12V / GND
+       └── OUT1-4 ─── 4 DC motors
+
+  <span class="r">Two separate power sources. Connected ONLY by common GND.</span></div>
+  </div>
+
+  <!-- ═══ SD CARD FLASH ═══ -->
+  <div class="section">
+    <div class="section-label">03 — Flash Pi 5 SD Card</div>
+    <div class="cmd-grid">
+
+      <div class="cmd-card">
+        <div class="cmd-label">Requirements</div>
+        <div class="cmd-code"><span class="c"># You need:</span>
+- Raspberry Pi 5 (4GB or 8GB)
+- MicroSD card 32GB+ (Class 10 / A2)
+- SD card reader (USB or built-in)
+- WiFi name + password</div>
+        <div class="cmd-note">Samsung EVO Select or SanDisk Extreme recommended. <strong>Do NOT use Bullseye, Ubuntu, or 32-bit.</strong></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 1 — Install Raspberry Pi Imager</div>
+        <div class="cmd-code">brew install --cask raspberry-pi-imager</div>
+        <div class="cmd-note">Or download: <a href="https://downloads.raspberrypi.com/imager/imager_latest.dmg" style="color:var(--accent-primary)">imager_latest.dmg</a></div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 2 — Flash settings</div>
+        <div class="cmd-code"><span class="c"># In Raspberry Pi Imager:</span>
+Device:  Raspberry Pi 5
+OS:      Raspberry Pi OS (other)
+           > Pi OS Lite (64-bit)
+             Debian Bookworm, no desktop
+Storage: Your MicroSD card</div>
+        <div class="cmd-note"><strong>Lite = headless.</strong> No desktop, all RAM for CV + motors. 64-bit required for TFLite performance.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 3 — OS Customisation (CRITICAL)</div>
+        <div class="cmd-code"><span class="c"># When prompted "Apply OS customisation?"</span>
+<span class="c"># Click EDIT SETTINGS:</span>
+
+Hostname:  escort-bot
+Username:  pi
+Password:  [your choice]
+WiFi SSID: [your network]
+WiFi Pass:  [your password]
+Country:   US
+Timezone:  America/Chicago
+SSH:       Enable (password auth)</div>
+        <div class="cmd-note"><strong>Do NOT skip this.</strong> Without WiFi + SSH pre-configured, you can't connect headless. Click Save > Yes > Yes. Wait ~5-10 min.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 4 — First boot + SSH</div>
+        <div class="cmd-code"><span class="c"># Eject SD, insert into Pi 5, plug USB-C power</span>
+<span class="c"># Wait 60-90 seconds, then from your Mac:</span>
+
+ssh pi@escort-bot.local
+
+<span class="c"># If hostname doesn't resolve:</span>
+arp -a | grep -i "dc:a6\|b8:27\|d8:3a\|2c:cf"</div>
+        <div class="cmd-note">First boot takes longer. If SSH fails: WiFi creds may be wrong — reflash.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Troubleshooting</div>
+        <div class="cmd-code"><span class="c"># lgpio missing?</span>
+sudo apt install python3-lgpio
+
+<span class="c"># tflite-runtime won't install?</span>
+pip install --break-system-packages tflite-runtime
+
+<span class="c"># GPIO permission denied?</span>
+sudo usermod -aG gpio pi && sudo reboot
+
+<span class="c"># Pi throttling under load?</span>
+<span class="c"># Attach active cooler. Throttles at 85°C.</span></div>
+        <div class="cmd-note">Bookworm uses lgpio (not RPi.GPIO) and enforces PEP 668 for pip.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Demo Day Performance Tips</div>
+        <div class="cmd-code"><span class="c"># Overclock (needs active cooling):</span>
+echo "arm_freq=2800" | sudo tee -a /boot/firmware/config.txt
+
+<span class="c"># Disable Bluetooth (saves CPU):</span>
+sudo systemctl disable bluetooth
+
+<span class="c"># Pin CPU to max performance:</span>
+echo performance | sudo tee \
+  /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor</div>
+        <div class="cmd-note">Optional. Only apply after bot is stable and tested.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ SOFTWARE ═══ -->
+  <div class="section">
+    <div class="section-label">04 — Software (run in order)</div>
+    <div class="cmd-grid">
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 1 — Copy code to Pi</div>
+        <div class="cmd-code">scp -r ~/hackathon/escort-bot/ pi@escort-bot.local:~/escort-bot/</div>
+        <div class="cmd-note">Run from your Mac. Copies all code + scripts to Pi.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 2 — Install dependencies</div>
+        <div class="cmd-code">ssh pi@escort-bot.local
+cd ~/escort-bot
+chmod +x install.sh
+./install.sh</div>
+        <div class="cmd-note">Installs picamera2, TFLite, gpiozero, lgpio. Downloads MobileNet SSD model. ~15 min.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 3 — Test camera</div>
+        <div class="cmd-code">libcamera-hello --timeout 5000</div>
+        <div class="cmd-note">Should run 5 sec without errors. If fail: check CSI cable seated firmly.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 4 — Test sonar</div>
+        <div class="cmd-code">python3 -c "from gpiozero import DistanceSensor; \
+s=DistanceSensor(echo=24,trigger=25); \
+print(f'{s.distance*100:.1f}cm')"</div>
+        <div class="cmd-note">Hold hand at 30cm → should read ~30cm. If always 0: check voltage divider wiring.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 5 — Test motors (wheels up!)</div>
+        <div class="cmd-code">python3 -c "from gpiozero import Robot; import time; \
+r=Robot(left=(17,27),right=(22,23)); \
+r.forward(0.3); time.sleep(1); r.stop()"</div>
+        <div class="cmd-note">Prop bot up first. All 4 wheels should spin forward. Swap wires if reversed.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 6 — Test pan/tilt</div>
+        <div class="cmd-code">python3 pan_tilt.py --scan</div>
+        <div class="cmd-note">Camera sweeps bottom to top. If servos jitter: check 5V power, try separate supply.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Step 7 — Run the bot</div>
+        <div class="cmd-code">python3 main.py</div>
+        <div class="cmd-note">Full escort mode. Stand in front → bot follows. Still 3 sec → triggers rack scan. Ctrl+C to stop.</div>
+      </div>
+
+      <div class="cmd-card">
+        <div class="cmd-label">Tuning (edit top of main.py)</div>
+        <div class="cmd-code"><span class="c"># Oscillates left/right?</span>  KP = 0.6
+<span class="c"># Doesn't turn enough?</span>   KP = 1.5
+<span class="c"># Too close?</span>  TARGET_AREA_RATIO = 0.10
+<span class="c"># Too far?</span>   TARGET_AREA_RATIO = 0.20
+<span class="c"># Too slow?</span>  BASE_SPEED = 0.7</div>
+        <div class="cmd-note">Tune on the floor. Save the values that work.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>Elktron Escort Bot — CoreWeave Hackathon 2026</p>
+  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; Alex Murillo &middot; Josh Tapia</p>
+</footer>
+
+<script>
+  // ─── Scroll reveal (match showcase) ───
+  const sectionObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.06 });
+
+  document.querySelectorAll('.section, header').forEach(s => {
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(28px)';
+    s.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    sectionObs.observe(s);
+  });
+
+  // Card/block reveals with stagger
+  const cardObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const delay = entry.target.dataset.delay || 0;
+        setTimeout(() => entry.target.classList.add('visible'), Number(delay));
+        cardObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.part, .wiring-block, .cmd-card').forEach(el => cardObs.observe(el));
+</script>
+
+</body>
+</html>

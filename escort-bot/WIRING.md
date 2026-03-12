@@ -1,4 +1,4 @@
-# FloorCrew Escort Bot — Wiring Guide
+# Elktron Escort Bot — Wiring Guide
 
 ## GPIO Pin Map (BCM numbering)
 
@@ -61,18 +61,30 @@ Pi Camera Module connects via the CSI ribbon cable to the CAM port on the Pi 5.
 If using the Freenove kit camera (USB), just plug into a USB port — picamera2
 will detect it, but you may need to adjust `init_camera()` in main.py.
 
-## Power
+## Power (Fully Portable — Two Separate Sources)
 
 ```
 USB-C Power Bank (5V/3A+) ──── Pi 5 USB-C port
-7.4V LiPo (or 6xAA) ───────── L298N +12V / GND
+  └── right-angle USB-C adapter → inline power switch → Pi
+  └── Backup power bank ready for hot-swap
+
+18650 x2 in series (7.4V) ──── Smart Car Board battery holder
+  └── Powers motors via Smart Car Board
+  └── 2 spare 18650s charged and ready
+
+Pi 5V rail ──── Connection Board ──── Sensors + Servos
+  └── HC-SR04 VCC (via Connection Board)
+  └── Pan/tilt servos (~150mA each)
+  └── Camera (CSI, powered internally by Pi)
+
+CRITICAL: Common GND between Pi and Smart Car Board!
 ```
 
 Two separate power sources:
-1. Pi runs off USB-C power bank
-2. Motors run off battery pack through L298N
+1. Pi runs off USB-C power bank (5V/3A minimum — Pi 5 brownouts on weak banks)
+2. Motors run off 18650 battery pack through Smart Car Board
 
-Do NOT power the Pi from the L298N 5V regulator — it can't supply enough current.
+Do NOT power the Pi from the Smart Car Board's 5V regulator — it can't supply enough current for Pi 5 under CV load (~3A).
 
 ## Quick Test Commands
 

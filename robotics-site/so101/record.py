@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FloorCrew SO-101 — Record Demonstrations
+Elktron SO-101 — Record Demonstrations
 Uses LeRobot teleoperation: physically move the leader arm,
 follower mirrors it, camera + joint data recorded as a dataset.
 
@@ -50,27 +50,27 @@ def record(task_name, num_episodes=None):
 
     task = TASKS[task_name]
     episodes = num_episodes or task["episodes"]
-    repo_id = f"{HF_USER}/floorcrew_{task_name}"
+    repo_id = f"{HF_USER}/elktron_{task_name}"
 
     cmd = [
         "lerobot-record",
         f"--robot.type=so101_follower",
         f"--robot.port={ROBOT_CONFIG['follower_port']}",
-        f"--robot.id=floorcrew_follower",
+        f"--robot.id=elktron_follower",
         f"--robot.cameras={{ front: {{type: opencv, index_or_path: {ROBOT_CONFIG['camera_index']}, "
         f"width: {ROBOT_CONFIG['camera_width']}, height: {ROBOT_CONFIG['camera_height']}, "
         f"fps: {ROBOT_CONFIG['camera_fps']}}}}}",
         f"--teleop.type=so101_leader",
         f"--teleop.port={ROBOT_CONFIG['leader_port']}",
-        f"--teleop.id=floorcrew_leader",
+        f"--teleop.id=elktron_leader",
         f"--dataset.repo_id={repo_id}",
         f"--dataset.num_episodes={episodes}",
         f'--dataset.single_task="{task["description"]}"',
     ]
 
-    print(f"[FloorCrew] Recording {episodes} episodes for: {task_name}")
-    print(f"[FloorCrew] Dataset → {repo_id}")
-    print(f"[FloorCrew] Task: {task['description']}")
+    print(f"[Elktron] Recording {episodes} episodes for: {task_name}")
+    print(f"[Elktron] Dataset → {repo_id}")
+    print(f"[Elktron] Task: {task['description']}")
     print()
     print("Move the LEADER arm. The follower will mirror.")
     print("Press Enter after each episode. Ctrl+C to stop early.")

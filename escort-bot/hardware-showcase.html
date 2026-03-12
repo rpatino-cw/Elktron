@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elktron — Escort Bot Hardware</title>
+<link rel="stylesheet" href="../design-system.css">
+<style>
+
+  html { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); scroll-behavior: smooth; }
+  body { overflow-x: hidden; padding-top: 44px; }
+
+  /* ─── Nav ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(250, 251, 253, 0.88);
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  nav .brand { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; color: var(--text-secondary); }
+  nav .brand b { color: var(--text-primary); font-weight: 600; }
+  nav .nav-links { display: flex; gap: 28px; }
+  nav .nav-links a {
+    font-size: 13px; font-weight: 500; color: var(--text-tertiary);
+    text-decoration: none; transition: color 0.2s;
+  }
+  nav .nav-links a:hover { color: var(--text-primary); }
+  nav .pill {
+    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 6px 14px; border-radius: 100px;
+    background: var(--accent-primary); color: var(--text-inverse);
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 120px 40px 80px; position: relative;
+  }
+  .hero-label {
+    font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--accent-primary); margin-bottom: 12px;
+    opacity: 0; transform: translateY(12px);
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  }
+  .hero h1 {
+    font-size: clamp(40px, 7vw, 80px); font-weight: 700; letter-spacing: -0.04em;
+    line-height: 1.02; text-align: center; max-width: 720px;
+    opacity: 0; transform: translateY(16px);
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+  }
+  .hero p {
+    font-size: clamp(16px, 2vw, 20px); color: var(--text-secondary);
+    line-height: 1.5; text-align: center; max-width: 480px;
+    margin-top: 16px; font-weight: 300;
+    opacity: 0; transform: translateY(16px);
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  }
+
+  /* ─── 3D Canvas ─── */
+  #canvas-wrap {
+    width: 100%; max-width: 800px; aspect-ratio: 16 / 10;
+    margin: 40px auto 0; position: relative;
+    opacity: 0; transform: scale(0.96);
+    animation: fadeScale 1s cubic-bezier(0.16, 1, 0.3, 1) 0.6s forwards;
+  }
+  #canvas-wrap { border-radius: 16px; overflow: hidden; }
+  #canvas-wrap canvas { width: 100% !important; height: 100% !important; display: block; }
+  .drag-hint {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    font-size: 12px; color: var(--text-tertiary); pointer-events: none;
+    opacity: 0; animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.4s forwards;
+  }
+  .drag-hint span { display: inline-block; animation: sway 2.4s ease-in-out infinite 2s; }
+
+  /* ─── Section ─── */
+  section { max-width: 920px; margin: 0 auto; padding: 0 40px; }
+
+  /* ─── Architecture Diagram ─── */
+  .arch-section { padding-top: 80px; padding-bottom: 80px; }
+  .arch-section h2 {
+    font-size: clamp(24px, 3.5vw, 40px); font-weight: 600; letter-spacing: -0.03em;
+    margin-bottom: 12px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .arch-section h2.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .arch-subtitle {
+    font-size: 16px; color: var(--text-secondary); font-weight: 300; line-height: 1.5;
+    max-width: 520px; margin-bottom: 48px;
+    opacity: 0; transform: translateY(16px);
+  }
+  .arch-subtitle.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; }
+
+  .arch-diagram {
+    display: flex; flex-direction: column; gap: 2px;
+    background: var(--border-subtle); border-radius: 16px; overflow: hidden;
+  }
+  .arch-row { display: grid; grid-template-columns: 140px 1fr; min-height: 72px; }
+  .arch-label {
+    background: var(--bg-surface); padding: 20px 24px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-tertiary); display: flex; align-items: center;
+  }
+  .arch-content {
+    background: var(--bg-surface); padding: 16px 24px;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .arch-chip {
+    padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+  .arch-chip.primary { background: var(--status-success-muted); color: var(--status-success); border-color: transparent; }
+  .arch-chip.accent { background: var(--accent-primary-muted); color: var(--accent-primary); border-color: transparent; }
+  .arch-arrow {
+    font-size: 11px; color: var(--text-tertiary); font-weight: 400;
+  }
+
+  .arch-row {
+    opacity: 0; transform: translateY(16px);
+  }
+  .arch-row.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  /* ─── Spec Cards ─── */
+  .specs-section { padding-bottom: 40px; }
+  .specs-header {
+    font-size: clamp(24px, 3.5vw, 40px); font-weight: 600; letter-spacing: -0.03em;
+    margin-bottom: 40px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .specs-header.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  .specs-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px; background: var(--border-subtle); border-radius: 16px; overflow: hidden;
+  }
+  .spec-card {
+    background: var(--bg-surface); padding: 32px 28px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .spec-card.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .spec-value { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .spec-value .unit { font-size: 16px; font-weight: 400; color: var(--text-secondary); }
+  .spec-label { font-size: 13px; color: var(--text-tertiary); margin-top: 8px; line-height: 1.4; }
+
+  /* ─── BOM Table ─── */
+  .bom-section { padding-top: 40px; padding-bottom: 80px; }
+  .bom-section h2 {
+    font-size: clamp(24px, 3.5vw, 40px); font-weight: 600; letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .bom-section h2.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .bom-subtitle {
+    font-size: 15px; color: var(--text-secondary); font-weight: 300; margin-bottom: 36px;
+    opacity: 0; transform: translateY(12px);
+  }
+  .bom-subtitle.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; }
+
+  .bom-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bg-surface); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 1px 3px var(--border-subtle);
+  }
+  .bom-table thead th {
+    text-align: left; padding: 14px 20px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-tertiary); border-bottom: 1px solid var(--border-subtle);
+  }
+  .bom-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    opacity: 0; transform: translateY(8px);
+  }
+  .bom-table tbody tr.visible { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .bom-table tbody tr:last-child { border-bottom: none; }
+  .bom-table td { padding: 14px 20px; font-size: 14px; vertical-align: middle; }
+  .bom-table td:first-child { font-weight: 500; }
+  .bom-table td:last-child { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bom-status {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px;
+  }
+  .bom-status.owned { background: var(--status-success); }
+  .bom-status.needed { background: var(--accent-primary); }
+  .bom-table tfoot td {
+    padding: 16px 20px; font-weight: 600; border-top: 2px solid var(--border-default);
+  }
+
+  /* ─── Power diagram ─── */
+  .power-section { padding-bottom: 120px; }
+  .power-section h2 {
+    font-size: clamp(24px, 3.5vw, 40px); font-weight: 600; letter-spacing: -0.03em;
+    margin-bottom: 32px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .power-section h2.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  .power-flow {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .power-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 24px; background: var(--bg-surface); border-radius: 12px;
+    opacity: 0; transform: translateY(12px);
+  }
+  .power-row.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .power-source {
+    font-size: 13px; font-weight: 600; color: var(--text-primary);
+    min-width: 140px;
+  }
+  .power-arrow {
+    width: 32px; height: 1px; background: var(--border-default); position: relative; flex-shrink: 0;
+  }
+  .power-arrow::after {
+    content: ''; position: absolute; right: -1px; top: -3px;
+    border: 3px solid transparent; border-left: 5px solid var(--border-strong);
+  }
+  .power-dest { font-size: 13px; color: var(--text-secondary); }
+  .power-voltage {
+    margin-left: auto; font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 6px; font-variant-numeric: tabular-nums;
+  }
+  .power-voltage.v5 { background: var(--status-success-muted); color: var(--status-success); }
+  .power-voltage.v7 { background: var(--status-warning-muted); color: var(--status-warning); }
+  .power-note {
+    font-size: 12px; color: var(--accent-primary); font-weight: 500;
+    padding: 12px 24px; background: var(--accent-primary-muted); border-radius: 12px;
+    opacity: 0; transform: translateY(12px);
+  }
+  .power-note.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+  /* ─── GPIO Wiring ─── */
+  .wiring-section { padding-top: 40px; padding-bottom: 80px; }
+  .wiring-section h2 {
+    font-size: clamp(24px, 3.5vw, 40px); font-weight: 600; letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    opacity: 0; transform: translateY(20px);
+  }
+  .wiring-section h2.visible { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .wiring-subtitle {
+    font-size: 15px; color: var(--text-secondary); font-weight: 300; margin-bottom: 36px;
+    opacity: 0; transform: translateY(12px);
+  }
+  .wiring-subtitle.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; }
+
+  .gpio-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--bg-surface); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 1px 3px var(--border-subtle);
+    margin-bottom: 32px;
+  }
+  .gpio-table thead th {
+    text-align: left; padding: 14px 20px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-tertiary); border-bottom: 1px solid var(--border-subtle);
+  }
+  .gpio-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    opacity: 0; transform: translateY(8px);
+  }
+  .gpio-table tbody tr.visible { animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .gpio-table tbody tr:last-child { border-bottom: none; }
+  .gpio-table td { padding: 12px 20px; font-size: 14px; }
+  .gpio-table .pin-num {
+    font-weight: 600; font-variant-numeric: tabular-nums;
+    font-size: 13px; min-width: 48px;
+  }
+  .gpio-table .bcm-num {
+    font-family: var(--font-mono); font-weight: 500;  /* data value — keep monospace */
+    font-size: 13px; color: var(--status-success);
+  }
+  .gpio-table .func { font-weight: 500; }
+  .gpio-table .dest { color: var(--text-secondary); }
+  .gpio-cat {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 4px 10px; border-radius: 6px; display: inline-block;
+  }
+  .gpio-cat.motor { background: var(--accent-primary-muted); color: var(--accent-primary); }
+  .gpio-cat.sensor { background: var(--status-success-muted); color: var(--status-success); }
+  .gpio-cat.power { background: var(--status-warning-muted); color: var(--status-warning); }
+
+  /* ─── GPIO Header Diagram ─── */
+  .gpio-header-wrap {
+    display: flex; gap: 40px; align-items: flex-start; justify-content: center;
+    margin-bottom: 36px; flex-wrap: wrap;
+  }
+  .gpio-header-card {
+    background: var(--bg-surface); border-radius: 16px; padding: 28px 32px;
+    box-shadow: 0 1px 3px var(--border-subtle);
+    opacity: 0; transform: translateY(16px);
+  }
+  .gpio-header-card.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .gpio-header-card h3 {
+    font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-tertiary); margin-bottom: 16px; text-align: center;
+  }
+  .gpio-svg { display: block; margin: 0 auto; }
+  .gpio-svg .pin-circle {
+    cursor: pointer;
+    transition: r 0.15s cubic-bezier(0.16, 1, 0.3, 1), fill 0.15s ease;
+  }
+  .gpio-svg .pin-circle:hover,
+  .gpio-svg .pin-circle.active { r: 7; }
+  .gpio-svg .pin-label {
+    font-family: var(--font-sans); font-size: 8px; font-weight: 500;
+    pointer-events: none; fill: var(--text-secondary);
+    transition: fill 0.15s ease;
+  }
+  .gpio-svg .pin-label.active { fill: var(--text-primary); font-weight: 700; }
+  .gpio-svg .pin-num-label {
+    font-family: var(--font-sans); font-size: 7px; font-weight: 400;
+    pointer-events: none; fill: var(--text-tertiary);
+  }
+  .gpio-tooltip {
+    position: absolute; pointer-events: none; z-index: 50;
+    background: var(--accent-primary); color: var(--text-inverse);
+    font-size: 12px; font-weight: 500; padding: 6px 10px; border-radius: 8px;
+    white-space: nowrap; opacity: 0; transform: translateY(4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .gpio-tooltip.show { opacity: 1; transform: translateY(0); }
+  .gpio-table tbody tr.highlight {
+    background: var(--status-success-muted) !important;
+  }
+  .gpio-table tbody tr.highlight td { color: var(--text-primary); }
+  .gpio-legend {
+    display: flex; gap: 16px; justify-content: center; margin-top: 14px; flex-wrap: wrap;
+  }
+  .gpio-legend-item {
+    display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary);
+  }
+  .gpio-legend-swatch {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  .wiring-block {
+    background: var(--bg-surface); border-radius: 16px; padding: 28px;
+    margin-bottom: 16px; box-shadow: 0 1px 3px var(--border-subtle);
+    opacity: 0; transform: translateY(16px);
+  }
+  .wiring-block.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .wiring-block h3 {
+    font-size: 15px; font-weight: 600; margin-bottom: 16px; letter-spacing: -0.01em;
+  }
+  .wiring-block h3 .tag {
+    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 3px 8px; border-radius: 5px; margin-left: 8px; vertical-align: 2px;
+  }
+  .wiring-flow {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .wiring-line {
+    display: flex; align-items: center; gap: 10px; font-size: 14px;
+  }
+  .wiring-line .w-from {
+    min-width: 120px; font-weight: 500; text-align: right;
+  }
+  .wiring-line .w-wire {
+    width: 40px; height: 2px; position: relative; flex-shrink: 0;
+  }
+  .wiring-line .w-wire::after {
+    content: ''; position: absolute; right: -1px; top: -3px;
+    border: 3px solid transparent;
+  }
+  .wiring-line .w-wire.blue { background: #3b82f6; }
+  .wiring-line .w-wire.blue::after { border-left: 5px solid #3b82f6; }
+  .wiring-line .w-wire.green { background: var(--status-success); }
+  .wiring-line .w-wire.green::after { border-left: 5px solid var(--status-success); }
+  .wiring-line .w-wire.red { background: var(--accent-primary); }
+  .wiring-line .w-wire.red::after { border-left: 5px solid var(--accent-primary); }
+  .wiring-line .w-wire.amber { background: #b8860b; }
+  .wiring-line .w-wire.amber::after { border-left: 5px solid #b8860b; }
+  .wiring-line .w-to { color: var(--text-secondary); }
+
+  .wiring-warning {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 16px 20px; background: var(--accent-primary-muted); border-radius: 12px;
+    font-size: 13px; line-height: 1.5; color: var(--text-primary);
+    margin-top: 16px;
+    opacity: 0; transform: translateY(12px);
+  }
+  .wiring-warning.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .wiring-warning .warn-icon {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent-primary); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; margin-top: 1px;
+  }
+  .wiring-warning strong { font-weight: 600; }
+
+  .test-cmds {
+    background: var(--bg-surface); border-radius: 16px; padding: 28px;
+    margin-top: 16px; box-shadow: 0 1px 3px var(--border-subtle);
+    opacity: 0; transform: translateY(16px);
+  }
+  .test-cmds.visible { animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .test-cmds h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .test-cmd {
+    display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px;
+  }
+  .test-cmd:last-child { margin-bottom: 0; }
+  .test-cmd-label { font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
+  .test-cmd-code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;  /* code block — keep monospace */
+    font-size: 13px; padding: 10px 14px; border-radius: 8px;
+    background: var(--bg-elevated); color: var(--text-primary);
+    overflow-x: auto; white-space: pre; line-height: 1.5;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ─── Animations ─── */
+  @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeScale { to { opacity: 1; transform: scale(1); } }
+  @keyframes sway { 0%, 100% { transform: translateX(-3px); } 50% { transform: translateX(3px); } }
+  @keyframes wheelSpin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media (max-width: 700px) {
+    nav { padding: 14px 20px; }
+    nav .nav-links { display: none; }
+    .hero { padding: 100px 20px 40px; }
+    section { padding-left: 20px; padding-right: 20px; }
+    .arch-row { grid-template-columns: 1fr; }
+    .arch-label { padding: 12px 20px; }
+    .bom-table { font-size: 13px; }
+    .bom-table td, .bom-table th { padding: 10px 14px; }
+    .power-row { flex-wrap: wrap; }
+    .power-source { min-width: auto; }
+    .power-voltage { margin-left: 0; }
+    .gpio-table td:first-child, .gpio-table th:first-child { display: none; }
+    .gpio-table td, .gpio-table th { padding: 10px 12px; font-size: 13px; }
+    .wiring-line { flex-wrap: wrap; }
+    .wiring-line .w-from { min-width: auto; text-align: left; }
+  }
+</style>
+</head>
+<body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Hardware</span></nav>
+
+<nav>
+  <div class="brand"><b>Elktron</b> &nbsp;Escort Bot</div>
+  <div class="nav-links">
+    <a href="#specs">Specs</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#bom">Parts</a>
+    <a href="#power">Power</a>
+    <a href="#wiring">Wiring</a>
+  </div>
+  <div class="pill">~$140</div>
+</nav>
+
+<section class="hero">
+  <div class="hero-label">CoreWeave Hackathon 2026</div>
+  <h1>Escort Bot</h1>
+  <p>Person-following mobile robot for DC vendor escort. Raspberry Pi 5, computer vision, mecanum drive. Fully autonomous.</p>
+
+  <div id="canvas-wrap"></div>
+  <div class="drag-hint"><span>Drag to rotate</span></div>
+</section>
+
+<!-- Specs -->
+<section class="specs-section" id="specs">
+  <h2 class="specs-header" data-reveal>Key Specs</h2>
+  <div class="specs-grid">
+    <div class="spec-card" data-reveal data-delay="0">
+      <div class="spec-value">4<span class="unit">WD</span></div>
+      <div class="spec-label">Mecanum wheels, omnidirectional movement</div>
+    </div>
+    <div class="spec-card" data-reveal data-delay="80">
+      <div class="spec-value">8<span class="unit"> GB</span></div>
+      <div class="spec-label">Raspberry Pi 5 — TFLite MobileNet SSD inference</div>
+    </div>
+    <div class="spec-card" data-reveal data-delay="160">
+      <div class="spec-value">30<span class="unit"> fps</span></div>
+      <div class="spec-label">Real-time person detection via Pi Camera</div>
+    </div>
+    <div class="spec-card" data-reveal data-delay="240">
+      <div class="spec-value">7.4<span class="unit">V</span></div>
+      <div class="spec-label">18650 Li-ion dual cell, 3000 mAh per cell</div>
+    </div>
+  </div>
+</section>
+
+<!-- Architecture -->
+<section class="arch-section" id="architecture">
+  <h2 data-reveal>System Architecture</h2>
+  <p class="arch-subtitle" data-reveal>Every subsystem connected through the Pi 5 GPIO and CSI bus. No external compute.</p>
+
+  <div class="arch-diagram">
+    <div class="arch-row" data-reveal data-delay="0">
+      <div class="arch-label">Compute</div>
+      <div class="arch-content">
+        <span class="arch-chip primary">Raspberry Pi 5 (8 GB)</span>
+        <span class="arch-chip">Active Cooler</span>
+        <span class="arch-chip">MicroSD 32 GB</span>
+      </div>
+    </div>
+    <div class="arch-row" data-reveal data-delay="60">
+      <div class="arch-label">Vision</div>
+      <div class="arch-content">
+        <span class="arch-chip primary">Pi Camera (CSI)</span>
+        <span class="arch-arrow">&#8594;</span>
+        <span class="arch-chip">TFLite MobileNet SSD</span>
+        <span class="arch-arrow">&#8594;</span>
+        <span class="arch-chip accent">Person bbox + centroid</span>
+      </div>
+    </div>
+    <div class="arch-row" data-reveal data-delay="120">
+      <div class="arch-label">Motion</div>
+      <div class="arch-content">
+        <span class="arch-chip primary">Freenove Smart Car Board</span>
+        <span class="arch-chip">4x DC Geared Motors</span>
+        <span class="arch-chip">Mecanum A-B-A-B</span>
+      </div>
+    </div>
+    <div class="arch-row" data-reveal data-delay="180">
+      <div class="arch-label">Sensors</div>
+      <div class="arch-content">
+        <span class="arch-chip">HC-SR04 Ultrasonic</span>
+        <span class="arch-chip">IR Line Tracker</span>
+        <span class="arch-chip">2x Photoresistors</span>
+      </div>
+    </div>
+    <div class="arch-row" data-reveal data-delay="240">
+      <div class="arch-label">Actuation</div>
+      <div class="arch-content">
+        <span class="arch-chip">Pan-Tilt Servos (x2)</span>
+        <span class="arch-chip">LEDs</span>
+        <span class="arch-chip">Buzzer</span>
+      </div>
+    </div>
+    <div class="arch-row" data-reveal data-delay="300">
+      <div class="arch-label">Interface</div>
+      <div class="arch-content">
+        <span class="arch-chip">GPIO (Connection Board)</span>
+        <span class="arch-arrow">&#8594;</span>
+        <span class="arch-chip">Smart Car Board</span>
+        <span class="arch-arrow">&#8594;</span>
+        <span class="arch-chip accent">Motor PWM</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOM -->
+<section class="bom-section" id="bom">
+  <h2 data-reveal>Bill of Materials</h2>
+  <p class="bom-subtitle" data-reveal>Escort bot total: ~$140. Pi 5 and Pi 4 already owned.</p>
+
+  <table class="bom-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Source</th>
+        <th>Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-reveal data-delay="0">
+        <td><span class="bom-status owned"></span>Raspberry Pi 5 (8 GB)</td>
+        <td>Owned</td>
+        <td>$0</td>
+      </tr>
+      <tr data-reveal data-delay="40">
+        <td><span class="bom-status needed"></span>Active Cooler (PWM)</td>
+        <td>Amazon</td>
+        <td>$5</td>
+      </tr>
+      <tr data-reveal data-delay="80">
+        <td><span class="bom-status needed"></span>MicroSD 32 GB (A2)</td>
+        <td>Amazon</td>
+        <td>$8</td>
+      </tr>
+      <tr data-reveal data-delay="120">
+        <td><span class="bom-status needed"></span>Freenove 4WD Smart Car Kit</td>
+        <td>Amazon</td>
+        <td>$65</td>
+      </tr>
+      <tr data-reveal data-delay="160">
+        <td><span class="bom-status needed"></span>18650 Batteries (4-pack)</td>
+        <td>Amazon</td>
+        <td>$13</td>
+      </tr>
+      <tr data-reveal data-delay="200">
+        <td><span class="bom-status needed"></span>18650 Dual-Slot Charger</td>
+        <td>Amazon</td>
+        <td>$9</td>
+      </tr>
+      <tr data-reveal data-delay="240">
+        <td><span class="bom-status needed"></span>USB-C Power Bank (10K mAh)</td>
+        <td>Amazon</td>
+        <td>$22</td>
+      </tr>
+      <tr data-reveal data-delay="280">
+        <td><span class="bom-status needed"></span>Jumper Wires + Misc</td>
+        <td>Amazon</td>
+        <td>$18</td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="2">Total</td>
+        <td>$140</td>
+      </tr>
+    </tfoot>
+  </table>
+</section>
+
+<!-- Power -->
+<section class="power-section" id="power">
+  <h2 data-reveal>Power Architecture</h2>
+  <div class="power-flow">
+    <div class="power-row" data-reveal data-delay="0">
+      <div class="power-source">USB-C Power Bank</div>
+      <div class="power-arrow"></div>
+      <div class="power-dest">Raspberry Pi 5</div>
+      <div class="power-voltage v5">5V / 3A</div>
+    </div>
+    <div class="power-row" data-reveal data-delay="80">
+      <div class="power-source">18650 x2 (series)</div>
+      <div class="power-arrow"></div>
+      <div class="power-dest">Smart Car Board &rarr; 4x Motors</div>
+      <div class="power-voltage v7">7.4V</div>
+    </div>
+    <div class="power-row" data-reveal data-delay="160">
+      <div class="power-source">Pi 5V Rail</div>
+      <div class="power-arrow"></div>
+      <div class="power-dest">Sensors via Connection Board</div>
+      <div class="power-voltage v5">5V</div>
+    </div>
+    <div class="power-note" data-reveal data-delay="240">
+      Common GND between Pi and Smart Car Board is critical. Separate power rails prevent motor noise on the Pi.
+    </div>
+  </div>
+</section>
+
+<!-- GPIO Wiring -->
+<section class="wiring-section" id="wiring">
+  <h2 data-reveal>GPIO Wiring</h2>
+  <p class="wiring-subtitle" data-reveal>BCM pin numbering. All signals through Freenove Connection Board to Smart Car Board.</p>
+
+  <!-- Interactive GPIO Header Diagram -->
+  <div class="gpio-header-wrap">
+    <div class="gpio-header-card" data-reveal>
+      <h3>Pi 5 — 40-Pin Header</h3>
+      <div style="position:relative;display:inline-block;">
+        <svg class="gpio-svg" width="260" height="420" viewBox="0 0 260 420" id="gpio-svg"></svg>
+        <div class="gpio-tooltip" id="gpio-tooltip"></div>
+      </div>
+      <div class="gpio-legend">
+        <div class="gpio-legend-item"><span class="gpio-legend-swatch" style="background:#3b82f6"></span>Motor (GPIO)</div>
+        <div class="gpio-legend-item"><span class="gpio-legend-swatch" style="background:#34d399"></span>Sensor (GPIO)</div>
+        <div class="gpio-legend-item"><span class="gpio-legend-swatch" style="background:#b8860b"></span>Power</div>
+        <div class="gpio-legend-item"><span class="gpio-legend-swatch" style="background:#52525b"></span>Ground</div>
+        <div class="gpio-legend-item"><span class="gpio-legend-swatch" style="background:#d4d4d8"></span>Unused</div>
+      </div>
+    </div>
+  </div>
+
+  <table class="gpio-table">
+    <thead>
+      <tr>
+        <th>Pin</th>
+        <th>BCM</th>
+        <th>Function</th>
+        <th>Connects To</th>
+        <th>Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-reveal data-delay="0" data-pin="11">
+        <td class="pin-num">11</td>
+        <td class="bcm-num">GPIO 17</td>
+        <td class="func">Left Motor FWD</td>
+        <td class="dest">L298N IN1</td>
+        <td><span class="gpio-cat motor">Motor</span></td>
+      </tr>
+      <tr data-reveal data-delay="40" data-pin="13">
+        <td class="pin-num">13</td>
+        <td class="bcm-num">GPIO 27</td>
+        <td class="func">Left Motor BWD</td>
+        <td class="dest">L298N IN2</td>
+        <td><span class="gpio-cat motor">Motor</span></td>
+      </tr>
+      <tr data-reveal data-delay="80" data-pin="15">
+        <td class="pin-num">15</td>
+        <td class="bcm-num">GPIO 22</td>
+        <td class="func">Right Motor FWD</td>
+        <td class="dest">L298N IN3</td>
+        <td><span class="gpio-cat motor">Motor</span></td>
+      </tr>
+      <tr data-reveal data-delay="120" data-pin="16">
+        <td class="pin-num">16</td>
+        <td class="bcm-num">GPIO 23</td>
+        <td class="func">Right Motor BWD</td>
+        <td class="dest">L298N IN4</td>
+        <td><span class="gpio-cat motor">Motor</span></td>
+      </tr>
+      <tr data-reveal data-delay="160" data-pin="22">
+        <td class="pin-num">22</td>
+        <td class="bcm-num">GPIO 25</td>
+        <td class="func">Ultrasonic TRIG</td>
+        <td class="dest">HC-SR04 TRIG</td>
+        <td><span class="gpio-cat sensor">Sensor</span></td>
+      </tr>
+      <tr data-reveal data-delay="200" data-pin="18">
+        <td class="pin-num">18</td>
+        <td class="bcm-num">GPIO 24</td>
+        <td class="func">Ultrasonic ECHO</td>
+        <td class="dest">HC-SR04 ECHO (via divider)</td>
+        <td><span class="gpio-cat sensor">Sensor</span></td>
+      </tr>
+      <tr data-reveal data-delay="240" data-pin="2">
+        <td class="pin-num">2</td>
+        <td class="bcm-num">5V</td>
+        <td class="func">Sensor Power</td>
+        <td class="dest">HC-SR04 VCC</td>
+        <td><span class="gpio-cat power">Power</span></td>
+      </tr>
+      <tr data-reveal data-delay="280" data-pin="6">
+        <td class="pin-num">6</td>
+        <td class="bcm-num">GND</td>
+        <td class="func">Common Ground</td>
+        <td class="dest">HC-SR04 GND</td>
+        <td><span class="gpio-cat power">Power</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Motor Driver Flow -->
+  <div class="wiring-block" data-reveal data-delay="0">
+    <h3>Motor Driver <span class="tag" style="background: rgba(59,130,246,0.08); color: var(--accent-primary);">L298N</span></h3>
+    <div class="wiring-flow">
+      <div class="wiring-line">
+        <span class="w-from">Battery 7.4V (+)</span>
+        <span class="w-wire amber"></span>
+        <span class="w-to">L298N +12V (VIN)</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">Battery 7.4V (-)</span>
+        <span class="w-wire amber"></span>
+        <span class="w-to">L298N GND</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">GPIO 17</span>
+        <span class="w-wire blue"></span>
+        <span class="w-to">IN1 &rarr; Left Motor FWD</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">GPIO 27</span>
+        <span class="w-wire blue"></span>
+        <span class="w-to">IN2 &rarr; Left Motor BWD</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">GPIO 22</span>
+        <span class="w-wire blue"></span>
+        <span class="w-to">IN3 &rarr; Right Motor FWD</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">GPIO 23</span>
+        <span class="w-wire blue"></span>
+        <span class="w-to">IN4 &rarr; Right Motor BWD</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">Pi GND</span>
+        <span class="w-wire red"></span>
+        <span class="w-to">L298N GND (common ground)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ultrasonic Sensor -->
+  <div class="wiring-block" data-reveal data-delay="80">
+    <h3>Ultrasonic Sensor <span class="tag" style="background: rgba(52, 211, 153, 0.12); color: #34d399;">HC-SR04</span></h3>
+    <div class="wiring-flow">
+      <div class="wiring-line">
+        <span class="w-from">Pi 5V (Pin 2)</span>
+        <span class="w-wire amber"></span>
+        <span class="w-to">HC-SR04 VCC</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">GPIO 25 (Pin 22)</span>
+        <span class="w-wire green"></span>
+        <span class="w-to">HC-SR04 TRIG</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">GPIO 24 (Pin 18)</span>
+        <span class="w-wire green"></span>
+        <span class="w-to">HC-SR04 ECHO &rarr; 1k&Omega; divider</span>
+      </div>
+      <div class="wiring-line">
+        <span class="w-from">Pi GND (Pin 6)</span>
+        <span class="w-wire red"></span>
+        <span class="w-to">HC-SR04 GND + 2k&Omega; to divider</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Voltage divider warning -->
+  <div class="wiring-warning" data-reveal data-delay="120">
+    <div class="warn-icon">!</div>
+    <div>
+      <strong>Voltage divider required on ECHO.</strong> The HC-SR04 outputs 5V on ECHO but Pi 5 GPIO is 3.3V tolerant. Use a 1k&Omega; + 2k&Omega; resistor divider to step down, or swap for an HC-SR04P (3.3V native).
+    </div>
+  </div>
+
+  <!-- Camera -->
+  <div class="wiring-block" data-reveal data-delay="160">
+    <h3>Camera <span class="tag" style="background: rgba(52, 211, 153, 0.12); color: #34d399;">CSI</span></h3>
+    <div class="wiring-flow">
+      <div class="wiring-line">
+        <span class="w-from">Pi Camera</span>
+        <span class="w-wire green"></span>
+        <span class="w-to">CSI ribbon cable &rarr; Pi 5 CAM port</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Test Commands -->
+  <div class="test-cmds" data-reveal data-delay="200">
+    <h3>Quick Test Commands</h3>
+    <div class="test-cmd">
+      <span class="test-cmd-label">Camera</span>
+      <code class="test-cmd-code">libcamera-hello --timeout 5000</code>
+    </div>
+    <div class="test-cmd">
+      <span class="test-cmd-label">Ultrasonic distance</span>
+      <code class="test-cmd-code">python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"</code>
+    </div>
+    <div class="test-cmd">
+      <span class="test-cmd-label">Motor spin (1 sec forward)</span>
+      <code class="test-cmd-code">python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"</code>
+    </div>
+  </div>
+</section>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const container = document.getElementById('canvas-wrap');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf4f6fa);
+
+const camera = new THREE.PerspectiveCamera(30, container.clientWidth / container.clientHeight, 0.1, 100);
+camera.position.set(5, 4, 6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.enablePan = false;
+controls.minDistance = 4;
+controls.maxDistance = 14;
+controls.minPolarAngle = 0.2;
+controls.maxPolarAngle = Math.PI / 2 + 0.1;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.5;
+controls.target.set(0, 0.6, 0);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+const key = new THREE.DirectionalLight(0xffffff, 1.6);
+key.position.set(5, 10, 6);
+key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+key.shadow.camera.near = 1; key.shadow.camera.far = 25;
+const sd = 5;
+key.shadow.camera.left = -sd; key.shadow.camera.right = sd;
+key.shadow.camera.top = sd; key.shadow.camera.bottom = -sd;
+key.shadow.bias = -0.0002; key.shadow.normalBias = 0.02;
+scene.add(key);
+
+const fill = new THREE.DirectionalLight(0xdde4f0, 0.45);
+fill.position.set(-4, 3, -3);
+scene.add(fill);
+
+const rim = new THREE.DirectionalLight(0xfff0e6, 0.3);
+rim.position.set(0, 2, -6);
+scene.add(rim);
+
+// Ground shadow
+const gnd = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMaterial({ opacity: 0.07 }));
+gnd.rotation.x = -Math.PI / 2; gnd.position.y = -0.42; gnd.receiveShadow = true;
+scene.add(gnd);
+
+// Materials
+const chassisMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.5, metalness: 0.2 });
+const pcbMat = new THREE.MeshStandardMaterial({ color: 0x0d6832, roughness: 0.6, metalness: 0.05 });
+const piMat = new THREE.MeshStandardMaterial({ color: 0x35854a, roughness: 0.5, metalness: 0.08 });
+const metalMat = new THREE.MeshStandardMaterial({ color: 0xb8b8bd, roughness: 0.25, metalness: 0.9 });
+const darkMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.6, metalness: 0.1 });
+const wheelMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.8, metalness: 0.05 });
+const rollerMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, roughness: 0.35, metalness: 0.7 });
+const accentMat = new THREE.MeshStandardMaterial({ color: 0x4a9eff, roughness: 0.4, metalness: 0.0 });
+const camMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.3, metalness: 0.4 });
+const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.15, metalness: 0.3 });
+const batteryMat = new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.5, metalness: 0.3 });
+const coolMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, roughness: 0.25, metalness: 0.92 });
+
+const bot = new THREE.Group();
+
+// --- Chassis (two acrylic plates) ---
+const plateLower = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 3.0), chassisMat);
+plateLower.position.y = 0.45; plateLower.castShadow = true;
+bot.add(plateLower);
+
+const plateUpper = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 3.0), chassisMat);
+plateUpper.position.y = 1.2; plateUpper.castShadow = true;
+bot.add(plateUpper);
+
+// Standoffs between plates
+const standoffGeo = new THREE.CylinderGeometry(0.06, 0.06, 0.72, 8);
+[[-0.95, -1.2], [0.95, -1.2], [-0.95, 1.2], [0.95, 1.2]].forEach(([x, z]) => {
+  const s = new THREE.Mesh(standoffGeo, metalMat);
+  s.position.set(x, 0.81, z); s.castShadow = true;
+  bot.add(s);
+});
+
+// --- Mecanum Wheels ---
+const wheelGroup = new THREE.Group();
+function createWheel() {
+  const wg = new THREE.Group();
+  // Hub
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.22, 24), wheelMat);
+  hub.rotation.z = Math.PI / 2;
+  wg.add(hub);
+  // Rollers (angled)
+  for (let i = 0; i < 9; i++) {
+    const angle = (i / 9) * Math.PI * 2;
+    const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.18, 8), rollerMat);
+    roller.position.set(0, Math.cos(angle) * 0.28, Math.sin(angle) * 0.28);
+    roller.rotation.x = angle + Math.PI / 4; // Mecanum angle
+    wg.add(roller);
+  }
+  return wg;
+}
+
+const wheelPositions = [
+  [-1.35, 0.32, -1.0],
+  [1.35, 0.32, -1.0],
+  [-1.35, 0.32, 1.0],
+  [1.35, 0.32, 1.0],
+];
+const wheels = [];
+wheelPositions.forEach(([x, y, z]) => {
+  const w = createWheel();
+  w.position.set(x, y, z);
+  bot.add(w);
+  wheels.push(w);
+});
+
+// --- Motor blocks ---
+wheelPositions.forEach(([x, y, z]) => {
+  const motor = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.5), darkMat);
+  motor.position.set(x > 0 ? x - 0.35 : x + 0.35, y + 0.05, z);
+  bot.add(motor);
+});
+
+// --- Smart Car Board (PCB on lower plate) ---
+const smartBoard = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.0), pcbMat);
+smartBoard.position.set(0, 0.5, 0.2);
+bot.add(smartBoard);
+
+// Chip on smart board
+const chip = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.3), darkMat);
+chip.position.set(0, 0.52, 0.2);
+bot.add(chip);
+
+// --- Battery holder (on lower plate, rear) ---
+const battHolder = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.28, 0.6), darkMat);
+battHolder.position.set(0, 0.62, -0.8);
+bot.add(battHolder);
+// Batteries visible
+const battGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.65, 10);
+const b1 = new THREE.Mesh(battGeo, batteryMat);
+b1.rotation.z = Math.PI / 2; b1.position.set(-0.12, 0.68, -0.8);
+bot.add(b1);
+const b2 = new THREE.Mesh(battGeo, batteryMat);
+b2.rotation.z = Math.PI / 2; b2.position.set(0.12, 0.68, -0.8);
+bot.add(b2);
+
+// --- Raspberry Pi 5 (on upper plate) ---
+const piBoard = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.04, 0.56), piMat);
+piBoard.position.set(-0.3, 1.25, 0.4);
+piBoard.castShadow = true;
+bot.add(piBoard);
+
+// Pi chips
+const piSoC = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.025, 0.16), metalMat);
+piSoC.position.set(-0.3, 1.28, 0.4);
+bot.add(piSoC);
+
+// --- Active Cooler on Pi ---
+const coolerBase = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.06, 0.45), coolMat);
+coolerBase.position.set(-0.3, 1.31, 0.4);
+coolerBase.castShadow = true;
+bot.add(coolerBase);
+
+// Cooler fins
+for (let i = 0; i < 6; i++) {
+  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.14, 0.42), coolMat);
+  fin.position.set(-0.3 - 0.18 + i * 0.072, 1.41, 0.4);
+  bot.add(fin);
+}
+
+// Fan on cooler
+const fanHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 20, 1, true), darkMat);
+fanHousing.position.set(-0.3, 1.5, 0.4);
+bot.add(fanHousing);
+
+const fanBlades = new THREE.Group();
+fanBlades.position.set(-0.3, 1.5, 0.4);
+for (let i = 0; i < 5; i++) {
+  const a = (i / 5) * Math.PI * 2;
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.008, 0.03), darkMat);
+  blade.position.set(Math.cos(a) * 0.08, 0, Math.sin(a) * 0.08);
+  blade.rotation.y = a;
+  fanBlades.add(blade);
+}
+bot.add(fanBlades);
+
+// USB-C port hint
+const usbc = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.03, 0.04), metalMat);
+usbc.position.set(-0.3 + 0.44, 1.26, 0.4);
+bot.add(usbc);
+
+// --- Connection Board (upper plate, center) ---
+const connBoard = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.03, 0.5), pcbMat);
+connBoard.position.set(0.5, 1.24, 0.0);
+bot.add(connBoard);
+
+// --- Power bank (upper plate, rear) ---
+const powerBank = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 1.0), new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.4, metalness: 0.3 }));
+powerBank.position.set(0.0, 1.33, -0.8);
+powerBank.castShadow = true;
+bot.add(powerBank);
+
+// Anker label
+const ankerLabel = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.005, 0.06), new THREE.MeshStandardMaterial({ color: 0xa1a1aa, roughness: 0.5 }));
+ankerLabel.position.set(0.0, 1.425, -0.6);
+bot.add(ankerLabel);
+
+// --- Pan-Tilt Camera Mast (front) ---
+const mastBase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.28, 10), metalMat);
+mastBase.position.set(0, 1.37, 1.3);
+mastBase.castShadow = true;
+bot.add(mastBase);
+
+// Pan servo
+const panServo = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 0.08), darkMat);
+panServo.position.set(0, 1.56, 1.3);
+bot.add(panServo);
+
+// Tilt bracket
+const tiltBracket = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 0.04), metalMat);
+tiltBracket.position.set(0, 1.67, 1.3);
+bot.add(tiltBracket);
+
+// Camera module
+const camBody = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.04), camMat);
+camBody.position.set(0, 1.78, 1.34);
+camBody.castShadow = true;
+bot.add(camBody);
+
+// Lens dot (flush circle on camera face)
+const lens = new THREE.Mesh(new THREE.CircleGeometry(0.03, 16), lensMat);
+lens.position.set(0, 1.78, 1.365);
+bot.add(lens);
+
+// --- HC-SR04 Ultrasonic (on pan servo, below camera) ---
+const usBody = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.1, 0.03), pcbMat);
+usBody.position.set(0, 1.48, 1.34);
+usBody.castShadow = true;
+bot.add(usBody);
+
+const usSensor1 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16), metalMat);
+usSensor1.rotation.x = Math.PI / 2; usSensor1.position.set(-0.08, 1.48, 1.36);
+bot.add(usSensor1);
+
+const usSensor2 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16), metalMat);
+usSensor2.rotation.x = Math.PI / 2; usSensor2.position.set(0.08, 1.48, 1.36);
+bot.add(usSensor2);
+
+// --- Accent: small red LED strip ---
+const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.02, 0.02), accentMat);
+ledStrip.position.set(0, 1.22, 1.5);
+bot.add(ledStrip);
+
+bot.position.y = -0.4;
+scene.add(bot);
+
+// --- Animation ---
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const elapsed = clock.getElapsedTime();
+
+  // Fan spins
+  fanBlades.rotation.y += 12 * delta;
+
+  // Subtle wheel idle spin
+  wheels.forEach(w => { w.children[0].rotation.x += 0.3 * delta; });
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize
+function onResize() {
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+}
+window.addEventListener('resize', onResize);
+
+// Hide drag hint on interaction
+let hintGone = false;
+controls.addEventListener('start', () => {
+  if (!hintGone) {
+    hintGone = true;
+    const h = document.querySelector('.drag-hint');
+    h.style.transition = 'opacity 0.4s'; h.style.opacity = '0';
+  }
+});
+
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const d = e.target.dataset.delay || 0;
+      setTimeout(() => e.target.classList.add('visible'), parseInt(d));
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('[data-reveal]').forEach(el => obs.observe(el));
+
+// ─── GPIO Header SVG ───────────────────────────────────────────────
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.getElementById('gpio-svg');
+  const tooltip = document.getElementById('gpio-tooltip');
+  if (!svg) return;
+
+  // Pi 5 40-pin header — physical pin → [bcm/label, type]
+  // type: 3v3, 5v, gnd, gpio, id_eeprom
+  const PINS = {
+    1:['3V3','3v3'],      2:['5V','5v'],
+    3:['GPIO 2','gpio'],  4:['5V','5v'],
+    5:['GPIO 3','gpio'],  6:['GND','gnd'],
+    7:['GPIO 4','gpio'],  8:['GPIO 14','gpio'],
+    9:['GND','gnd'],     10:['GPIO 15','gpio'],
+   11:['GPIO 17','gpio'],12:['GPIO 18','gpio'],
+   13:['GPIO 27','gpio'],14:['GND','gnd'],
+   15:['GPIO 22','gpio'],16:['GPIO 23','gpio'],
+   17:['3V3','3v3'],     18:['GPIO 24','gpio'],
+   19:['GPIO 10','gpio'],20:['GND','gnd'],
+   21:['GPIO 9','gpio'], 22:['GPIO 25','gpio'],
+   23:['GPIO 11','gpio'],24:['GPIO 8','gpio'],
+   25:['GND','gnd'],     26:['GPIO 7','gpio'],
+   27:['GPIO 0','gpio'], 28:['GPIO 1','gpio'],
+   29:['GPIO 5','gpio'], 30:['GND','gnd'],
+   31:['GPIO 6','gpio'], 32:['GPIO 12','gpio'],
+   33:['GPIO 13','gpio'],34:['GND','gnd'],
+   35:['GPIO 19','gpio'],36:['GPIO 16','gpio'],
+   37:['GPIO 26','gpio'],38:['GPIO 20','gpio'],
+   39:['GND','gnd'],     40:['GPIO 21','gpio'],
+  };
+
+  // Pins used in our project — pin number → { color, role }
+  const ACTIVE = {
+    2:  { color: '#b8860b', role: 'Sensor Power (5V)' },
+    6:  { color: '#52525b', role: 'Common Ground' },
+    11: { color: '#3b82f6', role: 'Left Motor FWD (GPIO 17)' },
+    13: { color: '#3b82f6', role: 'Left Motor BWD (GPIO 27)' },
+    15: { color: '#3b82f6', role: 'Right Motor FWD (GPIO 22)' },
+    16: { color: '#3b82f6', role: 'Right Motor BWD (GPIO 23)' },
+    18: { color: '#34d399', role: 'Ultrasonic ECHO (GPIO 24)' },
+    22: { color: '#34d399', role: 'Ultrasonic TRIG (GPIO 25)' },
+  };
+
+  const COL_LEFT = 90, COL_RIGHT = 120, ROW_START = 40, ROW_GAP = 19;
+  const PIN_R = 5.5, ACTIVE_R = 5.5;
+
+  function typeColor(pin, type) {
+    if (ACTIVE[pin]) return ACTIVE[pin].color;
+    if (type === '5v') return '#b8860b';
+    if (type === '3v3') return '#e6a817';
+    if (type === 'gnd') return '#52525b';
+    return '#d4d4d8';
+  }
+
+  // Board outline
+  const board = document.createElementNS(NS, 'rect');
+  board.setAttribute('x', '55'); board.setAttribute('y', '10');
+  board.setAttribute('width', '150'); board.setAttribute('height', '400');
+  board.setAttribute('rx', '12'); board.setAttribute('fill', '#e8e8ec');
+  board.setAttribute('stroke', '#d4d4d8'); board.setAttribute('stroke-width', '1');
+  svg.appendChild(board);
+
+  // Header label
+  const headerLabel = document.createElementNS(NS, 'text');
+  headerLabel.setAttribute('x', '130'); headerLabel.setAttribute('y', '27');
+  headerLabel.setAttribute('text-anchor', 'middle');
+  headerLabel.setAttribute('font-family', "var(--font-sans)");
+  headerLabel.setAttribute('font-size', '9'); headerLabel.setAttribute('font-weight', '600');
+  headerLabel.setAttribute('fill', '#86868b');
+  headerLabel.textContent = 'J8 HEADER';
+  svg.appendChild(headerLabel);
+
+  for (let i = 1; i <= 40; i++) {
+    const [label, type] = PINS[i];
+    const isLeft = i % 2 === 1;
+    const row = Math.floor((i - 1) / 2);
+    const cx = isLeft ? COL_LEFT : COL_RIGHT;
+    const cy = ROW_START + row * ROW_GAP;
+
+    // Pin circle
+    const circle = document.createElementNS(NS, 'circle');
+    circle.setAttribute('cx', cx); circle.setAttribute('cy', cy);
+    circle.setAttribute('r', ACTIVE[i] ? ACTIVE_R : PIN_R);
+    circle.setAttribute('fill', typeColor(i, type));
+    circle.classList.add('pin-circle');
+    circle.dataset.pin = i;
+    if (ACTIVE[i]) {
+      circle.setAttribute('stroke', typeColor(i, type));
+      circle.setAttribute('stroke-width', '2');
+      circle.setAttribute('stroke-opacity', '0.3');
+    }
+    svg.appendChild(circle);
+
+    // Pin number (tiny, close to pin)
+    const numLabel = document.createElementNS(NS, 'text');
+    numLabel.setAttribute('x', isLeft ? cx - 11 : cx + 11);
+    numLabel.setAttribute('y', cy + 2.5);
+    numLabel.setAttribute('text-anchor', isLeft ? 'end' : 'start');
+    numLabel.classList.add('pin-num-label');
+    numLabel.textContent = i;
+    svg.appendChild(numLabel);
+
+    // BCM/function label (farther out)
+    const funcLabel = document.createElementNS(NS, 'text');
+    funcLabel.setAttribute('x', isLeft ? cx - 20 : cx + 20);
+    funcLabel.setAttribute('y', cy + 2.5);
+    funcLabel.setAttribute('text-anchor', isLeft ? 'end' : 'start');
+    funcLabel.classList.add('pin-label');
+    funcLabel.dataset.pin = i;
+    funcLabel.textContent = label;
+    if (ACTIVE[i]) {
+      funcLabel.setAttribute('font-weight', '600');
+      funcLabel.setAttribute('fill', typeColor(i, type));
+    }
+    svg.appendChild(funcLabel);
+  }
+
+  // Hover interaction
+  const tableRows = document.querySelectorAll('.gpio-table tbody tr[data-pin]');
+  const pinRowMap = {};
+  tableRows.forEach(tr => { pinRowMap[tr.dataset.pin] = tr; });
+
+  let activePin = null;
+
+  function activatePin(pinNum) {
+    if (activePin === pinNum) return;
+    deactivatePin();
+    activePin = pinNum;
+
+    // Highlight SVG pin
+    const circle = svg.querySelector(`.pin-circle[data-pin="${pinNum}"]`);
+    const label = svg.querySelector(`.pin-label[data-pin="${pinNum}"]`);
+    if (circle) circle.classList.add('active');
+    if (label) label.classList.add('active');
+
+    // Highlight table row
+    const row = pinRowMap[pinNum];
+    if (row) {
+      row.classList.add('highlight');
+      row.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+    }
+
+    // Tooltip
+    if (ACTIVE[pinNum] && circle) {
+      tooltip.textContent = ACTIVE[pinNum].role;
+      const rect = svg.getBoundingClientRect();
+      const cx = parseFloat(circle.getAttribute('cx'));
+      const cy = parseFloat(circle.getAttribute('cy'));
+      const scaleX = rect.width / 260;
+      const scaleY = rect.height / 420;
+      tooltip.style.left = (cx * scaleX + 12) + 'px';
+      tooltip.style.top = (cy * scaleY - 10) + 'px';
+      tooltip.classList.add('show');
+    }
+  }
+
+  function deactivatePin() {
+    if (activePin === null) return;
+    svg.querySelectorAll('.pin-circle.active').forEach(el => el.classList.remove('active'));
+    svg.querySelectorAll('.pin-label.active').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.gpio-table tbody tr.highlight').forEach(el => el.classList.remove('highlight'));
+    tooltip.classList.remove('show');
+    activePin = null;
+  }
+
+  // SVG pin hover → highlight table row
+  svg.querySelectorAll('.pin-circle').forEach(circle => {
+    circle.addEventListener('mouseenter', () => activatePin(circle.dataset.pin));
+    circle.addEventListener('mouseleave', deactivatePin);
+  });
+
+  // Table row hover → highlight SVG pin
+  tableRows.forEach(tr => {
+    tr.addEventListener('mouseenter', () => activatePin(tr.dataset.pin));
+    tr.addEventListener('mouseleave', deactivatePin);
+  });
+})();
+</script>
+</body>
+</html>

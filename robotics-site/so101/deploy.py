@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FloorCrew SO-101 — Deploy Trained Policy
+Elktron SO-101 — Deploy Trained Policy
 Runs the trained ACT model on the follower arm autonomously.
 
 Usage:
@@ -28,7 +28,7 @@ ROBOT_CONFIG = {
 def deploy(task_name, checkpoint="last", eval_episodes=10):
     job_name = f"act_{task_name}"
     model_path = os.path.join(OUTPUT_DIR, job_name, "checkpoints", checkpoint, "pretrained_model")
-    eval_repo = f"{HF_USER}/eval_floorcrew_{task_name}"
+    eval_repo = f"{HF_USER}/eval_elktron_{task_name}"
 
     if not os.path.exists(model_path):
         print(f"[ERROR] Model not found at: {model_path}")
@@ -39,7 +39,7 @@ def deploy(task_name, checkpoint="last", eval_episodes=10):
         "lerobot-record",
         f"--robot.type=so101_follower",
         f"--robot.port={ROBOT_CONFIG['follower_port']}",
-        f"--robot.id=floorcrew_follower",
+        f"--robot.id=elktron_follower",
         f"--robot.cameras={{ front: {{type: opencv, index_or_path: {ROBOT_CONFIG['camera_index']}, "
         f"width: {ROBOT_CONFIG['camera_width']}, height: {ROBOT_CONFIG['camera_height']}, "
         f"fps: {ROBOT_CONFIG['camera_fps']}}}}}",
@@ -49,9 +49,9 @@ def deploy(task_name, checkpoint="last", eval_episodes=10):
         f"--dataset.num_episodes={eval_episodes}",
     ]
 
-    print(f"[FloorCrew] Deploying trained policy: {task_name}")
-    print(f"[FloorCrew] Model: {model_path}")
-    print(f"[FloorCrew] Eval dataset: {eval_repo}")
+    print(f"[Elktron] Deploying trained policy: {task_name}")
+    print(f"[Elktron] Model: {model_path}")
+    print(f"[Elktron] Eval dataset: {eval_repo}")
     print()
     print("The arm will move AUTONOMOUSLY. Keep hands clear!")
     print("Press Ctrl+C to stop at any time.")

@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raspberry Pi 5 — 3D Model</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0c;
+    --surface: #141418;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e6e3;
+    --text-dim: #787472;
+    --accent: #c3423f;
+    --green: #3a7d44;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #canvas-container { position: fixed; inset: 0; z-index: 1; }
+  canvas { display: block; }
+
+  .ui-overlay {
+    position: fixed; z-index: 10; pointer-events: none;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .ui-overlay.visible { opacity: 1; transform: translateY(0); }
+
+  .title-block { top: 2rem; left: 2.5rem; }
+  .title-block h1 {
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700; letter-spacing: -0.03em; line-height: 1.1;
+  }
+  .title-block .subtitle {
+    font-size: 0.72rem; color: var(--text-dim);
+    margin-top: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .specs-block { bottom: 2rem; left: 2.5rem; }
+  .specs-block .spec-row { display: flex; gap: 2rem; margin-bottom: 0.35rem; }
+  .spec-row .label {
+    font-size: 0.65rem;
+    color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 0.1em; min-width: 4.5rem;
+  }
+  .spec-row .value { font-size: 0.75rem; font-weight: 500; }
+
+  .controls-hint { bottom: 2rem; right: 2.5rem; text-align: right; }
+  .controls-hint p {
+    font-size: 0.6rem; color: var(--text-dim);
+    letter-spacing: 0.06em; line-height: 1.8;
+  }
+  .controls-hint kbd {
+    display: inline-block; background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border); border-radius: 3px;
+    padding: 0.1em 0.4em; font-family: inherit; font-size: inherit;
+  }
+
+  /* Explode toggle button */
+  .explode-btn {
+    position: fixed; top: 2rem; right: 2.5rem; z-index: 15;
+    pointer-events: all; cursor: pointer;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-dim); border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+    transition: color 0.3s cubic-bezier(0.25,1,0.5,1),
+                border-color 0.3s cubic-bezier(0.25,1,0.5,1),
+                background 0.3s cubic-bezier(0.25,1,0.5,1);
+    opacity: 0; transform: translateY(8px);
+  }
+  .explode-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+  .explode-btn:active { transform: scale(0.95); }
+  .explode-btn.active {
+    color: var(--accent); border-color: var(--accent);
+    background: rgba(195,66,63,0.08);
+  }
+  .explode-btn.visible { opacity: 1; transform: translateY(0);
+    transition: opacity 0.6s cubic-bezier(0.25,1,0.5,1),
+                transform 0.6s cubic-bezier(0.25,1,0.5,1),
+                color 0.3s, border-color 0.3s, background 0.3s;
+  }
+
+  /* Component Toggle Panel */
+  .comp-panel {
+    position: fixed; top: 5rem; right: 2.5rem; z-index: 15;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.6rem 0.8rem;
+    max-height: 70vh; overflow-y: auto;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.6s cubic-bezier(0.25,1,0.5,1),
+                transform 0.6s cubic-bezier(0.25,1,0.5,1);
+    pointer-events: all;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
+  .comp-panel.visible { opacity: 1; transform: translateY(0); }
+  .comp-panel-title {
+    font-size: 0.55rem; color: var(--text-dim);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.5rem; padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .comp-toggle {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.2rem 0; cursor: pointer;
+    font-size: 0.58rem; color: var(--text-dim);
+    transition: color 0.2s;
+    user-select: none;
+  }
+  .comp-toggle:hover { color: var(--text); }
+  .comp-toggle input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 12px; height: 12px; border-radius: 2px;
+    border: 1px solid var(--border); background: transparent;
+    cursor: pointer; flex-shrink: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .comp-toggle input[type="checkbox"]:checked {
+    background: var(--green); border-color: var(--green);
+  }
+  .comp-toggle.hidden-comp { color: rgba(120,116,114,0.4); text-decoration: line-through; }
+
+  /* Floating 3D labels */
+  #labels-container {
+    position: fixed; inset: 0; z-index: 12;
+    pointer-events: none; overflow: hidden;
+  }
+  .comp-label {
+    position: absolute;
+    font-size: 0.58rem;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.4s cubic-bezier(0.25,1,0.5,1),
+                transform 0.4s cubic-bezier(0.25,1,0.5,1);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.9), 0 0 2px rgba(0,0,0,1);
+  }
+  .comp-label.visible { opacity: 1; transform: translateY(0); }
+  .comp-label::before {
+    content: '';
+    display: inline-block;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+    vertical-align: middle;
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  /* Leader line canvas */
+  #lines-canvas {
+    position: fixed; inset: 0; z-index: 11;
+    pointer-events: none;
+  }
+
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 100; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1.2rem;
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .loading-screen.hidden { opacity: 0; pointer-events: none; }
+  .loading-bar {
+    width: 120px; height: 2px;
+    background: rgba(255,255,255,0.06); border-radius: 1px; overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%; background: var(--accent);
+    width: 0%; transition: width 0.3s ease;
+  }
+  .loading-text {
+    font-size: 0.65rem; color: var(--text-dim);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  .tooltip {
+    position: fixed; z-index: 20;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 0.4rem 0.7rem; border-radius: 4px;
+    font-size: 0.65rem; color: var(--text);
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.2s; white-space: nowrap;
+  }
+  .tooltip.active { opacity: 1; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="loading-text">Assembling board</div>
+  <div class="loading-bar"><div class="loading-bar-fill" id="loading-fill"></div></div>
+</div>
+
+<div class="ui-overlay title-block" id="ui-title">
+  <h1>Raspberry Pi 5</h1>
+  <div class="subtitle">BCM2712 &mdash; Cortex-A76 &mdash; 2.4 GHz</div>
+</div>
+
+<div class="ui-overlay specs-block" id="ui-specs">
+  <div class="spec-row"><span class="label">SoC</span><span class="value">Broadcom BCM2712</span></div>
+  <div class="spec-row"><span class="label">CPU</span><span class="value">4x Cortex-A76 @ 2.4 GHz</span></div>
+  <div class="spec-row"><span class="label">GPU</span><span class="value">VideoCore VII</span></div>
+  <div class="spec-row"><span class="label">RAM</span><span class="value">8 GB LPDDR4X-4267</span></div>
+  <div class="spec-row"><span class="label">PCIe</span><span class="value">1x PCIe 2.0 (FPC)</span></div>
+  <div class="spec-row"><span class="label">I/O</span><span class="value">2x USB 3.0 &middot; 2x USB 2.0 &middot; GbE</span></div>
+</div>
+
+<div class="ui-overlay controls-hint" id="ui-controls">
+  <p><kbd>Drag</kbd> Orbit &middot; <kbd>Scroll</kbd> Zoom</p>
+  <p><kbd>R</kbd> Reset &middot; <kbd>1-4</kbd> Presets &middot; <kbd>E</kbd> Explode</p>
+</div>
+
+<button class="explode-btn" id="explode-btn">E &mdash; Explode View</button>
+
+<div class="tooltip" id="tooltip"></div>
+<div id="labels-container"></div>
+<canvas id="lines-canvas"></canvas>
+<div id="canvas-container"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+
+// ─── Constants ──────────────────────────────────────────────
+const BW = 8.5, BH = 0.16, BD = 5.6;
+
+// ─── Scene ──────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x12131a);
+
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
+camera.position.set(6, 5, 8);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.5;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ─── Controls ───────────────────────────────────────────────
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 4;
+controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI * 0.85;
+controls.target.set(0, 0.2, 0);
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.6;
+
+// ─── Post Processing ────────────────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(innerWidth, innerHeight), 0.3, 0.6, 0.9
+);
+composer.addPass(bloomPass);
+
+const VignetteShader = {
+  uniforms: { tDiffuse: { value: null }, darkness: { value: 0.6 } },
+  vertexShader: `varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader: `uniform sampler2D tDiffuse;uniform float darkness;varying vec2 vUv;
+    void main(){vec4 c=texture2D(tDiffuse,vUv);vec2 u=(vUv-.5)*2.;gl_FragColor=vec4(c.rgb*(1.-dot(u,u)*.25*darkness),c.a);}`
+};
+composer.addPass(new ShaderPass(VignetteShader));
+
+// ─── Lighting ───────────────────────────────────────────────
+RectAreaLightUniformsLib.init();
+scene.add(new THREE.AmbientLight(0x606068, 1.0));
+
+const keyLight = new THREE.DirectionalLight(0xfff5e8, 2.8);
+keyLight.position.set(5, 8, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 1; keyLight.shadow.camera.far = 25;
+keyLight.shadow.camera.left = -5; keyLight.shadow.camera.right = 5;
+keyLight.shadow.camera.top = 5; keyLight.shadow.camera.bottom = -5;
+keyLight.shadow.bias = -0.0002; keyLight.shadow.normalBias = 0.02;
+scene.add(keyLight);
+
+const fill = new THREE.DirectionalLight(0xc8d8f0, 1.4);
+fill.position.set(-4, 3, 6); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffe0c0, 1.0);
+rim.position.set(0, 2, -6); scene.add(rim);
+const backFill = new THREE.DirectionalLight(0xe0e8ff, 0.8);
+backFill.position.set(-3, 4, -4); scene.add(backFill);
+const rect = new THREE.RectAreaLight(0xffffff, 5, 8, 8);
+rect.position.set(0, 6, 0); rect.lookAt(0, 0, 0); scene.add(rect);
+
+// Ground
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(40, 40),
+  new THREE.MeshStandardMaterial({ color: 0x12131a, roughness: 0.85 })
+);
+ground.rotation.x = -Math.PI / 2; ground.position.y = -0.85;
+ground.receiveShadow = true; scene.add(ground);
+
+// ─── Materials ──────────────────────────────────────────────
+const silverMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.25, metalness: 0.95 });
+const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.4, metalness: 0.9 });
+const blackPlasticMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.8, metalness: 0.05 });
+const whitePlasticMat = new THREE.MeshStandardMaterial({ color: 0xe8e8e0, roughness: 0.7 });
+const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4a843, roughness: 0.3, metalness: 0.95 });
+const copperMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.5, metalness: 0.8 });
+const usb3BlueMat = new THREE.MeshStandardMaterial({ color: 0x1565c0, roughness: 0.6, metalness: 0.1 });
+const usb2BlackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.05 });
+const chipMat = new THREE.MeshStandardMaterial({ color: 0x151518, roughness: 0.5, metalness: 0.15 });
+const heatSpreaderMat = new THREE.MeshStandardMaterial({ color: 0xb8b8c0, roughness: 0.2, metalness: 0.95 });
+const ethernetMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c8, roughness: 0.3, metalness: 0.85 });
+const connectorMat = new THREE.MeshStandardMaterial({ color: 0xf0e6d0, roughness: 0.5, metalness: 0.1 });
+const audioMat = new THREE.MeshStandardMaterial({ color: 0x222225, roughness: 0.5, metalness: 0.6 });
+
+const ledGreenMat = new THREE.MeshStandardMaterial({ color: 0x00ff44, roughness: 0.3, emissive: 0x00ff44, emissiveIntensity: 2.0 });
+const ledRedMat = new THREE.MeshStandardMaterial({ color: 0xff2020, roughness: 0.3, emissive: 0xff2020, emissiveIntensity: 1.5 });
+const ledAmberMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.3, emissive: 0xffaa00, emissiveIntensity: 1.5 });
+
+// ─── Helpers ────────────────────────────────────────────────
+const piGroup = new THREE.Group();
+const interactiveObjects = [];
+const explodeParts = []; // { group, restPos, explodedPos, delay }
+
+function makeBox(w, h, d, mat, name) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  if (name) { m.userData.name = name; interactiveObjects.push(m); }
+  return m;
+}
+function makeCyl(rT, rB, h, s, mat, name) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rT, rB, h, s), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  if (name) { m.userData.name = name; interactiveObjects.push(m); }
+  return m;
+}
+
+// ─── ENHANCED PCB TEXTURE ───────────────────────────────────
+function generatePCBTexture(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+
+  // Base green solder mask
+  ctx.fillStyle = '#1a6b3a';
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle solder mask texture noise
+  for (let i = 0; i < 8000; i++) {
+    const x = Math.random() * w, y = Math.random() * h;
+    ctx.fillStyle = `rgba(${Math.random()>0.5?40:10}, ${60+Math.random()*30}, ${30+Math.random()*20}, 0.15)`;
+    ctx.fillRect(x, y, 1, 1);
+  }
+
+  // ── Copper traces ──
+  ctx.strokeStyle = 'rgba(180, 150, 60, 0.12)';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+
+  // Horizontal bus lines
+  for (let i = 0; i < 25; i++) {
+    const y = 40 + Math.random() * (h - 80);
+    const x1 = 30 + Math.random() * 100;
+    const x2 = w - 30 - Math.random() * 100;
+    ctx.beginPath(); ctx.moveTo(x1, y);
+    // Route with 90-degree bends
+    const midX = x1 + (x2 - x1) * (0.3 + Math.random() * 0.4);
+    const jog = (Math.random() - 0.5) * 30;
+    ctx.lineTo(midX, y);
+    ctx.lineTo(midX, y + jog);
+    ctx.lineTo(x2, y + jog);
+    ctx.stroke();
+  }
+
+  // Vertical traces
+  for (let i = 0; i < 20; i++) {
+    const x = 40 + Math.random() * (w - 80);
+    const y1 = 40 + Math.random() * 200;
+    const y2 = y1 + 80 + Math.random() * 300;
+    ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+  }
+
+  // Thicker power/ground planes (partial copper pours)
+  ctx.fillStyle = 'rgba(170, 140, 50, 0.05)';
+  for (let i = 0; i < 6; i++) {
+    const px = Math.random() * (w - 200);
+    const py = Math.random() * (h - 150);
+    ctx.fillRect(px, py, 100 + Math.random() * 150, 60 + Math.random() * 100);
+  }
+
+  // ── Via holes ──
+  for (let i = 0; i < 120; i++) {
+    const vx = 30 + Math.random() * (w - 60);
+    const vy = 30 + Math.random() * (h - 60);
+    // Annular ring (copper)
+    ctx.beginPath(); ctx.arc(vx, vy, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(180, 150, 60, 0.2)'; ctx.fill();
+    // Hole
+    ctx.beginPath(); ctx.arc(vx, vy, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#0d4422'; ctx.fill();
+  }
+
+  // ── Solder pads ──
+  function drawPadRow(sx, sy, count, dx, dy, padW, padH) {
+    for (let i = 0; i < count; i++) {
+      const px = sx + i * dx, py = sy + i * dy;
+      // Pad
+      ctx.fillStyle = 'rgba(200, 170, 70, 0.25)';
+      const r = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(px - padW/2, py - padH/2, padW, padH, r);
+      ctx.fill();
+      // Solder paste dot
+      ctx.fillStyle = 'rgba(220, 200, 140, 0.12)';
+      ctx.beginPath();
+      ctx.roundRect(px - padW/2 + 1, py - padH/2 + 1, padW - 2, padH - 2, r);
+      ctx.fill();
+    }
+  }
+
+  // BGA pads for SoC area (center-left of board)
+  const socCx = w * 0.42, socCy = h * 0.50;
+  for (let row = 0; row < 12; row++) {
+    for (let col = 0; col < 12; col++) {
+      const px = socCx - 30 + col * 5.5;
+      const py = socCy - 30 + row * 5.5;
+      ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200, 170, 70, 0.15)'; ctx.fill();
+    }
+  }
+
+  // RAM pads
+  const ramCx = w * 0.62, ramCy = h * 0.50;
+  drawPadRow(ramCx - 25, ramCy - 15, 14, 4, 0, 3, 6);
+  drawPadRow(ramCx - 25, ramCy + 15, 14, 4, 0, 3, 6);
+
+  // GPIO pads (top edge)
+  drawPadRow(w * 0.25, 38, 20, 15.3, 0, 4, 4);
+  drawPadRow(w * 0.25, 50, 20, 15.3, 0, 4, 4);
+
+  // Connector pads scattered
+  drawPadRow(w * 0.15, h * 0.35, 8, 5, 0, 3, 7);
+  drawPadRow(w * 0.72, h * 0.30, 10, 4, 0, 3, 5);
+  drawPadRow(w * 0.50, h * 0.75, 12, 6, 0, 3, 8);
+
+  // ── Silkscreen layer ──
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.font = 'bold 28px "Courier New", monospace';
+  ctx.fillText('Raspberry Pi 5', w * 0.06, h * 0.52);
+  ctx.font = '14px "Courier New", monospace';
+  ctx.fillText('Model B  Rev 1.0', w * 0.06, h * 0.56);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.font = '11px "Courier New", monospace';
+  ctx.fillText('\u00A9 2023 Raspberry Pi Ltd.', w * 0.06, h * 0.60);
+  ctx.fillText('Made in UK', w * 0.06, h * 0.63);
+
+  // Reference designators
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = '8px "Courier New", monospace';
+  const refs = [
+    ['U1', 0.42, 0.42], ['U2', 0.62, 0.42], ['U3', 0.22, 0.44],
+    ['U4', 0.42, 0.72], ['U5', 0.72, 0.60],
+    ['C1', 0.32, 0.58], ['C2', 0.52, 0.65], ['C3', 0.15, 0.72],
+    ['C4', 0.68, 0.45], ['C5', 0.38, 0.30], ['C6', 0.55, 0.82],
+    ['C7', 0.78, 0.35], ['C8', 0.25, 0.82],
+    ['R1', 0.35, 0.78], ['R2', 0.58, 0.38], ['R3', 0.75, 0.72],
+    ['R4', 0.18, 0.55], ['R5', 0.48, 0.28],
+    ['L1', 0.30, 0.70], ['L2', 0.55, 0.72], ['L3', 0.20, 0.44],
+    ['D1', 0.15, 0.82], ['D2', 0.18, 0.84],
+    ['J1', 0.12, 0.88], ['J2', 0.88, 0.20], ['J3', 0.88, 0.50],
+    ['J4', 0.88, 0.78], ['J5', 0.60, 0.88],
+    ['Y1', 0.68, 0.44], ['SW1', 0.82, 0.85],
+  ];
+  refs.forEach(([label, rx, ry]) => {
+    ctx.fillText(label, w * rx, h * ry);
+  });
+
+  // Component outlines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = 0.8;
+  // SoC outline
+  ctx.strokeRect(socCx - 35, socCy - 35, 70, 70);
+  // RAM outline
+  ctx.strokeRect(ramCx - 30, ramCy - 18, 60, 36);
+  // Various small component outlines
+  for (let i = 0; i < 35; i++) {
+    const ox = 30 + Math.random() * (w - 60);
+    const oy = 70 + Math.random() * (h - 140);
+    const ow = 4 + Math.random() * 10;
+    const oh = 3 + Math.random() * 6;
+    ctx.strokeRect(ox, oy, ow, oh);
+  }
+
+  // Raspberry Pi logo (simplified)
+  ctx.save();
+  ctx.translate(w * 0.08, h * 0.44);
+  ctx.scale(0.7, 0.7);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+  ctx.beginPath();
+  ctx.arc(0, 0, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.beginPath();
+  ctx.ellipse(-3, -4, 5, 8, -0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(3, -4, 5, 8, 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // Regulatory marks
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  ctx.font = '9px sans-serif';
+  ctx.fillText('CE', w * 0.85, h * 0.92);
+  ctx.fillText('FCC', w * 0.89, h * 0.92);
+
+  return new THREE.CanvasTexture(c);
+}
+
+// ─── PCB with enhanced texture ──────────────────────────────
+function createRoundedRectShape(w, h, r) {
+  const shape = new THREE.Shape();
+  shape.moveTo(-w/2 + r, -h/2);
+  shape.lineTo(w/2 - r, -h/2);
+  shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+  shape.lineTo(w/2, h/2 - r);
+  shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
+  shape.lineTo(-w/2 + r, h/2);
+  shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
+  shape.lineTo(-w/2, -h/2 + r);
+  shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+
+  const hR = 0.15;
+  [[-3.8,-2.4],[2.45,-2.45],
+   [-3.8,2.4],[2.45,2.4]].forEach(([hx,hy]) => {
+    const hole = new THREE.Path();
+    hole.absarc(hx, hy, hR, 0, Math.PI * 2, true);
+    shape.holes.push(hole);
+  });
+  return shape;
+}
+
+// PCB material with canvas texture
+const pcbTexture = generatePCBTexture(2048, 1344);
+pcbTexture.colorSpace = THREE.SRGBColorSpace;
+pcbTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+const pcbMat = new THREE.MeshStandardMaterial({
+  map: pcbTexture, roughness: 0.6, metalness: 0.08
+});
+
+const pcbGeo = new THREE.ExtrudeGeometry(
+  createRoundedRectShape(BW, BD, 0.3), { depth: BH, bevelEnabled: false }
+);
+pcbGeo.rotateX(-Math.PI / 2);
+
+// Compute proper UVs for the top face
+const posAttr = pcbGeo.attributes.position;
+const uvAttr = pcbGeo.attributes.uv;
+for (let i = 0; i < posAttr.count; i++) {
+  const x = posAttr.getX(i), z = posAttr.getZ(i);
+  uvAttr.setXY(i, (x + BW/2) / BW, (z + BD/2) / BD);
+}
+uvAttr.needsUpdate = true;
+
+const pcb = new THREE.Mesh(pcbGeo, pcbMat);
+pcb.castShadow = true; pcb.receiveShadow = true;
+pcb.userData.name = 'PCB (4-layer, 1.4mm)';
+interactiveObjects.push(pcb);
+piGroup.add(pcb);
+
+// Mounting hole copper rings
+[[-3.8,-2.4],[2.45,-2.45],
+ [-3.8,2.4],[2.45,2.4]].forEach(([hx,hz]) => {
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.28, 24), copperMat);
+  ring.rotation.x = -Math.PI/2; ring.position.set(hx, BH+0.002, hz);
+  piGroup.add(ring);
+});
+
+// ─── COMPONENT BUILDER ──────────────────────────────────────
+// Register explodable parts with direction vectors
+let partIndex = 0;
+function registerExplodable(group, name, explodeDir, yLift) {
+  group.userData.name = name;
+  group.userData.restPosition = group.position.clone();
+  group.userData.explodeOffset = new THREE.Vector3(
+    explodeDir[0], yLift || 1.5, explodeDir[1]
+  );
+  group.userData.explodeDelay = partIndex * 40;
+  explodeParts.push(group);
+  interactiveObjects.push(group);
+  partIndex++;
+}
+
+// ─── SoC — BCM2712 ─────────────────────────────────────────
+const socGroup = new THREE.Group();
+const socPkg = makeBox(1.6, 0.12, 1.55, chipMat);
+socPkg.position.y = BH + 0.06; socGroup.add(socPkg);
+const spreader = makeBox(1.5, 0.08, 1.45, heatSpreaderMat);
+spreader.position.y = BH + 0.16; spreader.castShadow = true; socGroup.add(spreader);
+// Label
+const spC = document.createElement('canvas'); spC.width = 256; spC.height = 256;
+const spX = spC.getContext('2d');
+spX.fillStyle = '#888'; spX.font = 'bold 24px monospace'; spX.textAlign = 'center';
+spX.fillText('BCM2712', 128, 115);
+spX.font = '16px monospace'; spX.fillText('BROADCOM', 128, 145);
+const spL = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.35),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(spC), transparent: true, depthWrite: false }));
+spL.rotation.x = -Math.PI/2; spL.position.y = BH + 0.201; socGroup.add(spL);
+socGroup.position.set(-1.55, 0, 0.275);
+registerExplodable(socGroup, 'BCM2712 SoC (Cortex-A76 2.4GHz)', [0, 0], 3.0);
+piGroup.add(socGroup);
+
+// ─── RAM ────────────────────────────────────────────────────
+const ramG = new THREE.Group();
+const ram = makeBox(1.0, 0.08, 0.7, chipMat); ram.position.y = BH + 0.04; ramG.add(ram);
+const rC = document.createElement('canvas'); rC.width = 256; rC.height = 128;
+const rX = rC.getContext('2d');
+rX.fillStyle = '#666'; rX.font = 'bold 20px monospace'; rX.textAlign = 'center';
+rX.fillText('MICRON', 128, 50); rX.font = '14px monospace'; rX.fillText('8GB LPDDR4X', 128, 75);
+const rL = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(rC), transparent: true, depthWrite: false }));
+rL.rotation.x = -Math.PI/2; rL.position.y = BH + 0.081; ramG.add(rL);
+ramG.position.set(-1.6, 0, -1.15);
+registerExplodable(ramG, 'LPDDR4X-4267 (8GB)', [1.5, 0], 2.5);
+piGroup.add(ramG);
+
+// ─── RP1 Southbridge ────────────────────────────────────────
+const rp1G = new THREE.Group();
+const rp1 = makeBox(0.8, 0.08, 0.8, chipMat); rp1.position.y = BH + 0.04; rp1G.add(rp1);
+const r1C = document.createElement('canvas'); r1C.width = 128; r1C.height = 128;
+const r1X = r1C.getContext('2d');
+r1X.fillStyle = '#555'; r1X.font = 'bold 18px monospace'; r1X.textAlign = 'center'; r1X.fillText('RP1', 64, 64);
+const r1L = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7),
+  new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(r1C), transparent: true, depthWrite: false }));
+r1L.rotation.x = -Math.PI/2; r1L.position.y = BH + 0.081; rp1G.add(r1L);
+rp1G.position.set(2.05, 0, -0.9);
+registerExplodable(rp1G, 'RP1 Southbridge', [-1.5, -0.5], 2.0);
+piGroup.add(rp1G);
+
+// ─── PMIC ───────────────────────────────────────────────────
+const pmicG = new THREE.Group();
+pmicG.add((() => { const m = makeBox(0.45, 0.06, 0.45, chipMat); m.position.y = BH + 0.03; return m; })());
+pmicG.position.set(-2.9, 0, 1.65);
+registerExplodable(pmicG, 'DA9091 PMIC', [0, -1.5], 1.8);
+piGroup.add(pmicG);
+
+// ─── WiFi/BT ────────────────────────────────────────────────
+const wifiG = new THREE.Group();
+wifiG.add((() => { const m = makeBox(1.0, 0.18, 1.0, silverMat); m.position.y = BH + 0.09; return m; })());
+wifiG.position.set(-3.0, 0, -1.55);
+registerExplodable(wifiG, 'WiFi 5 / Bluetooth 5.0', [-2, 1], 2.2);
+piGroup.add(wifiG);
+
+// ─── GPIO Header ────────────────────────────────────────────
+const gpioG = new THREE.Group();
+const gpioBase = makeBox(5.5, 0.25, 0.5, blackPlasticMat);
+gpioBase.position.y = BH + 0.125; gpioG.add(gpioBase);
+for (let r = 0; r < 2; r++) for (let c = 0; c < 20; c++) {
+  const p = makeCyl(0.025, 0.025, 0.6, 6, goldMat);
+  p.position.set(-2.4 + c * 0.254, BH + 0.3, -0.127 + r * 0.254);
+  gpioG.add(p);
+}
+gpioG.position.set(-0.7, 0, -2.45);
+registerExplodable(gpioG, 'GPIO Header (40-pin, 2x20)', [0, -2.5], 2.8);
+piGroup.add(gpioG);
+
+// ─── USB-C Power ────────────────────────────────────────────
+const usbCG = new THREE.Group();
+usbCG.add((() => { const m = makeBox(0.9, 0.32, 0.76, silverMat); m.position.y = BH + 0.16; return m; })());
+usbCG.add((() => { const m = makeBox(0.7, 0.16, 0.64, darkMetalMat); m.position.set(0, BH + 0.16, 0.07); return m; })());
+usbCG.add((() => { const m = makeBox(0.55, 0.04, 0.4, whitePlasticMat); m.position.set(0, BH + 0.16, 0.04); return m; })());
+usbCG.position.set(-2.75, 0, BD/2 + 0.05); usbCG.rotation.y = Math.PI;
+registerExplodable(usbCG, 'USB-C Power (5V/5A)', [-2, 2], 1.5);
+piGroup.add(usbCG);
+
+// ─── Micro HDMI (x2) ───────────────────────────────────────
+function mkHDMI(name, x, dir) {
+  const g = new THREE.Group();
+  g.add((() => { const m = makeBox(0.65, 0.28, 0.6, silverMat); m.position.y = BH + 0.14; return m; })());
+  g.add((() => { const m = makeBox(0.5, 0.15, 0.45, darkMetalMat); m.position.set(0, BH + 0.14, 0.08); return m; })());
+  g.position.set(x, 0, BD/2 - 0.02); g.rotation.y = Math.PI;
+  registerExplodable(g, name, dir, 1.5);
+  piGroup.add(g);
+  return g;
+}
+mkHDMI('Micro HDMI 0 (4Kp60)', -1.675, [-1.2, 2.2]);
+mkHDMI('Micro HDMI 1 (4Kp60)', -0.475, [-0.3, 2.5]);
+
+// ─── USB 3.0 Stack ──────────────────────────────────────────
+function mkUSBStack(mat, name, z, dir) {
+  const g = new THREE.Group();
+  g.add((() => { const m = makeBox(1.45, 1.58, 0.76, silverMat); m.position.y = BH + 0.79; return m; })());
+  for (let i = 0; i < 2; i++) {
+    g.add((() => { const m = makeBox(1.2, 0.5, 0.56, darkMetalMat); m.position.set(0, BH + 0.35 + i * 0.7, 0.11); return m; })());
+    g.add((() => { const m = makeBox(1.0, 0.08, 0.35, mat); m.position.set(0, BH + 0.35 + i * 0.7, 0.05); return m; })());
+  }
+  g.position.set(BW/2 - 0.02, 0, z); g.rotation.y = Math.PI / 2;
+  registerExplodable(g, name, dir, 1.8);
+  piGroup.add(g);
+  return g;
+}
+mkUSBStack(usb2BlackMat, 'USB 2.0 (2x, 480Mbps)', -1.925, [2.5, -1.5]);
+mkUSBStack(usb3BlueMat, 'USB 3.0 (2x, 5Gbps)', -0.25, [2.5, 0.5]);
+
+// ─── Ethernet ───────────────────────────────────────────────
+const ethG = new THREE.Group();
+ethG.add((() => { const m = makeBox(1.6, 1.36, 1.58, ethernetMat); m.position.y = BH + 0.68; return m; })());
+ethG.add((() => { const m = makeBox(1.3, 1.0, 1.1, darkMetalMat); m.position.set(0, BH + 0.58, 0.25); return m; })());
+ethG.add((() => { const m = makeBox(0.15, 0.12, 0.08, ledGreenMat); m.position.set(-0.55, BH + 1.2, 0.76); return m; })());
+ethG.add((() => { const m = makeBox(0.15, 0.12, 0.08, ledAmberMat); m.position.set(0.55, BH + 1.2, 0.76); return m; })());
+ethG.position.set(BW/2 - 0.02, 0, 1.6); ethG.rotation.y = Math.PI / 2;
+registerExplodable(ethG, 'Gigabit Ethernet (RJ-45)', [2.5, 2], 1.8);
+piGroup.add(ethG);
+
+// ─── (Pi 5 has no 3.5mm audio jack)
+
+// ─── CSI/DSI Connectors ────────────────────────────────────
+function mkFPC(name, x, z, rotY, dir) {
+  const g = new THREE.Group();
+  g.add((() => { const m = makeBox(2.2, 0.18, 0.35, connectorMat); m.position.y = BH + 0.09; return m; })());
+  g.add((() => { const m = makeBox(2.0, 0.08, 0.12, blackPlasticMat); m.position.set(0, BH + 0.22, -0.1); return m; })());
+  for (let i = 0; i < 15; i++) {
+    g.add((() => { const m = makeBox(0.06, 0.04, 0.25, goldMat); m.position.set(-1.0 + i * 0.14, BH + 0.02, 0); return m; })());
+  }
+  g.position.set(x, 0, z); g.rotation.y = rotY;
+  registerExplodable(g, name, dir, 1.6);
+  piGroup.add(g); return g;
+}
+mkFPC('MIPI CSI-2 Camera (4-lane)', 1.05, 0.95, Math.PI / 2, [1.5, 2.2]);
+mkFPC('MIPI DSI-2 Display (4-lane)', 1.6, 0.95, Math.PI / 2, [-0.5, 2.5]);
+
+// ─── PCIe FPC ───────────────────────────────────────────────
+const pcieG = new THREE.Group();
+pcieG.add((() => { const m = makeBox(1.6, 0.18, 0.35, connectorMat); m.position.y = BH + 0.09; return m; })());
+pcieG.add((() => { const m = makeBox(1.4, 0.06, 0.1, blackPlasticMat); m.position.set(0, BH + 0.22, -0.1); return m; })());
+pcieG.position.set(-3.775, 0, -0.1); pcieG.rotation.y = Math.PI / 2;
+registerExplodable(pcieG, 'PCIe 2.0 x1 (FPC)', [1.2, 2.0], 1.8);
+piGroup.add(pcieG);
+
+// ─── Power Button ───────────────────────────────────────────
+const pwrG = new THREE.Group();
+pwrG.add((() => { const m = makeCyl(0.2, 0.2, 0.12, 16, blackPlasticMat); m.position.y = BH + 0.06; return m; })());
+pwrG.add((() => { const m = makeCyl(0.16, 0.16, 0.08, 16, silverMat); m.position.y = BH + 0.16; return m; })());
+pwrG.position.set(-4.25, 0, 0.95);
+registerExplodable(pwrG, 'Power Button', [2, 2], 1.2);
+piGroup.add(pwrG);
+
+// ─── Fan Header ─────────────────────────────────────────────
+const fanG = new THREE.Group();
+fanG.add((() => { const m = makeBox(0.5, 0.25, 0.25, whitePlasticMat); m.position.y = BH + 0.125; return m; })());
+for (let i = 0; i < 4; i++) {
+  fanG.add((() => { const m = makeCyl(0.02, 0.02, 0.35, 6, goldMat); m.position.set(-0.15 + i * 0.1, BH + 0.175, 0); return m; })());
+}
+fanG.position.set(3.0, 0, -2.425); fanG.rotation.y = Math.PI / 2;
+registerExplodable(fanG, 'Fan Header (4-pin PWM)', [1.5, -1.5], 1.4);
+piGroup.add(fanG);
+
+// ─── UART ───────────────────────────────────────────────────
+const uartG = new THREE.Group();
+uartG.add((() => { const m = makeBox(0.36, 0.25, 0.25, whitePlasticMat); m.position.y = BH + 0.125; return m; })());
+for (let i = 0; i < 3; i++) {
+  uartG.add((() => { const m = makeCyl(0.02, 0.02, 0.35, 6, goldMat); m.position.set(-0.09 + i * 0.09, BH + 0.175, 0); return m; })());
+}
+uartG.position.set(-1.075, 0, 2.525);
+registerExplodable(uartG, 'UART Header (3-pin)', [0.5, -2], 1.4);
+piGroup.add(uartG);
+
+// ─── RTC Battery ────────────────────────────────────────────
+const rtcG = new THREE.Group();
+rtcG.add((() => { const m = makeBox(0.35, 0.2, 0.2, whitePlasticMat); m.position.y = BH + 0.1; return m; })());
+rtcG.position.set(0.775, 0, 1.35);
+registerExplodable(rtcG, 'RTC Battery (JST-SH)', [0, -2.2], 1.2);
+piGroup.add(rtcG);
+
+// ─── Status LEDs ────────────────────────────────────────────
+const pwrLedG = new THREE.Group();
+pwrLedG.add((() => { const m = makeBox(0.1, 0.06, 0.06, ledRedMat); m.position.y = BH + 0.03; return m; })());
+pwrLedG.position.set(-3.6, 0, 2.0);
+registerExplodable(pwrLedG, 'Power LED (Red)', [-2.5, 1.5], 1.0);
+piGroup.add(pwrLedG);
+
+const actLedG = new THREE.Group();
+actLedG.add((() => { const m = makeBox(0.1, 0.06, 0.06, ledGreenMat); m.position.y = BH + 0.03; return m; })());
+actLedG.position.set(-3.3, 0, 2.0);
+registerExplodable(actLedG, 'Activity LED (Green)', [-2.2, 1.8], 1.0);
+piGroup.add(actLedG);
+
+// ─── MicroSD Slot (left edge, underside — slot only) ─
+const sdSlotG = new THREE.Group();
+sdSlotG.add((() => { const m = makeBox(1.1, 0.14, 1.4, silverMat); m.position.y = -0.14; return m; })());
+sdSlotG.add((() => { const m = makeBox(0.3, 0.1, 1.1, darkMetalMat); m.position.set(-0.55, -0.14, 0); return m; })());
+sdSlotG.position.set(-4.35, 0, -0.15);
+registerExplodable(sdSlotG, 'MicroSD Card Slot', [-2.5, 0], 1.2);
+piGroup.add(sdSlotG);
+
+// ─── MicroSD Card (separate, ejected beside the board) ─
+const sdCardG = new THREE.Group();
+sdCardG.add((() => { const m = makeBox(1.1, 0.06, 0.9, blackPlasticMat); m.position.y = 0; return m; })());
+// Gold contacts on underside
+sdCardG.add((() => { const m = makeBox(0.8, 0.01, 0.6, goldMat); m.position.set(0.05, -0.035, 0); return m; })());
+// Notched corner (small cutout visual)
+sdCardG.add((() => { const m = makeBox(0.15, 0.06, 0.15, darkMetalMat); m.position.set(-0.48, 0, -0.38); return m; })());
+sdCardG.position.set(-5.8, -0.14, -0.15);
+registerExplodable(sdCardG, 'MicroSD Card (removable)', [-3, -0.5], 1.0);
+piGroup.add(sdCardG);
+
+// ─── SMD Components ─────────────────────────────────────────
+const smdMats = [chipMat, copperMat, darkMetalMat];
+[[-1.8,0.6,.15,.06,.1],[-1.5,0.8,.12,.05,.08],[0.5,1.6,.15,.06,.1],
+ [0.8,1.8,.1,.05,.08],[2.0,0.8,.18,.06,.12],[2.3,0.5,.12,.05,.08],
+ [-0.5,-1.2,.15,.06,.1],[-0.2,-1.0,.1,.05,.08],[1.0,-0.8,.12,.05,.08],
+ [1.5,-1.3,.15,.06,.1],[-2.5,-1.0,.12,.05,.08],[-3.0,0.0,.15,.06,.1],
+ [-1.0,1.6,.1,.05,.08],[3.2,0.3,.12,.06,.08],[3.0,-0.8,.15,.06,.1],
+ [-3.5,-0.5,.12,.05,.08],[0.2,-0.4,.18,.06,.12],[-2.0,1.5,.1,.05,.08],
+ [2.8,1.2,.12,.05,.08],[-1.2,-0.2,.15,.06,.1],
+].forEach(([px,pz,w,h,d]) => {
+  const m = makeBox(w, h, d, smdMats[Math.floor(Math.random()*3)]);
+  m.position.set(px, BH + h/2, pz);
+  piGroup.add(m);
+});
+
+// Inductors
+[[-1.5,-1.5],[0.5,-1.6],[-2.8,-0.8]].forEach(([x,z]) => {
+  const m = makeCyl(0.12, 0.12, 0.1, 12, darkMetalMat);
+  m.position.set(x, BH + 0.05, z); piGroup.add(m);
+});
+
+// Crystal
+const xtal = makeBox(0.2, 0.08, 0.15, silverMat);
+xtal.position.set(1.8, BH + 0.04, -0.3); piGroup.add(xtal);
+
+// ─── Position Pi (start hidden below for entrance animation) ─
+piGroup.position.y = -2.5;
+piGroup.rotation.y = -Math.PI * 0.15;
+piGroup.scale.setScalar(0.85);
+scene.add(piGroup);
+
+// ─── Hero Entrance Animation ────────────────────────────────
+let entranceDone = false;
+const entranceTarget = { y: 0.5, rotY: 0, scale: 1 };
+let entranceStartTime = 0;
+const ENTRANCE_DURATION = 1400;
+const ENTRANCE_DELAY = 600; // ms after loading finishes
+
+function startEntrance() {
+  entranceStartTime = performance.now();
+}
+
+function updateEntrance(now) {
+  if (entranceDone) return;
+  if (entranceStartTime === 0) return;
+
+  const elapsed = now - entranceStartTime;
+  if (elapsed < 0) return;
+
+  const rawT = Math.min(elapsed / ENTRANCE_DURATION, 1);
+  // ease-out-quint for a confident, smooth deceleration
+  const e = 1 - Math.pow(1 - rawT, 5);
+
+  piGroup.position.y = -2.5 + (entranceTarget.y - (-2.5)) * e;
+  piGroup.rotation.y = -Math.PI * 0.15 * (1 - e);
+  const s = 0.85 + (1 - 0.85) * e;
+  piGroup.scale.setScalar(s);
+
+  if (rawT >= 1) {
+    entranceDone = true;
+    piGroup.position.y = entranceTarget.y;
+    piGroup.rotation.y = 0;
+    piGroup.scale.setScalar(1);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPLODED VIEW SYSTEM
+// ═══════════════════════════════════════════════════════════════
+let isExploded = false;
+let explodeProgress = 0; // 0 = assembled, 1 = exploded
+let explodeDirection = 0; // 0 = idle, 1 = exploding, -1 = collapsing
+const EXPLODE_DURATION = 1200; // ms
+let explodeStartTime = 0;
+let explodeStartProgress = 0;
+
+const labelsContainer = document.getElementById('labels-container');
+const linesCanvas = document.getElementById('lines-canvas');
+const linesCtx = linesCanvas.getContext('2d');
+
+// Create label elements
+const labelElements = [];
+explodeParts.forEach((part, i) => {
+  const el = document.createElement('div');
+  el.className = 'comp-label';
+  el.textContent = part.userData.name;
+  el.dataset.index = i;
+  labelsContainer.appendChild(el);
+  labelElements.push(el);
+});
+
+function resizeLinesCanvas() {
+  linesCanvas.width = innerWidth * devicePixelRatio;
+  linesCanvas.height = innerHeight * devicePixelRatio;
+  linesCanvas.style.width = innerWidth + 'px';
+  linesCanvas.style.height = innerHeight + 'px';
+  // Reset transform then scale — prevents cumulative scaling
+  linesCtx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+resizeLinesCanvas();
+
+function toggleExplode() {
+  isExploded = !isExploded;
+  explodeDirection = isExploded ? 1 : -1;
+  explodeStartTime = performance.now();
+  explodeStartProgress = explodeProgress;
+  controls.autoRotate = false;
+
+  document.getElementById('explode-btn').classList.toggle('active', isExploded);
+
+  // Smooth camera adjustment
+  if (isExploded) {
+    animateCamera([8, 7, 10], [0, 1.5, 0], 1000);
+  } else {
+    animateCamera([6, 5, 8], [0, 0.2, 0], 1000);
+  }
+}
+
+function updateExplode(now) {
+  if (explodeDirection === 0) return;
+
+  const elapsed = now - explodeStartTime;
+  const rawT = Math.min(elapsed / EXPLODE_DURATION, 1);
+  // ease-out-quart
+  const eased = 1 - Math.pow(1 - rawT, 4);
+
+  if (explodeDirection === 1) {
+    explodeProgress = explodeStartProgress + (1 - explodeStartProgress) * eased;
+  } else {
+    explodeProgress = explodeStartProgress * (1 - eased);
+  }
+
+  if (rawT >= 1) {
+    explodeDirection = 0;
+    if (!isExploded) controls.autoRotate = true;
+  }
+
+  // Animate each part with stagger
+  explodeParts.forEach((part, i) => {
+    const rest = part.userData.restPosition;
+    const offset = part.userData.explodeOffset;
+    const delay = part.userData.explodeDelay;
+
+    // Stagger: shift the progress by delay
+    const staggerMs = delay;
+    const localElapsed = Math.max(0, (now - explodeStartTime) - staggerMs);
+    const localRawT = Math.min(localElapsed / (EXPLODE_DURATION * 0.8), 1);
+    const localEased = 1 - Math.pow(1 - localRawT, 4);
+
+    let localProgress;
+    if (explodeDirection === 1) {
+      localProgress = explodeStartProgress + (1 - explodeStartProgress) * localEased;
+    } else {
+      localProgress = explodeStartProgress * (1 - localEased);
+    }
+
+    part.position.set(
+      rest.x + offset.x * localProgress,
+      rest.y + offset.y * localProgress,
+      rest.z + offset.z * localProgress
+    );
+  });
+}
+
+// Project 3D position to screen
+const _v = new THREE.Vector3();
+function toScreen(obj) {
+  // Get world position of group
+  obj.getWorldPosition(_v);
+  _v.y += 0.3; // Slight offset above component
+  _v.project(camera);
+  return {
+    x: (_v.x * 0.5 + 0.5) * innerWidth,
+    y: (-_v.y * 0.5 + 0.5) * innerHeight,
+    z: _v.z
+  };
+}
+
+function getAnchorPoint(obj) {
+  obj.getWorldPosition(_v);
+  _v.project(camera);
+  return {
+    x: (_v.x * 0.5 + 0.5) * innerWidth,
+    y: (-_v.y * 0.5 + 0.5) * innerHeight
+  };
+}
+
+function updateLabels() {
+  linesCtx.clearRect(0, 0, innerWidth, innerHeight);
+
+  const showLabels = explodeProgress > 0.1;
+
+  explodeParts.forEach((part, i) => {
+    const el = labelElements[i];
+    if (!showLabels) {
+      el.classList.remove('visible');
+      return;
+    }
+
+    const screen = toScreen(part);
+
+    // Behind camera check
+    if (screen.z > 1) {
+      el.classList.remove('visible');
+      return;
+    }
+
+    // Position label with offset for readability
+    const labelX = screen.x + 20;
+    const labelY = screen.y - 10;
+
+    // Clamp to viewport
+    const clampedX = Math.max(10, Math.min(labelX, innerWidth - 200));
+    const clampedY = Math.max(10, Math.min(labelY, innerHeight - 20));
+
+    el.style.left = clampedX + 'px';
+    el.style.top = clampedY + 'px';
+
+    // Fade in based on explode progress
+    const partProgress = explodeProgress;
+    const labelOpacity = Math.max(0, Math.min(1, (partProgress - 0.2) / 0.3));
+    el.style.opacity = labelOpacity;
+
+    if (labelOpacity > 0) {
+      el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
+
+    // Draw leader line
+    if (labelOpacity > 0.05) {
+      const anchor = getAnchorPoint(part);
+
+      linesCtx.beginPath();
+      linesCtx.moveTo(anchor.x, anchor.y);
+
+      // Curved leader line
+      const midX = (anchor.x + clampedX) / 2;
+      const midY = anchor.y;
+      linesCtx.quadraticCurveTo(midX, midY, clampedX, clampedY + 6);
+
+      linesCtx.strokeStyle = `rgba(195, 66, 63, ${labelOpacity * 0.5})`;
+      linesCtx.lineWidth = 1;
+      linesCtx.setLineDash([3, 3]);
+      linesCtx.stroke();
+      linesCtx.setLineDash([]);
+
+      // Dot at anchor
+      linesCtx.beginPath();
+      linesCtx.arc(anchor.x, anchor.y, 2.5, 0, Math.PI * 2);
+      linesCtx.fillStyle = `rgba(195, 66, 63, ${labelOpacity * 0.7})`;
+      linesCtx.fill();
+    }
+  });
+}
+
+// ─── Interaction ────────────────────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('tooltip');
+
+function getAllMeshes() {
+  const result = new Set();
+  function recurse(obj) {
+    if (obj.isMesh) result.add(obj);
+    obj.children?.forEach(recurse);
+  }
+  interactiveObjects.forEach(recurse);
+  interactiveObjects.forEach(o => { if (o.isMesh) result.add(o); });
+  return [...result];
+}
+const allMeshes = getAllMeshes();
+
+function findName(obj) {
+  let c = obj;
+  while (c) { if (c.userData.name) return c.userData.name; c = c.parent; }
+  return null;
+}
+
+// Find the parent group that was registered as interactive
+function findInteractiveGroup(obj) {
+  let c = obj;
+  while (c) {
+    if (c.userData.name && (explodeParts.includes(c) || c === pcb)) return c;
+    c = c.parent;
+  }
+  return null;
+}
+
+// ─── 3D Hover Highlight System ──────────────────────────────
+let hoveredGroup = null;
+const HOVER_EMISSIVE = new THREE.Color(0x334433);
+
+function setGroupHighlight(group, highlight) {
+  if (!group) return;
+  group.traverse((child) => {
+    if (!child.isMesh || !child.material) return;
+    const mat = child.material;
+    // Skip LED materials (already emissive)
+    if (mat === ledGreenMat || mat === ledRedMat || mat === ledAmberMat) return;
+
+    if (highlight) {
+      // Store original material on the mesh (not the shared mat) and swap in a clone
+      if (!child.userData._origMat) {
+        child.userData._origMat = mat;
+        const cloned = mat.clone();
+        cloned.emissive = HOVER_EMISSIVE.clone();
+        cloned.emissiveIntensity = 0.6;
+        child.material = cloned;
+      }
+    } else {
+      // Restore original shared material
+      if (child.userData._origMat) {
+        child.material.dispose();
+        child.material = child.userData._origMat;
+        delete child.userData._origMat;
+      }
+    }
+  });
+}
+
+renderer.domElement.addEventListener('mousemove', (e) => {
+  mouse.x = (e.clientX / innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(allMeshes, false);
+
+  if (hits.length > 0) {
+    const name = findName(hits[0].object);
+    const group = findInteractiveGroup(hits[0].object);
+
+    // Update hover glow
+    if (group !== hoveredGroup) {
+      setGroupHighlight(hoveredGroup, false);
+      hoveredGroup = group;
+      setGroupHighlight(hoveredGroup, true);
+    }
+
+    if (name && !isExploded) {
+      tooltip.textContent = name;
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top = (e.clientY - 8) + 'px';
+      tooltip.classList.add('active');
+      renderer.domElement.style.cursor = 'pointer';
+    } else {
+      tooltip.classList.remove('active');
+      renderer.domElement.style.cursor = isExploded ? 'default' : 'pointer';
+    }
+  } else {
+    setGroupHighlight(hoveredGroup, false);
+    hoveredGroup = null;
+    tooltip.classList.remove('active');
+    renderer.domElement.style.cursor = 'default';
+  }
+});
+
+// ─── Keyboard ───────────────────────────────────────────────
+const presets = {
+  '1': { pos: [6, 5, 8], target: [0, 0.2, 0] },
+  '2': { pos: [0, 9, 0.5], target: [0, 0.2, 0] },
+  '3': { pos: [8, 1.5, 0], target: [0, 0.5, 0] },
+  '4': { pos: [-6, 3, 5], target: [0, 0.2, 0] },
+};
+
+function animateCamera(tPos, tLook, dur = 1200) {
+  const sPos = camera.position.clone();
+  const sTgt = controls.target.clone();
+  const ePos = new THREE.Vector3(...tPos);
+  const eTgt = new THREE.Vector3(...tLook);
+  const t0 = performance.now();
+  const wasAutoRotate = controls.autoRotate;
+  controls.autoRotate = false;
+
+  function step(now) {
+    const t = Math.min((now - t0) / dur, 1);
+    const e = 1 - Math.pow(1 - t, 4);
+    camera.position.lerpVectors(sPos, ePos, e);
+    controls.target.lerpVectors(sTgt, eTgt, e);
+    if (t < 1) requestAnimationFrame(step);
+    else if (!isExploded) controls.autoRotate = true;
+  }
+  requestAnimationFrame(step);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'e' || e.key === 'E') toggleExplode();
+  if (presets[e.key]) {
+    const p = presets[e.key];
+    if (isExploded) toggleExplode();
+    animateCamera(p.pos, p.target);
+  }
+  if (e.key === 'r' || e.key === 'R') {
+    if (isExploded) toggleExplode();
+    animateCamera(presets['1'].pos, presets['1'].target);
+  }
+});
+
+document.getElementById('explode-btn').addEventListener('click', toggleExplode);
+
+// ─── Loading ────────────────────────────────────────────────
+const loadingFill = document.getElementById('loading-fill');
+const loadingScreen = document.getElementById('loading');
+
+let lp = 0;
+function simLoad() {
+  lp += Math.random() * 25 + 10;
+  if (lp > 100) lp = 100;
+  loadingFill.style.width = lp + '%';
+  if (lp < 100) return setTimeout(simLoad, 150 + Math.random() * 200);
+  setTimeout(() => {
+    loadingScreen.classList.add('hidden');
+    // Trigger hero entrance after loading screen fades
+    setTimeout(startEntrance, ENTRANCE_DELAY);
+    // Stagger UI reveals after entrance begins
+    setTimeout(() => document.getElementById('ui-title').classList.add('visible'), 800);
+    setTimeout(() => document.getElementById('ui-specs').classList.add('visible'), 1000);
+    setTimeout(() => document.getElementById('ui-controls').classList.add('visible'), 1200);
+    setTimeout(() => document.getElementById('explode-btn').classList.add('visible'), 1400);
+    setTimeout(() => {
+      document.getElementById('comp-panel').classList.add('visible');
+      buildCompPanel();
+    }, 1600);
+  }, 400);
+}
+setTimeout(simLoad, 300);
+
+// ─── Component Toggle Panel ──────────────────────────────────
+function buildCompPanel() {
+  const container = document.getElementById('comp-toggles');
+  container.innerHTML = '';
+  explodeParts.forEach((group, i) => {
+    const name = group.userData.name || `Part ${i}`;
+    const label = document.createElement('label');
+    label.className = 'comp-toggle';
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = true;
+    cb.addEventListener('change', () => {
+      group.visible = cb.checked;
+      label.classList.toggle('hidden-comp', !cb.checked);
+    });
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(name));
+    container.appendChild(label);
+  });
+}
+
+// ─── Render Loop ────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  try {
+    const now = performance.now();
+    const elapsed = clock.getElapsedTime();
+
+    controls.update();
+    updateEntrance(now);
+    updateExplode(now);
+    updateLabels();
+
+    // LED pulse
+    const pulse = 0.6 + Math.sin(elapsed * 3) * 0.4;
+    ledGreenMat.emissiveIntensity = 1.5 + pulse;
+    ledRedMat.emissiveIntensity = 1.0 + pulse * 0.5;
+    ledAmberMat.emissiveIntensity = 1.0 + Math.sin(elapsed * 2 + 1) * 0.5;
+
+    composer.render();
+  } catch (err) {
+    console.error('Render loop error:', err);
+  }
+}
+animate();
+
+// ─── Resize ─────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+  resizeLinesCanvas();
+});
+</script>
+</body>
+</html>

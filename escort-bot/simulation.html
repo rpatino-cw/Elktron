@@ -1,0 +1,2476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elktron — Escort Bot Simulation</title>
+<link rel="stylesheet" href="../design-system.css">
+<style>
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    overflow: hidden;
+    height: 100vh;
+    padding-top: 44px;
+  }
+
+  #canvas-container { position: absolute; inset: 0; z-index: 1; }
+  canvas { display: block; }
+
+  .hud { position: absolute; z-index: 10; pointer-events: none; }
+  .hud-top-left { top: 24px; left: 24px; }
+  .hud-top-right { top: 24px; right: 24px; text-align: right; }
+  .hud-bottom-left { bottom: 80px; left: 24px; }
+  .hud-bottom-right { bottom: 80px; right: 24px; text-align: right; }
+
+  .hud-label {
+    font-size: 9px; font-weight: 500; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px;
+  }
+  .hud-value {
+    font-family: var(--font-mono);
+    font-size: 13px; font-weight: 400; color: var(--text-secondary); line-height: 1.7;
+  }
+  .hud-value .accent { color: var(--accent-primary); }
+  .hud-value .green { color: var(--status-success); }
+  .hud-value .yellow { color: var(--status-warning); }
+  .hud-value .blue { color: var(--accent-primary); }
+  .hud-value .cyan { color: var(--accent-primary); }
+
+  .project-title { font-family: var(--font-sans); font-size: 16px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; margin-bottom: 2px; }
+  .project-sub { font-size: 9px; color: var(--text-tertiary); letter-spacing: 2px; }
+
+  .mode-badge { display: inline-block; font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 2px; padding: 4px 12px; border-radius: var(--radius-xs); margin-top: 10px; }
+  .mode-follow { background: var(--status-success); color: var(--bg-primary); }
+  .mode-scan { background: var(--accent-primary); color: var(--text-inverse); }
+  .mode-door_open { background: var(--status-warning); color: var(--bg-primary); }
+  .mode-idle { background: var(--border-subtle); color: var(--text-tertiary); }
+
+  .controls { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 6px; pointer-events: all; }
+  .controls button {
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.5px; padding: 8px 14px; border: 1px solid var(--border-subtle);
+    background: var(--bg-surface); color: var(--text-tertiary); cursor: pointer;
+    transition: all 0.2s; border-radius: var(--radius-xs);
+  }
+  .controls button:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: var(--accent-primary-muted); }
+  .controls button.active { background: var(--accent-primary); border-color: var(--accent-primary); color: var(--text-inverse); }
+
+  .scan-bar-wrap { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); width: 3px; height: 240px; background: var(--border-subtle); z-index: 10; border-radius: var(--radius-xs); overflow: hidden; }
+  .scan-bar-fill { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, var(--accent-primary), var(--status-warning)); transition: height 0.3s ease-out; border-radius: var(--radius-xs); box-shadow: 0 0 12px var(--glow-medium); }
+  .scan-bar-label { position: absolute; right: 36px; top: 50%; transform: translateY(-50%); z-index: 10; font-size: 8px; letter-spacing: 2px; color: var(--accent-primary); writing-mode: vertical-rl; text-orientation: mixed; }
+
+  .corner { position: absolute; z-index: 3; pointer-events: none; }
+  .corner::before, .corner::after { content: ''; position: absolute; background: var(--border-subtle); }
+  .corner-tl { top: 12px; left: 12px; } .corner-tl::before { width: 24px; height: 1px; } .corner-tl::after { width: 1px; height: 24px; }
+  .corner-tr { top: 12px; right: 12px; } .corner-tr::before { width: 24px; height: 1px; top: 0; right: 0; } .corner-tr::after { width: 1px; height: 24px; top: 0; right: 0; }
+  .corner-bl { bottom: 12px; left: 12px; } .corner-bl::before { width: 24px; height: 1px; bottom: 0; } .corner-bl::after { width: 1px; height: 24px; bottom: 0; }
+  .corner-br { bottom: 12px; right: 12px; } .corner-br::before { width: 24px; height: 1px; bottom: 0; right: 0; } .corner-br::after { width: 1px; height: 24px; bottom: 0; right: 0; }
+
+  .minimap { position: absolute; bottom: 80px; left: 24px; width: 120px; height: 180px; z-index: 10; pointer-events: none; }
+  .minimap canvas { width: 100%; height: 100%; border: 1px solid var(--border-subtle); border-radius: var(--radius-xs); background: var(--bg-surface); }
+
+  /* CSS vignette — FREE, replaces shader pass */
+  .vignette-overlay {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(40,48,60,0.4) 100%);
+  }
+
+  /* FPS counter */
+  #fps-counter {
+    position: absolute; top: 24px; left: 50%; transform: translateX(-50%);
+    z-index: 10; font-family: var(--font-mono); font-size: 9px;
+    color: var(--text-tertiary); letter-spacing: 1px; pointer-events: none;
+  }
+
+  /* ── ENTRANCE CHOREOGRAPHY ── */
+  @keyframes hudFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes cornerDraw {
+    from { opacity: 0; clip-path: inset(0 100% 100% 0); }
+    50%  { opacity: 0.5; }
+    to   { opacity: 1; clip-path: inset(0 0 0 0); }
+  }
+  @keyframes scanBarReveal {
+    from { opacity: 0; transform: translateY(-50%) scaleY(0.6); }
+    to   { opacity: 1; transform: translateY(-50%) scaleY(1); }
+  }
+  @keyframes scanLabelReveal {
+    from { opacity: 0; transform: translateY(-50%) translateX(8px); }
+    to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+
+  .hud { opacity: 0; animation: hudFadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+  .hud-top-left    { animation-delay: 0.2s; }
+  .hud-top-right   { animation-delay: 0.35s; }
+  .hud-bottom-left { animation-delay: 0.5s; }
+  .hud-bottom-right{ animation-delay: 0.65s; }
+
+  .corner { opacity: 0; animation: cornerDraw 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+  .corner-tl { animation-delay: 0.05s; }
+  .corner-tr { animation-delay: 0.1s; }
+  .corner-bl { animation-delay: 0.15s; }
+  .corner-br { animation-delay: 0.2s; }
+
+  .controls { opacity: 0; animation: hudFadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) 0.8s forwards; }
+  .vignette-overlay { opacity: 0; animation: hudFadeIn 1.2s cubic-bezier(0.25, 1, 0.5, 1) 0s forwards; }
+  #fps-counter { opacity: 0; animation: hudFadeIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) 0.9s forwards; }
+  .minimap { opacity: 0; animation: hudFadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) 0.7s forwards; }
+
+  /* ── MODE BADGE TRANSITION ── */
+  .mode-badge {
+    transition: background 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                color 0.25s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .mode-badge.mode-pulse { transform: scale(1.12); }
+
+  /* ── SCAN BAR SMOOTH REVEAL ── */
+  .scan-bar-wrap {
+    transform-origin: center center;
+    transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .scan-bar-wrap.active { display: block !important; animation: scanBarReveal 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+  .scan-bar-wrap.hiding { opacity: 0; }
+  .scan-bar-label { transition: opacity 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
+  .scan-bar-label.active { display: block !important; animation: scanLabelReveal 0.4s cubic-bezier(0.25, 1, 0.5, 1) 0.1s forwards; opacity: 0; }
+  .scan-bar-label.hiding { opacity: 0; }
+
+  /* ── BUTTON PRESS FEEDBACK ── */
+  .controls button:active, .controls a:active {
+    transform: scale(0.94);
+    transition: transform 0.08s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .controls button.active { box-shadow: 0 0 12px var(--glow-medium); }
+
+  /* ── SCAN COMPLETE OVERLAY ── */
+  .scan-complete-overlay {
+    position: absolute; inset: 0; z-index: 20; pointer-events: none;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    opacity: 0; transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .scan-complete-overlay.visible { opacity: 1; }
+  .scan-complete-title {
+    font-family: var(--font-sans); font-size: 28px; font-weight: 700;
+    color: var(--status-success); letter-spacing: -0.5px; margin-bottom: 8px;
+  }
+  .scan-complete-stats {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-tertiary); letter-spacing: 1px; text-align: center; line-height: 1.8;
+  }
+  .scan-complete-restart {
+    font-size: 8px;
+    color: var(--text-tertiary); letter-spacing: 2px; margin-top: 16px;
+    opacity: 0; animation: hudFadeIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) 1.5s forwards;
+  }
+
+  /* ── CONTROLS FADE ── */
+  .controls.auto-hidden { opacity: 0; pointer-events: none; transition: opacity 0.4s; }
+  .controls.auto-visible { opacity: 1; pointer-events: all; transition: opacity 0.4s; }
+
+  /* ── REDUCED MOTION ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    .hud, .corner, .controls, .vignette-overlay, #fps-counter, .minimap { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Simulation</span></nav>
+
+<div id="canvas-container"></div>
+<div class="vignette-overlay"></div>
+
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
+
+<div class="hud hud-top-left">
+  <div class="project-title">Elktron</div>
+  <div class="project-sub">ESCORT BOT SIMULATION</div>
+  <div class="mode-badge mode-idle" id="mode-badge">IDLE</div>
+  <div id="status-line" style="font-size:9px;color:var(--text-tertiary);margin-top:6px;letter-spacing:0.5px;transition:color 0.4s,opacity 0.4s;opacity:0.7"></div>
+</div>
+
+<div class="hud hud-top-right">
+  <div class="hud-label">Telemetry</div>
+  <div class="hud-value">
+    <span class="cyan">SPD</span> <span id="hud-speed">0.00</span> m/s<br>
+    <span class="cyan">HDG</span> <span id="hud-heading">0.0</span>&deg;<br>
+    <span class="cyan">DST</span> <span id="hud-distance">&mdash;</span> m<br>
+    <span class="cyan">TLT</span> <span id="hud-tilt">0</span>&deg;
+  </div>
+</div>
+
+<div class="hud hud-bottom-left">
+  <div class="hud-label">Motors</div>
+  <div class="hud-value">L <span class="green" id="hud-motor-l">0.00</span> R <span class="green" id="hud-motor-r">0.00</span></div>
+  <div class="hud-label" style="margin-top:8px">Position</div>
+  <div class="hud-value"><span id="hud-pos-x">0.0</span>, <span id="hud-pos-z">0.0</span></div>
+</div>
+
+<div class="hud hud-bottom-right">
+  <div class="hud-label">Scans</div>
+  <div class="hud-value"><span class="accent" id="hud-scans">0</span> completed</div>
+  <div class="hud-label" style="margin-top:8px">Frames</div>
+  <div class="hud-value"><span id="hud-frames">0</span> captured</div>
+</div>
+
+<div class="scan-bar-wrap" id="scan-bar-wrap" style="display:none">
+  <div class="scan-bar-fill" id="scan-bar-fill" style="height:0%"></div>
+</div>
+<div class="scan-bar-label" id="scan-bar-label" style="display:none">SCANNING RACK</div>
+
+<div class="minimap" id="minimap-container">
+  <canvas id="minimap" width="120" height="180"></canvas>
+</div>
+
+<div id="fps-counter" style="display:none">-- FPS</div>
+
+<div class="scan-complete-overlay" id="scan-complete">
+  <div class="scan-complete-title">SCAN COMPLETE</div>
+  <div class="scan-complete-stats" id="scan-complete-stats"></div>
+  <div class="scan-complete-restart">RESTARTING DEMO</div>
+</div>
+
+<div class="controls">
+  <button id="btn-follow" onclick="startFollow()">F &mdash; Follow</button>
+  <button id="btn-scan" onclick="startScan()">S &mdash; Scan</button>
+  <button id="btn-reset" onclick="resetSim()">R &mdash; Reset</button>
+  <button id="btn-camera" onclick="toggleCamera()">C &mdash; Camera</button>
+  <button id="btn-path" onclick="toggleVendorPath()">P &mdash; Path</button>
+  <button id="btn-top" onclick="toggleTopView()">T &mdash; Top</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+
+// ═══════════════════════════════════════════════════════════════════
+// PERF CONFIG — tune these for quality vs speed tradeoffs
+// ═══════════════════════════════════════════════════════════════════
+const PERF = {
+  pixelRatioCap: 1.5,         // cap DPR (biggest single GPU win)
+  shadows: true,              // toggle shadows entirely
+  shadowMapSize: 512,         // 256/512/1024 — was 1024
+  bloom: true,                // toggle bloom pass
+  bloomResDiv: 3,             // bloom renders at 1/N resolution — was 2
+  particles: true,            // toggle dust particles
+  particleCount: 80,          // was 120
+  hudUpdateInterval: 6,       // update HUD every N frames — was 1
+  minimapInterval: 8,         // update minimap every N frames — was 3
+  ledFlickerInterval: 12,     // LED flicker every N frames — was 6
+  particleDriftInterval: 8,   // particle update every N frames — was 4
+  maxRectLights: 0,           // RectAreaLights — REMOVED (biggest light cost)
+  showFPS: true,              // FPS counter
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// SCENE SETUP
+// ═══════════════════════════════════════════════════════════════════
+
+const container = document.getElementById('canvas-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, PERF.pixelRatioCap));
+renderer.shadowMap.enabled = PERF.shadows;
+renderer.shadowMap.type = THREE.PCFShadowMap; // PCFShadow cheaper than PCFSoft
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+container.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x3a4050);
+scene.fog = new THREE.FogExp2(0x3a4050, 0.005);
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 200); // near 0.1→0.5 reduces depth buffer precision waste
+camera.position.set(12, 15, 20);
+camera.lookAt(0, 0, 0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.04;
+controls.maxPolarAngle = Math.PI * 0.48;
+controls.minDistance = 5;
+controls.maxDistance = 80;
+controls.target.set(0, 2, 0);
+
+// ═══════════════════════════════════════════════════════════════════
+// POST-PROCESSING — bloom only, vignette moved to CSS (free)
+// ═══════════════════════════════════════════════════════════════════
+
+let composer = null;
+if (PERF.bloom) {
+  composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(
+      Math.floor(window.innerWidth / PERF.bloomResDiv),
+      Math.floor(window.innerHeight / PERF.bloomResDiv)
+    ),
+    1.4,  // strength — punchy glow on laser + sparks
+    0.6,  // radius — wider bloom spread
+    0.55  // threshold — lower = more things bloom (laser, sparks, LEDs)
+  );
+  composer.addPass(bloomPass);
+  window._bloomPass = bloomPass; // expose for dynamic control
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// LIGHTING — 3 lights total
+// Guided by threejs-lighting: fewer lights = fewer shader variants
+// ═══════════════════════════════════════════════════════════════════
+
+// Strong ambient — does the heavy lifting
+const ambient = new THREE.AmbientLight(0xc0cce0, 1.8);
+scene.add(ambient);
+
+// Single directional for shadows + key light
+const dirLight = new THREE.DirectionalLight(0xeef0ff, 1.6);
+dirLight.position.set(12, 18, 8);
+if (PERF.shadows) {
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(PERF.shadowMapSize, PERF.shadowMapSize);
+  dirLight.shadow.camera.far = 60;
+  dirLight.shadow.camera.left = -30;
+  dirLight.shadow.camera.right = 30;
+  dirLight.shadow.camera.top = 30;
+  dirLight.shadow.camera.bottom = -30;
+  dirLight.shadow.bias = -0.001;
+}
+scene.add(dirLight);
+
+// One fill from opposite side (no shadow)
+const fillLight = new THREE.DirectionalLight(0xc0d0f0, 0.8);
+fillLight.position.set(-10, 12, -5);
+scene.add(fillLight);
+// REMOVED: backLight, frontFill, 9 RectAreaLights — saved ~11 lights
+
+// ═══════════════════════════════════════════════════════════════════
+// SHARED GEOMETRIES & MATERIALS — created once, reused everywhere
+// Guided by threejs-geometry + threejs-materials: reuse = fewer draw calls
+// ═══════════════════════════════════════════════════════════════════
+
+// Rack shared geometries (created ONCE, used by all 28 racks)
+// EVI01: 48RU racks = 7ft mounting + frame = ~7.5ft total (2.28m)
+// Scale: vendor ~5.4 units = 1.75m → 1 unit ≈ 0.324m
+// Rack: 2.28m / 0.324 = 7.0 units. Width ~24" = 0.61m = 1.9u. Depth ~42" = 1.07m = 3.3u
+const RACK_HEIGHT = 7.0, RACK_WIDTH = 1.9, RACK_DEPTH = 3.3;
+const AISLE_WIDTH = 7, RACK_SPACING = 4.5;
+
+// ─── Rack geometry (clean solid-body DC rack) ───────────────────
+const sharedGeo = {
+  rackBody: new THREE.BoxGeometry(RACK_WIDTH, RACK_HEIGHT, RACK_DEPTH),
+  // Front face panel (dark inset)
+  facePanel: new THREE.BoxGeometry(RACK_WIDTH * 0.94, RACK_HEIGHT * 0.97, 0.02),
+  // Server faceplate (1U strip on front)
+  serverSlot: new THREE.BoxGeometry(RACK_WIDTH * 0.86, 0.22, 0.04),
+  // Empty U blanking plate
+  blankSlot: new THREE.BoxGeometry(RACK_WIDTH * 0.86, 0.10, 0.03),
+  // LED
+  led: new THREE.BoxGeometry(0.03, 0.03, 0.02),
+  // Vertical side rails (front face trim)
+  rail: new THREE.BoxGeometry(0.05, RACK_HEIGHT * 0.96, 0.05),
+  // Light fixtures
+  lightHousing: new THREE.BoxGeometry(5.5, 0.12, 0.3),
+  lightTube: new THREE.BoxGeometry(5, 0.04, 0.18),
+};
+
+// Rack shared materials (created ONCE)
+const sharedMat = {
+  // Main rack body — dark steel
+  rackBody: new THREE.MeshStandardMaterial({ color: 0x1e2228, roughness: 0.4, metalness: 0.75 }),
+  // Inset face panel — slightly darker
+  facePanel: new THREE.MeshStandardMaterial({ color: 0x0c0e12, roughness: 0.55, metalness: 0.5 }),
+  // Occupied server slot — near-black with sheen
+  serverSlot: new THREE.MeshStandardMaterial({ color: 0x0a0c10, roughness: 0.5, metalness: 0.65 }),
+  // Empty blanking plate — lighter dark
+  blankSlot: new THREE.MeshStandardMaterial({ color: 0x1a1e24, roughness: 0.7, metalness: 0.3 }),
+  // LEDs
+  ledGreen: new THREE.MeshStandardMaterial({ color: 0x34d399, emissive: 0x34d399, emissiveIntensity: 3, toneMapped: false }),
+  ledRed: new THREE.MeshStandardMaterial({ color: 0x4a9eff, emissive: 0x4a9eff, emissiveIntensity: 3, toneMapped: false }),
+  ledBlue: new THREE.MeshStandardMaterial({ color: 0x4a9eff, emissive: 0x4a9eff, emissiveIntensity: 2, toneMapped: false }),
+  // Side rails
+  rail: new THREE.MeshStandardMaterial({ color: 0x2a2f38, metalness: 0.9, roughness: 0.25 }),
+  // Light fixtures
+  lightHousing: new THREE.MeshStandardMaterial({ color: 0x2a2e34, roughness: 0.5, metalness: 0.6 }),
+  lightTube: new THREE.MeshStandardMaterial({ color: 0xa0b8d8, emissive: 0xa0b8d8, emissiveIntensity: 0.8, toneMapped: false }),
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// OVERHEAD LIGHTS — emissive tubes only (RectAreaLights removed)
+// ═══════════════════════════════════════════════════════════════════
+
+// Only center 3 overhead lights (z = -14, -2, 10)
+[-14, -2, 10].forEach(z => {
+  const housing = new THREE.Mesh(sharedGeo.lightHousing, sharedMat.lightHousing);
+  housing.position.set(0, 9.55, z);
+  scene.add(housing);
+
+  const tube = new THREE.Mesh(sharedGeo.lightTube, sharedMat.lightTube);
+  tube.position.set(0, 9.42, z);
+  scene.add(tube);
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// DC FLOOR
+// ═══════════════════════════════════════════════════════════════════
+
+const floorGeo = new THREE.PlaneGeometry(30, 40);
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x6a707c, roughness: 0.82, metalness: 0.05 });
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = PERF.shadows;
+scene.add(floor);
+
+// Floor grid — MERGED into single BufferGeometry (was ~75 separate Lines)
+{
+  const gridPoints = [];
+  const tileStep = 2.4;
+  for (let x = -15; x <= 15; x += tileStep) {
+    gridPoints.push(x, 0.005, -20, x, 0.005, 20);
+  }
+  for (let z = -20; z <= 20; z += tileStep) {
+    gridPoints.push(-15, 0.005, z, 15, 0.005, z);
+  }
+  const gridGeo = new THREE.BufferGeometry();
+  gridGeo.setAttribute('position', new THREE.Float32BufferAttribute(gridPoints, 3));
+  const gridMat = new THREE.LineBasicMaterial({ color: 0x7a8090, transparent: true, opacity: 0.3 });
+  scene.add(new THREE.LineSegments(gridGeo, gridMat)); // ONE draw call instead of 75
+}
+
+// Floor coordinate labels — REMOVED (debug clutter, compass is enough)
+
+// Walls
+const wallMat = new THREE.MeshLambertMaterial({ color: 0x6a707c, transparent: true, opacity: 0.3 }); // Lambert cheaper than Standard for flat walls
+const wallGeo = new THREE.PlaneGeometry(40, 10);
+const wallLeft = new THREE.Mesh(wallGeo, wallMat); // shared geometry
+wallLeft.rotation.y = Math.PI / 2;
+wallLeft.position.set(-15, 5, 0);
+scene.add(wallLeft);
+const wallRight = new THREE.Mesh(wallGeo, wallMat); // same geo + mat = batched
+wallRight.rotation.y = -Math.PI / 2;
+wallRight.position.set(15, 5, 0);
+scene.add(wallRight);
+
+// ─── DATA HALL ENTRY — south wall with door ──────────────────────
+{
+  const DOOR_Z = 13;
+  const DOOR_WIDTH = 3.5; // wide enough for bot + person
+  const WALL_HEIGHT = 10;
+  const HALL_WIDTH = 30; // matches floor
+
+  // Wall left of door
+  const wallSouthLeftGeo = new THREE.BoxGeometry((HALL_WIDTH / 2 - DOOR_WIDTH / 2), WALL_HEIGHT, 0.3);
+  const wallSouthMat = new THREE.MeshStandardMaterial({ color: 0x6a707c, roughness: 0.6, metalness: 0.3 });
+  const wallSouthLeft = new THREE.Mesh(wallSouthLeftGeo, wallSouthMat);
+  wallSouthLeft.position.set(-(HALL_WIDTH / 4 + DOOR_WIDTH / 4), WALL_HEIGHT / 2, DOOR_Z);
+  scene.add(wallSouthLeft);
+
+  // Wall right of door
+  const wallSouthRight = new THREE.Mesh(wallSouthLeftGeo, wallSouthMat);
+  wallSouthRight.position.set((HALL_WIDTH / 4 + DOOR_WIDTH / 4), WALL_HEIGHT / 2, DOOR_Z);
+  scene.add(wallSouthRight);
+
+  // Door frame — top beam
+  const frameTopGeo = new THREE.BoxGeometry(DOOR_WIDTH + 0.4, 0.3, 0.35);
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xb0b4be, roughness: 0.4, metalness: 0.5 });
+  const frameTop = new THREE.Mesh(frameTopGeo, frameMat);
+  frameTop.position.set(0, 7.3, DOOR_Z);
+  scene.add(frameTop);
+
+  // Door frame — side posts
+  const framePostGeo = new THREE.BoxGeometry(0.2, 7.3, 0.35);
+  [-1, 1].forEach(side => {
+    const post = new THREE.Mesh(framePostGeo, frameMat);
+    post.position.set(side * (DOOR_WIDTH / 2 + 0.1), 7.3 / 2, DOOR_Z);
+    scene.add(post);
+  });
+
+  // Double door panels — pivot from outer edges
+  const doorPanelGeo = new THREE.BoxGeometry(DOOR_WIDTH / 2, 7.2, 0.15);
+  const doorPanelMat = new THREE.MeshStandardMaterial({ color: 0xa8aec0, roughness: 0.3, metalness: 0.6 });
+
+  // Left door — pivots from left edge
+  const entryDoorLPivot = new THREE.Group();
+  entryDoorLPivot.position.set(-DOOR_WIDTH / 2, 0, DOOR_Z);
+  const entryDoorL = new THREE.Mesh(doorPanelGeo, doorPanelMat);
+  entryDoorL.position.set(DOOR_WIDTH / 4, 7.2 / 2, 0);
+  entryDoorLPivot.add(entryDoorL);
+  scene.add(entryDoorLPivot);
+
+  // Right door — pivots from right edge
+  const entryDoorRPivot = new THREE.Group();
+  entryDoorRPivot.position.set(DOOR_WIDTH / 2, 0, DOOR_Z);
+  const entryDoorR = new THREE.Mesh(doorPanelGeo, doorPanelMat);
+  entryDoorR.position.set(-DOOR_WIDTH / 4, 7.2 / 2, 0);
+  entryDoorRPivot.add(entryDoorR);
+  scene.add(entryDoorRPivot);
+
+  // Door handle bars (horizontal push bars)
+  const handleGeo = new THREE.BoxGeometry(1.2, 0.06, 0.08);
+  const handleMat = new THREE.MeshStandardMaterial({ color: 0x888890, metalness: 0.85, roughness: 0.3 });
+  const handleL = new THREE.Mesh(handleGeo, handleMat);
+  handleL.position.set(DOOR_WIDTH / 4, 3.8, 0.06);
+  entryDoorLPivot.add(handleL);
+  const handleR = new THREE.Mesh(handleGeo, handleMat);
+  handleR.position.set(-DOOR_WIDTH / 4, 3.8, 0.06);
+  entryDoorRPivot.add(handleR);
+
+  // "AUTHORIZED PERSONNEL" sign above door
+  const signCanvas = document.createElement('canvas');
+  signCanvas.width = 512; signCanvas.height = 64;
+  const signCtx = signCanvas.getContext('2d');
+  signCtx.fillStyle = '#1a1c20';
+  signCtx.fillRect(0, 0, 512, 64);
+  signCtx.fillStyle = '#fbbf24';
+  signCtx.font = 'bold 24px monospace';
+  signCtx.textAlign = 'center';
+  signCtx.textBaseline = 'middle';
+  signCtx.fillText('AUTHORIZED PERSONNEL ONLY', 256, 32);
+  const signTex = new THREE.CanvasTexture(signCanvas);
+  const signMat = new THREE.MeshBasicMaterial({ map: signTex });
+  const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.5, 0.45), signMat);
+  signMesh.position.set(0, 7.8, DOOR_Z - 0.16);
+  scene.add(signMesh);
+
+  // Store references for animation
+  window._entryDoorL = entryDoorLPivot;
+  window._entryDoorR = entryDoorRPivot;
+  window._entryDoorOpen = 0;
+  window._entryDoorTarget = 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SERVER RACKS — shared geo/mat, ~80% fewer unique objects
+// ═══════════════════════════════════════════════════════════════════
+
+const ledMeshes = []; // for flicker animation
+const rackSeed = 42; // deterministic random for consistent layout
+let rackRng = rackSeed;
+function rackRandom() { rackRng = (rackRng * 16807) % 2147483647; return rackRng / 2147483647; }
+
+function createRack(x, z, label, faceDir) {
+  const group = new THREE.Group();
+  const hw = RACK_WIDTH / 2, hd = RACK_DEPTH / 2;
+
+  // ─── SOLID BODY (clean enclosure) ───────────────────────────
+  const body = new THREE.Mesh(sharedGeo.rackBody, sharedMat.rackBody);
+  body.position.y = RACK_HEIGHT / 2;
+  body.castShadow = PERF.shadows;
+  body.receiveShadow = PERF.shadows;
+  group.add(body);
+
+  // ─── FRONT FACE PANEL (dark inset) ─────────────────────────
+  const face = new THREE.Mesh(sharedGeo.facePanel, sharedMat.facePanel);
+  face.position.set(0, RACK_HEIGHT / 2, faceDir * (hd + 0.02));
+  group.add(face);
+
+  // ─── SIDE RAILS (vertical trim on front face edges) ────────
+  [-0.92, 0.92].forEach(rx => {
+    const rail = new THREE.Mesh(sharedGeo.rail, sharedMat.rail);
+    rail.position.set(rx, RACK_HEIGHT / 2, faceDir * (hd + 0.01));
+    group.add(rail);
+  });
+
+  // ─── SERVER SLOTS (1U strips on front face) ────────────────
+  for (let u = 0; u < 22; u++) {
+    const slotY = 0.25 + u * 0.30;
+    if (slotY > RACK_HEIGHT - 0.3) continue;
+
+    const isOccupied = rackRandom() > 0.12;
+    if (isOccupied) {
+      const slot = new THREE.Mesh(sharedGeo.serverSlot, sharedMat.serverSlot);
+      slot.position.set(0, slotY, faceDir * (hd + 0.03));
+      group.add(slot);
+
+      // LEDs
+      if (rackRandom() > 0.2) {
+        const ledCount = Math.floor(rackRandom() * 3) + 1;
+        for (let l = 0; l < ledCount; l++) {
+          const r = rackRandom();
+          const ledMat = r > 0.10 ? (r > 0.88 ? sharedMat.ledBlue : sharedMat.ledGreen) : sharedMat.ledRed;
+          const led = new THREE.Mesh(sharedGeo.led, ledMat);
+          led.position.set(-hw * 0.72 + l * 0.09, slotY, faceDir * (hd + 0.04));
+          group.add(led);
+          ledMeshes.push(led);
+        }
+      }
+    } else {
+      const blank = new THREE.Mesh(sharedGeo.blankSlot, sharedMat.blankSlot);
+      blank.position.set(0, slotY, faceDir * (hd + 0.03));
+      group.add(blank);
+    }
+  }
+
+  // ─── RACK DOOR (perforated, front-hinge) ────────────────────
+  const doorPivot = new THREE.Group();
+  doorPivot.position.set(-hw, 0, faceDir * (hd + 0.05));
+
+  const doorGeo = new THREE.BoxGeometry(RACK_WIDTH, RACK_HEIGHT - 0.1, 0.03);
+  const doorMat = new THREE.MeshStandardMaterial({
+    color: 0x2a2e34, roughness: 0.45, metalness: 0.65,
+    transparent: true, opacity: 0.82
+  });
+  const door = new THREE.Mesh(doorGeo, doorMat);
+  door.position.set(hw, RACK_HEIGHT / 2, 0);
+  door.castShadow = PERF.shadows;
+  doorPivot.add(door);
+
+  // Handle
+  const handleGeo = new THREE.BoxGeometry(0.04, 0.35, 0.05);
+  const handleMat = new THREE.MeshStandardMaterial({ color: 0x606872, metalness: 0.92, roughness: 0.15 });
+  const handle = new THREE.Mesh(handleGeo, handleMat);
+  handle.position.set(RACK_WIDTH - 0.06, RACK_HEIGHT / 2, 0.035);
+  doorPivot.add(handle);
+
+  // Perforation lines
+  const perfGeo = new THREE.BoxGeometry(RACK_WIDTH * 0.7, 0.02, 0.035);
+  const perfMat = new THREE.MeshStandardMaterial({ color: 0x14181c, roughness: 0.85 });
+  for (let p = 0; p < 14; p++) {
+    const perf = new THREE.Mesh(perfGeo, perfMat);
+    perf.position.set(hw, 0.4 + p * 0.45, 0.005);
+    doorPivot.add(perf);
+  }
+
+  group.add(doorPivot);
+  group.userData = { label, doorPivot, faceDir, doorOpen: 0, doorTarget: 0 };
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+  return group;
+}
+
+const racks = [];
+const activeDoors = new Set(); // track only racks with animating doors
+for (let i = 0; i < 5; i++) {
+  const z = -9 + i * RACK_SPACING;
+  // Left row: rack center at -AISLE_WIDTH/2 - RACK_DEPTH/2, rotated to face aisle (+X)
+  const rL = createRack(-AISLE_WIDTH / 2 - RACK_DEPTH / 2, z, `IB-A${(i + 1).toString().padStart(2, '0')}`, 1);
+  rL.rotation.y = Math.PI / 2; // face +X (toward aisle)
+  racks.push(rL);
+  // Right row: rack center at +AISLE_WIDTH/2 + RACK_DEPTH/2, rotated to face aisle (-X)
+  const rR = createRack(AISLE_WIDTH / 2 + RACK_DEPTH / 2, z, `IB-B${(i + 1).toString().padStart(2, '0')}`, 1);
+  rR.rotation.y = -Math.PI / 2; // face -X (toward aisle)
+  racks.push(rR);
+}
+
+// Aisle markings
+const guideLineMat = new THREE.LineDashedMaterial({ color: 0xfbbf24, dashSize: 1.5, gapSize: 1, transparent: true, opacity: 0.2 });
+const guideGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.01, -18), new THREE.Vector3(0, 0.01, 18)]);
+const guideLine = new THREE.Line(guideGeo, guideLineMat);
+guideLine.computeLineDistances();
+scene.add(guideLine);
+
+
+// ─── Compass directions on the floor ─────────────────────────────
+{
+  const compassLabels = [
+    { text: 'N', x: 0, z: -14, rot: 0 },
+    { text: 'S', x: 0, z: 14, rot: 0 },
+    { text: 'E', x: 10, z: 0, rot: 0 },
+    { text: 'W', x: -10, z: 0, rot: 0 },
+  ];
+  compassLabels.forEach(({ text, x, z }) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128; canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = text === 'N' ? '#fbbf24' : '#4d5f78';
+    ctx.font = 'bold 80px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, 64, 64);
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: text === 'N' ? 0.5 : 0.3, side: THREE.DoubleSide });
+    const geo = new THREE.PlaneGeometry(1.5, 1.5);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.set(x, 0.02, z);
+    scene.add(mesh);
+  });
+  // Compass cross lines
+  const compassMat = new THREE.LineBasicMaterial({ color: 0x4a5568, transparent: true, opacity: 0.15 });
+  const nsGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0.015, -13), new THREE.Vector3(0, 0.015, 13)]);
+  const ewGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-9, 0.015, 0), new THREE.Vector3(9, 0.015, 0)]);
+  scene.add(new THREE.Line(nsGeo, compassMat));
+  scene.add(new THREE.Line(ewGeo, compassMat));
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ESCORT BOT — MeshPhysicalMaterial→MeshStandardMaterial (no transmission)
+// Guided by threejs-materials: transmission triggers extra render passes
+// ═══════════════════════════════════════════════════════════════════
+
+const bot = new THREE.Group();
+
+// ─── SHARED MATERIALS ─────────────────────────────────────────────
+const matRedAcrylic = new THREE.MeshStandardMaterial({ color: 0xcc2222, roughness: 0.15, metalness: 0.1, transparent: true, opacity: 0.88 });
+const matBrass = new THREE.MeshStandardMaterial({ color: 0xc8a832, metalness: 0.92, roughness: 0.25 });
+const matBlackRubber = new THREE.MeshStandardMaterial({ color: 0x111315, roughness: 0.95, metalness: 0.02 });
+const matYellowPlastic = new THREE.MeshStandardMaterial({ color: 0xddc830, roughness: 0.45, metalness: 0.3 });
+const matSilverMetal = new THREE.MeshStandardMaterial({ color: 0x999ea5, metalness: 0.9, roughness: 0.2 });
+const matBlackPlastic = new THREE.MeshStandardMaterial({ color: 0x1a1c20, roughness: 0.6, metalness: 0.15 });
+const matPCBGreen = new THREE.MeshStandardMaterial({ color: 0x1a6b35, roughness: 0.5, metalness: 0.25 });
+const matPCBBlue = new THREE.MeshStandardMaterial({ color: 0x1a3a8a, roughness: 0.5, metalness: 0.2 });
+const matWhitePVC = new THREE.MeshStandardMaterial({ color: 0xe8e4dc, roughness: 0.8, metalness: 0.03 });
+const matServoBlue = new THREE.MeshStandardMaterial({ color: 0x2266bb, roughness: 0.4, metalness: 0.3 });
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 1: LK-COKOINO 4WD CHASSIS
+// Red acrylic dual-plate, 4x yellow DC motors, 4x rubber wheels
+// Real dims: ~25cm x 15cm plates, 65mm wheels
+// ═══════════════════════════════════════════════════════════════════
+const chassis = new THREE.Group();
+
+// Bottom plate — red acrylic with rounded-rectangle shape
+// Real: ~25cm L x 15cm W x 3mm thick, has mounting holes + motor cutouts
+const plateGeo = new THREE.BoxGeometry(1.5, 0.03, 2.5);
+const bottomPlate = new THREE.Mesh(plateGeo, matRedAcrylic);
+bottomPlate.position.y = 0.18;
+bottomPlate.castShadow = PERF.shadows;
+chassis.add(bottomPlate);
+
+// Bottom plate mounting holes (8 corner holes)
+const holeGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.04, 8);
+const holeMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.3 });
+[[-0.6, -1.05], [-0.6, 1.05], [0.6, -1.05], [0.6, 1.05],
+ [-0.6, -0.35], [-0.6, 0.35], [0.6, -0.35], [0.6, 0.35]].forEach(([hx, hz]) => {
+  const hole = new THREE.Mesh(holeGeo, holeMat);
+  hole.position.set(hx, 0.18, hz);
+  chassis.add(hole);
+});
+
+// Top plate — same red acrylic, spaced above by standoffs
+const topPlate = new THREE.Mesh(plateGeo, matRedAcrylic);
+topPlate.position.y = 0.58;
+topPlate.castShadow = PERF.shadows;
+chassis.add(topPlate);
+
+// 6 brass standoffs connecting plates (hex cross-section approximated by cylinder)
+const standoffGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.37, 6);
+[[-0.55, -0.9], [-0.55, 0], [-0.55, 0.9],
+ [0.55, -0.9], [0.55, 0], [0.55, 0.9]].forEach(([sx, sz]) => {
+  const s = new THREE.Mesh(standoffGeo, matBrass);
+  s.position.set(sx, 0.38, sz);
+  chassis.add(s);
+});
+
+// 4x DC geared motors — yellow rectangular gearbox + silver motor can
+// Real: ~70mm L x 22mm W x 18mm H gearbox, 25mm dia motor cylinder
+const gearboxGeo = new THREE.BoxGeometry(0.22, 0.18, 0.35);
+const motorCanGeo = new THREE.CylinderGeometry(0.065, 0.065, 0.22, 10);
+const motorCapGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.03, 6);
+const motorShaftGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.08, 6);
+const wheelPositions = [[-0.75, -0.85], [-0.75, 0.85], [0.75, -0.85], [0.75, 0.85]];
+wheelPositions.forEach(([mx, mz]) => {
+  // Yellow gearbox
+  const gb = new THREE.Mesh(gearboxGeo, matYellowPlastic);
+  gb.position.set(mx * 0.82, 0.18, mz);
+  chassis.add(gb);
+  // Silver motor cylinder extending from gearbox
+  const can = new THREE.Mesh(motorCanGeo, matSilverMetal);
+  can.rotation.z = Math.PI / 2;
+  can.position.set(mx * 0.82, 0.18, mz + (mz > 0 ? 0.22 : -0.22));
+  chassis.add(can);
+  // Motor end cap
+  const cap = new THREE.Mesh(motorCapGeo, matYellowPlastic);
+  cap.rotation.z = Math.PI / 2;
+  cap.position.set(mx * 0.82, 0.18, mz + (mz > 0 ? 0.33 : -0.33));
+  chassis.add(cap);
+  // Drive shaft stub
+  const shaft = new THREE.Mesh(motorShaftGeo, matSilverMetal);
+  shaft.rotation.x = Math.PI / 2;
+  shaft.position.set(mx * 0.82, 0.18, mz + (mz > 0 ? -0.2 : 0.2));
+  chassis.add(shaft);
+});
+
+// 4x L-bracket motor mounts — aluminum
+const bracketGeo = new THREE.BoxGeometry(0.28, 0.24, 0.02);
+const bracketMat = new THREE.MeshStandardMaterial({ color: 0x888890, metalness: 0.85, roughness: 0.3 });
+wheelPositions.forEach(([bx, bz]) => {
+  const bracket = new THREE.Mesh(bracketGeo, bracketMat);
+  bracket.position.set(bx * 0.82, 0.18, bz + (bz > 0 ? -0.09 : 0.09));
+  chassis.add(bracket);
+});
+
+// 4x Wheels — black rubber tire + yellow hub with spokes
+// Real: 65mm diameter, ~28mm wide
+const tireGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.22, 16);
+const hubGeo = new THREE.CylinderGeometry(0.14, 0.14, 0.23, 16);
+const hubCenterGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.24, 8);
+// Tire tread rings
+const treadGeo = new THREE.TorusGeometry(0.24, 0.012, 4, 16);
+const wheels = [];
+wheelPositions.forEach(([wx, wz]) => {
+  const wg = new THREE.Group();
+  // Outer rubber tire
+  const tire = new THREE.Mesh(tireGeo, matBlackRubber);
+  tire.rotation.z = Math.PI / 2;
+  wg.add(tire);
+  // Yellow hub plate
+  const hub = new THREE.Mesh(hubGeo, matYellowPlastic);
+  hub.rotation.z = Math.PI / 2;
+  wg.add(hub);
+  // Hub center (axle hole)
+  const center = new THREE.Mesh(hubCenterGeo, matSilverMetal);
+  center.rotation.z = Math.PI / 2;
+  wg.add(center);
+  // Tread rings (3 grooves around tire)
+  [-0.06, 0, 0.06].forEach(tz => {
+    const tread = new THREE.Mesh(treadGeo, new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.98 }));
+    tread.rotation.y = Math.PI / 2;
+    tread.position.set(0, 0, tz);
+    wg.add(tread);
+  });
+  wg.position.set(wx, 0.18, wz);
+  chassis.add(wg);
+  wheels.push(wg);
+});
+
+bot.add(chassis);
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 2: L298N MOTOR DRIVER
+// Blue PCB, black heatsink, green screw terminals, pin headers
+// Real: 43mm x 43mm x 27mm
+// ═══════════════════════════════════════════════════════════════════
+const l298n = new THREE.Group();
+
+// Blue PCB
+const driverPcb = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.02, 0.43), matPCBBlue);
+l298n.add(driverPcb);
+
+// Black heatsink with fins
+const heatsinkBase = new THREE.Mesh(
+  new THREE.BoxGeometry(0.28, 0.15, 0.22),
+  new THREE.MeshStandardMaterial({ color: 0x1a1c1e, metalness: 0.85, roughness: 0.3 })
+);
+heatsinkBase.position.y = 0.085;
+l298n.add(heatsinkBase);
+
+// Heatsink fins (5 thin plates)
+const finGeo = new THREE.BoxGeometry(0.28, 0.13, 0.008);
+const finMat = new THREE.MeshStandardMaterial({ color: 0x222426, metalness: 0.8, roughness: 0.25 });
+for (let f = 0; f < 5; f++) {
+  const fin = new THREE.Mesh(finGeo, finMat);
+  fin.position.set(0, 0.085, -0.08 + f * 0.04);
+  l298n.add(fin);
+}
+
+// Green screw terminal blocks (2 motor outputs + 1 power input)
+const termGeo = new THREE.BoxGeometry(0.12, 0.06, 0.05);
+const termMat = new THREE.MeshStandardMaterial({ color: 0x1a8a3a, roughness: 0.5, metalness: 0.2 });
+[[-0.12, -0.2], [0.12, -0.2], [0, 0.2]].forEach(([tx, tz]) => {
+  const term = new THREE.Mesh(termGeo, termMat);
+  term.position.set(tx, 0.04, tz);
+  l298n.add(term);
+  // Screw heads
+  const screwGeo = new THREE.CylinderGeometry(0.008, 0.008, 0.02, 6);
+  [-0.03, 0.03].forEach(sx => {
+    const screw = new THREE.Mesh(screwGeo, matSilverMetal);
+    screw.position.set(tx + sx, 0.075, tz);
+    l298n.add(screw);
+  });
+});
+
+// Pin header row (6 pins)
+const pinRowGeo = new THREE.BoxGeometry(0.14, 0.06, 0.025);
+const pinRowMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.7 });
+const pinRow = new THREE.Mesh(pinRowGeo, pinRowMat);
+pinRow.position.set(0.1, 0.04, 0);
+l298n.add(pinRow);
+
+// Individual gold pins
+const pinGeo = new THREE.BoxGeometry(0.008, 0.08, 0.008);
+const pinMat = new THREE.MeshStandardMaterial({ color: 0xd4a830, metalness: 0.9, roughness: 0.2 });
+for (let p = 0; p < 6; p++) {
+  const pin = new THREE.Mesh(pinGeo, pinMat);
+  pin.position.set(0.04 + p * 0.02, 0.04, 0);
+  l298n.add(pin);
+}
+
+// Capacitor (blue cylinder)
+const capGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.06, 8);
+const capMat = new THREE.MeshStandardMaterial({ color: 0x2244aa, roughness: 0.4 });
+const cap = new THREE.Mesh(capGeo, capMat);
+cap.position.set(-0.15, 0.04, 0.1);
+l298n.add(cap);
+
+l298n.position.set(0, 0.21, 0);
+bot.add(l298n);
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 3: RASPBERRY PI 5
+// Green PCB, silver USB-A x2, USB-C power, Ethernet, GPIO 40-pin
+// Real: 85mm x 56mm x ~20mm
+// ═══════════════════════════════════════════════════════════════════
+const pi5 = new THREE.Group();
+
+// Green PCB with slight texture
+const piPcb = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.018, 0.85), matPCBGreen);
+pi5.add(piPcb);
+
+// PCB edge: thin copper ground plane visible
+const edgeMat = new THREE.MeshStandardMaterial({ color: 0xb08830, metalness: 0.8, roughness: 0.4 });
+const edgeGeo = new THREE.BoxGeometry(0.56, 0.002, 0.85);
+const edge = new THREE.Mesh(edgeGeo, edgeMat);
+edge.position.y = -0.009;
+pi5.add(edge);
+
+// 4 corner mounting holes
+const piHoleGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.02, 8);
+[[0.215, 0.345], [0.215, -0.345], [-0.215, 0.345], [-0.215, -0.345]].forEach(([hx, hz]) => {
+  const h = new THREE.Mesh(piHoleGeo, matSilverMetal);
+  h.position.set(hx, 0.01, hz);
+  pi5.add(h);
+});
+
+// Dual USB-A 3.0 ports (stacked, silver)
+const usbAGeo = new THREE.BoxGeometry(0.07, 0.08, 0.15);
+[-0.15, 0.05].forEach(uz => {
+  const usb = new THREE.Mesh(usbAGeo, matSilverMetal);
+  usb.position.set(0.28, 0.045, uz);
+  pi5.add(usb);
+  // Blue insert (USB 3.0 indicator)
+  const insertGeo = new THREE.BoxGeometry(0.005, 0.05, 0.12);
+  const insert = new THREE.Mesh(insertGeo, new THREE.MeshStandardMaterial({ color: 0x2255cc, roughness: 0.3 }));
+  insert.position.set(0.31, 0.045, uz);
+  pi5.add(insert);
+});
+
+// USB-C power port
+const usbCGeo = new THREE.BoxGeometry(0.04, 0.035, 0.09);
+const usbC = new THREE.Mesh(usbCGeo, matSilverMetal);
+usbC.position.set(0.28, 0.025, -0.32);
+pi5.add(usbC);
+
+// Ethernet port (silver with yellow/green LED holes)
+const ethGeo = new THREE.BoxGeometry(0.08, 0.065, 0.16);
+const eth = new THREE.Mesh(ethGeo, matSilverMetal);
+eth.position.set(0.28, 0.04, 0.28);
+pi5.add(eth);
+// Ethernet LEDs
+const ethLedGeo = new THREE.BoxGeometry(0.005, 0.02, 0.02);
+const ethLedGreen = new THREE.Mesh(ethLedGeo, new THREE.MeshStandardMaterial({ color: 0x33cc33, emissive: 0x33cc33, emissiveIntensity: 2, toneMapped: false }));
+ethLedGreen.position.set(0.32, 0.06, 0.34);
+pi5.add(ethLedGreen);
+const ethLedAmber = new THREE.Mesh(ethLedGeo, new THREE.MeshStandardMaterial({ color: 0xffaa00, emissive: 0xffaa00, emissiveIntensity: 2, toneMapped: false }));
+ethLedAmber.position.set(0.32, 0.06, 0.22);
+pi5.add(ethLedAmber);
+
+// 2x Micro HDMI ports
+const hdmiGeo = new THREE.BoxGeometry(0.035, 0.02, 0.065);
+[-0.2, -0.08].forEach(hz => {
+  const hdmi = new THREE.Mesh(hdmiGeo, matSilverMetal);
+  hdmi.position.set(0.28, 0.018, hz);
+  pi5.add(hdmi);
+});
+
+// GPIO 40-pin header (2x20 black housing + gold pins)
+const gpioHousing = new THREE.Mesh(
+  new THREE.BoxGeometry(0.06, 0.025, 0.51),
+  new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.7 })
+);
+gpioHousing.position.set(-0.24, 0.02, 0);
+pi5.add(gpioHousing);
+// Gold pin rows
+for (let p = 0; p < 20; p++) {
+  [-0.25, -0.23].forEach(px => {
+    const gpin = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.04, 0.005), pinMat);
+    gpin.position.set(px, 0.03, -0.24 + p * 0.0254);
+    pi5.add(gpin);
+  });
+}
+
+// Broadcom SoC (silver square in center)
+const socGeo = new THREE.BoxGeometry(0.15, 0.02, 0.15);
+const socMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.7, roughness: 0.3 });
+const soc = new THREE.Mesh(socGeo, socMat);
+soc.position.set(0, 0.02, 0);
+pi5.add(soc);
+
+// RAM chip (black rectangle)
+const ramGeo = new THREE.BoxGeometry(0.12, 0.015, 0.08);
+const ram = new THREE.Mesh(ramGeo, matBlackPlastic);
+ram.position.set(0, 0.02, -0.2);
+pi5.add(ram);
+
+// Power LED (red)
+const piLed = new THREE.Mesh(
+  new THREE.BoxGeometry(0.015, 0.008, 0.008),
+  new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xff2222, emissiveIntensity: 3, toneMapped: false })
+);
+piLed.position.set(-0.18, 0.015, -0.38);
+pi5.add(piLed);
+
+// Activity LED (green)
+const piActLed = new THREE.Mesh(
+  new THREE.BoxGeometry(0.015, 0.008, 0.008),
+  new THREE.MeshStandardMaterial({ color: 0x22ff22, emissive: 0x22ff22, emissiveIntensity: 3, toneMapped: false })
+);
+piActLed.position.set(-0.15, 0.015, -0.38);
+pi5.add(piActLed);
+
+pi5.position.set(0, 0.6, -0.35);
+bot.add(pi5);
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 4: USB-C POWER BANK (Anker PowerCore 10K style)
+// Matte black slab, rounded edges, USB-C port, 4 LED indicators
+// Real: ~107mm x 68mm x 15mm
+// ═══════════════════════════════════════════════════════════════════
+const powerBank = new THREE.Group();
+
+const bankBody = new THREE.Mesh(
+  new THREE.BoxGeometry(0.68, 0.15, 1.07),
+  new THREE.MeshStandardMaterial({ color: 0x0e1014, roughness: 0.7, metalness: 0.3 })
+);
+powerBank.add(bankBody);
+
+// Rounded edge strips (simulate rounded corners)
+const edgeStripGeo = new THREE.CylinderGeometry(0.075, 0.075, 1.07, 8, 1, false, 0, Math.PI / 2);
+const edgeStripMat = new THREE.MeshStandardMaterial({ color: 0x101418, roughness: 0.65, metalness: 0.25 });
+[[-0.34, -0.34], [0.34, 0.34]].forEach(([ex, rot]) => {
+  // Just darken the edges
+});
+
+// USB-C output port
+const bankUSBC = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.09), matSilverMetal);
+bankUSBC.position.set(0, 0, 0.54);
+powerBank.add(bankUSBC);
+
+// USB-A output port
+const bankUSBA = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.035, 0.14), matSilverMetal);
+bankUSBA.position.set(0.15, 0, 0.54);
+powerBank.add(bankUSBA);
+
+// 4 LED charge indicators (white dots)
+const bankLedGeo = new THREE.BoxGeometry(0.015, 0.002, 0.015);
+const bankLedMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.5, toneMapped: false });
+for (let i = 0; i < 4; i++) {
+  const bLed = new THREE.Mesh(bankLedGeo, bankLedMat);
+  bLed.position.set(-0.12 + i * 0.08, 0.076, 0.4);
+  powerBank.add(bLed);
+}
+
+// Button
+const btnGeo = new THREE.CylinderGeometry(0.015, 0.015, 0.005, 8);
+const btn = new THREE.Mesh(btnGeo, matSilverMetal);
+btn.rotation.x = Math.PI / 2;
+btn.position.set(0.25, 0.076, 0.4);
+powerBank.add(btn);
+
+// Anker logo text placeholder (subtle raised rectangle)
+const logoGeo = new THREE.BoxGeometry(0.2, 0.002, 0.06);
+const logoMat = new THREE.MeshStandardMaterial({ color: 0x1a1e22, roughness: 0.5 });
+const logo = new THREE.Mesh(logoGeo, logoMat);
+logo.position.set(0, 0.076, 0);
+powerBank.add(logo);
+
+powerBank.position.set(0, 0.68, 0.35);
+bot.add(powerBank);
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 5: PVC MAST ASSEMBLY
+// White 1" Schedule 40 PVC pipe (~4ft), T-connector at base
+// Zip ties every ~12 inches securing ribbon cable
+// Real: 1.315" OD (33.4mm), 4ft = 1219mm
+// ═══════════════════════════════════════════════════════════════════
+const mastAssembly = new THREE.Group();
+
+// Main mast pipe — tall to compensate for bot 0.35 scale
+// After scaling: 11 * 0.35 = 3.85 units = ~1.25m real ≈ 4ft mast
+const mastPipe = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.06, 0.06, 11.0, 10),
+  matWhitePVC
+);
+mastPipe.position.y = 5.5;
+mastAssembly.add(mastPipe);
+
+// PVC T-connector at base (3 openings)
+const tConnBody = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.05, 0.05, 0.14, 10),
+  matWhitePVC
+);
+tConnBody.position.y = 0.0;
+mastAssembly.add(tConnBody);
+// T-connector horizontal arms
+const tArmGeo = new THREE.CylinderGeometry(0.045, 0.045, 0.12, 8);
+[-1, 1].forEach(side => {
+  const tArm = new THREE.Mesh(tArmGeo, matWhitePVC);
+  tArm.rotation.z = Math.PI / 2;
+  tArm.position.set(side * 0.06, 0, 0);
+  mastAssembly.add(tArm);
+});
+
+// PVC pipe rim ring at top (slightly wider)
+const rimGeo = new THREE.TorusGeometry(0.065, 0.006, 6, 12);
+const rim = new THREE.Mesh(rimGeo, matWhitePVC);
+rim.rotation.x = Math.PI / 2;
+rim.position.y = 11.0;
+mastAssembly.add(rim);
+
+// Zip ties at regular intervals — black nylon
+const zipGeo = new THREE.TorusGeometry(0.07, 0.008, 4, 12);
+const zipMat = new THREE.MeshStandardMaterial({ color: 0x111315, roughness: 0.9 });
+const zipTailGeo = new THREE.BoxGeometry(0.06, 0.005, 0.005);
+[1.5, 3.5, 5.5, 7.5, 9.5].forEach(y => {
+  const zip = new THREE.Mesh(zipGeo, zipMat);
+  zip.rotation.x = Math.PI / 2;
+  zip.position.y = y;
+  mastAssembly.add(zip);
+  const tail = new THREE.Mesh(zipTailGeo, zipMat);
+  tail.position.set(0.08, y, 0);
+  mastAssembly.add(tail);
+});
+
+// CSI ribbon cable running along mast
+const ribbonGeo = new THREE.BoxGeometry(0.02, 10.5, 0.003);
+const ribbonMat = new THREE.MeshStandardMaterial({ color: 0xd8d0c0, roughness: 0.85 });
+const ribbon = new THREE.Mesh(ribbonGeo, ribbonMat);
+ribbon.position.set(0.065, 5.5, 0);
+mastAssembly.add(ribbon);
+
+// Short USB-C cable (power bank to Pi) — orange/black
+const usbCableGeo = new THREE.TubeGeometry(
+  new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, -0.1, 0.35),
+    new THREE.Vector3(0.1, -0.15, 0.2),
+    new THREE.Vector3(0, -0.2, 0)
+  ]), 12, 0.008, 6, false
+);
+const usbCableMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+const usbCable = new THREE.Mesh(usbCableGeo, usbCableMat);
+mastAssembly.add(usbCable);
+
+mastAssembly.position.set(0, 0.68, 0);
+bot.add(mastAssembly);
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 6: ARDUCAM PAN-TILT PLATFORM
+// Black plastic bracket, 2x blue SG90 micro servos
+// Real: ~55mm wide bracket, SG90 servos are 23x12x29mm
+// ═══════════════════════════════════════════════════════════════════
+const camHousing = new THREE.Group();
+
+// Pan servo (bottom, rotates left-right) — blue SG90
+const panServo = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.23, 0.06), matServoBlue);
+panServo.position.set(0, -0.25, 0);
+camHousing.add(panServo);
+// Pan servo mounting tabs
+const tabGeo = new THREE.BoxGeometry(0.16, 0.02, 0.06);
+const panTab = new THREE.Mesh(tabGeo, matServoBlue);
+panTab.position.set(0, -0.15, 0);
+camHousing.add(panTab);
+// Pan servo horn (white cross)
+const hornGeo = new THREE.BoxGeometry(0.06, 0.01, 0.01);
+const hornMat = new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.5 });
+const horn1 = new THREE.Mesh(hornGeo, hornMat);
+horn1.position.set(0, -0.13, 0);
+camHousing.add(horn1);
+const horn2 = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.01, 0.06), hornMat);
+horn2.position.set(0, -0.13, 0);
+camHousing.add(horn2);
+
+// Pan base plate (black)
+const panBasePlate = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.04, 0.16), matBlackPlastic);
+panBasePlate.position.set(0, -0.35, 0);
+camHousing.add(panBasePlate);
+
+// Tilt bracket (U-shaped) — two black plastic arms + crossbar
+const tiltArmGeo = new THREE.BoxGeometry(0.02, 0.2, 0.05);
+[-0.08, 0.08].forEach(ax => {
+  const arm = new THREE.Mesh(tiltArmGeo, matBlackPlastic);
+  arm.position.set(ax, -0.08, 0);
+  camHousing.add(arm);
+});
+const tiltCrossbar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.02, 0.05), matBlackPlastic);
+tiltCrossbar.position.set(0, 0.02, 0);
+camHousing.add(tiltCrossbar);
+
+// Tilt servo (side-mounted, tilts camera up-down) — blue SG90
+const tiltServo = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.23, 0.12), matServoBlue);
+tiltServo.position.set(0.12, -0.08, 0);
+camHousing.add(tiltServo);
+// Tilt servo wire (orange/brown/red)
+const servoWireGeo = new THREE.BoxGeometry(0.04, 0.004, 0.15);
+const servoWireMat = new THREE.MeshStandardMaterial({ color: 0xcc6600, roughness: 0.7 });
+const servoWire = new THREE.Mesh(servoWireGeo, servoWireMat);
+servoWire.position.set(0.12, -0.2, -0.08);
+camHousing.add(servoWire);
+
+// ═══════════════════════════════════════════════════════════════════
+// PART 7: ARDUCAM IMX708 CAMERA MODULE
+// Green PCB 25x24mm, black lens barrel, CSI ribbon connector
+// 120 degree wide angle, autofocus
+// ═══════════════════════════════════════════════════════════════════
+
+// Camera PCB (green, square)
+const camPcb = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.018), matPCBGreen);
+camPcb.position.z = 0.04;
+camHousing.add(camPcb);
+
+// 4 PCB mounting holes
+const camHoleGeo = new THREE.CylinderGeometry(0.01, 0.01, 0.02, 6);
+[[-0.09, -0.09], [-0.09, 0.09], [0.09, -0.09], [0.09, 0.09]].forEach(([cx, cy]) => {
+  const ch = new THREE.Mesh(camHoleGeo, matSilverMetal);
+  ch.rotation.x = Math.PI / 2;
+  ch.position.set(cx, cy, 0.04);
+  camHousing.add(ch);
+});
+
+// Black lens barrel (cylindrical, stepped)
+const lensOuterGeo = new THREE.CylinderGeometry(0.06, 0.065, 0.08, 12);
+const lensOuter = new THREE.Mesh(lensOuterGeo, new THREE.MeshStandardMaterial({ color: 0x1a1c20, metalness: 0.7, roughness: 0.25 }));
+lensOuter.rotation.x = Math.PI / 2;
+lensOuter.position.z = 0.09;
+camHousing.add(lensOuter);
+
+// Inner lens element (smaller, darker)
+const lensInnerGeo = new THREE.CylinderGeometry(0.045, 0.05, 0.04, 12);
+const lensInner = new THREE.Mesh(lensInnerGeo, new THREE.MeshStandardMaterial({ color: 0x0c0e12, metalness: 0.85, roughness: 0.15 }));
+lensInner.rotation.x = Math.PI / 2;
+lensInner.position.z = 0.14;
+camHousing.add(lensInner);
+
+// Glass lens element (dark, reflective)
+const lensGlass = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.038, 0.038, 0.008, 12),
+  new THREE.MeshStandardMaterial({ color: 0x060810, metalness: 1, roughness: 0 })
+);
+lensGlass.rotation.x = Math.PI / 2;
+lensGlass.position.z = 0.165;
+camHousing.add(lensGlass);
+
+// Lens protective cover (clear, subtle)
+const lensCover = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.065, 0.065, 0.003, 12),
+  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.02, metalness: 0.05, transparent: true, opacity: 0.2 })
+);
+lensCover.rotation.x = Math.PI / 2;
+lensCover.position.z = 0.17;
+camHousing.add(lensCover);
+
+// CSI ribbon connector on back of camera PCB
+const csiConnGeo = new THREE.BoxGeometry(0.16, 0.025, 0.01);
+const csiConn = new THREE.Mesh(csiConnGeo, new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.5 }));
+csiConn.position.set(0, -0.08, 0.03);
+camHousing.add(csiConn);
+
+// Ring LED around lens (status indicator)
+const ringGeo = new THREE.TorusGeometry(0.068, 0.005, 6, 16);
+const ringMat = new THREE.MeshStandardMaterial({ color: 0x4a9eff, emissive: 0x4a9eff, emissiveIntensity: 4, toneMapped: false });
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.position.z = 0.06;
+camHousing.add(ring);
+
+
+camHousing.position.set(0, 12.0, 0);
+bot.add(camHousing);
+
+// ─── SCAN LASER — SUPERMAN HEAT VISION ────────────────────────────
+
+// ─── FAN BEAM — broad scanning sweep ──────────────────────────────
+// Custom trapezoid: narrow at camera (0.05 wide), fans out to 2.0 wide at rack face
+{
+  const FAN_LENGTH = 8; // distance to rack
+  const FAN_NEAR = 0.05; // width at source
+  const FAN_FAR = 2.0; // width at rack face
+  const FAN_HEIGHT = 0.15; // thin vertical slice
+
+  // Vertices: near-left, near-right, far-right, far-left (two tris)
+  const fanVerts = new Float32Array([
+    -FAN_NEAR/2, -FAN_HEIGHT/2, 0,   FAN_NEAR/2, -FAN_HEIGHT/2, 0,   FAN_FAR/2, FAN_HEIGHT/2, FAN_LENGTH,
+    -FAN_NEAR/2, -FAN_HEIGHT/2, 0,   FAN_FAR/2, FAN_HEIGHT/2, FAN_LENGTH,  -FAN_FAR/2, FAN_HEIGHT/2, FAN_LENGTH,
+    // Back face
+    FAN_NEAR/2, -FAN_HEIGHT/2, 0,   -FAN_NEAR/2, -FAN_HEIGHT/2, 0,   -FAN_FAR/2, FAN_HEIGHT/2, FAN_LENGTH,
+    FAN_NEAR/2, -FAN_HEIGHT/2, 0,   -FAN_FAR/2, FAN_HEIGHT/2, FAN_LENGTH,   FAN_FAR/2, FAN_HEIGHT/2, FAN_LENGTH,
+  ]);
+  var fanGeo = new THREE.BufferGeometry();
+  fanGeo.setAttribute('position', new THREE.BufferAttribute(fanVerts, 3));
+  fanGeo.computeVertexNormals();
+}
+
+// Main fan beam — red, semi-transparent
+const laserMat = new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide });
+const laserBeam = new THREE.Mesh(fanGeo, laserMat);
+laserBeam.position.set(0, 0, 0.3); // starts at camera
+camHousing.add(laserBeam);
+
+// Inner hot core fan — narrower, brighter orange
+const laserCoreMat = new THREE.MeshBasicMaterial({ color: 0xffaa44, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide });
+{
+  const coreVerts = new Float32Array([
+    -0.02, -0.06, 0,  0.02, -0.06, 0,  0.6, 0.06, 8,
+    -0.02, -0.06, 0,  0.6, 0.06, 8,   -0.6, 0.06, 8,
+    0.02, -0.06, 0,  -0.02, -0.06, 0,  -0.6, 0.06, 8,
+    0.02, -0.06, 0,  -0.6, 0.06, 8,    0.6, 0.06, 8,
+  ]);
+  var coreGeo = new THREE.BufferGeometry();
+  coreGeo.setAttribute('position', new THREE.BufferAttribute(coreVerts, 3));
+}
+const laserCore = new THREE.Mesh(coreGeo, laserCoreMat);
+laserCore.position.set(0, 0, 0.3);
+camHousing.add(laserCore);
+
+// Outer glow fan — very wide, faint
+const laserSheathMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide });
+{
+  const sheathVerts = new Float32Array([
+    -0.1, -0.2, 0,   0.1, -0.2, 0,   1.3, 0.2, 8,
+    -0.1, -0.2, 0,   1.3, 0.2, 8,   -1.3, 0.2, 8,
+    0.1, -0.2, 0,   -0.1, -0.2, 0,   -1.3, 0.2, 8,
+    0.1, -0.2, 0,   -1.3, 0.2, 8,    1.3, 0.2, 8,
+  ]);
+  var sheathGeo = new THREE.BufferGeometry();
+  sheathGeo.setAttribute('position', new THREE.BufferAttribute(sheathVerts, 3));
+}
+const laserSheath = new THREE.Mesh(sheathGeo, laserSheathMat);
+laserSheath.position.set(0, 0, 0.3);
+camHousing.add(laserSheath);
+
+// Impact — wide horizontal scan line on rack face (not a dot)
+const laserDotMat = new THREE.MeshBasicMaterial({ color: 0xff4400, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide });
+const laserDot = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 0.15), laserDotMat);
+laserDot.visible = false;
+scene.add(laserDot);
+
+// White-hot center line
+const laserDotCoreMat = new THREE.MeshBasicMaterial({ color: 0xffcc66, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide });
+const laserDotCore = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.06), laserDotCoreMat);
+laserDotCore.visible = false;
+scene.add(laserDotCore);
+
+// Wide glow bloom around scan line
+const laserGlowMat = new THREE.MeshBasicMaterial({ color: 0xff2200, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide });
+const laserGlow = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 0.8), laserGlowMat);
+laserGlow.visible = false;
+scene.add(laserGlow);
+
+// Point light at impact — always in scene (intensity 0 when off to avoid shader recompile)
+const laserImpactLight = new THREE.PointLight(0xff2200, 0, 8);
+scene.add(laserImpactLight);
+
+// ─── SPARK PARTICLES at laser impact ──────────────────────────────
+const SPARK_COUNT = 60;
+const sparkPositions = new Float32Array(SPARK_COUNT * 3);
+const sparkVelocities = new Float32Array(SPARK_COUNT * 3);
+const sparkLifetimes = new Float32Array(SPARK_COUNT); // 0 = dead, >0 = alive
+const sparkSizes = new Float32Array(SPARK_COUNT);
+for (let i = 0; i < SPARK_COUNT; i++) {
+  sparkLifetimes[i] = 0;
+  sparkSizes[i] = 0;
+}
+const sparkGeo = new THREE.BufferGeometry();
+sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPositions, 3));
+sparkGeo.setAttribute('size', new THREE.BufferAttribute(sparkSizes, 1));
+
+// Custom shader for sparks — hot particles that cool from white→orange→red→dark
+const sparkMat = new THREE.ShaderMaterial({
+  transparent: true,
+  depthWrite: false,
+  toneMapped: false,
+  uniforms: {},
+  vertexShader: `
+    attribute float size;
+    void main() {
+      vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = size * (200.0 / -mvPos.z);
+      gl_Position = projectionMatrix * mvPos;
+    }
+  `,
+  fragmentShader: `
+    void main() {
+      float d = length(gl_PointCoord - 0.5) * 2.0;
+      if (d > 1.0) discard;
+      float glow = 1.0 - d * d;
+      gl_FragColor = vec4(1.0, 0.6 * glow, 0.15 * glow, glow);
+    }
+  `,
+});
+const sparkPoints = new THREE.Points(sparkGeo, sparkMat);
+sparkPoints.visible = false;
+sparkPoints.frustumCulled = false;
+scene.add(sparkPoints);
+
+let sparkOrigin = new THREE.Vector3();
+let sparksActive = false;
+
+function emitSparks(x, y, z, faceDir) {
+  sparkOrigin.set(x, y, z);
+  sparksActive = true;
+  sparkPoints.visible = true;
+  // Spawn a batch of sparks
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    if (sparkLifetimes[i] > 0 && Math.random() > 0.4) continue; // don't respawn all at once
+    const i3 = i * 3;
+    sparkPositions[i3] = x;
+    sparkPositions[i3 + 1] = y;
+    sparkPositions[i3 + 2] = z;
+    // Spray outward from rack face + gravity
+    sparkVelocities[i3] = (faceDir > 0 ? 1 : -1) * (1.5 + Math.random() * 3); // away from rack
+    sparkVelocities[i3 + 1] = (Math.random() - 0.3) * 4; // mostly upward
+    sparkVelocities[i3 + 2] = (Math.random() - 0.5) * 3; // spread sideways
+    sparkLifetimes[i] = 0.3 + Math.random() * 0.5; // 0.3-0.8s lifetime
+    sparkSizes[i] = 0.15 + Math.random() * 0.25;
+  }
+}
+
+function updateSparks(dt) {
+  if (!sparksActive) return;
+  let anyAlive = false;
+  for (let i = 0; i < SPARK_COUNT; i++) {
+    if (sparkLifetimes[i] <= 0) { sparkSizes[i] = 0; continue; }
+    anyAlive = true;
+    sparkLifetimes[i] -= dt;
+    const i3 = i * 3;
+    // Physics: velocity + gravity
+    sparkVelocities[i3 + 1] -= 9.8 * dt; // gravity
+    sparkPositions[i3] += sparkVelocities[i3] * dt;
+    sparkPositions[i3 + 1] += sparkVelocities[i3 + 1] * dt;
+    sparkPositions[i3 + 2] += sparkVelocities[i3 + 2] * dt;
+    // Fade size as lifetime runs out
+    const life = Math.max(sparkLifetimes[i], 0);
+    sparkSizes[i] = life * 0.17;
+    // Floor bounce
+    if (sparkPositions[i3 + 1] < 0.05) {
+      sparkPositions[i3 + 1] = 0.05;
+      sparkVelocities[i3 + 1] *= -0.3; // weak bounce
+      sparkVelocities[i3] *= 0.7;
+      sparkVelocities[i3 + 2] *= 0.7;
+    }
+  }
+  sparkGeo.attributes.position.needsUpdate = true;
+  sparkGeo.attributes.size.needsUpdate = true;
+  if (!anyAlive) { sparksActive = false; sparkPoints.visible = false; }
+}
+
+// ─── BOT EFFECTS ──────────────────────────────────────────────────
+
+// Underglow (accent light)
+const botLight = new THREE.PointLight(0x4a9eff, 0.6, 4, 2);
+botLight.position.set(0, 0.08, 0);
+bot.add(botLight);
+
+// Status LED on chassis edge
+const statusLedMat = new THREE.MeshStandardMaterial({ color: 0x34d399, emissive: 0x34d399, emissiveIntensity: 4, toneMapped: false });
+const statusLed = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 6), statusLedMat);
+statusLed.position.set(0.6, 0.6, 1.0);
+bot.add(statusLed);
+
+// Scale entire bot to realistic size
+// Real chassis: ~25cm x 15cm. At 0.35 scale: 1.5*0.35=0.525u ≈ 17cm wide — close
+// Mast and camera housing positions are adjusted below to compensate
+bot.scale.setScalar(0.35);
+bot.position.set(0, 0, 15);
+bot.rotation.y = Math.PI; // facing down the aisle
+scene.add(bot);
+
+// ═══════════════════════════════════════════════════════════════════
+// VENDOR
+// ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// VENDOR — GLTF animated model (Three.js Soldier) + fallback primitives
+// Loaded from CDN, walk animation played via AnimationMixer
+// ═══════════════════════════════════════════════════════════════════
+const vendor = new THREE.Group();
+let vendorMixer = null;
+let vendorIdleAction = null;
+let vendorWalkAction = null;
+let vendorWasMoving = false;
+let vendorRightArm = null;  // bone ref for reaching animation
+let vendorReachT = 0;       // 0 = resting, 1 = fully reaching
+
+// Tracking ring (always visible regardless of model)
+const vRingMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, emissive: 0xfbbf24, emissiveIntensity: 1.5, toneMapped: false, transparent: true, opacity: 0.6 });
+const vRing = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.02, 6, 20), vRingMat);
+vRing.rotation.x = Math.PI / 2;
+vRing.position.y = 0.02;
+vendor.add(vRing);
+
+// Load Soldier.glb, recolor to civilian datacenter tech, play Walk animation
+const gltfLoader = new GLTFLoader();
+gltfLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/Soldier.glb', (gltf) => {
+  const model = gltf.scene;
+  // Scale: 5.4 sim units = 1.75m person, Soldier is ~1.8m → 3.0x
+  model.scale.setScalar(3.0);
+
+  // Recolor to civilian datacenter worker
+  // Soldier.glb meshes: Mesh (body/clothes), Mesh_1 (head/hands/skin), Mesh_2 (accessories/gear)
+  // Original model uses textures, not flat colors — so we assign materials by mesh name/index
+  const civilianBody = new THREE.MeshStandardMaterial({ color: 0x4a6a9a, roughness: 0.65, metalness: 0.05, emissive: 0x0c1a30, emissiveIntensity: 0.35 }); // blue-gray uniform — visible on dark bg
+  const civilianSkin = new THREE.MeshStandardMaterial({ color: 0xd4ad85, roughness: 0.8, metalness: 0.02, emissive: 0x2a1a0a, emissiveIntensity: 0.2 }); // skin — warm glow
+  const civilianBoots = new THREE.MeshStandardMaterial({ color: 0x4a4a4a, roughness: 0.85, emissive: 0x0a0a0a, emissiveIntensity: 0.1 }); // boots
+  const civilianHiVis = new THREE.MeshStandardMaterial({ color: 0xf0d040, roughness: 0.5, metalness: 0.05, emissive: 0x806810, emissiveIntensity: 0.5 }); // safety vest — glows
+
+  let meshIdx = 0;
+  model.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = PERF.shadows;
+      child.receiveShadow = PERF.shadows;
+      // Soldier.glb has 3 sub-meshes in order:
+      // 0 = body/uniform, 1 = skin (head/hands), 2 = gear/accessories
+      if (meshIdx === 0) {
+        child.material = civilianBody;
+      } else if (meshIdx === 1) {
+        child.material = civilianSkin;
+      } else {
+        child.material = civilianHiVis; // gear → hi-vis vest look
+      }
+      meshIdx++;
+    }
+  });
+
+  vendor.add(model);
+
+  // Setup Idle + Walk animations with crossfade
+  if (gltf.animations.length > 0) {
+    vendorMixer = new THREE.AnimationMixer(model);
+    const idleClip = gltf.animations.find(c => c.name === 'Idle') || gltf.animations[0];
+    const walkClip = gltf.animations.find(c => c.name === 'Walk') || gltf.animations[1];
+    vendorIdleAction = vendorMixer.clipAction(idleClip);
+    vendorWalkAction = vendorMixer.clipAction(walkClip);
+    vendorIdleAction.play();
+  }
+
+  // Find right upper arm bone for reaching animation
+  // Soldier.glb (Mixamo) bones: mixamorigRightUpperArm, mixamorigRightArm, mixamorigRightForeArm
+  // We want the upper arm for the most visible reach
+  const boneNames = [];
+  model.traverse(child => {
+    if (child.isBone) boneNames.push(child.name);
+  });
+  console.log('[Elktron] All bones:', boneNames.join(', '));
+  // Priority: upper arm > arm > forearm
+  const bonePriority = [
+    /rightupperarm|RightUpperArm|right_upper_arm/i,
+    /mixamorig.*Right.*Arm/i,
+    /right.*arm|r_arm/i,
+  ];
+  for (const pattern of bonePriority) {
+    if (vendorRightArm) break;
+    model.traverse(child => {
+      if (!vendorRightArm && child.isBone && pattern.test(child.name)) {
+        vendorRightArm = child;
+      }
+    });
+  }
+  console.log('[Elktron] Vendor loaded — recolored civilian, arm bone:', vendorRightArm?.name, 'anims:', gltf.animations.map(a => a.name).join(', '));
+}, undefined, (err) => {
+  console.warn('[Elktron] GLTF load failed:', err.message);
+});
+
+vendor.position.set(0, 0, 19);
+vendor.rotation.y = Math.PI;
+scene.add(vendor);
+
+// ═══════════════════════════════════════════════════════════════════
+// VENDOR PATH
+// ═══════════════════════════════════════════════════════════════════
+
+const pathPoints = [
+  new THREE.Vector3(-2, 0.05, 12), new THREE.Vector3(-2, 0.05, 8),
+  new THREE.Vector3(-2, 0.05, 4), new THREE.Vector3(-2, 0.05, 0),
+  new THREE.Vector3(-2, 0.05, -4), new THREE.Vector3(-2, 0.05, -4),
+  new THREE.Vector3(-2, 0.05, -7), new THREE.Vector3(-2, 0.05, -12),
+];
+const pathCurve = new THREE.CatmullRomCurve3(pathPoints);
+const pathGeo = new THREE.TubeGeometry(pathCurve, 60, 0.025, 4, false); // 60/4 segments, was 100/6
+const pathMesh = new THREE.Mesh(pathGeo, new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.2 }));
+pathMesh.visible = false;
+scene.add(pathMesh);
+
+const waypointGeo = new THREE.RingGeometry(0.12, 0.2, 12); // 12, was 20
+const waypointMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+const waypointGroup = new THREE.Group();
+[0, 3, pathPoints.length - 1].forEach(i => {
+  const m = new THREE.Mesh(waypointGeo, waypointMat);
+  m.rotation.x = -Math.PI / 2;
+  m.position.copy(pathPoints[i]);
+  m.position.y = 0.02;
+  waypointGroup.add(m);
+});
+waypointGroup.visible = false;
+scene.add(waypointGroup);
+
+const scanZoneMat = new THREE.MeshBasicMaterial({ color: 0x4a9eff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false });
+const scanZone = new THREE.Mesh(new THREE.PlaneGeometry(AISLE_WIDTH - 1, 5), scanZoneMat);
+scanZone.rotation.x = -Math.PI / 2;
+scanZone.position.set(0, 0.02, -3);
+scene.add(scanZone);
+
+// ═══════════════════════════════════════════════════════════════════
+// DUST PARTICLES
+// ═══════════════════════════════════════════════════════════════════
+
+let particles = null;
+if (PERF.particles) {
+  const pGeo = new THREE.BufferGeometry();
+  const pPos = new Float32Array(PERF.particleCount * 3);
+  for (let i = 0; i < PERF.particleCount; i++) {
+    pPos[i * 3] = (Math.random() - 0.5) * 20;
+    pPos[i * 3 + 1] = Math.random() * 10;
+    pPos[i * 3 + 2] = (Math.random() - 0.5) * 30;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  particles = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x4a5568, size: 0.04, sizeAttenuation: true, transparent: true, opacity: 0.35 }));
+  scene.add(particles);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+
+const scannedRacks = new Set(); // track which racks have been scanned
+const RACK_STOP_OFFSET = -1.5; // bot stops 1.5m past rack — closer stop
+const RACK_AISLE_DIST = 6.0; // only consider racks within this X-distance (racks are at ~5.15 from center)
+
+const state = {
+  mode: 'IDLE', vendorT: 0, vendorSpeed: 0.035,
+  botSpeed: 0, motorL: 0, motorR: 0, scanProgress: 0,
+  scanCount: 0, framesCaptured: 0, tiltAngle: 0,
+  followCamera: false, topView: false, showPath: false,
+  scanPauseTimer: 0, scanning: false, blockedByRack: null, doorOpenTimer: 0,
+  vendorSpawned: false, // vendor spawns AFTER bot reaches rack area
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// PRE-ALLOCATED VECTORS — avoid GC in render loop
+// Guided by threejs-fundamentals: reuse math objects
+// ═══════════════════════════════════════════════════════════════════
+
+const _camTarget = new THREE.Vector3();
+const _camBehind = new THREE.Vector3();
+const _pathPt = new THREE.Vector3();   // reusable for pathCurve.getPoint
+const _pathPt2 = new THREE.Vector3();  // reusable for lookAhead
+const _pathPt3 = new THREE.Vector3();  // reusable for nextPos check
+
+// ═══════════════════════════════════════════════════════════════════
+// CACHED DOM REFS — avoid getElementById in hot loop
+// ═══════════════════════════════════════════════════════════════════
+
+const dom = {
+  speed: document.getElementById('hud-speed'),
+  heading: document.getElementById('hud-heading'),
+  motorL: document.getElementById('hud-motor-l'),
+  motorR: document.getElementById('hud-motor-r'),
+  posX: document.getElementById('hud-pos-x'),
+  posZ: document.getElementById('hud-pos-z'),
+  tilt: document.getElementById('hud-tilt'),
+  scans: document.getElementById('hud-scans'),
+  frames: document.getElementById('hud-frames'),
+  distance: document.getElementById('hud-distance'),
+  scanBarWrap: document.getElementById('scan-bar-wrap'),
+  scanBarFill: document.getElementById('scan-bar-fill'),
+  scanBarLabel: document.getElementById('scan-bar-label'),
+  modeBadge: document.getElementById('mode-badge'),
+  fps: document.getElementById('fps-counter'),
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// SIMULATION LOGIC
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── BOT LEADS along the path, VENDOR FOLLOWS behind ─────────────
+
+// Find the next unscanned rack ahead of the bot (bot travels -Z)
+// Cached to avoid O(n) forEach every frame — invalidated on scan complete / mode change
+let _cachedNextRack = undefined; // undefined = needs recalc, null = no rack ahead
+function invalidateRackCache() { _cachedNextRack = undefined; }
+
+function findNextRackAhead() {
+  if (_cachedNextRack !== undefined) return _cachedNextRack;
+  let best = null, bestDz = Infinity;
+  racks.forEach(r => {
+    if (scannedRacks.has(r)) return;
+    const dx = Math.abs(r.position.x - bot.position.x);
+    if (dx > RACK_AISLE_DIST) return;
+    const stopPoint = r.position.z + RACK_STOP_OFFSET;
+    const dz = bot.position.z - stopPoint;
+    if (dz > 0 && dz < bestDz) {
+      bestDz = dz;
+      best = r;
+    }
+  });
+  _cachedNextRack = best;
+  return best;
+}
+
+function updateBot(dt) {
+  if (state.mode === 'IDLE') { state.botSpeed = 0; state.motorL = 0; state.motorR = 0; return; }
+  if (state.mode === 'SCAN') {
+    state.botSpeed = 0; state.motorL = 0; state.motorR = 0;
+    // Bot rotates to face the rack during scan
+    if (scanTargetRack) {
+      const rx = scanTargetRack.position.x - bot.position.x;
+      const rz = scanTargetRack.position.z - bot.position.z;
+      const targetAngle = Math.atan2(rx, rz);
+      let diff = targetAngle - bot.rotation.y;
+      if (diff > Math.PI) diff -= 6.283185;
+      else if (diff < -Math.PI) diff += 6.283185;
+      bot.rotation.y += diff * dt * 4;
+    }
+    updateScan(dt);
+    return;
+  }
+  if (state.mode === 'DOOR_OPEN') {
+    state.botSpeed = 0; state.motorL = 0; state.motorR = 0;
+    // Bot also starts turning toward rack during door open
+    if (state.blockedByRack) {
+      const rx = state.blockedByRack.position.x - bot.position.x;
+      const rz = state.blockedByRack.position.z - bot.position.z;
+      const targetAngle = Math.atan2(rx, rz);
+      let diff = targetAngle - bot.rotation.y;
+      if (diff > Math.PI) diff -= 6.283185;
+      else if (diff < -Math.PI) diff += 6.283185;
+      bot.rotation.y += diff * dt * 3;
+    }
+    state.doorOpenTimer += dt;
+    // Wait for vendor to arrive at rack AND hold reach pose before scanning
+    // vendorReachT ramps during DOOR_OPEN when vendor is close (see updateVendor)
+    const vendorReady = vendorReachT > 0.8; // arm is mostly extended
+    const minWait = state.doorOpenTimer > 1.5; // minimum time for door animation
+    const maxWait = state.doorOpenTimer > 4.0; // safety fallback if bone not found
+    if ((vendorReady && minWait) || maxWait) startScanMode();
+    return;
+  }
+
+  // Path end
+  if (state.vendorT >= 1) { state.vendorT = 1; state.botSpeed = 0; state.motorL = 0; state.motorR = 0; return; }
+
+  // Tentatively advance along path
+  const nextT = Math.min(state.vendorT + state.vendorSpeed * dt, 1);
+  pathCurve.getPoint(nextT, _pathPt3);
+  const nextPos = _pathPt3;
+
+  // Check if moving to nextPos would pass an unscanned rack
+  const nextRack = findNextRackAhead();
+  const stopZ = nextRack ? nextRack.position.z + RACK_STOP_OFFSET : -Infinity;
+
+  if (nextRack && nextPos.z <= stopZ) {
+    // Bot would pass or reach the rack — clamp position and stop
+    bot.position.z = stopZ;
+    state.botSpeed = 0; state.motorL = 0; state.motorR = 0;
+    state.blockedByRack = nextRack;
+    state.scanPauseTimer += dt;
+
+    // Wait for vendor to get close
+    const vdx = vendor.position.x - bot.position.x;
+    const vdz = vendor.position.z - bot.position.z;
+    const vDistSq = vdx * vdx + vdz * vdz;
+
+    if (vDistSq < 49 && state.mode !== 'DOOR_OPEN') { // 7^2 = 49
+      // Vendor arrived — switch to DOOR_OPEN phase
+      state.mode = 'DOOR_OPEN';
+      state.doorOpenTimer = 0;
+      updateModeBadge();
+
+      // Find the left rack (negative X side) at nearest Z
+      let minD = Infinity;
+      scanTargetRack = null;
+      racks.forEach(r => {
+        const rdz = Math.abs(r.position.z - (bot.position.z - RACK_STOP_OFFSET));
+        if (rdz < 2 && r.position.x < 0 && rdz < minD) {
+          minD = rdz;
+          scanTargetRack = r;
+        }
+      });
+      if (scanTargetRack && scanTargetRack.userData.doorPivot) {
+        scanTargetRack.userData.doorTarget = 1;
+        activeDoors.add(scanTargetRack);
+      }
+    }
+
+    return;
+  }
+
+  // No blocking rack — move freely
+  state.vendorT = nextT;
+  pathCurve.getPoint(state.vendorT, _pathPt);
+  const pos = _pathPt;
+  pathCurve.getPoint(Math.min(state.vendorT + 0.02, 1), _pathPt2);
+  const lookAhead = _pathPt2;
+
+  // Smooth rotation toward path direction
+  const targetAngle = Math.atan2(lookAhead.x - pos.x, lookAhead.z - pos.z);
+  let angleDiff = targetAngle - bot.rotation.y;
+  if (angleDiff > Math.PI) angleDiff -= 6.283185;
+  else if (angleDiff < -Math.PI) angleDiff += 6.283185;
+  bot.rotation.y += angleDiff * dt * 6;
+
+  bot.position.x = pos.x;
+  bot.position.z = pos.z;
+
+  // Smooth acceleration ramp (ease-in)
+  const targetSpeed = 0.8;
+  state.botSpeed += (targetSpeed - state.botSpeed) * dt * 4;
+  state.motorL = state.botSpeed;
+  state.motorR = state.botSpeed;
+
+  // Wheel spin
+  const wheelRot = state.botSpeed * dt * 20;
+  wheels[0].rotation.x += wheelRot;
+  wheels[1].rotation.x += wheelRot;
+  wheels[2].rotation.x += wheelRot;
+  wheels[3].rotation.x += wheelRot;
+}
+
+function updateVendor(dt) {
+  if (vendorMixer) vendorMixer.update(dt);
+
+  // Vendor waits outside door, walks in once bot is well ahead
+  if (!state.vendorSpawned && state.mode === 'FOLLOW') {
+    if (bot.position.z < 3) { // bot is well into the hall, past the racks
+      state.vendorSpawned = true;
+      state.vendorSpeed = 0.035; // slow bot to normal speed
+      fadeToWalk();
+      updateStatusLine();
+    } else {
+      if (vendorWasMoving) fadeToIdle();
+    }
+    return;
+  }
+  if (!state.vendorSpawned) return;
+
+  // Close entry door once vendor is inside the hall
+  if (vendor.position.z < 12 && window._entryDoorTarget === 1) {
+    window._entryDoorTarget = 0;
+  }
+
+  if (state.mode === 'IDLE') {
+    if (vendorWasMoving) fadeToIdle();
+    return;
+  }
+
+  // SCAN mode — vendor faces the rack, holds still
+  if (state.mode === 'SCAN') {
+    if (vendorWasMoving) fadeToIdle();
+    // Smoothly rotate to face the scan target rack
+    if (scanTargetRack) {
+      const rx = scanTargetRack.position.x - vendor.position.x;
+      const rz = scanTargetRack.position.z - vendor.position.z;
+      const targetY = Math.atan2(rx, rz) + Math.PI; // Soldier faces -Z
+      let diff = targetY - vendor.rotation.y;
+      if (diff > Math.PI) diff -= 6.283185;
+      else if (diff < -Math.PI) diff += 6.283185;
+      vendor.rotation.y += diff * dt * 5; // smooth turn
+    }
+    return;
+  }
+
+  // DOOR_OPEN mode — vendor walks TO the rack, reaches in, bot stays back
+  if (state.mode === 'DOOR_OPEN') {
+    if (scanTargetRack || state.blockedByRack) {
+      const rack = scanTargetRack || state.blockedByRack;
+      // Vendor walks near the rack face — far enough to not clip the open door
+      const targetX = rack.position.x + rack.userData.faceDir * (RACK_DEPTH / 2 + 2.0);
+      const targetZ = rack.position.z;
+
+      const vdx = targetX - vendor.position.x;
+      const vdz = targetZ - vendor.position.z;
+      const vDist = Math.sqrt(vdx * vdx + vdz * vdz);
+
+      if (vDist > 0.3) {
+        // Walk toward rack — clamp min speed so feet don't slide
+        if (!vendorWasMoving) fadeToWalk();
+        const speed = Math.max(Math.min(vDist * 1.5, 4), 1.5);
+        const angle = Math.atan2(vdx, vdz);
+        const targetRotY = angle + Math.PI;
+        let rotDiff = targetRotY - vendor.rotation.y;
+        if (rotDiff > Math.PI) rotDiff -= 6.283185;
+        else if (rotDiff < -Math.PI) rotDiff += 6.283185;
+        vendor.rotation.y += rotDiff * dt * 6;
+        vendor.position.x += Math.sin(angle) * dt * speed;
+        vendor.position.z += Math.cos(angle) * dt * speed;
+        if (vendorWalkAction) vendorWalkAction.timeScale = speed / 5;
+      } else {
+        // Arrived at rack — face it and reach in
+        if (vendorWasMoving) fadeToIdle();
+        const rx = rack.position.x - vendor.position.x;
+        const rz = rack.position.z - vendor.position.z;
+        const targetY = Math.atan2(rx, rz) + Math.PI;
+        let diff = targetY - vendor.rotation.y;
+        if (diff > Math.PI) diff -= 6.283185;
+        else if (diff < -Math.PI) diff += 6.283185;
+        vendor.rotation.y += diff * dt * 5;
+
+        // Reaching animation — ease arm forward
+        vendorReachT = Math.min(vendorReachT + dt * 2.0, 1);
+      }
+    }
+    return;
+  }
+
+  // FOLLOW mode — vendor walks to fixed stop point (0, 1), well behind bot at (-2, -4)
+  const followX = 0;
+  const followZ = 1; // fixed target — no jitter from chasing bot position
+  const dx = followX - vendor.position.x;
+  const dz = followZ - vendor.position.z;
+  const distSq = dx * dx + dz * dz;
+  const dist = Math.sqrt(distSq);
+
+  const closeEnough = distSq < 0.25; // 0.5^2
+  const botStopped = state.botSpeed === 0;
+  const shouldStop = closeEnough;
+
+  if (shouldStop && vendorWasMoving) fadeToIdle();
+  else if (!shouldStop && !vendorWasMoving) fadeToWalk();
+
+  if (shouldStop) return;
+
+  // Walk toward stop point — smooth speed, ease down near target
+  const speed = Math.max(Math.min(dist * 1.5, 5), 1.2);
+  const angle = Math.atan2(dx, dz);
+
+  // Smooth rotation toward walk direction
+  const targetRotY = angle + Math.PI; // Soldier.glb faces -Z
+  let rotDiff = targetRotY - vendor.rotation.y;
+  if (rotDiff > Math.PI) rotDiff -= 6.283185;
+  else if (rotDiff < -Math.PI) rotDiff += 6.283185;
+  vendor.rotation.y += rotDiff * dt * 6;
+
+  vendor.position.x += Math.sin(angle) * dt * speed;
+  vendor.position.z += Math.cos(angle) * dt * speed;
+
+  // Sync walk animation speed to ground speed so feet don't slide
+  if (vendorWalkAction) {
+    vendorWalkAction.timeScale = speed / 5;
+  }
+}
+
+// Apply reaching arm bone rotation (runs after mixer update overrides bones)
+function applyVendorReach(dt) {
+  // Keep arm extended during SCAN (vendor is watching), retract slowly after
+  if (state.mode !== 'DOOR_OPEN' && state.mode !== 'SCAN') {
+    vendorReachT = Math.max(vendorReachT - dt * 2.0, 0);
+  }
+
+  if (vendorReachT > 0.001) {
+    const t = 1 - Math.pow(1 - vendorReachT, 3); // ease-out-cubic
+
+    if (vendorRightArm) {
+      // Mixamo Soldier rig: arm hangs at side in idle.
+      // After mixer.update(), bone has idle pose values. We add our reach on top.
+      vendorRightArm.rotation.y += t * 1.2;  // swing forward toward rack
+      vendorRightArm.rotation.x += t * 0.6;  // pull inward toward front
+      vendorRightArm.rotation.z += t * 0.3;  // keep level
+    }
+
+  }
+}
+
+function fadeToWalk() {
+  if (!vendorMixer || !vendorWalkAction || !vendorIdleAction) return;
+  vendorWalkAction.enabled = true;
+  vendorWalkAction.setEffectiveWeight(1);
+  vendorWalkAction.play();
+  vendorIdleAction.crossFadeTo(vendorWalkAction, 0.3, true);
+  vendorWasMoving = true;
+}
+
+function fadeToIdle() {
+  if (!vendorMixer || !vendorWalkAction || !vendorIdleAction) return;
+  vendorIdleAction.enabled = true;
+  vendorIdleAction.setEffectiveTimeScale(1);
+  vendorIdleAction.setEffectiveWeight(1);
+  vendorIdleAction.play();
+  vendorWalkAction.crossFadeTo(vendorIdleAction, 0.3, true);
+  vendorWasMoving = false;
+}
+
+let scanTargetRack = null;
+
+function startScanMode() {
+  state.mode = 'SCAN';
+  state.scanning = true;
+  state.scanProgress = 0;
+  state.tiltAngle = -60;
+  updateModeBadge();
+  dom.scanBarWrap.classList.remove('hiding');
+  dom.scanBarWrap.classList.add('active');
+  dom.scanBarLabel.classList.remove('hiding');
+  dom.scanBarLabel.classList.add('active');
+  scanZoneMat.opacity = 0.06;
+
+  // scanTargetRack and door already set by DOOR_OPEN phase
+  // If somehow not set, find nearest rack as fallback
+  if (!scanTargetRack) {
+    let minDist = Infinity;
+    racks.forEach(r => {
+      const dz = Math.abs(r.position.z - bot.position.z);
+      const dx = Math.abs(r.position.x - bot.position.x);
+      if (dz < 5 && dx < RACK_AISLE_DIST && dz < minDist) {
+        minDist = dz;
+        scanTargetRack = r;
+      }
+    });
+  }
+
+  // Show laser — full heat vision
+  laserMat.opacity = 0.9;
+  laserCoreMat.opacity = 0.8;
+  laserSheathMat.opacity = 0.15;
+  laserDot.visible = true;
+  laserDotCore.visible = true;
+  laserGlow.visible = true;
+  laserImpactLight.intensity = 0.1; // warm up
+  // Crank bloom during scan
+  if (window._bloomPass) { window._bloomPass.strength = 2.0; window._bloomPass.threshold = 0.4; }
+}
+
+function updateScan(dt) {
+  state.tiltAngle += dt * 18; // slightly slower for dramatic effect
+  state.scanProgress = (state.tiltAngle + 60) / 120;
+  camHousing.rotation.x = THREE.MathUtils.degToRad(-state.tiltAngle);
+  dom.scanBarFill.style.height = `${state.scanProgress * 100}%`;
+
+  if (Math.floor(state.tiltAngle) % 8 === 0) state.framesCaptured++;
+
+  const t = clock.elapsedTime; // reuse clock, avoid Date.now() syscalls
+  ringMat.emissiveIntensity = 4 + Math.sin(t * 15) * 2;
+  scanZoneMat.opacity = 0.04 + Math.sin(t * 5) * 0.03;
+
+  // Laser impact on rack face — sweeps vertically, BURNS
+  if (scanTargetRack) {
+    const rackX = scanTargetRack.position.x + scanTargetRack.userData.faceDir * (RACK_DEPTH / 2 + 0.1);
+    const scanY = RACK_HEIGHT * state.scanProgress + 0.2;
+    const rackZ = scanTargetRack.position.z;
+    const faceRot = scanTargetRack.userData.faceDir > 0 ? -Math.PI / 2 : Math.PI / 2;
+
+    // Impact dot — searing, pulsing
+    laserDot.position.set(rackX, scanY, rackZ);
+    laserDot.rotation.y = faceRot;
+    laserDotMat.opacity = 0.95;
+    // Scale pulse — breathing fire
+    const dotScale = 1.0 + Math.sin(t * 25) * 0.3;
+    laserDot.scale.setScalar(dotScale);
+
+    // White-hot center
+    laserDotCore.position.set(rackX, scanY, rackZ);
+    laserDotCore.rotation.y = faceRot;
+    laserDotCoreMat.opacity = 0.9 + Math.sin(t * 30) * 0.1;
+
+    // Massive glow — flickers intensely
+    laserGlow.position.set(rackX, scanY, rackZ);
+    laserGlow.rotation.y = faceRot;
+    laserGlowMat.opacity = 0.2 + Math.sin(t * 12) * 0.1 + Math.sin(t * 37) * 0.05;
+    const glowScale = 1.0 + Math.sin(t * 8) * 0.15;
+    laserGlow.scale.setScalar(glowScale);
+
+    // Dynamic point light at impact — illuminates rack + floor
+    laserImpactLight.position.set(rackX + (scanTargetRack.userData.faceDir > 0 ? 1 : -1), scanY, rackZ);
+    laserImpactLight.intensity = 3 + Math.sin(t * 20) * 1.5;
+
+    // Spray sparks continuously from impact
+    if (frameCount % 4 === 0) { // emit every 4 frames
+      emitSparks(rackX, scanY, rackZ, scanTargetRack.userData.faceDir > 0 ? 1 : -1);
+    }
+  }
+
+  // Pulse all beam layers — alive, dangerous
+  laserMat.opacity = 0.8 + Math.sin(t * 10) * 0.15;
+  laserCoreMat.opacity = 0.7 + Math.sin(t * 18) * 0.2;
+  laserSheathMat.opacity = 0.12 + Math.sin(t * 6) * 0.06;
+
+  if (state.tiltAngle >= 60) {
+    state.scanCount++;
+    state.scanning = false;
+    state.mode = 'FOLLOW';
+    state.tiltAngle = 0;
+    camHousing.rotation.x = 0;
+    ringMat.emissiveIntensity = 4;
+    updateModeBadge();
+    dom.scanBarWrap.classList.add('hiding');
+    dom.scanBarWrap.classList.remove('active');
+    dom.scanBarLabel.classList.add('hiding');
+    dom.scanBarLabel.classList.remove('active');
+    setTimeout(() => { dom.scanBarWrap.style.display = 'none'; dom.scanBarLabel.style.display = 'none'; dom.scanBarWrap.classList.remove('hiding'); dom.scanBarLabel.classList.remove('hiding'); }, 300);
+    scanZoneMat.opacity = 0;
+
+    // Kill the heat vision + sparks + bloom
+    sparksActive = false; sparkPoints.visible = false;
+    if (window._bloomPass) { window._bloomPass.strength = 1.4; window._bloomPass.threshold = 0.55; }
+    laserMat.opacity = 0;
+    laserCoreMat.opacity = 0;
+    laserSheathMat.opacity = 0;
+    laserDot.visible = false;
+    laserDotCore.visible = false;
+    laserGlow.visible = false;
+    laserImpactLight.intensity = 0;
+    laserImpactLight.intensity = 0;
+    laserDotMat.opacity = 0;
+    laserDotCoreMat.opacity = 0;
+    laserGlowMat.opacity = 0;
+
+    // Keep rack door open after scan for visual detail
+
+    // Mark ALL racks at this Z as scanned (left + right row share same Z)
+    const botZ = bot.position.z;
+    racks.forEach(r => {
+      if (Math.abs(r.position.z - (botZ - RACK_STOP_OFFSET)) < 1.0) scannedRacks.add(r);
+    });
+    invalidateRackCache();
+
+    // Single rack demo — scan complete, go IDLE
+    state.scanPauseTimer = 0;
+    state.blockedByRack = null;
+    scanTargetRack = null;
+    state.mode = 'IDLE';
+    state.botSpeed = 0; state.motorL = 0; state.motorR = 0;
+    updateModeBadge();
+    showScanComplete();
+  }
+}
+
+function updateModeBadge() {
+  dom.modeBadge.textContent = state.mode;
+  dom.modeBadge.className = 'mode-badge mode-' + state.mode.toLowerCase();
+  dom.modeBadge.classList.add('mode-pulse');
+  setTimeout(() => dom.modeBadge.classList.remove('mode-pulse'), 200);
+  updateStatusLine();
+}
+
+// ─── NARRATIVE STATUS LINE ────────────────────────────────────────
+const statusLine = document.getElementById('status-line');
+function updateStatusLine() {
+  const lines = {
+    'IDLE': '',
+    'FOLLOW': !state.vendorSpawned ? 'Bot entering data hall' : 'Escorting vendor to rack IB-A03',
+    'DOOR_OPEN': 'Vendor accessing rack IB-A03',
+    'SCAN': 'Scanning rack IB-A03',
+  };
+  statusLine.textContent = lines[state.mode] || '';
+  statusLine.style.color = state.mode === 'SCAN' ? 'var(--accent-primary)' : 'var(--text-tertiary)';
+}
+
+// ─── SCAN COMPLETE OVERLAY + AUTO-LOOP ────────────────────────────
+const scanCompleteEl = document.getElementById('scan-complete');
+const scanCompleteStats = document.getElementById('scan-complete-stats');
+let _autoLoopTimer = null;
+
+function showScanComplete() {
+  statusLine.textContent = 'Scan complete — 0 anomalies detected';
+  statusLine.style.color = 'var(--status-success)';
+  scanCompleteStats.innerHTML =
+    `RACK IB-A03 &bull; ${state.framesCaptured} FRAMES CAPTURED<br>` +
+    `STATUS: ALL CLEAR`;
+  scanCompleteEl.classList.add('visible');
+  // Auto-loop after 4 seconds
+  clearTimeout(_autoLoopTimer);
+  _autoLoopTimer = setTimeout(() => {
+    scanCompleteEl.classList.remove('visible');
+    setTimeout(() => { window.startFollow(); }, 600);
+  }, 4000);
+}
+
+function hideScanComplete() {
+  scanCompleteEl.classList.remove('visible');
+  clearTimeout(_autoLoopTimer);
+}
+
+function updateHUD() {
+  dom.speed.textContent = Math.abs(state.botSpeed * 6).toFixed(2);
+  dom.heading.textContent = (THREE.MathUtils.radToDeg(bot.rotation.y) % 360).toFixed(1);
+  dom.motorL.textContent = state.motorL.toFixed(2);
+  dom.motorR.textContent = state.motorR.toFixed(2);
+  dom.posX.textContent = bot.position.x.toFixed(1);
+  dom.posZ.textContent = bot.position.z.toFixed(1);
+  dom.tilt.textContent = state.tiltAngle.toFixed(0);
+  dom.scans.textContent = state.scanCount;
+  dom.frames.textContent = state.framesCaptured;
+  const dx = vendor.position.x - bot.position.x;
+  const dz = vendor.position.z - bot.position.z;
+  dom.distance.textContent = Math.sqrt(dx * dx + dz * dz).toFixed(1);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MINIMAP
+// ═══════════════════════════════════════════════════════════════════
+
+const minimapCanvas = document.getElementById('minimap');
+const minimapCtx = minimapCanvas.getContext('2d');
+const mmW = minimapCanvas.width, mmH = minimapCanvas.height;
+const mmCx = mmW / 2, mmCy = mmH / 2, mmScale = 2.2;
+
+// Pre-compute rack positions for minimap
+const rackMmPositions = racks.map(r => [mmCx + r.position.x * mmScale, mmCy + r.position.z * mmScale]);
+
+function updateMinimap() {
+  minimapCtx.fillStyle = '#07090f';
+  minimapCtx.fillRect(0, 0, mmW, mmH);
+
+  minimapCtx.fillStyle = '#141c27';
+  for (let i = 0; i < rackMmPositions.length; i++) {
+    minimapCtx.fillRect(rackMmPositions[i][0] - 3, rackMmPositions[i][1] - 4, 6, 8);
+  }
+
+  minimapCtx.strokeStyle = 'rgba(240, 194, 70, 0.15)';
+  minimapCtx.lineWidth = 1;
+  minimapCtx.beginPath();
+  minimapCtx.moveTo(mmCx, 0);
+  minimapCtx.lineTo(mmCx, mmH);
+  minimapCtx.stroke();
+
+  minimapCtx.fillStyle = '#fbbf24';
+  minimapCtx.beginPath();
+  minimapCtx.arc(mmCx + vendor.position.x * mmScale, mmCy + vendor.position.z * mmScale, 3, 0, 6.283);
+  minimapCtx.fill();
+
+  minimapCtx.fillStyle = '#4a9eff';
+  minimapCtx.beginPath();
+  minimapCtx.arc(mmCx + bot.position.x * mmScale, mmCy + bot.position.z * mmScale, 3, 0, 6.283);
+  minimapCtx.fill();
+
+  const bx = mmCx + bot.position.x * mmScale;
+  const bz = mmCy + bot.position.z * mmScale;
+  minimapCtx.strokeStyle = '#4a9eff88';
+  minimapCtx.beginPath();
+  minimapCtx.moveTo(bx, bz);
+  minimapCtx.lineTo(bx + Math.sin(bot.rotation.y) * 8, bz + Math.cos(bot.rotation.y) * 8);
+  minimapCtx.stroke();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════════
+
+window.startFollow = function() {
+  hideScanComplete();
+  state.mode = 'FOLLOW'; state.vendorT = 0; state.scanPauseTimer = 0; state.blockedByRack = null;
+  state.vendorSpeed = 0.18; // bot zooms ahead
+  state.vendorSpawned = false;
+  // Pre-mark all racks as scanned EXCEPT the 3rd left rack (index 4, z=0, x<0)
+  scannedRacks.clear();
+  racks.forEach((r, i) => { if (i !== 4) scannedRacks.add(r); });
+  invalidateRackCache();
+  bot.position.set(-2, 0, 12); bot.rotation.y = Math.PI; // bot starts just inside door
+  // Vendor starts outside the door, facing in
+  vendor.position.set(0, 0, 15); vendor.rotation.y = Math.PI;
+  vendor.visible = true;
+  // Close any open rack doors from previous run
+  racks.forEach(r => { r.userData.doorTarget = 0; activeDoors.add(r); });
+  // Open the entry door
+  window._entryDoorTarget = 1;
+  updateModeBadge();
+  document.getElementById('btn-follow').classList.add('active');
+  document.getElementById('btn-scan').classList.remove('active');
+};
+
+window.startScan = function() {
+  bot.position.set(0, 0, -6); bot.rotation.y = Math.PI / 2;
+  startScanMode();
+  document.getElementById('btn-scan').classList.add('active');
+  document.getElementById('btn-follow').classList.remove('active');
+};
+
+window.resetSim = function() {
+  hideScanComplete();
+  Object.assign(state, { mode: 'IDLE', vendorT: 0, vendorMoving: false, botSpeed: 0, motorL: 0, motorR: 0, scanProgress: 0, scanCount: 0, framesCaptured: 0, tiltAngle: 0, scanning: false, scanPauseTimer: 0, blockedByRack: null, doorOpenTimer: 0, vendorSpawned: false });
+  scannedRacks.clear();
+  bot.position.set(-2, 0, 12); bot.rotation.y = Math.PI; camHousing.rotation.x = 0;
+  vendor.position.set(0, 0, 15); vendor.rotation.y = Math.PI; vendor.visible = true;
+  window._entryDoorTarget = 0; window._entryDoorOpen = 0; window._entryDoorPrevTarget = 0; window._entryDoorFrom = 0;
+  window._entryDoorL.rotation.y = 0; window._entryDoorR.rotation.y = 0;
+  dom.scanBarWrap.style.display = 'none'; dom.scanBarLabel.style.display = 'none';
+  dom.scanBarWrap.classList.remove('active', 'hiding'); dom.scanBarLabel.classList.remove('active', 'hiding');
+  scanZoneMat.opacity = 0;
+  updateModeBadge();
+  document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+};
+
+window.toggleCamera = function() {
+  state.followCamera = !state.followCamera; state.topView = false;
+  document.getElementById('btn-camera').classList.toggle('active');
+  document.getElementById('btn-top').classList.remove('active');
+  if (!state.followCamera) { camera.position.set(12, 15, 20); controls.target.set(0, 2, 0); }
+};
+
+window.toggleTopView = function() {
+  state.topView = !state.topView; state.followCamera = false;
+  document.getElementById('btn-top').classList.toggle('active');
+  document.getElementById('btn-camera').classList.remove('active');
+  if (state.topView) { camera.position.set(0, 25, 0.01); controls.target.set(0, 0, 0); }
+  else { camera.position.set(12, 15, 20); controls.target.set(0, 2, 0); }
+};
+
+window.toggleVendorPath = function() {
+  state.showPath = !state.showPath;
+  pathMesh.visible = state.showPath; waypointGroup.visible = state.showPath;
+  document.getElementById('btn-path').classList.toggle('active');
+};
+
+document.addEventListener('keydown', (e) => {
+  const k = e.key.toLowerCase();
+  if (k === 'f') window.startFollow();
+  else if (k === 's') window.startScan();
+  else if (k === 'r') window.resetSim();
+  else if (k === 'c') window.toggleCamera();
+  else if (k === 'p') window.toggleVendorPath();
+  else if (k === 't') window.toggleTopView();
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// ANIMATION LOOP — optimized: throttled updates, no allocations
+// ═══════════════════════════════════════════════════════════════════
+
+const clock = new THREE.Clock();
+let frameCount = 0;
+let fpsFrames = 0, fpsTime = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  const elapsed = clock.getElapsedTime();
+  frameCount++;
+
+  // Core simulation — every frame
+  updateVendor(dt);
+  applyVendorReach(dt); // bone override AFTER mixer update
+  updateBot(dt);
+  updateSparks(dt);
+
+  // HUD — throttled (DOM writes are expensive)
+  if (frameCount % PERF.hudUpdateInterval === 0) updateHUD();
+
+  // Minimap — heavily throttled
+  if (frameCount % PERF.minimapInterval === 0) updateMinimap();
+
+  // Animate rack doors — smooth ease-out
+  if (activeDoors.size > 0) {
+    for (const r of activeDoors) {
+      const target = r.userData.doorTarget || 0;
+      const current = r.userData.doorOpen || 0;
+      const diff = target - current;
+      if (Math.abs(diff) > 0.005) {
+        r.userData.doorOpen = current + diff * dt * 4;
+        r.userData.doorPivot.rotation.y = r.userData.doorOpen * r.userData.faceDir * -2.3;
+      } else {
+        r.userData.doorOpen = target;
+        r.userData.doorPivot.rotation.y = target * r.userData.faceDir * -2.3;
+        activeDoors.delete(r);
+      }
+    }
+  }
+
+  // Entry door — time-based ease-out (smooth, no jitter)
+  {
+    const target = window._entryDoorTarget || 0;
+    if (target !== window._entryDoorPrevTarget) {
+      window._entryDoorStartTime = elapsed;
+      window._entryDoorFrom = window._entryDoorOpen || 0;
+      window._entryDoorPrevTarget = target;
+    }
+    const duration = 0.6; // seconds — fast, decisive open
+    const t0 = window._entryDoorStartTime || 0;
+    const progress = Math.min((elapsed - t0) / duration, 1);
+    // ease-out-quart: 1 - (1 - t)^4
+    const eased = 1 - Math.pow(1 - progress, 4);
+    const from = window._entryDoorFrom || 0;
+    window._entryDoorOpen = from + (target - from) * eased;
+    const angle = window._entryDoorOpen * 1.5;
+    window._entryDoorL.rotation.y = -angle;
+    window._entryDoorR.rotation.y = angle;
+  }
+
+  // Bot accent pulse — cheap (just a float)
+  botLight.intensity = 0.6 + Math.sin(elapsed * 3) * 0.25;
+  statusLedMat.emissiveIntensity = 3 + Math.sin(elapsed * 4) * 1.5;
+  vRingMat.opacity = 0.4 + Math.sin(elapsed * 2) * 0.2;
+
+  // LED flicker — sparse
+  if (frameCount % PERF.ledFlickerInterval === 0 && ledMeshes.length > 0) {
+    const led = ledMeshes[(frameCount * 7) % ledMeshes.length]; // deterministic instead of Math.random
+    led.material.emissiveIntensity = led.material.emissiveIntensity > 2 ? 0.5 : 3;
+  }
+
+  // Particles — heavily throttled
+  if (PERF.particles && particles && frameCount % PERF.particleDriftInterval === 0) {
+    const pPos = particles.geometry.attributes.position.array;
+    for (let i = 0; i < PERF.particleCount; i++) {
+      pPos[i * 3 + 1] += Math.sin(elapsed + i) * 0.003;
+      if (pPos[i * 3 + 1] > 10) pPos[i * 3 + 1] = 0.5;
+    }
+    particles.geometry.attributes.position.needsUpdate = true;
+  }
+
+  // Follow camera — pre-allocated vectors (no new THREE.Vector3)
+  if (state.followCamera) {
+    _camBehind.set(
+      bot.position.x - Math.sin(bot.rotation.y) * 7,
+      6,
+      bot.position.z - Math.cos(bot.rotation.y) * 7
+    );
+    camera.position.lerp(_camBehind, 0.04);
+    _camTarget.set(bot.position.x, 2.5, bot.position.z);
+    controls.target.lerp(_camTarget, 0.04);
+  }
+
+  // Freeze shadow map when idle (biggest GPU win — avoids shadow pass)
+  if (PERF.shadows) {
+    dirLight.castShadow = state.mode !== 'IDLE';
+  }
+
+  controls.update();
+
+  // Render — bloom composer or direct
+  if (composer) composer.render();
+  else renderer.render(scene, camera);
+
+  // FPS counter
+  if (PERF.showFPS) {
+    fpsFrames++;
+    fpsTime += dt;
+    if (fpsTime >= 0.5) {
+      dom.fps.textContent = `${Math.round(fpsFrames / fpsTime)} FPS`;
+      fpsFrames = 0;
+      fpsTime = 0;
+    }
+  }
+}
+
+animate();
+
+// Auto-start Follow sequence after 2s
+setTimeout(() => { window.startFollow(); }, 2000);
+
+// Resize
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    if (composer) composer.setSize(window.innerWidth, window.innerHeight);
+  }, 100);
+});
+
+
+</script>
+</body>
+</html>

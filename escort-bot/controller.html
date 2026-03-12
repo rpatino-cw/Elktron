@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#111318">
+  <title>Elktron — Escort Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root {
+      --ink: #e8eaed;
+      --ink-dim: #8b919e;
+      --ink-faint: #4d5364;
+      --surface: #181b22;
+      --surface-raised: #1e222b;
+      --surface-deep: #111318;
+      --border: rgba(255,255,255,0.06);
+      --accent: #3b7dff;
+      --accent-glow: rgba(59,125,255,0.25);
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --safe: #22c55e;
+      --font: 'Space Grotesk', system-ui, sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+    }
+    html { font-family: var(--font); background: var(--surface-deep); color: var(--ink); -webkit-font-smoothing: antialiased; overflow: hidden; height: 100%; }
+    body { height: 100%; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+
+    /* ── LAYOUT: stacked — map top, controls bottom ─────── */
+    .app {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100%;
+      max-height: 100dvh;
+    }
+
+    /* ── HEADER ──────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .hdr-left { display: flex; align-items: center; gap: 10px; }
+    .hdr-title {
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .conn-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--danger);
+      flex-shrink: 0;
+    }
+    .conn-dot.live { background: var(--safe); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+    .hdr-mode {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 3px;
+      background: var(--ink-faint);
+      color: var(--ink);
+    }
+    .hdr-mode[data-mode="FOLLOW"] { background: rgba(59,125,255,0.2); color: var(--accent); }
+    .hdr-mode[data-mode="SCAN"]   { background: rgba(245,158,11,0.2); color: var(--warn); }
+    .hdr-mode[data-mode="IDLE"]   { background: rgba(255,255,255,0.06); color: var(--ink-dim); }
+
+    /* ── MAP SECTION ─────────────────────────────────────── */
+    .map-wrap {
+      position: relative;
+      overflow: hidden;
+      background: var(--surface-deep);
+    }
+    canvas#map {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* map legend overlay */
+    .map-legend {
+      position: absolute; top: 10px; left: 10px;
+      display: flex; flex-direction: column; gap: 4px;
+      font-family: var(--mono); font-size: 10px; color: var(--ink-dim);
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+    .legend-row { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 10px; height: 6px; border-radius: 1px; flex-shrink: 0; }
+
+    /* ── TELEMETRY BAR ───────────────────────────────────── */
+    .telem {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .telem-cell {
+      padding: 8px 0;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .telem-cell:last-child { border-right: none; }
+    .telem-val {
+      font-family: var(--mono); font-size: 15px; font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .telem-lbl {
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-dim);
+      margin-top: 3px;
+    }
+
+    /* ── CONTROLS SECTION ────────────────────────────────── */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px calc(12px + var(--safe-b));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    /* left: mode buttons */
+    .mode-btns { display: flex; flex-direction: column; gap: 8px; }
+    .mode-btn {
+      appearance: none; border: 1px solid var(--border); background: var(--surface-raised);
+      color: var(--ink-dim); font-family: var(--mono); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 10px 14px; border-radius: 4px;
+      cursor: pointer; transition: all 0.15s ease;
+      text-align: left;
+    }
+    .mode-btn:active { transform: scale(0.96); }
+    .mode-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(59,125,255,0.08);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+    .mode-btn[data-m="SCAN"].active {
+      border-color: var(--warn); color: var(--warn);
+      background: rgba(245,158,11,0.08);
+      box-shadow: 0 0 12px rgba(245,158,11,0.2);
+    }
+
+    /* center: joystick */
+    .joy-zone {
+      position: relative;
+      width: 150px; height: 150px;
+      flex-shrink: 0;
+    }
+    canvas#joystick {
+      display: block;
+      width: 150px; height: 150px;
+    }
+
+    /* right: action buttons */
+    .action-btns { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+    .action-btn {
+      appearance: none; border: none; border-radius: 4px;
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 10px 14px; cursor: pointer;
+      transition: all 0.15s ease;
+      width: 100%;
+      text-align: right;
+    }
+    .action-btn:active { transform: scale(0.96); }
+    .btn-scan {
+      background: rgba(245,158,11,0.12); color: var(--warn);
+      border: 1px solid rgba(245,158,11,0.25);
+    }
+    .btn-estop {
+      background: rgba(239,68,68,0.15); color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .btn-estop:active { background: var(--danger); color: #fff; }
+    .btn-home {
+      background: rgba(34,197,94,0.1); color: var(--safe);
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+
+    /* ── TOAST / ALERT ───────────────────────────────────── */
+    .toast {
+      position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      font-family: var(--mono); font-size: 12px; font-weight: 500;
+      padding: 8px 18px; border-radius: 4px;
+      background: var(--surface-raised); color: var(--ink);
+      border: 1px solid var(--border);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 100;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── SCAN OVERLAY ────────────────────────────────────── */
+    .scan-overlay {
+      position: absolute; inset: 0;
+      background: rgba(17,19,24,0.85);
+      display: none; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px;
+      z-index: 50;
+    }
+    .scan-overlay.active { display: flex; }
+    .scan-bar-track {
+      width: 200px; height: 4px; background: var(--ink-faint); border-radius: 2px; overflow: hidden;
+    }
+    .scan-bar-fill {
+      height: 100%; width: 0%; background: var(--warn); border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    .scan-label {
+      font-family: var(--mono); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--warn);
+    }
+
+    /* ── LOADING SHIMMER ─────────────────────────────────── */
+    @keyframes shimmer { 0%{opacity:.4} 50%{opacity:1} 100%{opacity:.4} }
+    .pulse { animation: shimmer 2s ease-in-out infinite; }
+
+    /* ── LANDSCAPE HINT ──────────────────────────────────── */
+    @media (orientation: landscape) and (max-height: 500px) {
+      .controls { padding: 8px 16px calc(8px + var(--safe-b)); }
+      .joy-zone { width: 120px; height: 120px; }
+      canvas#joystick { width: 120px; height: 120px; }
+      .mode-btn, .action-btn { padding: 7px 10px; font-size: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="hdr-left">
+      <div class="conn-dot" id="connDot"></div>
+      <div class="hdr-title">Escort Ctrl</div>
+    </div>
+    <div class="hdr-mode" id="modeTag" data-mode="IDLE">Idle</div>
+  </header>
+
+  <!-- MAP -->
+  <div class="map-wrap">
+    <canvas id="map"></canvas>
+    <div class="map-legend">
+      <div class="legend-row"><div class="legend-swatch" style="background:#3b5998"></div>Rack</div>
+      <div class="legend-row"><div class="legend-swatch" style="background:#3b7dff"></div>Bot</div>
+      <div class="legend-row"><div class="legend-swatch" style="background:rgba(59,125,255,0.15)"></div>Trail</div>
+      <div class="legend-row"><div class="legend-swatch" style="background:#22c55e"></div>Target</div>
+    </div>
+    <div class="scan-overlay" id="scanOverlay">
+      <div class="scan-label pulse">Scanning rack</div>
+      <div class="scan-bar-track"><div class="scan-bar-fill" id="scanFill"></div></div>
+    </div>
+  </div>
+
+  <!-- TELEMETRY -->
+  <div class="telem">
+    <div class="telem-cell">
+      <div class="telem-val" id="tDist">--</div>
+      <div class="telem-lbl">Dist m</div>
+    </div>
+    <div class="telem-cell">
+      <div class="telem-val" id="tSpeed">0.0</div>
+      <div class="telem-lbl">Speed</div>
+    </div>
+    <div class="telem-cell">
+      <div class="telem-val" id="tHeading">0&deg;</div>
+      <div class="telem-lbl">Heading</div>
+    </div>
+    <div class="telem-cell">
+      <div class="telem-val" id="tScans">0</div>
+      <div class="telem-lbl">Scans</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <!-- Left: mode -->
+    <div class="mode-btns">
+      <button class="mode-btn active" data-m="IDLE" id="btnIdle">Idle</button>
+      <button class="mode-btn" data-m="FOLLOW" id="btnFollow">Follow</button>
+      <button class="mode-btn" data-m="SCAN" id="btnScan">Scan</button>
+    </div>
+
+    <!-- Center: joystick -->
+    <div class="joy-zone" id="joyZone">
+      <canvas id="joystick" width="300" height="300"></canvas>
+    </div>
+
+    <!-- Right: actions -->
+    <div class="action-btns">
+      <button class="action-btn btn-home" id="btnHome">Return</button>
+      <button class="action-btn btn-scan" id="btnTriggerScan">Scan now</button>
+      <button class="action-btn btn-estop" id="btnEstop">E-Stop</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ───────────────────────────────────────────────────────────────
+// Elktron Escort Controller
+// Mobile-first robot control interface with DC floor map
+// ───────────────────────────────────────────────────────────────
+
+(() => {
+'use strict';
+
+// ── DC FLOOR LAYOUT (matches simulation.html) ──────────────
+const DC = {
+  // floor dimensions in meters
+  width: 24,
+  depth: 16,
+  racks: [],
+  aisleWidth: 2.2,
+  rackWidth: 0.6,
+  rackDepth: 1.0
+};
+
+// Generate rack positions: 2 rows of 5
+(() => {
+  const startX = 3;
+  const spacing = 3.5;
+  const rowA_z = 5;   // front row
+  const rowB_z = rowA_z + DC.rackDepth + DC.aisleWidth + DC.rackDepth; // back row
+  for (let i = 0; i < 5; i++) {
+    const x = startX + i * spacing;
+    DC.racks.push(
+      { x, z: rowA_z, w: DC.rackWidth, d: DC.rackDepth, label: `A${i+1}` },
+      { x, z: rowB_z, w: DC.rackWidth, d: DC.rackDepth, label: `B${i+1}` }
+    );
+  }
+})();
+
+// ── STATE ───────────────────────────────────────────────────
+const state = {
+  mode: 'IDLE',          // IDLE | FOLLOW | SCAN
+  connected: false,
+  bot: { x: 12, z: 10, heading: 0 },  // heading in radians, 0 = north
+  target: null,          // { x, z } or null
+  trail: [],             // [{x,z}]
+  obstacle: null,        // distance in meters or null
+  speed: 0,
+  scans: 0,
+  scanProgress: 0,
+  joy: { x: 0, y: 0 },  // -1..1 each axis
+  ws: null
+};
+
+// ── DOM ─────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const mapCanvas = $('map');
+const mapCtx = mapCanvas.getContext('2d');
+const joyCanvas = $('joystick');
+const joyCtx = joyCanvas.getContext('2d');
+
+// ── TOAST ───────────────────────────────────────────────────
+let toastTimer = null;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── WEBSOCKET ───────────────────────────────────────────────
+function connectWS() {
+  // Try connecting to the escort bot's Pi or the FastAPI server
+  const host = location.hostname || 'localhost';
+  const port = 8080;
+  const url = `ws://${host}:${port}/ws/controller`;
+
+  try {
+    state.ws = new WebSocket(url);
+    state.ws.onopen = () => {
+      state.connected = true;
+      $('connDot').classList.add('live');
+      toast('Connected to escort bot');
+    };
+    state.ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.bot) {
+          state.bot.x = data.bot.x;
+          state.bot.z = data.bot.z;
+          state.bot.heading = data.bot.heading || 0;
+        }
+        if (data.target) state.target = data.target;
+        if (data.mode) setMode(data.mode, false);
+        if (data.obstacle != null) state.obstacle = data.obstacle;
+        if (data.speed != null) state.speed = data.speed;
+        if (data.scans != null) state.scans = data.scans;
+        if (data.scanProgress != null) {
+          state.scanProgress = data.scanProgress;
+          $('scanFill').style.width = (data.scanProgress * 100) + '%';
+        }
+      } catch {}
+    };
+    state.ws.onclose = () => {
+      state.connected = false;
+      $('connDot').classList.remove('live');
+      // Retry in 3s
+      setTimeout(connectWS, 3000);
+    };
+    state.ws.onerror = () => { state.ws.close(); };
+  } catch {
+    setTimeout(connectWS, 3000);
+  }
+}
+
+function send(obj) {
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+    state.ws.send(JSON.stringify(obj));
+  }
+}
+
+// ── MODE ────────────────────────────────────────────────────
+function setMode(mode, sendCmd = true) {
+  state.mode = mode;
+  const tag = $('modeTag');
+  tag.dataset.mode = mode;
+  tag.textContent = mode.charAt(0) + mode.slice(1).toLowerCase();
+
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.m === mode);
+  });
+
+  // Scan overlay
+  $('scanOverlay').classList.toggle('active', mode === 'SCAN');
+
+  if (sendCmd) send({ cmd: 'mode', mode });
+}
+
+$('btnIdle').onclick = () => setMode('IDLE');
+$('btnFollow').onclick = () => setMode('FOLLOW');
+$('btnScan').onclick = () => setMode('SCAN');
+$('btnTriggerScan').onclick = () => { send({ cmd: 'scan_now' }); toast('Scan triggered'); };
+$('btnEstop').onclick = () => { send({ cmd: 'estop' }); setMode('IDLE'); toast('E-STOP'); };
+$('btnHome').onclick = () => { send({ cmd: 'return_home' }); toast('Returning to start'); };
+
+// ── MAP RENDERING ───────────────────────────────────────────
+let mapDPR = 1;
+function resizeMap() {
+  const wrap = mapCanvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  mapDPR = window.devicePixelRatio || 1;
+  mapCanvas.width = rect.width * mapDPR;
+  mapCanvas.height = rect.height * mapDPR;
+  mapCanvas.style.width = rect.width + 'px';
+  mapCanvas.style.height = rect.height + 'px';
+}
+
+function worldToScreen(wx, wz) {
+  const cw = mapCanvas.width;
+  const ch = mapCanvas.height;
+  const pad = 20 * mapDPR;
+  const scaleX = (cw - pad * 2) / DC.width;
+  const scaleZ = (ch - pad * 2) / DC.depth;
+  const scale = Math.min(scaleX, scaleZ);
+  const offX = (cw - DC.width * scale) / 2;
+  const offZ = (ch - DC.depth * scale) / 2;
+  return { x: offX + wx * scale, y: offZ + wz * scale, scale };
+}
+
+function drawMap() {
+  const ctx = mapCtx;
+  const cw = mapCanvas.width;
+  const ch = mapCanvas.height;
+  ctx.clearRect(0, 0, cw, ch);
+
+  // Background
+  ctx.fillStyle = '#111318';
+  ctx.fillRect(0, 0, cw, ch);
+
+  // Grid (subtle)
+  const origin = worldToScreen(0, 0);
+  const scale = origin.scale;
+  ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx <= DC.width; gx += 2) {
+    const p = worldToScreen(gx, 0);
+    ctx.beginPath();
+    ctx.moveTo(p.x, worldToScreen(0, 0).y);
+    ctx.lineTo(p.x, worldToScreen(0, DC.depth).y);
+    ctx.stroke();
+  }
+  for (let gz = 0; gz <= DC.depth; gz += 2) {
+    const p = worldToScreen(0, gz);
+    ctx.beginPath();
+    ctx.moveTo(worldToScreen(0, gz).x, p.y);
+    ctx.lineTo(worldToScreen(DC.width, gz).x, p.y);
+    ctx.stroke();
+  }
+
+  // Floor boundary
+  const tl = worldToScreen(0, 0);
+  const br = worldToScreen(DC.width, DC.depth);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1.5 * mapDPR;
+  ctx.strokeRect(tl.x, tl.y, br.x - tl.x, br.y - tl.y);
+
+  // Hot aisle label
+  const hotAisle = DC.racks.find(r => r.label === 'A1');
+  const hotAisle2 = DC.racks.find(r => r.label === 'B1');
+  if (hotAisle && hotAisle2) {
+    const midZ = (hotAisle.z + hotAisle.d + hotAisle2.z) / 2;
+    const lbl = worldToScreen(DC.width - 1.5, midZ);
+    ctx.save();
+    ctx.font = `${9 * mapDPR}px 'IBM Plex Mono', monospace`;
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.textAlign = 'center';
+    ctx.translate(lbl.x, lbl.y);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('HOT AISLE', 0, 0);
+    ctx.restore();
+  }
+
+  // Racks
+  DC.racks.forEach(rack => {
+    const p = worldToScreen(rack.x, rack.z);
+    const w = rack.w * scale;
+    const d = rack.d * scale;
+    // Rack body
+    ctx.fillStyle = '#2a3142';
+    ctx.fillRect(p.x, p.y, w, d);
+    // Rack outline
+    ctx.strokeStyle = '#3b5998';
+    ctx.lineWidth = 1.2 * mapDPR;
+    ctx.strokeRect(p.x, p.y, w, d);
+    // Label
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.font = `600 ${8 * mapDPR}px 'IBM Plex Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(rack.label, p.x + w / 2, p.y + d / 2);
+  });
+
+  // Trail
+  if (state.trail.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(59,125,255,0.12)';
+    ctx.lineWidth = 3 * mapDPR;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    const first = worldToScreen(state.trail[0].x, state.trail[0].z);
+    ctx.moveTo(first.x, first.y);
+    for (let i = 1; i < state.trail.length; i++) {
+      const pt = worldToScreen(state.trail[i].x, state.trail[i].z);
+      ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.stroke();
+  }
+
+  // Target person
+  if (state.target) {
+    const tp = worldToScreen(state.target.x, state.target.z);
+    ctx.beginPath();
+    ctx.arc(tp.x, tp.y, 6 * mapDPR, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(34,197,94,0.3)';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(tp.x, tp.y, 3 * mapDPR, 0, Math.PI * 2);
+    ctx.fillStyle = '#22c55e';
+    ctx.fill();
+  }
+
+  // Bot — directional triangle
+  const bp = worldToScreen(state.bot.x, state.bot.z);
+  const botSize = 8 * mapDPR;
+  ctx.save();
+  ctx.translate(bp.x, bp.y);
+  ctx.rotate(state.bot.heading);
+
+  // Bot glow
+  ctx.beginPath();
+  ctx.arc(0, 0, botSize * 2, 0, Math.PI * 2);
+  const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, botSize * 2);
+  glow.addColorStop(0, 'rgba(59,125,255,0.2)');
+  glow.addColorStop(1, 'rgba(59,125,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fill();
+
+  // Bot body (triangle pointing in heading direction)
+  ctx.beginPath();
+  ctx.moveTo(0, -botSize);                     // nose
+  ctx.lineTo(-botSize * 0.65, botSize * 0.6);  // left rear
+  ctx.lineTo(botSize * 0.65, botSize * 0.6);   // right rear
+  ctx.closePath();
+  ctx.fillStyle = var(--accent) === undefined ? '#3b7dff' : '#3b7dff';
+  ctx.fillStyle = '#3b7dff';
+  ctx.fill();
+
+  // Heading line
+  ctx.beginPath();
+  ctx.moveTo(0, -botSize);
+  ctx.lineTo(0, -botSize * 2.5);
+  ctx.strokeStyle = 'rgba(59,125,255,0.4)';
+  ctx.lineWidth = 1.5 * mapDPR;
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Ultrasonic range arc (if obstacle data)
+  if (state.obstacle != null && state.obstacle < 1.5) {
+    const rangePx = state.obstacle * scale;
+    ctx.save();
+    ctx.translate(bp.x, bp.y);
+    ctx.rotate(state.bot.heading);
+    ctx.beginPath();
+    ctx.arc(0, 0, rangePx, -Math.PI * 0.35, Math.PI * 0.35);
+    ctx.strokeStyle = state.obstacle < 0.3 ? 'rgba(239,68,68,0.4)' : 'rgba(245,158,11,0.2)';
+    ctx.lineWidth = 2 * mapDPR;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+// ── MAP TAP → WAYPOINT ──────────────────────────────────────
+mapCanvas.addEventListener('click', (e) => {
+  const rect = mapCanvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) * mapDPR;
+  const cy = (e.clientY - rect.top) * mapDPR;
+
+  // Reverse worldToScreen
+  const cw = mapCanvas.width;
+  const ch = mapCanvas.height;
+  const pad = 20 * mapDPR;
+  const scaleX = (cw - pad * 2) / DC.width;
+  const scaleZ = (ch - pad * 2) / DC.depth;
+  const scale = Math.min(scaleX, scaleZ);
+  const offX = (cw - DC.width * scale) / 2;
+  const offZ = (ch - DC.depth * scale) / 2;
+
+  const wx = (cx - offX) / scale;
+  const wz = (cy - offZ) / scale;
+
+  if (wx >= 0 && wx <= DC.width && wz >= 0 && wz <= DC.depth) {
+    send({ cmd: 'waypoint', x: +wx.toFixed(2), z: +wz.toFixed(2) });
+    toast(`Waypoint: ${wx.toFixed(1)}, ${wz.toFixed(1)}`);
+  }
+});
+
+// ── JOYSTICK ────────────────────────────────────────────────
+const JOY = { active: false, cx: 150, cy: 150, radius: 110, knobR: 28 };
+let joyDPR = 1;
+
+function resizeJoy() {
+  const rect = joyCanvas.parentElement.getBoundingClientRect();
+  joyDPR = window.devicePixelRatio || 1;
+  joyCanvas.width = rect.width * joyDPR;
+  joyCanvas.height = rect.height * joyDPR;
+  joyCanvas.style.width = rect.width + 'px';
+  joyCanvas.style.height = rect.height + 'px';
+  JOY.cx = joyCanvas.width / 2;
+  JOY.cy = joyCanvas.height / 2;
+  JOY.radius = Math.min(joyCanvas.width, joyCanvas.height) * 0.38;
+  JOY.knobR = JOY.radius * 0.28;
+}
+
+function drawJoystick() {
+  const ctx = joyCtx;
+  const cw = joyCanvas.width;
+  const ch = joyCanvas.height;
+  ctx.clearRect(0, 0, cw, ch);
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(JOY.cx, JOY.cy, JOY.radius, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 2 * joyDPR;
+  ctx.stroke();
+
+  // Crosshairs
+  const ch2 = JOY.radius * 0.3;
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1 * joyDPR;
+  ctx.beginPath();
+  ctx.moveTo(JOY.cx - ch2, JOY.cy); ctx.lineTo(JOY.cx + ch2, JOY.cy);
+  ctx.moveTo(JOY.cx, JOY.cy - ch2); ctx.lineTo(JOY.cx, JOY.cy + ch2);
+  ctx.stroke();
+
+  // Directional ticks (N/S/E/W)
+  const dirs = [
+    { angle: -Math.PI / 2, label: 'N' },
+    { angle: Math.PI / 2, label: 'S' },
+    { angle: 0, label: 'E' },
+    { angle: Math.PI, label: 'W' }
+  ];
+  ctx.font = `500 ${8 * joyDPR}px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  dirs.forEach(d => {
+    const dist = JOY.radius + 12 * joyDPR;
+    const tx = JOY.cx + Math.cos(d.angle) * dist;
+    const ty = JOY.cy + Math.sin(d.angle) * dist;
+    ctx.fillText(d.label, tx, ty);
+  });
+
+  // Knob position
+  const kx = JOY.cx + state.joy.x * JOY.radius;
+  const ky = JOY.cy + state.joy.y * JOY.radius;
+
+  // Knob line
+  if (Math.abs(state.joy.x) > 0.05 || Math.abs(state.joy.y) > 0.05) {
+    ctx.beginPath();
+    ctx.moveTo(JOY.cx, JOY.cy);
+    ctx.lineTo(kx, ky);
+    ctx.strokeStyle = 'rgba(59,125,255,0.2)';
+    ctx.lineWidth = 2 * joyDPR;
+    ctx.stroke();
+  }
+
+  // Knob
+  ctx.beginPath();
+  ctx.arc(kx, ky, JOY.knobR, 0, Math.PI * 2);
+  const knobGrad = ctx.createRadialGradient(kx, ky, 0, kx, ky, JOY.knobR);
+  if (JOY.active) {
+    knobGrad.addColorStop(0, '#4a8fff');
+    knobGrad.addColorStop(1, '#3b7dff');
+  } else {
+    knobGrad.addColorStop(0, '#3a4052');
+    knobGrad.addColorStop(1, '#2a3040');
+  }
+  ctx.fillStyle = knobGrad;
+  ctx.fill();
+
+  // Knob ring
+  ctx.strokeStyle = JOY.active ? 'rgba(59,125,255,0.6)' : 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1.5 * joyDPR;
+  ctx.stroke();
+}
+
+// Touch/mouse handling for joystick
+function joyInput(clientX, clientY) {
+  const rect = joyCanvas.getBoundingClientRect();
+  const px = (clientX - rect.left) * joyDPR;
+  const py = (clientY - rect.top) * joyDPR;
+  let dx = (px - JOY.cx) / JOY.radius;
+  let dy = (py - JOY.cy) / JOY.radius;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist > 1) { dx /= dist; dy /= dist; }
+  state.joy.x = dx;
+  state.joy.y = dy;
+}
+
+function joyStart(e) {
+  e.preventDefault();
+  JOY.active = true;
+  const pt = e.touches ? e.touches[0] : e;
+  joyInput(pt.clientX, pt.clientY);
+}
+function joyMove(e) {
+  if (!JOY.active) return;
+  e.preventDefault();
+  const pt = e.touches ? e.touches[0] : e;
+  joyInput(pt.clientX, pt.clientY);
+}
+function joyEnd(e) {
+  e.preventDefault();
+  JOY.active = false;
+  state.joy.x = 0;
+  state.joy.y = 0;
+  send({ cmd: 'drive', left: 0, right: 0 });
+}
+
+joyCanvas.addEventListener('touchstart', joyStart, { passive: false });
+joyCanvas.addEventListener('touchmove', joyMove, { passive: false });
+joyCanvas.addEventListener('touchend', joyEnd, { passive: false });
+joyCanvas.addEventListener('mousedown', joyStart);
+window.addEventListener('mousemove', joyMove);
+window.addEventListener('mouseup', joyEnd);
+
+// ── JOYSTICK → DRIVE COMMAND ────────────────────────────────
+let lastDriveSent = 0;
+function processJoystick() {
+  if (!JOY.active) return;
+  const now = Date.now();
+  if (now - lastDriveSent < 80) return; // throttle to ~12 Hz
+  lastDriveSent = now;
+
+  // Convert joystick x,y to differential drive (left, right)
+  // y = forward/back (-1 = forward), x = turn (-1 = left)
+  const fwd = -state.joy.y;  // invert: up on screen = forward
+  const turn = state.joy.x;
+  const left = Math.max(-1, Math.min(1, fwd + turn));
+  const right = Math.max(-1, Math.min(1, fwd - turn));
+  send({ cmd: 'drive', left: +left.toFixed(2), right: +right.toFixed(2) });
+}
+
+// ── SIMULATION (demo mode when not connected) ──────────────
+let simT = 0;
+function simulate() {
+  if (state.connected) return;
+
+  simT += 0.016;
+
+  // Bot drives a figure-8 through the aisles
+  if (!JOY.active) {
+    const phase = simT * 0.3;
+    state.bot.x = 12 + Math.sin(phase) * 6;
+    state.bot.z = 8 + Math.sin(phase * 2) * 3;
+    state.bot.heading = Math.atan2(
+      Math.cos(phase * 2) * 3 * 2,
+      Math.cos(phase) * 6
+    );
+    state.speed = 0.35 + Math.sin(simT) * 0.15;
+    state.obstacle = 1.2 + Math.sin(simT * 1.7) * 0.8;
+  } else {
+    // Manual joystick drive in demo
+    const fwd = -state.joy.y * 0.15;
+    const turn = state.joy.x * 0.04;
+    state.bot.heading += turn;
+    state.bot.x += Math.sin(state.bot.heading) * fwd;
+    state.bot.z -= Math.cos(state.bot.heading) * fwd;
+    // Clamp to floor
+    state.bot.x = Math.max(0.5, Math.min(DC.width - 0.5, state.bot.x));
+    state.bot.z = Math.max(0.5, Math.min(DC.depth - 0.5, state.bot.z));
+    state.speed = Math.abs(fwd) * 6;
+    state.obstacle = 2.0;
+  }
+
+  // Simulated target
+  if (state.mode === 'FOLLOW') {
+    state.target = {
+      x: state.bot.x + Math.sin(state.bot.heading) * 2,
+      z: state.bot.z - Math.cos(state.bot.heading) * 2
+    };
+  } else {
+    state.target = null;
+  }
+
+  // Trail
+  if (state.trail.length === 0 ||
+      Math.hypot(state.bot.x - state.trail[state.trail.length-1].x,
+                 state.bot.z - state.trail[state.trail.length-1].z) > 0.3) {
+    state.trail.push({ x: state.bot.x, z: state.bot.z });
+    if (state.trail.length > 400) state.trail.shift();
+  }
+}
+
+// ── TELEMETRY UPDATE ────────────────────────────────────────
+function updateTelemetry() {
+  $('tDist').textContent = state.obstacle != null ? state.obstacle.toFixed(1) : '--';
+  $('tSpeed').textContent = state.speed.toFixed(1);
+  $('tHeading').innerHTML = ((state.bot.heading * 180 / Math.PI) % 360).toFixed(0) + '&deg;';
+  $('tScans').textContent = state.scans;
+}
+
+// ── MAIN LOOP ───────────────────────────────────────────────
+function loop() {
+  simulate();
+  processJoystick();
+  drawMap();
+  drawJoystick();
+  updateTelemetry();
+  requestAnimationFrame(loop);
+}
+
+// ── INIT ────────────────────────────────────────────────────
+function init() {
+  resizeMap();
+  resizeJoy();
+  window.addEventListener('resize', () => { resizeMap(); resizeJoy(); });
+
+  // Start connection attempt
+  connectWS();
+
+  // Start render loop
+  requestAnimationFrame(loop);
+
+  toast('Demo mode — tap map to set waypoint');
+}
+
+init();
+
+})();
+</script>
+</body>
+</html>

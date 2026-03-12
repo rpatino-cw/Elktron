@@ -1,4 +1,4 @@
-# FloorCrew — Demo Video Script (2–3 min)
+# Elktron — Demo Video Script (2–3 min)
 
 ## Format
 Pre-recorded. Screen capture + live robot footage + voiceover.
@@ -14,7 +14,7 @@ Target: **2:30** — leaves 30s buffer under 3 min limit.
 
 **[TEXT ON SCREEN: "2 tasks. 2 robots. 1 crew."]**
 
-> "We built FloorCrew — two robots that handle the physical grunt work so our techs can focus on what matters."
+> "We built Elktron — two robots that handle the physical grunt work so our techs can focus on what matters."
 
 ---
 
@@ -56,25 +56,25 @@ Target: **2:30** — leaves 30s buffer under 3 min limit.
 
 ## THE SYSTEM — Dashboard (1:55–2:15)
 
-**[SCREEN CAPTURE: FloorCrew dashboard — arm status, escort bot tracking, camera feeds]**
+**[SCREEN CAPTURE: Elktron dashboard — arm status, escort bot tracking, camera feeds]**
 
 > "Both robots feed into a single dashboard. Arm task status, escort bot location, live camera feeds, training logs. One screen to manage the whole crew."
 
 **[FOOTAGE: Tech glancing at a tablet showing the dashboard, then walking to a different task]**
 
-> "FloorCrew doesn't replace technicians. It gives them back their time."
+> "Elktron doesn't replace technicians. It gives them back their time."
 
 ---
 
 ## CLOSE — The Pitch (2:15–2:30)
 
-**[FOOTAGE: Both robots side by side on the DC floor. FloorCrew logo.]**
+**[FOOTAGE: Both robots side by side on the DC floor. Elktron logo.]**
 
 > "Two robots. Built in 48 hours. Real hardware, real AI, real DC tasks. No wrappers, no dashboards pretending to be products. Just machines doing the work."
 
-**[TEXT ON SCREEN: "FloorCrew — Build with Velocity"]**
+**[TEXT ON SCREEN: "Elktron — Build with Velocity"]**
 
-> "FloorCrew. More hands on the floor."
+> "Elktron. More hands on the floor."
 
 **[END]**
 

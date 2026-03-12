@@ -1,4 +1,4 @@
-# FloorCrew SO-101 — LeRobot dependencies
+# Elktron SO-101 — LeRobot dependencies
 # Install with: pip install -r requirements.txt
 
 lerobot>=0.1.0

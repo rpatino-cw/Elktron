@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FloorCrew Escort Bot — Camera-Only Detection Test
+Elktron Escort Bot — Camera-Only Detection Test
 Run on Pi 5 with just a camera (no motors, no ultrasonic).
 Validates the person detection pipeline before hardware arrives.
 
@@ -133,17 +133,17 @@ def main():
             print("[WARN] opencv-python not installed. Run: pip install --break-system-packages opencv-python")
             print("[WARN] Falling back to headless mode.")
 
-    print("[FloorCrew] Camera-only detection test")
-    print(f"[FloorCrew] Model: {MODEL_PATH}")
-    print(f"[FloorCrew] Confidence threshold: {CONFIDENCE_THRESHOLD}")
-    print(f"[FloorCrew] Display mode: {'ON' if cv2 else 'OFF'}")
+    print("[Elktron] Camera-only detection test")
+    print(f"[Elktron] Model: {MODEL_PATH}")
+    print(f"[Elktron] Confidence threshold: {CONFIDENCE_THRESHOLD}")
+    print(f"[Elktron] Display mode: {'ON' if cv2 else 'OFF'}")
     print()
 
     camera = init_camera()
     interpreter, input_det, output_det = init_tflite(MODEL_PATH)
 
-    print("[FloorCrew] Ready. Point camera at a person.")
-    print("[FloorCrew] Press Ctrl+C to stop.\n")
+    print("[Elktron] Ready. Point camera at a person.")
+    print("[Elktron] Press Ctrl+C to stop.\n")
 
     frame_count = 0
     fps_start = time.time()
@@ -179,7 +179,7 @@ def main():
                     print(f"[WAIT] No person for {gap:.1f}s...")
 
             if cv2 is not None:
-                cv2.imshow("FloorCrew Escort Bot — Detection Test", frame)
+                cv2.imshow("Elktron Escort Bot — Detection Test", frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
@@ -193,7 +193,7 @@ def main():
             cv2.destroyAllWindows()
 
         total_time = time.time() - fps_start
-        print(f"\n[FloorCrew] Test complete.")
+        print(f"\n[Elktron] Test complete.")
         print(f"  Frames: {frame_count}")
         print(f"  Detections: {detections}")
         print(f"  Avg FPS: {frame_count / total_time:.1f}")

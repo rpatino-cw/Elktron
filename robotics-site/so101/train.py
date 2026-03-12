@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FloorCrew SO-101 — Train Policy
+Elktron SO-101 — Train Policy
 Trains an ACT (Action Chunking with Transformers) policy on recorded demos.
 
 Usage:
@@ -19,7 +19,7 @@ OUTPUT_DIR = "outputs/train"
 
 
 def train(task_name, device="cuda"):
-    repo_id = f"{HF_USER}/floorcrew_{task_name}"
+    repo_id = f"{HF_USER}/elktron_{task_name}"
     job_name = f"act_{task_name}"
     output = os.path.join(OUTPUT_DIR, job_name)
 
@@ -32,10 +32,10 @@ def train(task_name, device="cuda"):
         f"--policy.device={device}",
     ]
 
-    print(f"[FloorCrew] Training ACT policy for: {task_name}")
-    print(f"[FloorCrew] Dataset: {repo_id}")
-    print(f"[FloorCrew] Device: {device}")
-    print(f"[FloorCrew] Output: {output}")
+    print(f"[Elktron] Training ACT policy for: {task_name}")
+    print(f"[Elktron] Dataset: {repo_id}")
+    print(f"[Elktron] Device: {device}")
+    print(f"[Elktron] Output: {output}")
     print()
     print("This will take a while. Monitor with tensorboard:")
     print(f"  tensorboard --logdir {output}")

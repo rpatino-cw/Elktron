@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escort Bot — Assembly</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f0ece6;
+    --grid: #d8d2c8;
+    --line: #c5bfb4;
+    --text: #2a2520;
+    --text-dim: #7a7268;
+    --accent: #c45a20;
+    --accent-dim: rgba(196, 90, 32, 0.12);
+    --blue: #2a6cb8;
+    --blue-dim: rgba(42, 108, 184, 0.1);
+    --green: #2a8a4a;
+    --metal: #5a6670;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #canvas-container {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+
+  canvas { display: block; }
+
+  /* HUD overlay */
+  .hud {
+    position: fixed;
+    z-index: 10;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: hudReveal 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  .hud-top-left { animation-delay: 0.8s; }
+  .hud-top-right { animation-delay: 0.95s; }
+  .hud-bottom-left { animation-delay: 1.1s; }
+  .hud-bottom-right { animation-delay: 1.25s; }
+
+  @keyframes hudReveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hud-top-left {
+    top: 28px;
+    left: 32px;
+  }
+
+  .hud-top-left .project-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .hud-top-left h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: #1a1510;
+    line-height: 1.2;
+  }
+
+  .hud-top-left .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* Part info panel — bottom left */
+  .hud-bottom-left {
+    bottom: 32px;
+    left: 32px;
+  }
+
+  .part-info {
+    background: rgba(255, 252, 247, 0.88);
+    border: 1px solid var(--line);
+    border-left: 2px solid var(--accent);
+    padding: 16px 20px;
+    min-width: 280px;
+    backdrop-filter: blur(12px);
+    transition: border-left-color 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .part-info.step-flash {
+    border-left-color: var(--green);
+  }
+
+  .part-info .part-number {
+    font-family: 'JetBrains Mono', monospace;  /* part number value — keep monospace */
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .part-info .part-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a1510;
+    margin-bottom: 4px;
+  }
+
+  .part-info .part-desc {
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.5;
+    max-width: 260px;
+  }
+
+  .part-info .part-specs {
+    margin-top: 12px;
+    display: flex;
+    gap: 16px;
+  }
+
+  .part-info .spec {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .part-info .spec strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Controls panel — bottom right */
+  .hud-bottom-right {
+    bottom: 32px;
+    right: 32px;
+    pointer-events: auto;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .controls button {
+    background: rgba(255, 252, 247, 0.88);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: border-color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                color 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.15s cubic-bezier(0.25, 1, 0.5, 1),
+                box-shadow 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    backdrop-filter: blur(12px);
+    letter-spacing: 0.3px;
+  }
+
+  .controls button:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(196, 90, 32, 0.12);
+  }
+
+  .controls button:active:not(:disabled) {
+    transform: scale(0.96) translateY(0);
+    transition-duration: 0.08s;
+  }
+
+  .controls button.primary {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .controls button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  /* Progress bar — top right */
+  .hud-top-right {
+    top: 28px;
+    right: 32px;
+    text-align: right;
+  }
+
+  .progress-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .progress-bar {
+    width: 160px;
+    height: 2px;
+    background: var(--line);
+    margin-left: auto;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .step-indicators {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .step-dot {
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--line);
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .step-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.4);
+  }
+
+  .step-dot.completed {
+    background: var(--accent);
+    border-color: var(--accent);
+    opacity: 0.4;
+  }
+
+  /* Annotation lines */
+  .annotation-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* Loading */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: #f0ece6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    transition: opacity 0.5s;
+  }
+
+  .loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .loader-text {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .loader-bar {
+    width: 120px;
+    height: 1px;
+    background: var(--line);
+    overflow: hidden;
+  }
+
+  .loader-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--accent);
+    animation: loaderSweep 1.2s ease-in-out infinite;
+  }
+
+  @keyframes loaderSweep {
+    0% { width: 0%; margin-left: 0; }
+    50% { width: 60%; margin-left: 20%; }
+    100% { width: 0%; margin-left: 100%; }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-text">Initializing Assembly</div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+</div>
+
+<div id="canvas-container"></div>
+
+<svg class="annotation-overlay" id="annotations"></svg>
+
+<!-- HUD: Top Left -->
+<div class="hud hud-top-left">
+  <div class="project-label">Elktron / Escort Bot</div>
+  <h1>Assembly Sequence</h1>
+  <div class="subtitle">Interactive build visualization</div>
+</div>
+
+<!-- HUD: Top Right -->
+<div class="hud hud-top-right">
+  <div class="progress-label">BUILD PROGRESS</div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+  </div>
+  <div class="step-indicators" id="step-indicators"></div>
+</div>
+
+<!-- HUD: Bottom Left -->
+<div class="hud hud-bottom-left">
+  <div class="part-info" id="part-info">
+    <div class="part-number" id="part-number">STEP 00</div>
+    <div class="part-name" id="part-name">Ready to Build</div>
+    <div class="part-desc" id="part-desc">Click "Next Part" to begin assembling the escort bot chassis.</div>
+    <div class="part-specs" id="part-specs"></div>
+  </div>
+</div>
+
+<!-- HUD: Bottom Right -->
+<div class="hud hud-bottom-right">
+  <div class="controls">
+    <button id="btn-sd" class="primary">Insert SD Card</button>
+    <button id="btn-prev" disabled>Prev</button>
+    <button id="btn-next" class="primary">Next Part</button>
+    <button id="btn-explode">Explode</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+// ─── Scene Setup ───────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf0ece6);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(6, 5, 8);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 2.5;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+// ─── Controls ──────────────────────────────────────────────
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 4;
+controls.maxDistance = 20;
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.target.set(0, 0.5, 0);
+
+// ─── Post-processing ──────────────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  0.05, 0.3, 0.95
+);
+composer.addPass(bloomPass);
+
+// Vignette
+const VignetteShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    offset: { value: 1.5 },
+    darkness: { value: 0.3 },
+  },
+  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform float offset;
+    uniform float darkness;
+    varying vec2 vUv;
+    void main() {
+      vec4 texel = texture2D(tDiffuse, vUv);
+      vec2 uv = (vUv - 0.5) * 2.0;
+      float vig = 1.0 - dot(uv, uv) * darkness * 0.25;
+      texel.rgb *= clamp(vig, 0.0, 1.0);
+      gl_FragColor = texel;
+    }
+  `,
+};
+composer.addPass(new ShaderPass(VignetteShader));
+
+// ─── Lighting ──────────────────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0xf5f0e8, 1.7);
+scene.add(ambientLight);
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+keyLight.position.set(5, 8, 4);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 25;
+keyLight.shadow.camera.left = -6;
+keyLight.shadow.camera.right = 6;
+keyLight.shadow.camera.top = 6;
+keyLight.shadow.camera.bottom = -6;
+keyLight.shadow.bias = -0.0002;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0xdde8f0, 1.4);
+fillLight.position.set(-4, 3, 6);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0xfff5e0, 1.1);
+rimLight.position.set(0, 2, -5);
+scene.add(rimLight);
+
+// Hemisphere for natural sky/ground bounce
+const hemiLight = new THREE.HemisphereLight(0xf0f0ff, 0xd0c8b8, 1.0);
+scene.add(hemiLight);
+
+// ─── Ground ────────────────────────────────────────────────
+// Grid floor
+const gridSize = 20;
+const gridDiv = 40;
+const gridHelper = new THREE.GridHelper(gridSize, gridDiv, 0xc5bfb4, 0xd8d2c8);
+gridHelper.material.opacity = 0.6;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
+
+// Ground shadow receiver
+const groundGeo = new THREE.PlaneGeometry(20, 20);
+const groundMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.01;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// ─── Materials ─────────────────────────────────────────────
+const matChassisPlate = new THREE.MeshStandardMaterial({
+  color: 0x2a2e38,
+  roughness: 0.55,
+  metalness: 0.7,
+  flatShading: false,
+});
+
+const matChassisAccent = new THREE.MeshStandardMaterial({
+  color: 0xe8a025,
+  roughness: 0.4,
+  metalness: 0.6,
+});
+
+const matMotor = new THREE.MeshStandardMaterial({
+  color: 0x555e6e,
+  roughness: 0.6,
+  metalness: 0.8,
+});
+
+const matMotorShaft = new THREE.MeshStandardMaterial({
+  color: 0x888888,
+  roughness: 0.3,
+  metalness: 0.9,
+});
+
+const matWheel = new THREE.MeshStandardMaterial({
+  color: 0x1a1a1a,
+  roughness: 0.85,
+  metalness: 0.1,
+});
+
+const matWheelHub = new THREE.MeshStandardMaterial({
+  color: 0x3a3a3a,
+  roughness: 0.4,
+  metalness: 0.7,
+});
+
+const matStandoff = new THREE.MeshStandardMaterial({
+  color: 0xc0a050,
+  roughness: 0.3,
+  metalness: 0.8,
+});
+
+const matMountBracket = new THREE.MeshStandardMaterial({
+  color: 0x404854,
+  roughness: 0.5,
+  metalness: 0.7,
+});
+
+// ─── Geometry Builders ─────────────────────────────────────
+
+function createChassisPlateLower() {
+  const group = new THREE.Group();
+  group.name = 'chassis-plate-lower';
+
+  // Main plate — rounded rectangle approximation
+  const plateW = 3.2, plateD = 2.4, plateH = 0.08;
+  const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD, 1, 1, 1);
+  const plate = new THREE.Mesh(plateGeo, matChassisPlate);
+  plate.castShadow = true;
+  plate.receiveShadow = true;
+  group.add(plate);
+
+  // Motor cutouts — visual notches on each side
+  const notchGeo = new THREE.BoxGeometry(0.6, 0.12, 0.35);
+  const positions = [
+    [-1.2, 0, -0.9], [-1.2, 0, 0.9],
+    [1.2, 0, -0.9], [1.2, 0, 0.9]
+  ];
+  positions.forEach(pos => {
+    const notch = new THREE.Mesh(notchGeo, matChassisAccent);
+    notch.position.set(...pos);
+    notch.castShadow = true;
+    group.add(notch);
+  });
+
+  // Mounting holes (visual — small cylinders)
+  const holeGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.1, 8);
+  const holeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9, metalness: 0.1 });
+  const holePositions = [
+    [-1.3, 0.05, -0.5], [-1.3, 0.05, 0.5],
+    [1.3, 0.05, -0.5], [1.3, 0.05, 0.5],
+    [-0.5, 0.05, -1.0], [0.5, 0.05, -1.0],
+    [-0.5, 0.05, 1.0], [0.5, 0.05, 1.0],
+  ];
+  holePositions.forEach(pos => {
+    const hole = new THREE.Mesh(holeGeo, holeMat);
+    hole.position.set(...pos);
+    group.add(hole);
+  });
+
+  return group;
+}
+
+function createMotorSet() {
+  const group = new THREE.Group();
+  group.name = 'motors';
+
+  function createSingleMotor() {
+    const motorGroup = new THREE.Group();
+    // Motor body
+    const bodyGeo = new THREE.BoxGeometry(0.5, 0.3, 0.28);
+    const body = new THREE.Mesh(bodyGeo, matMotor);
+    body.castShadow = true;
+    motorGroup.add(body);
+
+    // Motor shaft
+    const shaftGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.3, 8);
+    const shaft = new THREE.Mesh(shaftGeo, matMotorShaft);
+    shaft.rotation.z = Math.PI / 2;
+    shaft.position.x = 0.4;
+    motorGroup.add(shaft);
+
+    // Gearbox bump
+    const gearGeo = new THREE.CylinderGeometry(0.1, 0.1, 0.15, 12);
+    const gear = new THREE.Mesh(gearGeo, matMotor);
+    gear.rotation.z = Math.PI / 2;
+    gear.position.x = 0.3;
+    gear.castShadow = true;
+    motorGroup.add(gear);
+
+    return motorGroup;
+  }
+
+  // 4 motors at each wheel position
+  const motorPositions = [
+    { pos: [-1.4, 0, -0.9], rot: [0, 0, 0], flip: false },
+    { pos: [-1.4, 0, 0.9], rot: [0, 0, 0], flip: false },
+    { pos: [1.4, 0, -0.9], rot: [0, Math.PI, 0], flip: true },
+    { pos: [1.4, 0, 0.9], rot: [0, Math.PI, 0], flip: true },
+  ];
+
+  motorPositions.forEach(({ pos, rot }) => {
+    const motor = createSingleMotor();
+    motor.position.set(...pos);
+    motor.rotation.set(...rot);
+    motor.castShadow = true;
+    group.add(motor);
+  });
+
+  return group;
+}
+
+function createWheelSet() {
+  const group = new THREE.Group();
+  group.name = 'wheels';
+
+  function createWheel() {
+    const wheelGroup = new THREE.Group();
+
+    // Tire
+    const tireGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.22, 24);
+    const tire = new THREE.Mesh(tireGeo, matWheel);
+    tire.rotation.z = Math.PI / 2;
+    tire.castShadow = true;
+    wheelGroup.add(tire);
+
+    // Hub
+    const hubGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.24, 12);
+    const hub = new THREE.Mesh(hubGeo, matWheelHub);
+    hub.rotation.z = Math.PI / 2;
+    wheelGroup.add(hub);
+
+    // Tread lines
+    const treadCount = 12;
+    const treadGeo = new THREE.BoxGeometry(0.24, 0.02, 0.04);
+    const treadMat = new THREE.MeshStandardMaterial({ color: 0x0d0d0d, roughness: 0.95, metalness: 0 });
+    for (let i = 0; i < treadCount; i++) {
+      const angle = (i / treadCount) * Math.PI * 2;
+      const tread = new THREE.Mesh(treadGeo, treadMat);
+      tread.position.y = Math.cos(angle) * 0.4;
+      tread.position.z = Math.sin(angle) * 0.4;
+      tread.rotation.x = angle;
+      wheelGroup.add(tread);
+    }
+
+    return wheelGroup;
+  }
+
+  const wheelPositions = [
+    [-1.85, 0, -0.9],
+    [-1.85, 0, 0.9],
+    [1.85, 0, -0.9],
+    [1.85, 0, 0.9],
+  ];
+
+  wheelPositions.forEach(pos => {
+    const wheel = createWheel();
+    wheel.position.set(...pos);
+    group.add(wheel);
+  });
+
+  return group;
+}
+
+function createStandoffs() {
+  const group = new THREE.Group();
+  group.name = 'standoffs';
+
+  const standoffGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.5, 8);
+
+  const positions = [
+    [-1.2, 0.29, -0.9],
+    [-1.2, 0.29, 0.9],
+    [1.2, 0.29, -0.9],
+    [1.2, 0.29, 0.9],
+  ];
+
+  positions.forEach(pos => {
+    const standoff = new THREE.Mesh(standoffGeo, matStandoff);
+    standoff.position.set(...pos);
+    standoff.castShadow = true;
+    group.add(standoff);
+  });
+
+  return group;
+}
+
+function createChassisPlateupper() {
+  const group = new THREE.Group();
+  group.name = 'chassis-plate-upper';
+
+  const plateW = 3.2, plateD = 2.4, plateH = 0.06;
+  const plateGeo = new THREE.BoxGeometry(plateW, plateH, plateD);
+  const plate = new THREE.Mesh(plateGeo, matChassisPlate.clone());
+  plate.material.color.set(0x333845);
+  plate.castShadow = true;
+  plate.receiveShadow = true;
+  plate.position.y = 0.54;
+  group.add(plate);
+
+  // Center cutout marker
+  const cutoutGeo = new THREE.BoxGeometry(1.0, 0.07, 0.6);
+  const cutout = new THREE.Mesh(cutoutGeo, matChassisAccent.clone());
+  cutout.material.color.set(0xc88820);
+  cutout.material.opacity = 0.6;
+  cutout.material.transparent = true;
+  cutout.position.y = 0.54;
+  group.add(cutout);
+
+  return group;
+}
+
+function createMotorBrackets() {
+  const group = new THREE.Group();
+  group.name = 'motor-brackets';
+
+  function createBracket() {
+    const bracketGroup = new THREE.Group();
+    // L-shaped bracket
+    const vertGeo = new THREE.BoxGeometry(0.06, 0.3, 0.3);
+    const vert = new THREE.Mesh(vertGeo, matMountBracket);
+    vert.position.y = 0.15;
+    vert.castShadow = true;
+    bracketGroup.add(vert);
+
+    const horizGeo = new THREE.BoxGeometry(0.2, 0.06, 0.3);
+    const horiz = new THREE.Mesh(horizGeo, matMountBracket);
+    horiz.position.set(0.07, 0.0, 0);
+    horiz.castShadow = true;
+    bracketGroup.add(horiz);
+
+    return bracketGroup;
+  }
+
+  const bracketPositions = [
+    { pos: [-1.1, 0, -0.9], rot: 0 },
+    { pos: [-1.1, 0, 0.9], rot: 0 },
+    { pos: [1.1, 0, -0.9], rot: Math.PI },
+    { pos: [1.1, 0, 0.9], rot: Math.PI },
+  ];
+
+  bracketPositions.forEach(({ pos, rot }) => {
+    const bracket = createBracket();
+    bracket.position.set(...pos);
+    bracket.rotation.y = rot;
+    group.add(bracket);
+  });
+
+  return group;
+}
+
+// ─── Raspberry Pi 5 (Detailed Model) ───────────────────────
+
+// Pi 5 board constants (full-size, then scaled down)
+const PI_BW = 8.5, PI_BH = 0.16, PI_BD = 5.6;
+const PI_SCALE = 0.14; // Scale factor to fit on chassis
+
+// Materials (ported from standalone Pi 5 model)
+const silverMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.25, metalness: 0.95 });
+const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.4, metalness: 0.9 });
+const blackPlasticMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.8, metalness: 0.05 });
+const whitePlasticMat = new THREE.MeshStandardMaterial({ color: 0xe8e8e0, roughness: 0.7 });
+const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4a843, roughness: 0.3, metalness: 0.95 });
+const copperMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.5, metalness: 0.8 });
+const usb3BlueMat = new THREE.MeshStandardMaterial({ color: 0x1565c0, roughness: 0.6, metalness: 0.1 });
+const usb2BlackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.05 });
+const chipMat = new THREE.MeshStandardMaterial({ color: 0x151518, roughness: 0.5, metalness: 0.15 });
+const heatSpreaderMat = new THREE.MeshStandardMaterial({ color: 0xb8b8c0, roughness: 0.2, metalness: 0.95 });
+const ethernetMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c8, roughness: 0.3, metalness: 0.85 });
+const connectorMat = new THREE.MeshStandardMaterial({ color: 0xf0e6d0, roughness: 0.5, metalness: 0.1 });
+const audioMat = new THREE.MeshStandardMaterial({ color: 0x222225, roughness: 0.5, metalness: 0.6 });
+const matLED = new THREE.MeshStandardMaterial({ color: 0x00ff44, roughness: 0.3, emissive: 0x00ff44, emissiveIntensity: 2.0 });
+const matLEDRed = new THREE.MeshStandardMaterial({ color: 0xff2020, roughness: 0.3, emissive: 0xff2020, emissiveIntensity: 1.5 });
+const ledAmberMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.3, emissive: 0xffaa00, emissiveIntensity: 1.5 });
+const matSD = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.4 });
+const matSDLabel = new THREE.MeshStandardMaterial({ color: 0x1a3a8a, roughness: 0.6, metalness: 0.1 });
+
+// Pi 5 helper functions
+function piBox(w, h, d, mat) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+function piCyl(rT, rB, h, s, mat) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rT, rB, h, s), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+// PCB texture generator
+function generatePCBTexture(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+
+  // Base green solder mask
+  ctx.fillStyle = '#1a6b3a';
+  ctx.fillRect(0, 0, w, h);
+
+  // Texture noise
+  for (let i = 0; i < 6000; i++) {
+    const x = Math.random() * w, y = Math.random() * h;
+    ctx.fillStyle = `rgba(${Math.random()>0.5?40:10}, ${60+Math.random()*30}, ${30+Math.random()*20}, 0.15)`;
+    ctx.fillRect(x, y, 1, 1);
+  }
+
+  // Copper traces
+  ctx.strokeStyle = 'rgba(180, 150, 60, 0.12)';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 25; i++) {
+    const y = 40 + Math.random() * (h - 80);
+    const x1 = 30 + Math.random() * 100;
+    const x2 = w - 30 - Math.random() * 100;
+    ctx.beginPath(); ctx.moveTo(x1, y);
+    const midX = x1 + (x2 - x1) * (0.3 + Math.random() * 0.4);
+    const jog = (Math.random() - 0.5) * 30;
+    ctx.lineTo(midX, y); ctx.lineTo(midX, y + jog); ctx.lineTo(x2, y + jog);
+    ctx.stroke();
+  }
+  for (let i = 0; i < 20; i++) {
+    const x = 40 + Math.random() * (w - 80);
+    const y1 = 40 + Math.random() * 200;
+    ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y1 + 80 + Math.random() * 300); ctx.stroke();
+  }
+
+  // Copper pours
+  ctx.fillStyle = 'rgba(170, 140, 50, 0.05)';
+  for (let i = 0; i < 6; i++) {
+    ctx.fillRect(Math.random() * (w - 200), Math.random() * (h - 150), 100 + Math.random() * 150, 60 + Math.random() * 100);
+  }
+
+  // Via holes
+  for (let i = 0; i < 120; i++) {
+    const vx = 30 + Math.random() * (w - 60), vy = 30 + Math.random() * (h - 60);
+    ctx.beginPath(); ctx.arc(vx, vy, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(180, 150, 60, 0.2)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(vx, vy, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#0d4422'; ctx.fill();
+  }
+
+  // Solder pads
+  function drawPadRow(sx, sy, count, dx, dy, padW, padH) {
+    for (let i = 0; i < count; i++) {
+      const px = sx + i * dx, py = sy + i * dy;
+      ctx.fillStyle = 'rgba(200, 170, 70, 0.25)';
+      ctx.beginPath(); ctx.roundRect(px - padW/2, py - padH/2, padW, padH, 1.5); ctx.fill();
+    }
+  }
+  // BGA pads for SoC
+  const socCx = w * 0.42, socCy = h * 0.50;
+  for (let row = 0; row < 12; row++) {
+    for (let col = 0; col < 12; col++) {
+      const px = socCx - 30 + col * 5.5, py = socCy - 30 + row * 5.5;
+      ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200, 170, 70, 0.15)'; ctx.fill();
+    }
+  }
+  drawPadRow(w * 0.25, 38, 20, 15.3, 0, 4, 4);
+  drawPadRow(w * 0.25, 50, 20, 15.3, 0, 4, 4);
+
+  // Silkscreen
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.font = 'bold 28px "Courier New", monospace';
+  ctx.fillText('Raspberry Pi 5', w * 0.06, h * 0.52);
+  ctx.font = '14px "Courier New", monospace';
+  ctx.fillText('Model B  Rev 1.0', w * 0.06, h * 0.56);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.font = '11px "Courier New", monospace';
+  ctx.fillText('\u00A9 2023 Raspberry Pi Ltd.', w * 0.06, h * 0.60);
+
+  // Reference designators
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = '8px "Courier New", monospace';
+  [['U1',0.42,0.42],['U2',0.62,0.42],['U3',0.22,0.44],['C1',0.32,0.58],['C2',0.52,0.65],
+   ['R1',0.35,0.78],['R2',0.58,0.38],['L1',0.30,0.70],['J1',0.12,0.88],['J2',0.88,0.20]
+  ].forEach(([label, rx, ry]) => ctx.fillText(label, w * rx, h * ry));
+
+  // Component outlines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(socCx - 35, socCy - 35, 70, 70);
+  for (let i = 0; i < 25; i++) {
+    ctx.strokeRect(30 + Math.random() * (w - 60), 70 + Math.random() * (h - 140), 4 + Math.random() * 10, 3 + Math.random() * 6);
+  }
+
+  return new THREE.CanvasTexture(c);
+}
+
+// Terminal canvas texture for "programming" simulation
+let terminalCanvas, terminalCtx, terminalTexture;
+let terminalLines = [];
+let terminalLineIndex = 0;
+let terminalCharIndex = 0;
+let terminalActive = false;
+let terminalMesh = null;
+
+const TERMINAL_COMMANDS = [
+  '$ ssh pi@escortbot.local',
+  'pi@escortbot:~ $ sudo apt update',
+  'Hit:1 http://raspbian.raspberrypi.com bookworm InRelease',
+  'Reading package lists... Done',
+  'pi@escortbot:~ $ pip install picamera2 tflite-runtime gpiozero',
+  'Collecting picamera2',
+  '  Downloading picamera2-0.3.19.tar.gz (298 kB)',
+  'Collecting tflite-runtime',
+  '  Using cached tflite_runtime-2.14.0-cp311-linux_aarch64.whl',
+  'Successfully installed picamera2 tflite-runtime gpiozero',
+  'pi@escortbot:~ $ wget -q models/ssd_mobilenet_v2.tflite',
+  'pi@escortbot:~ $ python3 main.py',
+  '[Elktron] Escort Bot v1.0 starting...',
+  '[Camera]  IMX708 initialized @ 640x480',
+  '[TFLite]  MobileNet SSD v2 loaded (3.2ms)',
+  '[GPIO]    Motors: L298N on pins 17,18,22,23',
+  '[GPIO]    Ultrasonic: HC-SR04 on pins 24,25',
+  '[System]  Ready. Waiting for person...',
+  '[Detect]  Person found — confidence: 0.94',
+  '[Follow]  Tracking active. Distance: 1.8m',
+  '[STATUS]  *** ESCORT MODE ACTIVE ***',
+];
+
+function initTerminal() {
+  terminalCanvas = document.createElement('canvas');
+  terminalCanvas.width = 512;
+  terminalCanvas.height = 512;
+  terminalCtx = terminalCanvas.getContext('2d');
+
+  terminalCtx.fillStyle = '#0a0a0a';
+  terminalCtx.fillRect(0, 0, 512, 512);
+
+  terminalTexture = new THREE.CanvasTexture(terminalCanvas);
+  terminalTexture.minFilter = THREE.LinearFilter;
+  terminalTexture.magFilter = THREE.LinearFilter;
+
+  terminalLines = [];
+  terminalLineIndex = 0;
+  terminalCharIndex = 0;
+}
+
+function drawTerminal() {
+  const ctx = terminalCtx;
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, 512, 512);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.015)';
+  for (let y = 0; y < 512; y += 3) {
+    ctx.fillRect(0, y, 512, 1);
+  }
+
+  ctx.font = '13px monospace';
+  const lineH = 18;
+  const maxVisible = 26;
+  const startLine = Math.max(0, terminalLines.length - maxVisible);
+
+  terminalLines.slice(startLine).forEach((line, i) => {
+    const y = 20 + i * lineH;
+    if (line.startsWith('$') || line.startsWith('pi@')) {
+      ctx.fillStyle = '#44dd66';
+    } else if (line.startsWith('[') && line.includes(']')) {
+      const tag = line.match(/\[(\w+)\]/)?.[1] || '';
+      if (tag === 'STATUS') ctx.fillStyle = '#ffcc00';
+      else if (tag === 'Detect' || tag === 'Follow') ctx.fillStyle = '#44aaff';
+      else if (tag === 'Camera' || tag === 'TFLite' || tag === 'GPIO') ctx.fillStyle = '#aa88ff';
+      else ctx.fillStyle = '#44dd66';
+    } else if (line.includes('Successfully') || line.includes('Ready')) {
+      ctx.fillStyle = '#44dd66';
+    } else {
+      ctx.fillStyle = '#88aa88';
+    }
+    ctx.fillText(line, 8, y);
+  });
+
+  if (Math.floor(Date.now() / 530) % 2 === 0) {
+    const cursorY = 20 + Math.min(terminalLines.length, maxVisible) * lineH;
+    ctx.fillStyle = '#44dd66';
+    ctx.fillRect(8, cursorY - 12, 8, 14);
+  }
+
+  terminalTexture.needsUpdate = true;
+}
+
+function tickTerminal() {
+  if (!terminalActive || terminalLineIndex >= TERMINAL_COMMANDS.length) return;
+
+  const currentCommand = TERMINAL_COMMANDS[terminalLineIndex];
+
+  if (terminalCharIndex === 0) {
+    terminalLines.push('');
+  }
+
+  if (terminalCharIndex < currentCommand.length) {
+    const isCommand = currentCommand.startsWith('$') || currentCommand.startsWith('pi@');
+    const charsPerTick = isCommand ? 1 : 3;
+    const end = Math.min(terminalCharIndex + charsPerTick, currentCommand.length);
+    terminalLines[terminalLines.length - 1] = currentCommand.substring(0, end);
+    terminalCharIndex = end;
+  } else {
+    terminalLineIndex++;
+    terminalCharIndex = 0;
+  }
+
+  drawTerminal();
+}
+
+// ─── Detailed Raspberry Pi 5 Builder ──────────────────────
+
+function createRaspberryPi5() {
+  const group = new THREE.Group();
+  group.name = 'raspberry-pi-5';
+
+  const piG = new THREE.Group(); // Inner group at full Pi 5 scale
+
+  // ── PCB with canvas texture ──
+  const pcbTexture = generatePCBTexture(2048, 1344);
+  pcbTexture.colorSpace = THREE.SRGBColorSpace;
+  const pcbMat = new THREE.MeshStandardMaterial({ map: pcbTexture, roughness: 0.6, metalness: 0.08 });
+
+  function createRoundedRectShape(w, h, r) {
+    const shape = new THREE.Shape();
+    shape.moveTo(-w/2 + r, -h/2);
+    shape.lineTo(w/2 - r, -h/2);
+    shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+    shape.lineTo(w/2, h/2 - r);
+    shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
+    shape.lineTo(-w/2 + r, h/2);
+    shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
+    shape.lineTo(-w/2, -h/2 + r);
+    shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+    // Mounting holes
+    [[-3.8,-2.4],[2.45,-2.45],
+     [-3.8,2.4],[2.45,2.4]].forEach(([hx,hy]) => {
+      const hole = new THREE.Path();
+      hole.absarc(hx, hy, 0.15, 0, Math.PI * 2, true);
+      shape.holes.push(hole);
+    });
+    return shape;
+  }
+
+  const pcbGeo = new THREE.ExtrudeGeometry(
+    createRoundedRectShape(PI_BW, PI_BD, 0.3), { depth: PI_BH, bevelEnabled: false }
+  );
+  pcbGeo.rotateX(-Math.PI / 2);
+  // Fix UVs
+  const posAttr = pcbGeo.attributes.position;
+  const uvAttr = pcbGeo.attributes.uv;
+  for (let i = 0; i < posAttr.count; i++) {
+    uvAttr.setXY(i, (posAttr.getX(i) + PI_BW/2) / PI_BW, (posAttr.getZ(i) + PI_BD/2) / PI_BD);
+  }
+  uvAttr.needsUpdate = true;
+
+  const pcb = new THREE.Mesh(pcbGeo, pcbMat);
+  pcb.castShadow = true; pcb.receiveShadow = true;
+  piG.add(pcb);
+
+  // Mounting hole copper rings
+  [[-3.8,-2.4],[2.45,-2.45],
+   [-3.8,2.4],[2.45,2.4]].forEach(([hx,hz]) => {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.28, 24), copperMat);
+    ring.rotation.x = -Math.PI/2; ring.position.set(hx, PI_BH+0.002, hz);
+    piG.add(ring);
+  });
+
+  // ── SoC — BCM2712 ──
+  const socPkg = piBox(1.6, 0.12, 1.55, chipMat);
+  socPkg.position.set(-1.55, PI_BH + 0.06, 0.275); piG.add(socPkg);
+  const spreader = piBox(1.5, 0.08, 1.45, heatSpreaderMat);
+  spreader.position.set(-1.55, PI_BH + 0.16, 0.275); piG.add(spreader);
+  // SoC label
+  const spC = document.createElement('canvas'); spC.width = 256; spC.height = 256;
+  const spX = spC.getContext('2d');
+  spX.fillStyle = '#888'; spX.font = 'bold 24px monospace'; spX.textAlign = 'center';
+  spX.fillText('BCM2712', 128, 115);
+  spX.font = '16px monospace'; spX.fillText('BROADCOM', 128, 145);
+  const spL = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.35),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(spC), transparent: true, depthWrite: false }));
+  spL.rotation.x = -Math.PI/2; spL.position.set(-1.55, PI_BH + 0.201, 0.275); piG.add(spL);
+
+  // ── RAM ──
+  const ram = piBox(1.0, 0.08, 0.7, chipMat);
+  ram.position.set(-1.6, PI_BH + 0.04, -1.15); piG.add(ram);
+  const rC = document.createElement('canvas'); rC.width = 256; rC.height = 128;
+  const rX = rC.getContext('2d');
+  rX.fillStyle = '#666'; rX.font = 'bold 20px monospace'; rX.textAlign = 'center';
+  rX.fillText('MICRON', 128, 50); rX.font = '14px monospace'; rX.fillText('8GB LPDDR4X', 128, 75);
+  const rL = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(rC), transparent: true, depthWrite: false }));
+  rL.rotation.x = -Math.PI/2; rL.position.set(-1.6, PI_BH + 0.081, -1.15); piG.add(rL);
+
+  // ── RP1 Southbridge ──
+  const rp1 = piBox(0.8, 0.08, 0.8, chipMat);
+  rp1.position.set(2.05, PI_BH + 0.04, -0.9); piG.add(rp1);
+
+  // ── PMIC ──
+  const pmic = piBox(0.45, 0.06, 0.45, chipMat);
+  pmic.position.set(-2.9, PI_BH + 0.03, 1.65); piG.add(pmic);
+
+  // ── WiFi/BT module ──
+  const wifi = piBox(1.0, 0.18, 1.0, silverMat);
+  wifi.position.set(-3.0, PI_BH + 0.09, -1.55); piG.add(wifi);
+
+  // ── GPIO Header (40-pin) ──
+  const gpioBase = piBox(5.5, 0.25, 0.5, blackPlasticMat);
+  gpioBase.position.set(-0.7, PI_BH + 0.125, -2.45); piG.add(gpioBase);
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 20; c++) {
+    const p = piCyl(0.025, 0.025, 0.6, 6, goldMat);
+    p.position.set(-0.7 + (-2.4 + c * 0.254), PI_BH + 0.3, -2.45 + (-0.127 + r * 0.254));
+    piG.add(p);
+  }
+
+  // ── USB-C Power ──
+  const usbC1 = piBox(0.9, 0.32, 0.76, silverMat);
+  usbC1.position.set(-2.75, PI_BH + 0.16, PI_BD/2 - 0.02); piG.add(usbC1);
+  const usbC2 = piBox(0.55, 0.04, 0.4, whitePlasticMat);
+  usbC2.position.set(-2.75, PI_BH + 0.16, PI_BD/2 + 0.02); piG.add(usbC2);
+
+  // ── Micro HDMI x2 ──
+  [-1.675, -0.475].forEach(x => {
+    const h1 = piBox(0.65, 0.28, 0.6, silverMat);
+    h1.position.set(x, PI_BH + 0.14, PI_BD/2 - 0.02); piG.add(h1);
+    const h2 = piBox(0.5, 0.15, 0.45, darkMetalMat);
+    h2.position.set(x, PI_BH + 0.14, PI_BD/2 + 0.06); piG.add(h2);
+  });
+
+  // ── USB 3.0 Stack ──
+  function mkUSBStack(mat, z) {
+    const shell = piBox(1.45, 1.58, 0.76, silverMat);
+    shell.position.set(PI_BW/2 - 0.02, PI_BH + 0.79, z);
+    shell.rotation.y = Math.PI / 2; piG.add(shell);
+    for (let i = 0; i < 2; i++) {
+      const inner = piBox(1.2, 0.5, 0.56, darkMetalMat);
+      inner.position.set(PI_BW/2 - 0.02 + 0.11 * Math.sin(Math.PI/2), PI_BH + 0.35 + i * 0.7, z + 0.11 * Math.cos(Math.PI/2));
+      inner.rotation.y = Math.PI / 2; piG.add(inner);
+      const tab = piBox(1.0, 0.08, 0.35, mat);
+      tab.position.set(PI_BW/2 - 0.02 + 0.05 * Math.sin(Math.PI/2), PI_BH + 0.35 + i * 0.7, z + 0.05 * Math.cos(Math.PI/2));
+      tab.rotation.y = Math.PI / 2; piG.add(tab);
+    }
+  }
+  mkUSBStack(usb2BlackMat, -1.925);
+  mkUSBStack(usb3BlueMat, -0.25);
+
+  // ── Ethernet ──
+  const ethShell = piBox(1.6, 1.36, 1.58, ethernetMat);
+  ethShell.position.set(PI_BW/2 - 0.02, PI_BH + 0.68, 1.6);
+  ethShell.rotation.y = Math.PI / 2; piG.add(ethShell);
+  // Ethernet LEDs
+  const ethLedG = piBox(0.15, 0.12, 0.08, matLED);
+  ethLedG.position.set(PI_BW/2 + 0.54, PI_BH + 1.2, 1.6 + 0.55); piG.add(ethLedG);
+  const ethLedA = piBox(0.15, 0.12, 0.08, ledAmberMat);
+  ethLedA.position.set(PI_BW/2 + 0.54, PI_BH + 1.2, 1.6 - 0.55); piG.add(ethLedA);
+
+  // (Pi 5 has no 3.5mm audio jack)
+
+  // ── CSI/DSI FPC connectors (rotated 90° to run vertically) ──
+  [{ x: 1.05, z: 0.95 }, { x: 1.6, z: 0.95 }].forEach(({ x, z }) => {
+    const fpc = piBox(2.2, 0.18, 0.35, connectorMat);
+    fpc.position.set(x, PI_BH + 0.09, z); fpc.rotation.y = Math.PI / 2; piG.add(fpc);
+    const clip = piBox(2.0, 0.08, 0.12, blackPlasticMat);
+    clip.position.set(x, PI_BH + 0.22, z - 0.1); clip.rotation.y = Math.PI / 2; piG.add(clip);
+    for (let i = 0; i < 15; i++) {
+      const pin = piBox(0.06, 0.04, 0.25, goldMat);
+      pin.position.set(x, PI_BH + 0.02, z - 1.0 + i * 0.14); piG.add(pin);
+    }
+  });
+
+  // ── Power Button ──
+  const pwrBase = piCyl(0.2, 0.2, 0.12, 16, blackPlasticMat);
+  pwrBase.position.set(-4.25, PI_BH + 0.06, 0.95); piG.add(pwrBase);
+  const pwrCap = piCyl(0.16, 0.16, 0.08, 16, silverMat);
+  pwrCap.position.set(-4.25, PI_BH + 0.16, 0.95); piG.add(pwrCap);
+
+  // ── Fan Header ──
+  const fanBase = piBox(0.5, 0.25, 0.25, whitePlasticMat);
+  fanBase.position.set(3.0, PI_BH + 0.125, -2.425); fanBase.rotation.y = Math.PI / 2; piG.add(fanBase);
+  for (let i = 0; i < 4; i++) {
+    const fp = piCyl(0.02, 0.02, 0.35, 6, goldMat);
+    fp.position.set(3.0, PI_BH + 0.175, -2.425 + (-0.15 + i * 0.1)); piG.add(fp);
+  }
+
+  // ── Power LED + Activity LED ──
+  const pwrLed = piBox(0.1, 0.06, 0.06, matLEDRed);
+  pwrLed.position.set(-3.5, PI_BH + 0.03, 1.8); piG.add(pwrLed);
+  const actLed = piBox(0.1, 0.06, 0.06, matLED);
+  actLed.position.set(-3.2, PI_BH + 0.03, 1.8); piG.add(actLed);
+
+  // ── SD card slot housing ──
+  const sdSlot = piBox(1.1, 0.14, 1.4, silverMat);
+  sdSlot.position.set(-4.35, -0.14, -0.15); piG.add(sdSlot);
+  const sdOpening = piBox(0.3, 0.1, 1.1, darkMetalMat);
+  sdOpening.position.set(-4.35 - 0.55, -0.14, -0.15); piG.add(sdOpening);
+
+  // ── SD card — ejected, floating beside the slot ──
+  const sdCard = piBox(1.0, 0.08, 1.1, matSDLabel);
+  sdCard.position.set(-6.5, -0.14, -0.15); piG.add(sdCard);
+  const sdContacts = piBox(0.7, 0.01, 0.6, goldMat);
+  sdContacts.position.set(-6.5, -0.18, -0.15); piG.add(sdContacts);
+
+  // ── SMD components ──
+  const smdMats = [chipMat, copperMat, darkMetalMat];
+  [[-1.8,0.6,.15,.06,.1],[-1.5,0.8,.12,.05,.08],[0.5,1.6,.15,.06,.1],
+   [0.8,1.8,.1,.05,.08],[2.0,0.8,.18,.06,.12],[2.3,0.5,.12,.05,.08],
+   [-0.5,-1.2,.15,.06,.1],[1.0,-0.8,.12,.05,.08],[1.5,-1.3,.15,.06,.1],
+   [-2.5,-1.0,.12,.05,.08],[-3.0,0.0,.15,.06,.1],[3.2,0.3,.12,.06,.08],
+  ].forEach(([px,pz,w,h,d]) => {
+    const m = piBox(w, h, d, smdMats[Math.floor(Math.random()*3)]);
+    m.position.set(px, PI_BH + h/2, pz); piG.add(m);
+  });
+
+  // Inductors
+  [[-1.5,-1.5],[0.5,-1.6],[-2.8,-0.8]].forEach(([x,z]) => {
+    const m = piCyl(0.12, 0.12, 0.1, 12, darkMetalMat);
+    m.position.set(x, PI_BH + 0.05, z); piG.add(m);
+  });
+
+  // Crystal
+  const xtal = piBox(0.2, 0.08, 0.15, silverMat);
+  xtal.position.set(1.8, PI_BH + 0.04, -0.3); piG.add(xtal);
+
+  // Scale the entire Pi 5 down to fit the chassis
+  piG.scale.setScalar(PI_SCALE);
+  group.add(piG);
+
+  // ── Terminal screen (floating above Pi — in outer group coords) ──
+  initTerminal();
+  drawTerminal();
+
+  const screenGeo = new THREE.PlaneGeometry(1.4, 1.4);
+  const screenMat = new THREE.MeshBasicMaterial({
+    map: terminalTexture,
+    transparent: true,
+    opacity: 0,
+  });
+  terminalMesh = new THREE.Mesh(screenGeo, screenMat);
+  terminalMesh.position.set(0, 1.2, 0);
+  terminalMesh.rotation.x = -0.3;
+  group.add(terminalMesh);
+
+  // Screen border glow
+  const borderGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(1.42, 1.42, 0.01));
+  const borderMat = new THREE.LineBasicMaterial({ color: 0x44dd66, transparent: true, opacity: 0 });
+  const border = new THREE.LineSegments(borderGeo, borderMat);
+  border.position.copy(terminalMesh.position);
+  border.rotation.copy(terminalMesh.rotation);
+  border.name = 'terminal-border';
+  group.add(border);
+
+  // Position on upper plate
+  group.position.y = 0.54 + 0.025 / 2 + 0.01;
+  group.position.x = 0.2;
+
+  return group;
+}
+
+// ─── SD Card (Separate Removable Part) ────────────────────
+
+function createSDCard() {
+  const group = new THREE.Group();
+  group.name = 'sd-card';
+
+  // MicroSD card — shown ejected, hovering near the Pi's SD slot
+  // Full-size in scene units (not Pi scale)
+  const cardW = 0.16, cardH = 0.012, cardD = 0.2;
+
+  // Card body (dark blue/black)
+  const cardBody = new THREE.Mesh(
+    new THREE.BoxGeometry(cardW, cardH, cardD),
+    matSDLabel,
+  );
+  cardBody.castShadow = true;
+  group.add(cardBody);
+
+  // Gold contacts strip on underside
+  const contacts = new THREE.Mesh(
+    new THREE.BoxGeometry(cardW * 0.7, 0.001, cardD * 0.4),
+    goldMat,
+  );
+  contacts.position.set(0, -cardH / 2, -cardD * 0.2);
+  group.add(contacts);
+
+  // Label on top face
+  const labelC = document.createElement('canvas');
+  labelC.width = 128; labelC.height = 128;
+  const lCtx = labelC.getContext('2d');
+  lCtx.fillStyle = '#1a3a8a';
+  lCtx.fillRect(0, 0, 128, 128);
+  lCtx.fillStyle = '#fff';
+  lCtx.font = 'bold 18px sans-serif';
+  lCtx.textAlign = 'center';
+  lCtx.fillText('64GB', 64, 55);
+  lCtx.font = '12px sans-serif';
+  lCtx.fillText('A2 V30', 64, 78);
+  lCtx.fillText('Elktron OS', 64, 100);
+  const labelTex = new THREE.CanvasTexture(labelC);
+  const labelPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(cardW * 0.85, cardD * 0.85),
+    new THREE.MeshBasicMaterial({ map: labelTex, transparent: true, depthWrite: false }),
+  );
+  labelPlane.rotation.x = -Math.PI / 2;
+  labelPlane.position.y = cardH / 2 + 0.001;
+  group.add(labelPlane);
+
+  // Position: near the Pi's SD slot position (left side, ejected outward)
+  // Pi is at x=0.2, y=0.565, the slot faces -X. Card shown pulled out to the left.
+  group.position.set(-0.5, 0.56, 0.2);
+  group.rotation.y = 0;
+
+  return group;
+}
+
+// ─── Assembly Steps ────────────────────────────────────────
+
+const assemblySteps = [
+  {
+    name: 'Lower Plate',
+    number: '01',
+    desc: 'Acrylic base plate. The foundation that holds everything together. 4 motor mount slots, 8 standoff holes.',
+    specs: [
+      { label: 'Material', value: 'Acrylic' },
+      { label: 'Size', value: '22cm x 16cm' },
+    ],
+    create: createChassisPlateLower,
+    yOffset: 3,
+    cameraTarget: { x: 0, y: 0.2, z: 0 },
+  },
+  {
+    name: 'Motor Brackets',
+    number: '02',
+    desc: 'L-shaped aluminum brackets. Secure the DC motors to the lower plate at all four corners.',
+    specs: [
+      { label: 'Qty', value: '4x' },
+      { label: 'Type', value: 'L-bracket' },
+    ],
+    create: createMotorBrackets,
+    yOffset: 2.5,
+    cameraTarget: { x: 0, y: 0.2, z: 0 },
+  },
+  {
+    name: 'DC Motors',
+    number: '03',
+    desc: '6V TT gear motors with integrated gearbox. 200 RPM, dual-shaft. Wired to L298N motor driver.',
+    specs: [
+      { label: 'Qty', value: '4x' },
+      { label: 'Voltage', value: '3-6V DC' },
+      { label: 'RPM', value: '200' },
+    ],
+    create: createMotorSet,
+    yOffset: 2,
+    cameraTarget: { x: 0, y: 0.2, z: 0 },
+  },
+  {
+    name: 'Wheels',
+    number: '04',
+    desc: '65mm rubber wheels. Press-fit onto motor shafts. Rubber tread for DC floor grip.',
+    specs: [
+      { label: 'Qty', value: '4x' },
+      { label: 'Diameter', value: '65mm' },
+    ],
+    create: createWheelSet,
+    yOffset: 2,
+    cameraTarget: { x: 0, y: 0, z: 0 },
+  },
+  {
+    name: 'Standoffs',
+    number: '05',
+    desc: 'Brass hex standoffs. Space the upper plate above the motors. Creates room for wiring and the motor driver.',
+    specs: [
+      { label: 'Qty', value: '4x' },
+      { label: 'Height', value: '40mm' },
+      { label: 'Thread', value: 'M3' },
+    ],
+    create: createStandoffs,
+    yOffset: 2,
+    cameraTarget: { x: 0, y: 0.4, z: 0 },
+  },
+  {
+    name: 'Upper Plate',
+    number: '06',
+    desc: 'Second acrylic tier. Mounts Pi 5, battery, motor driver, and the PVC mast for the camera.',
+    specs: [
+      { label: 'Material', value: 'Acrylic' },
+      { label: 'Purpose', value: 'Electronics deck' },
+    ],
+    create: createChassisPlateupper,
+    yOffset: 3,
+    cameraTarget: { x: 0, y: 0.6, z: 0 },
+  },
+  {
+    name: 'MicroSD Card',
+    number: '07',
+    desc: '64GB A2 V30 microSD. Pre-flashed with Bookworm 64-bit + Elktron OS. Insert before powering up the Pi.',
+    specs: [
+      { label: 'Capacity', value: '64GB' },
+      { label: 'Speed', value: 'A2 V30' },
+      { label: 'Image', value: 'Elktron OS' },
+    ],
+    create: createSDCard,
+    yOffset: 2,
+    cameraTarget: { x: -0.5, y: 0.6, z: 0.3 },
+    animateIn: animateSDCardInsert,
+  },
+  {
+    name: 'Raspberry Pi 5',
+    number: '08',
+    desc: 'The brain. Broadcom BCM2712 quad-core Cortex-A76 @ 2.4GHz, 8GB LPDDR4X. Runs TFLite, picamera2, gpiozero for person tracking.',
+    specs: [
+      { label: 'CPU', value: '4x A76 @2.4GHz' },
+      { label: 'RAM', value: '8GB' },
+      { label: 'OS', value: 'Bookworm 64-bit' },
+    ],
+    create: createRaspberryPi5,
+    yOffset: 3,
+    cameraTarget: { x: 0.2, y: 0.9, z: 0 },
+    onComplete: startTerminalSequence,
+  },
+];
+
+// ─── State ─────────────────────────────────────────────────
+let currentStep = -1;
+let assembledParts = [];
+let isAnimating = false;
+let isExploded = false;
+
+// Initialize step indicators
+const indicatorContainer = document.getElementById('step-indicators');
+assemblySteps.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'step-dot';
+  dot.dataset.step = i;
+  indicatorContainer.appendChild(dot);
+});
+
+// ─── Animation Helpers ─────────────────────────────────────
+
+function easeOutQuart(t) {
+  return 1 - Math.pow(1 - t, 4);
+}
+
+function easeOutExpo(t) {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function animatePartIn(partGroup, fromY, duration = 1200) {
+  return new Promise(resolve => {
+    isAnimating = true;
+    const startY = fromY;
+    const targetY = 0;
+    const startTime = performance.now();
+
+    // Start transparent
+    partGroup.traverse(child => {
+      if (child.isMesh) {
+        child.material = child.material.clone();
+        child.material.transparent = true;
+        child.material.opacity = 0;
+      }
+    });
+
+    partGroup.position.y = startY;
+    scene.add(partGroup);
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = easeOutQuart(t);
+
+      partGroup.position.y = startY + (targetY - startY) * eased;
+
+      // Fade in during first half
+      const opacityT = Math.min(t * 2, 1);
+      partGroup.traverse(child => {
+        if (child.isMesh) {
+          child.material.opacity = easeOutExpo(opacityT);
+        }
+      });
+
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        // Restore full opacity
+        partGroup.traverse(child => {
+          if (child.isMesh) {
+            child.material.opacity = 1;
+            child.material.transparent = false;
+          }
+        });
+        isAnimating = false;
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(tick);
+  });
+}
+
+function animatePartOut(partGroup, toY, duration = 600) {
+  return new Promise(resolve => {
+    isAnimating = true;
+    const startY = partGroup.position.y;
+    const startTime = performance.now();
+
+    partGroup.traverse(child => {
+      if (child.isMesh) {
+        child.material = child.material.clone();
+        child.material.transparent = true;
+      }
+    });
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = easeOutQuart(t);
+
+      partGroup.position.y = startY + (toY - startY) * eased;
+
+      partGroup.traverse(child => {
+        if (child.isMesh) {
+          child.material.opacity = 1 - eased;
+        }
+      });
+
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        scene.remove(partGroup);
+        isAnimating = false;
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(tick);
+  });
+}
+
+function animateSDCardInsert(partGroup, duration = 1400) {
+  return new Promise(resolve => {
+    isAnimating = true;
+
+    // Start position: ejected far left of the slot
+    const startX = -1.6;
+    const endX = partGroup.position.x; // final resting position from createSDCard
+    partGroup.position.x = startX;
+
+    // Start transparent
+    partGroup.traverse(child => {
+      if (child.isMesh) {
+        child.material = child.material.clone();
+        child.material.transparent = true;
+        child.material.opacity = 0;
+      }
+    });
+
+    scene.add(partGroup);
+    const startTime = performance.now();
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const t = Math.min(elapsed / duration, 1);
+
+      // Phase 1 (0–0.3): fade in + hover into view
+      // Phase 2 (0.3–0.85): slide right into slot
+      // Phase 3 (0.85–1.0): subtle settle bounce
+
+      if (t < 0.3) {
+        // Fade in
+        const fadeT = t / 0.3;
+        partGroup.traverse(child => {
+          if (child.isMesh) child.material.opacity = easeOutExpo(fadeT);
+        });
+        partGroup.position.x = startX;
+      } else if (t < 0.85) {
+        // Slide into slot
+        const slideT = (t - 0.3) / 0.55;
+        const eased = easeOutQuart(slideT);
+        partGroup.position.x = startX + (endX - startX) * eased;
+        // Full opacity
+        partGroup.traverse(child => {
+          if (child.isMesh) child.material.opacity = 1;
+        });
+      } else {
+        // Settle — tiny overshoot and bounce back
+        const settleT = (t - 0.85) / 0.15;
+        const overshoot = 0.03;
+        const bounce = Math.sin(settleT * Math.PI) * overshoot * (1 - settleT);
+        partGroup.position.x = endX + bounce;
+      }
+
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        partGroup.position.x = endX;
+        partGroup.traverse(child => {
+          if (child.isMesh) {
+            child.material.opacity = 1;
+            child.material.transparent = false;
+          }
+        });
+        isAnimating = false;
+        resolve();
+      }
+    }
+
+    requestAnimationFrame(tick);
+  });
+}
+
+function animateCameraTarget(target, duration = 800) {
+  const start = controls.target.clone();
+  const startTime = performance.now();
+
+  function tick(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const e = easeOutQuart(t);
+    controls.target.lerpVectors(start, new THREE.Vector3(target.x, target.y, target.z), e);
+    if (t < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ─── Terminal Programming Sequence ─────────────────────────
+
+let terminalInterval = null;
+
+function startTerminalSequence() {
+  terminalActive = true;
+  terminalLineIndex = 0;
+  terminalCharIndex = 0;
+  terminalLines = [];
+
+  // Fade in screen + border
+  if (terminalMesh) {
+    const startTime = performance.now();
+    function fadeIn(now) {
+      const t = Math.min((now - startTime) / 800, 1);
+      const e = easeOutQuart(t);
+      terminalMesh.material.opacity = e * 0.92;
+      const border = terminalMesh.parent?.getObjectByName('terminal-border');
+      if (border) border.material.opacity = e * 0.6;
+      if (t < 1) requestAnimationFrame(fadeIn);
+    }
+    requestAnimationFrame(fadeIn);
+  }
+
+  // Type at ~60ms per tick
+  terminalInterval = setInterval(() => {
+    tickTerminal();
+    if (terminalLineIndex >= TERMINAL_COMMANDS.length) {
+      clearInterval(terminalInterval);
+      terminalInterval = null;
+    }
+  }, 60);
+}
+
+function stopTerminalSequence() {
+  terminalActive = false;
+  if (terminalInterval) {
+    clearInterval(terminalInterval);
+    terminalInterval = null;
+  }
+  // Fade out screen
+  if (terminalMesh) {
+    const startTime = performance.now();
+    const startOpacity = terminalMesh.material.opacity;
+    function fadeOut(now) {
+      const t = Math.min((now - startTime) / 400, 1);
+      terminalMesh.material.opacity = startOpacity * (1 - t);
+      const border = terminalMesh.parent?.getObjectByName('terminal-border');
+      if (border) border.material.opacity = 0.6 * (1 - t);
+      if (t < 1) requestAnimationFrame(fadeOut);
+    }
+    requestAnimationFrame(fadeOut);
+  }
+}
+
+// ─── Explode / Collapse ────────────────────────────────────
+
+function toggleExplode() {
+  if (isAnimating || assembledParts.length === 0) return;
+  isExploded = !isExploded;
+  isAnimating = true;
+
+  const startTime = performance.now();
+  const duration = 800;
+
+  const targets = assembledParts.map((part, i) => ({
+    part,
+    startY: part.position.y,
+    endY: isExploded ? i * 1.2 : 0,
+  }));
+
+  function tick(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const e = easeOutQuart(t);
+
+    targets.forEach(({ part, startY, endY }) => {
+      part.position.y = startY + (endY - startY) * e;
+    });
+
+    if (t < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      isAnimating = false;
+    }
+  }
+  requestAnimationFrame(tick);
+
+  document.getElementById('btn-explode').textContent = isExploded ? 'Collapse' : 'Explode';
+}
+
+// ─── Step Navigation ───────────────────────────────────────
+
+function updateUI() {
+  const progressFill = document.getElementById('progress-fill');
+  const partNumber = document.getElementById('part-number');
+  const partName = document.getElementById('part-name');
+  const partDesc = document.getElementById('part-desc');
+  const partSpecs = document.getElementById('part-specs');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+
+  const progress = ((currentStep + 1) / assemblySteps.length) * 100;
+  progressFill.style.width = `${progress}%`;
+
+  // Update step dots
+  document.querySelectorAll('.step-dot').forEach((dot, i) => {
+    dot.className = 'step-dot';
+    if (i < currentStep) dot.classList.add('completed');
+    if (i === currentStep) dot.classList.add('active');
+  });
+
+  if (currentStep >= 0) {
+    const step = assemblySteps[currentStep];
+    partNumber.textContent = `STEP ${step.number}`;
+    partName.textContent = step.name;
+    partDesc.textContent = step.desc;
+    partSpecs.innerHTML = step.specs.map(s =>
+      `<div class="spec"><strong>${s.value}</strong> ${s.label}</div>`
+    ).join('');
+    // Flash border on step change
+    const info = document.getElementById('part-info');
+    info.classList.add('step-flash');
+    setTimeout(() => info.classList.remove('step-flash'), 400);
+  } else {
+    partNumber.textContent = 'STEP 00';
+    partName.textContent = 'Ready to Build';
+    partDesc.textContent = 'Click "Next Part" to begin assembling the escort bot chassis.';
+    partSpecs.innerHTML = '';
+  }
+
+  btnPrev.disabled = currentStep < 0 || isAnimating;
+  btnNext.disabled = currentStep >= assemblySteps.length - 1 || isAnimating;
+  if (currentStep >= assemblySteps.length - 1) {
+    btnNext.textContent = 'Complete';
+  } else {
+    btnNext.textContent = 'Next Part';
+  }
+}
+
+async function nextStep() {
+  if (isAnimating || currentStep >= assemblySteps.length - 1) return;
+  if (isExploded) toggleExplode();
+
+  currentStep++;
+  const step = assemblySteps[currentStep];
+  const part = step.create();
+  assembledParts.push(part);
+
+  updateUI();
+  animateCameraTarget(step.cameraTarget);
+
+  if (step.animateIn) {
+    await step.animateIn(part);
+  } else {
+    await animatePartIn(part, step.yOffset);
+  }
+
+  // Trigger post-assembly callback (e.g. terminal boot)
+  if (step.onComplete) step.onComplete();
+}
+
+async function prevStep() {
+  if (isAnimating || currentStep < 0) return;
+  if (isExploded) toggleExplode();
+
+  // Stop terminal if we're removing the Pi
+  if (assemblySteps[currentStep].onComplete) stopTerminalSequence();
+
+  const part = assembledParts.pop();
+  await animatePartOut(part, assemblySteps[currentStep].yOffset);
+
+  currentStep--;
+  updateUI();
+
+  if (currentStep >= 0) {
+    animateCameraTarget(assemblySteps[currentStep].cameraTarget);
+  }
+}
+
+// ─── Event Listeners ───────────────────────────────────────
+document.getElementById('btn-next').addEventListener('click', nextStep);
+document.getElementById('btn-prev').addEventListener('click', prevStep);
+document.getElementById('btn-explode').addEventListener('click', toggleExplode);
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+  if (e.key === 'e' || e.key === 'E') toggleExplode();
+});
+
+// ─── Resize ────────────────────────────────────────────────
+function onResize() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+}
+window.addEventListener('resize', onResize);
+
+// ─── Animate ───────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const elapsed = clock.elapsedTime;
+
+  controls.update();
+
+  // Subtle wheel spin on assembled wheels
+  assembledParts.forEach(part => {
+    if (part.name === 'wheels') {
+      part.children.forEach(wheel => {
+        wheel.children[0].rotation.x += 0.003;
+      });
+    }
+  });
+
+  // Subtle grid pulse
+  gridHelper.material.opacity = 0.5 + Math.sin(elapsed * 0.5) * 0.1;
+
+  // ── Hero: slow auto-rotate Pi 5 ──
+  if (piGroup) {
+    piGroup.rotation.y += delta * 0.15;
+  }
+
+  // ── SD card gentle float (only when ejected) ──
+  if (sdCardMesh && !sdInserted) {
+    sdCardMesh.position.y += Math.sin(elapsed * 1.8) * 0.0008;
+    if (sdContactsMesh) sdContactsMesh.position.y += Math.sin(elapsed * 1.8) * 0.0008;
+  }
+
+  // ── Always pulse Pi LEDs (showcase mode) ──
+  matLED.emissiveIntensity = 1.5 + Math.sin(elapsed * 4) * 0.8;
+  matLEDRed.emissiveIntensity = 1.2 + Math.sin(elapsed * 2.5) * 0.4;
+  ledAmberMat.emissiveIntensity = 1.0 + Math.sin(elapsed * 3 + 1) * 0.5;
+
+  // Redraw terminal for cursor blink (even when not typing)
+  if (terminalActive || terminalLines.length > 0) {
+    drawTerminal();
+  }
+
+  composer.render();
+}
+
+// ─── Init ──────────────────────────────────────────────────
+
+// Show only the Raspberry Pi 5 on load
+let piGroup = null;
+let sdCardMesh = null;
+let sdContactsMesh = null;
+let sdInserted = false;
+(function showPi() {
+  const pi = createRaspberryPi5();
+  pi.position.y = 0.5;
+  scene.add(pi);
+  piGroup = pi;
+
+  // Find the SD card body and contacts (ejected at x=-6.5 in Pi-local coords)
+  pi.traverse(child => {
+    if (child.isMesh && child.material === matSDLabel && child.position.x < -5) {
+      sdCardMesh = child;
+    }
+    if (child.isMesh && child.material === goldMat && child.position.x < -5) {
+      sdContactsMesh = child;
+    }
+  });
+})();
+updateUI();
+
+// ─── SD Card Insert Animation ──────────────────────────────
+function insertSDCard() {
+  if (sdInserted || !sdCardMesh || !sdContactsMesh) return;
+  sdInserted = true;
+
+  const btn = document.getElementById('btn-sd');
+  btn.disabled = true;
+  btn.textContent = 'Inserting...';
+
+  const cardStartX = sdCardMesh.position.x;       // -6.5
+  const contactsStartX = sdContactsMesh.position.x; // -6.5
+  const slotX = -4.6;  // seated inside the slot housing
+  const cardEndX = slotX;
+  const contactsEndX = slotX;
+
+  const duration = 1200;
+  const startTime = performance.now();
+
+  function tick(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+
+    if (t < 0.15) {
+      // Phase 1: slight pull-back (like lining it up)
+      const pullT = t / 0.15;
+      const pull = Math.sin(pullT * Math.PI) * 0.3;
+      sdCardMesh.position.x = cardStartX - pull;
+      sdContactsMesh.position.x = contactsStartX - pull;
+    } else if (t < 0.85) {
+      // Phase 2: slide into slot
+      const slideT = (t - 0.15) / 0.7;
+      const eased = easeOutQuart(slideT);
+      sdCardMesh.position.x = cardStartX + (cardEndX - cardStartX) * eased;
+      sdContactsMesh.position.x = contactsStartX + (contactsEndX - contactsStartX) * eased;
+    } else {
+      // Phase 3: snap + micro-bounce
+      const settleT = (t - 0.85) / 0.15;
+      const bounce = Math.sin(settleT * Math.PI) * 0.08 * (1 - settleT);
+      sdCardMesh.position.x = cardEndX - bounce;
+      sdContactsMesh.position.x = contactsEndX - bounce;
+    }
+
+    if (t < 1) {
+      requestAnimationFrame(tick);
+    } else {
+      sdCardMesh.position.x = cardEndX;
+      sdContactsMesh.position.x = contactsEndX;
+      btn.textContent = 'SD Inserted ✓';
+    }
+  }
+
+  requestAnimationFrame(tick);
+}
+
+document.getElementById('btn-sd').addEventListener('click', insertSDCard);
+
+// Hide loader
+setTimeout(() => {
+  document.getElementById('loader').classList.add('hidden');
+}, 800);
+
+animate();
+</script>
+</body>
+</html>

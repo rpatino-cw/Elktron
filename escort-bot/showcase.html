@@ -3,45 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FloorCrew — Escort Bot | Project Scope</title>
+  <title>Elktron — Escort Bot | Project Scope</title>
+  <link rel="stylesheet" href="../design-system.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg: #ffffff;
-      --bg-2: #f4f6fa;
-      --bg-card: rgba(10,22,40,0.025);
-      --bg-dark: #eaeff5;
-      --border: rgba(10,22,40,0.08);
-      --border-hi: rgba(10,42,107,0.35);
-      --text: #0a1628;
-      --text-muted: #5a6b85;
-      --accent: #0a2f6b;
-      --accent-2: #1a5aaa;
-      --accent-glow: rgba(10,47,107,0.08);
-      --green: #16a34a;
-      --green-glow: rgba(22,163,74,0.08);
-      --amber: #d97706;
-      --amber-glow: rgba(217,119,6,0.08);
-      --red: #dc2626;
-      --red-glow: rgba(220,38,38,0.08);
-    }
-
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
       min-height: 100vh;
       overflow-x: hidden;
       line-height: 1.6;
+      padding-top: 44px;
     }
 
     body::after {
       content: '';
       position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg width='128' height='128' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='128' height='128' fill='%23808080' opacity='0.015'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg width='128' height='128' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='128' height='128' fill='%23ffffff' opacity='0.008'/%3E%3C/svg%3E");
       background-size: 128px;
       pointer-events: none; z-index: 9990;
       will-change: auto;
@@ -53,19 +33,19 @@
     /* ─── Header ─── */
     header {
       padding: 3rem 0 2rem;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-subtle);
       margin-bottom: 3rem;
     }
 
     .breadcrumb {
       font-size: 0.72rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       letter-spacing: 0.06em;
       margin-bottom: 1.5rem;
       text-transform: uppercase;
     }
 
-    .breadcrumb span { color: var(--accent-2); font-weight: 600; }
+    .breadcrumb span { color: var(--accent-primary); font-weight: 600; }
 
     header h1 {
       font-size: clamp(2rem, 4.5vw, 3.2rem);
@@ -73,12 +53,12 @@
       letter-spacing: -0.035em;
       line-height: 1.1;
       margin-bottom: 0.75rem;
-      color: var(--accent);
+      color: var(--accent-primary);
     }
 
     header p {
       font-size: 1.05rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       max-width: 650px;
       line-height: 1.7;
     }
@@ -89,10 +69,10 @@
       flex-wrap: wrap;
       margin-top: 1.5rem;
       font-size: 0.78rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
     }
 
-    .meta-row strong { color: var(--text); }
+    .meta-row strong { color: var(--text-primary); }
 
     /* ─── Hero Stats Zone ─── */
     .hero-zone {
@@ -102,7 +82,20 @@
       margin-bottom: 3rem;
       padding: 3.5rem 2rem;
       overflow: hidden;
-      background: linear-gradient(135deg, var(--accent) 0%, #0d3d8a 40%, #1a5aaa 70%, #2563eb 100%);
+      background: var(--bg-surface, #12141a);
+    }
+
+    .hero-zone::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(39,65,231,0.08) 0%,
+        transparent 50%
+      );
+      pointer-events: none;
+      z-index: 1;
     }
 
     .hero-zone::after {
@@ -110,7 +103,7 @@
       position: absolute;
       bottom: -2px; left: 0; right: 0;
       height: 60px;
-      background: linear-gradient(180deg, transparent, var(--bg));
+      background: linear-gradient(180deg, transparent, var(--bg-primary));
       z-index: 3;
       pointer-events: none;
     }
@@ -144,14 +137,14 @@
     .hero-stat-big {
       font-size: 2.5rem;
       font-weight: 800;
-      color: #ffffff;
+      color: rgba(250,251,253,0.95);
       line-height: 1;
       letter-spacing: -0.03em;
     }
 
     .hero-stat-sub {
       font-size: 0.65rem;
-      color: rgba(255,255,255,0.45);
+      color: rgba(250,251,253,0.5);
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin-top: 0.5rem;
@@ -168,7 +161,7 @@
 
     .hero-grid-line {
       position: absolute;
-      background: #ffffff;
+      background: rgba(250,251,253,0.12);
     }
 
     .hero-grid-line.h {
@@ -197,7 +190,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      background: linear-gradient(90deg, transparent, rgba(250,251,253,0.25), transparent);
       z-index: 4;
       animation: scan 4s ease-in-out infinite;
       pointer-events: none;
@@ -222,7 +215,7 @@
       font-size: 0.62rem;
       text-transform: uppercase;
       letter-spacing: 0.16em;
-      color: var(--accent-2);
+      color: var(--accent-primary);
       margin-bottom: 0.5rem;
       font-weight: 700;
     }
@@ -232,7 +225,7 @@
       font-weight: 800;
       letter-spacing: -0.025em;
       margin-bottom: 1.25rem;
-      color: var(--accent);
+      color: var(--accent-primary);
     }
 
     h3 {
@@ -240,95 +233,96 @@
       font-weight: 700;
       margin-bottom: 0.5rem;
       margin-top: 2rem;
-      color: var(--text);
+      color: var(--text-primary);
     }
 
-    p, li { font-size: 0.9rem; color: var(--text-muted); line-height: 1.75; }
+    p, li { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.75; }
     p + p { margin-top: 0.75rem; }
     ul { padding-left: 1.25rem; margin-top: 0.5rem; }
     li { margin-bottom: 0.35rem; }
-    li strong { color: var(--text); }
-    a { color: var(--accent-2); text-decoration: none; }
+    li strong { color: var(--text-primary); }
+    a { color: var(--accent-primary); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
     .callout {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--accent-primary);
       border-radius: 0 12px 12px 0;
       padding: 1.25rem 1.5rem;
       margin: 1.5rem 0;
     }
 
-    .callout.warn { border-left-color: var(--amber); }
+    .callout.warn { border-left-color: var(--status-warning); }
     .callout p { margin: 0; }
 
     .code-block {
-      background: var(--bg-2);
-      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
       border-radius: 12px;
       padding: 1.5rem;
-      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-family: var(--font-mono);  /* code block — keep monospace */
       font-size: 0.76rem;
       line-height: 1.85;
       overflow-x: auto;
       white-space: pre;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       margin: 1rem 0;
       transition: border-color 0.3s, box-shadow 0.3s;
     }
 
     .code-block:hover {
-      border-color: var(--border-hi);
-      box-shadow: 0 4px 24px var(--accent-glow);
+      border-color: var(--border-accent);
+      box-shadow: 0 4px 24px var(--glow-soft);
     }
 
-    .code-block .hl { color: var(--accent); font-weight: 600; }
-    .code-block .gr { color: var(--green); }
-    .code-block .am { color: var(--amber); }
-    .code-block .cm { color: #94a3b8; }
+    .code-block .hl { color: var(--accent-primary); font-weight: 600; }
+    .code-block .gr { color: var(--status-success); }
+    .code-block .am { color: var(--status-warning); }
+    .code-block .cm { color: var(--text-tertiary); }
 
     /* ─── Diagram ─── */
     .diagram {
-      background: var(--accent);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
       border-radius: 16px;
       padding: 2rem;
-      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-family: var(--font-mono);  /* code diagram — keep monospace */
       font-size: 0.7rem;
       line-height: 1.75;
       overflow-x: auto;
       white-space: pre;
-      color: rgba(255,255,255,0.7);
+      color: var(--text-secondary);
       margin: 1.5rem 0;
       transform-style: preserve-3d;
       transform: rotateX(2deg);
       transition: transform 0.5s ease, box-shadow 0.5s ease;
-      box-shadow: 0 20px 60px rgba(10,47,107,0.15);
+      box-shadow: var(--shadow-lg);
     }
 
     .diagram:hover {
       transform: rotateX(0deg);
-      box-shadow: 0 30px 80px rgba(10,47,107,0.2);
+      box-shadow: var(--shadow-xl);
     }
 
-    .diagram .hl { color: #93c5fd; font-weight: 600; }
-    .diagram .gr { color: #86efac; }
-    .diagram .am { color: #fcd34d; }
+    .diagram .hl { color: var(--accent-primary); font-weight: 600; }
+    .diagram .gr { color: var(--status-success); }
+    .diagram .am { color: var(--status-warning); }
 
     /* ─── Table ─── */
     table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-    th, td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
-    th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 600; }
-    td { color: var(--text); }
+    th, td { padding: 0.8rem 1rem; text-align: left; border-bottom: 1px solid var(--border-subtle); font-size: 0.84rem; }
+    th { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); font-weight: 600; }
+    td { color: var(--text-primary); }
     tr { transition: background 0.2s; }
-    tr:hover td { background: var(--bg-2); }
-    code { background: var(--bg-2); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8rem; font-family: 'SF Mono', monospace; }
+    tr:hover td { background: var(--bg-surface); }
+    code { background: var(--bg-surface); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8rem; font-family: var(--font-mono); /* code element — keep monospace */ }
 
     .tag { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 100px; font-size: 0.7rem; font-weight: 600; }
-    .tag-green { background: var(--green-glow); color: var(--green); }
-    .tag-amber { background: var(--amber-glow); color: var(--amber); }
-    .tag-red { background: var(--red-glow); color: var(--red); }
-    .tag-blue { background: var(--accent-glow); color: var(--accent-2); }
+    .tag-green { background: var(--status-success-muted); color: var(--status-success); }
+    .tag-amber { background: var(--status-warning-muted); color: var(--status-warning); }
+    .tag-red { background: var(--status-error-muted); color: var(--status-error); }
+    .tag-blue { background: var(--glow-soft); color: var(--accent-primary); }
 
     /* ─── Cards ─── */
     .cards {
@@ -340,8 +334,8 @@
     }
 
     .card {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
       border-radius: 14px;
       padding: 1.75rem;
       transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.3s;
@@ -350,21 +344,21 @@
 
     .card:hover {
       transform: translateY(-6px) rotateX(2deg) rotateY(-1deg);
-      border-color: var(--border-hi);
-      box-shadow: 0 16px 48px var(--accent-glow);
+      border-color: var(--border-accent);
+      box-shadow: 0 16px 48px var(--glow-soft);
     }
 
     .card-icon {
       width: 40px; height: 40px;
-      background: var(--accent-glow);
-      border: 1px solid var(--border);
+      background: var(--glow-soft);
+      border: 1px solid var(--border-subtle);
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       font-size: 1.1rem;
       margin-bottom: 1rem;
     }
 
-    .card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem; color: var(--accent); }
+    .card h3 { font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem; color: var(--accent-primary); }
     .card p { font-size: 0.82rem; }
 
     /* ─── Pipeline ─── */
@@ -377,8 +371,8 @@
 
     .pipeline-step {
       padding: 1.5rem 1rem;
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
       text-align: center;
       position: relative;
       transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s;
@@ -389,8 +383,8 @@
 
     .pipeline-step:hover {
       transform: translateY(-4px) rotateX(2deg);
-      box-shadow: 0 12px 32px var(--accent-glow);
-      border-color: var(--border-hi);
+      box-shadow: 0 12px 32px var(--glow-soft);
+      border-color: var(--border-accent);
       z-index: 2;
     }
 
@@ -401,17 +395,17 @@
       transform: translateY(-50%);
       width: 0; height: 0;
       border: 7px solid transparent;
-      border-left-color: var(--accent);
+      border-left-color: var(--accent-primary);
       z-index: 3;
     }
 
-    .step-num { font-size: 0.6rem; color: var(--accent-2); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.4rem; font-weight: 700; }
-    .step-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; color: var(--accent); }
-    .step-desc { font-size: 0.72rem; color: var(--text-muted); }
+    .step-num { font-size: 0.6rem; color: var(--accent-primary); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.4rem; font-weight: 700; }
+    .step-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; color: var(--accent-primary); }
+    .step-desc { font-size: 0.72rem; color: var(--text-secondary); }
 
     /* ─── Timeline ─── */
     .timeline { position: relative; padding-left: 2.5rem; margin: 1.5rem 0; }
-    .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--accent-2), var(--border)); }
+    .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, var(--accent-primary), var(--border-subtle)); }
 
     .timeline-item {
       position: relative;
@@ -429,21 +423,21 @@
       left: -2.5rem; top: 6px;
       width: 14px; height: 14px;
       border-radius: 50%;
-      background: var(--bg);
-      border: 2.5px solid var(--accent-2);
+      background: var(--bg-primary);
+      border: 2.5px solid var(--accent-primary);
       transition: box-shadow 0.3s;
     }
 
-    .timeline-item:hover::before { box-shadow: 0 0 0 4px var(--accent-glow); }
-    .timeline-item.done::before { background: var(--green); border-color: var(--green); }
+    .timeline-item:hover::before { box-shadow: 0 0 0 4px var(--glow-soft); }
+    .timeline-item.done::before { background: var(--status-success); border-color: var(--status-success); }
 
-    .timeline-title { font-weight: 700; font-size: 0.88rem; color: var(--text); }
-    .timeline-meta { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+    .timeline-title { font-weight: 700; font-size: 0.88rem; color: var(--text-primary); }
+    .timeline-meta { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.2rem; }
 
     /* ─── Floating orbs ─── */
     .orb { position: fixed; border-radius: 50%; pointer-events: none; z-index: -1; filter: blur(60px); opacity: 0.35; will-change: transform; contain: strict; }
-    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(10,47,107,0.12), transparent 70%); top: -10%; right: -10%; animation: float-orb 20s ease-in-out infinite; }
-    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(26,90,170,0.08), transparent 70%); bottom: 20%; left: -8%; animation: float-orb 25s ease-in-out infinite reverse; }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(74,158,255,0.08), transparent 70%); top: -10%; right: -10%; animation: float-orb 20s ease-in-out infinite; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(74,158,255,0.05), transparent 70%); bottom: 20%; left: -8%; animation: float-orb 25s ease-in-out infinite reverse; }
 
     @keyframes float-orb {
       0%, 100% { transform: translate(0, 0) scale(1); }
@@ -453,25 +447,182 @@
 
     .video-slot {
       width: 100%; aspect-ratio: 16/9;
-      background: var(--bg-2);
-      border: 2px dashed var(--border);
+      background: var(--bg-surface);
+      border: 2px dashed var(--border-subtle);
       border-radius: 16px;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      margin: 1rem 0; color: var(--text-muted); gap: 0.5rem;
+      margin: 1rem 0; color: var(--text-secondary); gap: 0.5rem;
       transition: border-color 0.3s;
     }
 
-    .video-slot:hover { border-color: var(--border-hi); }
+    /* ─── Render Frames ─── */
+    .render-frame {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      background: #0a0e1a;
+      transition: box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .render-frame:hover {
+      box-shadow: 0 20px 60px rgba(10, 14, 26, 0.25);
+    }
+
+    .render-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+      opacity: 0;
+      transform: scale(1.02);
+      animation: render-reveal 0.8s cubic-bezier(0.25, 1, 0.5, 1) 0.2s forwards;
+    }
+
+    .render-frame--compact img {
+      max-height: 380px;
+      object-fit: cover;
+      object-position: center 30%;
+    }
+
+    @keyframes render-reveal {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .render-caption {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.25rem 1.5rem;
+      background: linear-gradient(0deg, rgba(10,14,26,0.85) 0%, rgba(10,14,26,0.4) 70%, transparent 100%);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.78rem;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .render-caption-tag {
+      flex-shrink: 0;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.9);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .render-frame img { opacity: 1; transform: none; animation: none; }
+    }
+
+    /* ─── Decision Comparison ─── */
+    .decision-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+
+    .decision-col {
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .decision-winner {
+      border-color: var(--status-success);
+      background: linear-gradient(180deg, rgba(34,197,94,0.04) 0%, transparent 40%);
+    }
+
+    .decision-winner:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(34,197,94,0.1);
+    }
+
+    .decision-rejected {
+      opacity: 0.7;
+      background: linear-gradient(180deg, rgba(239,68,68,0.03) 0%, transparent 40%);
+    }
+
+    .decision-rejected:hover {
+      opacity: 0.85;
+    }
+
+    .decision-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .decision-header h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .decision-verdict { flex-shrink: 0; }
+
+    .decision-points {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .decision-point {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(10,14,26,0.04);
+      opacity: 0;
+      transform: translateY(12px);
+      animation: point-reveal 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards paused;
+    }
+
+    .decision-point:last-child { border-bottom: none; }
+
+    .decision-point strong {
+      display: block;
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .decision-point span {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    @keyframes point-reveal {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .decision-point { opacity: 1; transform: none; animation: none; }
+      .timeline-item { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 640px) {
+      .decision-comparison { grid-template-columns: 1fr; }
+    }
+
+    .video-slot:hover { border-color: var(--border-accent); }
     .video-slot-icon { font-size: 2rem; opacity: 0.25; }
     .video-slot-text { font-size: 0.8rem; }
 
     footer {
       text-align: center;
       padding: 3rem 2rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       font-size: 0.75rem;
-      border-top: 1px solid var(--border);
+      border-top: 1px solid var(--border-subtle);
       margin-top: 2rem;
     }
 
@@ -486,6 +637,7 @@
   </style>
 </head>
 <body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Escort Bot</span></nav>
 
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
@@ -493,7 +645,7 @@
 <div class="container scene-3d">
 
   <header>
-    <div class="breadcrumb">FloorCrew / <span>Escort Bot</span></div>
+    <div class="breadcrumb">Elktron / <span>Escort Bot</span></div>
     <h1>Escort Bot — Project Scope</h1>
     <p>Autonomous person-following robot for vendor escort on the data center floor. Replaces a DCT babysitting a vendor with a Pi-powered bot that tracks and follows them through the aisles.</p>
     <div class="meta-row">
@@ -531,6 +683,17 @@
       <div class="hero-stat-block">
         <div class="hero-stat-big">~10h</div>
         <div class="hero-stat-sub">Build Time</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Hero Visual ─── -->
+  <div class="section" style="margin-bottom: 2.5rem">
+    <div class="render-frame">
+      <img src="door-open-phase.png" alt="Escort bot simulation — following a vendor through DC racks with scan beam active" loading="lazy">
+      <div class="render-caption">
+        <span class="render-caption-tag">3D Simulation</span>
+        Escort bot following a vendor through hot-aisle racks — scan beam sweeping rack face, telemetry overlay active
       </div>
     </div>
   </div>
@@ -690,6 +853,79 @@
     </table>
   </div>
 
+  <!-- ─── Bot Render ─── -->
+  <div class="section" style="margin-bottom: 2rem">
+    <div class="render-frame render-frame--compact">
+      <img src="../robotics-site/guide-render.png" alt="Escort bot 3D model — Blender render" loading="lazy">
+      <div class="render-caption">
+        <span class="render-caption-tag">Blender Render</span>
+        Escort bot concept model — camera mast, sensor array, 4WD chassis
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Platform Decision ─── -->
+  <div class="section" id="platform-decision">
+    <div class="section-label">Platform Decision</div>
+    <h2>Why Raspberry Pi over iRobot Create 3</h2>
+    <p>We evaluated two platforms for the escort bot: a Raspberry Pi 5 with a robot chassis vs. iRobot's Create 3 (ROS 2-based Roomba platform). Pi won on every axis that matters for a 48-hour hackathon build.</p>
+
+    <div class="decision-comparison">
+      <div class="decision-col decision-winner">
+        <div class="decision-header">
+          <span class="decision-verdict tag tag-green">Selected</span>
+          <h3>Raspberry Pi 5 + Chassis</h3>
+        </div>
+        <ul class="decision-points">
+          <li class="decision-point" style="animation-delay: 0.1s">
+            <strong>Zero procurement risk</strong>
+            <span>Already own Pi 4, Pi 5, and Pico. No ordering, no shipping gambles.</span>
+          </li>
+          <li class="decision-point" style="animation-delay: 0.2s">
+            <strong>48-hour build window</strong>
+            <span>Pi + chassis + camera prototypes in one evening. Simpler stack, faster iteration.</span>
+          </li>
+          <li class="decision-point" style="animation-delay: 0.3s">
+            <strong>Stronger demo story</strong>
+            <span>"Built from a $35 Pi and a chassis" — scrappy, engineered, DC-native. Judges remember that.</span>
+          </li>
+          <li class="decision-point" style="animation-delay: 0.4s">
+            <strong>Full vision pipeline control</strong>
+            <span>Person detection, following logic, rack scanning — all custom, all ours.</span>
+          </li>
+        </ul>
+      </div>
+      <div class="decision-col decision-rejected">
+        <div class="decision-header">
+          <span class="decision-verdict tag tag-red">Rejected</span>
+          <h3>iRobot Create 3</h3>
+        </div>
+        <ul class="decision-points">
+          <li class="decision-point" style="animation-delay: 0.15s">
+            <strong>Must order hardware</strong>
+            <span>One shipping delay and the project is dead. Unacceptable risk this close to demo.</span>
+          </li>
+          <li class="decision-point" style="animation-delay: 0.25s">
+            <strong>ROS 2 learning curve</strong>
+            <span>Entirely new framework. Massive time sink when we need to be building, not learning.</span>
+          </li>
+          <li class="decision-point" style="animation-delay: 0.35s">
+            <strong>"We programmed a Roomba"</strong>
+            <span>Less impressive narrative. Feels off-the-shelf, not engineered for a DC floor.</span>
+          </li>
+          <li class="decision-point" style="animation-delay: 0.45s">
+            <strong>Sensors designed for vacuuming</strong>
+            <span>Not for following humans through hot aisles. Wrong tool for the job.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top: 2rem">
+      <p><strong>Final call:</strong> Pi 5 + robot chassis + Pi Camera Module + OpenCV person-following script. The Create 3 is a cool platform — save it for v2 if Elktron takes off.</p>
+    </div>
+  </div>
+
   <!-- ─── Hardware ─── -->
   <div class="section">
     <div class="section-label">Hardware</div>
@@ -819,7 +1055,7 @@ python3 -c "from gpiozero import Robot; ..."             <span class="cm"># moto
 </div>
 
 <footer>
-  <p>FloorCrew Escort Bot — CoreWeave Hackathon 2026</p>
+  <p>Elktron Escort Bot — CoreWeave Hackathon 2026</p>
   <p style="margin-top:0.5rem">Built by Romeo Patino &middot; DCT @ EVI01</p>
 </footer>
 
@@ -851,6 +1087,19 @@ python3 -c "from gpiozero import Robot; ..."             <span class="cm"># moto
   }, { threshold: 0.1 });
 
   document.querySelectorAll('.timeline').forEach(t => tlObs.observe(t));
+
+  // Decision comparison — staggered point reveals
+  const decObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.decision-point').forEach(p => {
+          p.style.animationPlayState = 'running';
+        });
+      }
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.decision-comparison').forEach(d => decObs.observe(d));
 </script>
 
 </body>

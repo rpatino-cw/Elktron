@@ -3,39 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FloorCrew — SO-101 Arm | Project Scope</title>
+  <title>Elktron — SO-101 Arm | Project Scope</title>
+  <link rel="stylesheet" href="../../design-system.css">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    /* ── Local tokens mapped to design system ── */
     :root {
-      --bg: #ffffff;
-      --bg-2: #f4f6fa;
-      --bg-card: rgba(10,22,40,0.025);
-      --bg-dark: #eaeff5;
-      --border: rgba(10,22,40,0.08);
-      --border-hi: rgba(10,42,107,0.35);
-      --text: #0a1628;
-      --text-muted: #5a6b85;
-      --accent: #0a2f6b;
-      --accent-2: #1a5aaa;
-      --accent-glow: rgba(10,47,107,0.08);
-      --green: #16a34a;
-      --green-glow: rgba(22,163,74,0.08);
-      --amber: #d97706;
-      --amber-glow: rgba(217,119,6,0.08);
-      --red: #dc2626;
-      --red-glow: rgba(220,38,38,0.08);
+      --bg: var(--bg-primary);
+      --bg-2: var(--bg-surface);
+      --bg-card: var(--bg-elevated);
+      --bg-dark: var(--bg-elevated);
+      --border: var(--border-subtle);
+      --border-hi: var(--border-accent);
+      --text: var(--text-primary);
+      --text-muted: var(--text-secondary);
+      --accent: var(--accent-primary);
+      --accent-2: var(--accent-primary-hover);
+      --accent-glow: var(--glow-soft);
+      --green: var(--status-success);
+      --green-glow: var(--status-success-muted);
+      --amber: var(--status-warning);
+      --amber-glow: var(--status-warning-muted);
+      --red: var(--status-error);
+      --red-glow: var(--status-error-muted);
     }
 
     html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-family: var(--font-sans);
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
       line-height: 1.6;
+      padding-top: 44px;
     }
 
     /* ─── Grain ─── */
@@ -99,7 +100,7 @@
 
     .meta-row strong { color: var(--text); }
 
-    /* ─── Hero Image (blended background) ─── */
+    /* ─── Hero Zone ─── */
     .hero-zone {
       position: relative;
       width: calc(100% + 4rem);
@@ -107,28 +108,8 @@
       margin-top: -1px;
       padding: 4rem 2rem 5rem;
       overflow: hidden;
-      background: linear-gradient(135deg, var(--accent) 0%, #0d3d8a 40%, #1a5aaa 70%, #2563eb 100%);
-    }
-
-    .hero-zone::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 75% 50%, rgba(255,255,255,0.06) 0%, transparent 70%),
-        radial-gradient(ellipse 50% 80% at 20% 80%, rgba(0,0,0,0.15) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .hero-zone::after {
-      content: '';
-      position: absolute;
-      bottom: -2px; left: 0; right: 0;
-      height: 80px;
-      background: linear-gradient(180deg, transparent, var(--bg));
-      z-index: 3;
-      pointer-events: none;
+      background: var(--bg-2);
+      border-bottom: 1px solid var(--border);
     }
 
     .hero-inner {
@@ -143,7 +124,7 @@
     }
 
     .hero-text h2 {
-      color: rgba(255,255,255,0.95);
+      color: var(--text-primary);
       font-size: 1.8rem;
       font-weight: 800;
       letter-spacing: -0.03em;
@@ -152,7 +133,7 @@
     }
 
     .hero-text p {
-      color: rgba(255,255,255,0.6);
+      color: var(--text-secondary);
       font-size: 0.88rem;
       line-height: 1.7;
     }
@@ -166,13 +147,13 @@
     .hero-stat-value {
       font-size: 1.6rem;
       font-weight: 800;
-      color: #ffffff;
+      color: var(--accent-primary);
       line-height: 1;
     }
 
     .hero-stat-label {
       font-size: 0.62rem;
-      color: rgba(255,255,255,0.45);
+      color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin-top: 0.25rem;
@@ -182,7 +163,7 @@
       position: relative;
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.12), 0 0 0 1px var(--border-subtle);
       transform: rotateY(-4deg) rotateX(2deg);
       transition: transform 0.6s ease, box-shadow 0.6s ease;
       animation: hero-float 6s ease-in-out infinite;
@@ -190,7 +171,7 @@
 
     .hero-img-wrap:hover {
       transform: rotateY(0deg) rotateX(0deg) scale(1.02);
-      box-shadow: 0 32px 100px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.12);
+      box-shadow: 0 32px 100px rgba(0,0,0,0.15), 0 0 0 1px var(--border-hi);
     }
 
     @keyframes hero-float {
@@ -210,9 +191,9 @@
       position: absolute;
       bottom: 0.75rem;
       left: 0.75rem;
-      background: rgba(0,0,0,0.5);
+      background: rgba(10,14,26,0.7);
       backdrop-filter: blur(12px);
-      color: rgba(255,255,255,0.7);
+      color: rgba(250,251,253,0.9);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -232,7 +213,7 @@
 
     .hero-grid-line {
       position: absolute;
-      background: #ffffff;
+      background: var(--accent, rgba(39,65,231,0.15));
     }
 
     .hero-grid-line.h {
@@ -262,7 +243,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent, rgba(39,65,231,0.15)), transparent);
       z-index: 4;
       animation: scan 4s ease-in-out infinite;
       pointer-events: none;
@@ -339,7 +320,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 1.5rem;
-      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-family: var(--font-mono);
       font-size: 0.76rem;
       line-height: 1.85;
       overflow-x: auto;
@@ -351,43 +332,43 @@
 
     .code-block:hover {
       border-color: var(--border-hi);
-      box-shadow: 0 4px 24px var(--accent-glow);
+      box-shadow: var(--shadow-md);
     }
 
     .code-block .hl { color: var(--accent); font-weight: 600; }
     .code-block .gr { color: var(--green); }
     .code-block .am { color: var(--amber); }
     .code-block .bl { color: var(--accent-2); }
-    .code-block .cm { color: #94a3b8; }
+    .code-block .cm { color: var(--text-tertiary); }
 
     /* ─── Diagram ─── */
     .diagram {
-      background: var(--accent);
-      border: 1px solid rgba(255,255,255,0.1);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
       border-radius: 16px;
       padding: 2rem;
-      font-family: 'SF Mono', 'Fira Code', 'Menlo', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       line-height: 1.75;
       overflow-x: auto;
       white-space: pre;
-      color: rgba(255,255,255,0.7);
+      color: var(--text-secondary);
       margin: 1.5rem 0;
       transform-style: preserve-3d;
       transform: rotateX(2deg);
       transition: transform 0.5s ease, box-shadow 0.5s ease;
-      box-shadow: 0 20px 60px rgba(10,47,107,0.15);
+      box-shadow: var(--shadow-lg);
     }
 
     .diagram:hover {
       transform: rotateX(0deg);
-      box-shadow: 0 30px 80px rgba(10,47,107,0.2);
+      box-shadow: var(--shadow-xl);
     }
 
-    .diagram .hl { color: #93c5fd; font-weight: 600; }
-    .diagram .gr { color: #86efac; }
-    .diagram .am { color: #fcd34d; }
-    .diagram .bl { color: #a5b4fc; }
+    .diagram .hl { color: var(--accent-primary-hover); font-weight: 600; }
+    .diagram .gr { color: var(--status-success); }
+    .diagram .am { color: var(--status-warning); }
+    .diagram .bl { color: var(--accent-secondary); }
 
     /* ─── Table ─── */
     table {
@@ -433,7 +414,7 @@
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
       font-size: 0.8rem;
-      font-family: 'SF Mono', monospace;
+      font-family: var(--font-mono);
     }
 
     /* ─── Pipeline ─── */
@@ -459,7 +440,7 @@
 
     .pipeline-step:hover {
       transform: translateY(-4px) rotateX(2deg);
-      box-shadow: 0 12px 32px var(--accent-glow);
+      box-shadow: var(--shadow-md);
       border-color: var(--border-hi);
       z-index: 2;
     }
@@ -497,7 +478,7 @@
     }
 
     .step-cmd {
-      font-family: 'SF Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.66rem;
       color: var(--accent);
       background: var(--accent-glow);
@@ -529,7 +510,7 @@
     .card:hover {
       transform: translateY(-6px) rotateX(2deg) rotateY(-1deg);
       border-color: var(--border-hi);
-      box-shadow: 0 16px 48px var(--accent-glow);
+      box-shadow: var(--shadow-lg);
     }
 
     .card h4 {
@@ -577,7 +558,7 @@
       top: 6px;
       width: 14px; height: 14px;
       border-radius: 50%;
-      background: var(--bg);
+      background: var(--bg-primary);
       border: 2.5px solid var(--accent-2);
       transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
     }
@@ -617,14 +598,14 @@
 
     .orb-1 {
       width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(10,47,107,0.12), transparent 70%);
+      background: radial-gradient(circle, var(--glow-soft), transparent 70%);
       top: -10%; right: -10%;
       animation: float-orb 20s ease-in-out infinite;
     }
 
     .orb-2 {
       width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(26,90,170,0.08), transparent 70%);
+      background: radial-gradient(circle, var(--glow-soft), transparent 70%);
       bottom: 20%; left: -8%;
       animation: float-orb 25s ease-in-out infinite reverse;
     }
@@ -652,7 +633,7 @@
       transition: border-color 0.3s;
     }
 
-    .video-slot:hover { border-color: var(--border-hi); }
+    .video-slot:hover { border-color: var(--border-accent); }
     .video-slot-icon { font-size: 2rem; opacity: 0.25; }
     .video-slot-text { font-size: 0.8rem; }
 
@@ -679,6 +660,7 @@
   </style>
 </head>
 <body>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.06);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.8);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">SO-101 Arm</span></nav>
 
 <!-- ─── Floating orbs ─── -->
 <div class="orb orb-1"></div>
@@ -688,7 +670,7 @@
 
   <!-- ─── Header ─── -->
   <header>
-    <div class="breadcrumb">FloorCrew / <span>SO-101 Arm</span></div>
+    <div class="breadcrumb">Elktron / <span>SO-101 Arm</span></div>
     <h1>SO-101 Robot Arm — Project Scope</h1>
     <p>Open-source 6-DOF robot arm trained via imitation learning to perform repetitive DC floor tasks autonomously. A DCT physically demonstrates the task, the arm learns it, then executes it on its own.</p>
     <div class="meta-row">
@@ -1018,7 +1000,7 @@ ls /dev/cu.usbmodem*     <span class="cm"># Mac</span>
 </div>
 
 <footer>
-  <p>FloorCrew SO-101 Arm — CoreWeave Hackathon 2026</p>
+  <p>Elktron SO-101 Arm — CoreWeave Hackathon 2026</p>
   <p style="margin-top:0.5rem">Built by Romeo Patino &middot; DCT @ EVI01</p>
 </footer>
 
