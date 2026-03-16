@@ -64,13 +64,20 @@
       position: sticky; top: 0; z-index: 200;
       height: 52px; display: flex; align-items: center;
       padding: 0 24px; gap: 16px;
-      background: var(--text);
-      color: white;
+      background: var(--bg-white);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      animation: topbarIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes topbarIn {
+      from { opacity: 0; transform: translateY(-100%); }
+      to { opacity: 1; transform: none; }
     }
     .topbar-brand {
       display: flex; align-items: center; gap: 8px;
       font-weight: 800; font-size: 13px;
       letter-spacing: 0.04em;
+      color: var(--text);
     }
     .topbar-dot {
       width: 8px; height: 8px; border-radius: 50%;
@@ -82,20 +89,20 @@
       0%, 100% { box-shadow: 0 0 8px rgba(0,200,117,0.4); }
       50% { box-shadow: 0 0 16px rgba(0,200,117,0.6); }
     }
-    .topbar-sep { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .topbar-sep { width: 1px; height: 20px; background: var(--border); }
     .topbar-tab {
       font-size: 12px; font-weight: 600; padding: 6px 12px;
       border-radius: 6px; cursor: pointer;
-      color: rgba(255,255,255,0.6);
+      color: var(--text-3);
       transition: all 0.15s var(--ease);
       border: none; background: none;
     }
-    .topbar-tab:hover { color: white; background: rgba(255,255,255,0.08); }
-    .topbar-tab.active { color: white; background: rgba(255,255,255,0.14); }
+    .topbar-tab:hover { color: var(--text); background: var(--bg-hover); }
+    .topbar-tab.active { color: var(--accent); background: var(--accent-soft); }
     .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
     .topbar-countdown {
       font-family: var(--mono); font-size: 12px; font-weight: 700;
-      color: var(--yellow); letter-spacing: 0.02em;
+      color: var(--accent); letter-spacing: 0.02em;
     }
 
     /* ─── APP SHELL ─── */
@@ -527,9 +534,10 @@
     .toast {
       display: flex; align-items: center; gap: 8px;
       padding: 10px 18px; border-radius: var(--radius);
-      background: var(--text); color: white;
+      background: var(--bg-white); color: var(--text);
       font-size: 13px; font-weight: 600;
       box-shadow: var(--shadow-xl);
+      border: 1px solid var(--border);
       animation: toastSlide 0.3s var(--ease-out-quart), toastFade 0.3s 2.2s forwards;
       pointer-events: auto; white-space: nowrap;
     }
@@ -725,6 +733,66 @@
     @keyframes completePulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
+    }
+
+    /* ─── ENTRANCE ANIMATIONS ─── */
+    .sidebar {
+      animation: sidebarIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+    }
+    @keyframes sidebarIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: none; }
+    }
+    .sidebar-item, .sidebar-member {
+      animation: itemSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .sidebar-item:nth-child(1) { animation-delay: 0.15s; }
+    .sidebar-item:nth-child(2) { animation-delay: 0.2s; }
+    .sidebar-item:nth-child(3) { animation-delay: 0.25s; }
+    .sidebar-item:nth-child(4) { animation-delay: 0.3s; }
+    @keyframes itemSlideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to { opacity: 1; transform: none; }
+    }
+    .progress-header {
+      animation: progressIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+    @keyframes progressIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: none; }
+    }
+    .metric-block {
+      animation: metricPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .metric-block:nth-child(1) { animation-delay: 0.2s; }
+    .metric-block:nth-child(2) { animation-delay: 0.28s; }
+    .metric-block:nth-child(3) { animation-delay: 0.36s; }
+    .metric-block:nth-child(4) { animation-delay: 0.44s; }
+    .metric-block:nth-child(5) { animation-delay: 0.52s; }
+    @keyframes metricPop {
+      from { opacity: 0; transform: scale(0.9) translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+    .master-bar {
+      animation: barGrow 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+    }
+    @keyframes barGrow {
+      from { opacity: 0; transform: scaleX(0); transform-origin: left; }
+      to { opacity: 1; transform: scaleX(1); }
+    }
+    .toolbar {
+      animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+    .phase-group {
+      animation: phaseReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    @keyframes phaseReveal {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: none; }
     }
 
     /* ─── REDUCED MOTION ─── */
@@ -1667,7 +1735,7 @@ function renderQueue() {
     const done = pts.filter(t => getStatus(t.id) === 'done').length;
     const pct = Math.round(done/pts.length*100);
 
-    html += `<div class="phase-group" id="pg-${p.id}">
+    html += `<div class="phase-group" id="pg-${p.id}" style="animation-delay:${0.15 + p.id * 0.06}s">
       <div class="phase-group-header" onclick="document.getElementById('pg-${p.id}').classList.toggle('collapsed')">
         <svg class="phase-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
         <span class="phase-group-color" style="background:${p.color}"></span>
