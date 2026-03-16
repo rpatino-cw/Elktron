@@ -113,8 +113,9 @@
     background: rgba(255, 252, 247, 0.92);
     border: 1px solid var(--line);
     border-left: 2px solid var(--accent);
-    padding: 16px 20px;
-    min-width: 280px;
+    padding: 12px 14px;
+    min-width: 220px;
+    max-width: 260px;
     backdrop-filter: blur(12px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     opacity: 1;
@@ -187,35 +188,35 @@
   }
 
   .part-info .part-name {
-    font-size: 17px;
+    font-size: 14px;
     font-weight: 600;
     color: #1a1510;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .part-info .part-desc {
     font-size: 12px;
     color: var(--text-dim);
-    line-height: 1.5;
-    max-width: 260px;
+    line-height: 1.4;
+    max-width: 220px;
   }
 
   .part-info .part-simple {
     font-size: 12px;
     color: var(--green);
     line-height: 1.5;
-    max-width: 260px;
-    margin-top: 8px;
-    padding: 8px 10px;
+    max-width: 220px;
+    margin-top: 6px;
+    padding: 6px 8px;
     background: rgba(42, 138, 74, 0.06);
     border-left: 2px solid var(--green);
     font-weight: 400;
   }
 
   .part-info .part-specs {
-    margin-top: 12px;
+    margin-top: 8px;
     display: flex;
-    gap: 16px;
+    gap: 10px;
   }
 
   .part-info .spec {
@@ -757,8 +758,8 @@
     transform: translateY(-50%);
     z-index: 900;
     pointer-events: none;
-    width: min(340px, 32vw);
-    max-height: 90vh;
+    width: min(260px, 24vw);
+    max-height: 60vh;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #1a3a1e transparent;
@@ -809,7 +810,7 @@
   .guide-step.visible {
     opacity: 1;
     transform: translateX(0);
-    max-height: 320px;
+    max-height: 200px;
   }
   .guide-step.done {
     opacity: 0.18;

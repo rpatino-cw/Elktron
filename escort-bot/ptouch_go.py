@@ -3,9 +3,14 @@
 Types text directly into P-Touch Editor (proven to work).
 Auto-switches to P-Touch Editor and back — user stays in terminal.
 
-Usage: python3 ptouch_go.py
+Usage:
+  python3 ptouch_go.py              # Interactive (confirm each label)
+  python3 ptouch_go.py --auto       # Fully automated — no prompts
+  python3 ptouch_go.py --start 3    # Start from label #3
+  python3 ptouch_go.py --auto --start 3  # Auto from label #3
 """
 
+import argparse
 import subprocess
 import sys
 import time
@@ -51,15 +56,35 @@ LABELS = [
 
 
 def type_label_and_return(line1, line2):
-    """Switch to P-Touch Editor, clear, type label, switch back to caller."""
+    """Switch to P-Touch Editor, clear, type formatted label, switch back.
+    Line 1: Bold, larger (3x), centered.
+    Line 2: Regular, smaller (2x), centered."""
     l1 = line1.replace('"', '\\"').replace("'", "'")
     l2 = line2.replace('"', '\\"').replace("'", "'")
 
-    type_cmd = f'keystroke "{l1}"'
+    # Build line 2 block only if there's a second line
+    line2_block = ""
     if l2:
-        type_cmd += f'''
+        line2_block = f'''
+            -- New line
             keystroke return
-            keystroke "{l2}"'''
+            delay 0.1
+
+            -- Switch to regular weight for line 2
+            click menu item "Bold" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+
+            -- Make smaller (2x to go from ~32pt back to ~14pt)
+            click menu item "Smaller" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+            click menu item "Smaller" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+            click menu item "Smaller" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+
+            -- Type line 2
+            keystroke "{l2}"
+        '''
 
     script = f'''
     -- Remember who called us
@@ -78,14 +103,31 @@ def type_label_and_return(line1, line2):
             set frontmost to true
             delay 0.3
 
-            -- Select all + delete
+            -- Select all + delete to clear canvas
             keystroke "a" using command down
             delay 0.2
             key code 51
             delay 0.3
 
-            -- Type the label
-            {type_cmd}
+            -- Center align
+            click menu item "Align Center" of menu "Text" of menu item "Text" of menu "Format" of menu bar 1
+            delay 0.1
+
+            -- Bold ON for line 1
+            click menu item "Bold" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+
+            -- Make larger (3x to go from 20pt to ~32pt)
+            click menu item "Larger" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+            click menu item "Larger" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+            click menu item "Larger" of menu "Font" of menu item "Font" of menu "Format" of menu bar 1
+            delay 0.1
+
+            -- Type line 1 (bold, large, centered)
+            keystroke "{l1}"
+            {line2_block}
         end tell
     end tell
 
@@ -102,7 +144,7 @@ def type_label_and_return(line1, line2):
 
 
 def print_and_return():
-    """Switch to P-Touch Editor, click Print, switch back."""
+    """Switch to P-Touch Editor, use File > Print menu, switch back."""
     script = '''
     tell application "System Events"
         set callerApp to name of first application process whose frontmost is true
@@ -118,18 +160,13 @@ def print_and_return():
             set frontmost to true
             delay 0.3
 
-            -- Try toolbar Print button
-            try
-                click button "Print" of toolbar 1 of window 1
-                delay 2
-            on error
-                -- Try File > Print menu
-                try
-                    click menu item "Print" of menu "File" of menu bar 1
-                    delay 2
-                    keystroke return
-                end try
-            end try
+            -- Use File > Print… (P-Touch Editor's own print, routes to Brother printer)
+            click menu item "Print…" of menu "File" of menu bar 1
+            delay 2
+
+            -- Confirm the print dialog (press Return or click Print button)
+            keystroke return
+            delay 1
         end tell
     end tell
 
@@ -142,10 +179,18 @@ def print_and_return():
 
 
 def main():
+    parser = argparse.ArgumentParser(description="P-Touch Label Printer for Escort Bot")
+    parser.add_argument("--auto", action="store_true", help="Fully automated — no prompts")
+    parser.add_argument("--start", type=int, default=1, help="Start from label number (1-27)")
+    args = parser.parse_args()
+
+    labels_to_print = LABELS[args.start - 1:]
+    mode = "AUTO" if args.auto else "INTERACTIVE"
+
     print(f"\n{'='*55}")
     print(f"  ESCORT BOT — P-TOUCH LABELS")
-    print(f"  {len(LABELS)} labels | PT-D610BT | 24mm tape")
-    print(f"  Auto-switch — stay in this terminal!")
+    print(f"  {len(labels_to_print)} labels | PT-D610BT | 24mm tape")
+    print(f"  Mode: {mode}")
     print(f"{'='*55}")
     print(f"\n  1. Open P-Touch Editor with a blank label")
     print(f"  2. Click the label canvas so cursor is active")
@@ -153,32 +198,49 @@ def main():
 
     input("  [ENTER] to start: ")
 
-    for i, (cat, l1, l2) in enumerate(LABELS, 1):
+    for i, (cat, l1, l2) in enumerate(labels_to_print, args.start):
         display = f"{l1} / {l2}" if l2 else l1
         print(f"\n  [{i:2d}/{len(LABELS)}] {cat:6s} | {display}")
 
-        choice = input("  [ENTER] Go  [s] Skip  [q] Quit: ").strip().lower()
-        if choice == "q":
-            print(f"\n  Stopped at #{i}.")
-            break
-        if choice == "s":
-            print(f"  Skipped.")
-            continue
+        if not args.auto:
+            choice = input("  [ENTER] Go  [s] Skip  [q] Quit: ").strip().lower()
+            if choice == "q":
+                print(f"\n  Stopped at #{i}.")
+                break
+            if choice == "s":
+                print(f"  Skipped.")
+                continue
 
         # Type into P-Touch Editor and auto-return
         print(f"  Typing... ", end="", flush=True)
         ok = type_label_and_return(l1, l2)
         if ok:
-            print(f"done. Check P-Touch Editor.")
+            print(f"done.")
         else:
             print(f"FAILED. Click the label canvas and retry.")
-            continue
+            if args.auto:
+                print(f"  Retrying in 3s...")
+                time.sleep(3)
+                ok = type_label_and_return(l1, l2)
+                if not ok:
+                    print(f"  FAILED again. Skipping #{i}.")
+                    continue
+            else:
+                continue
 
-        action = input("  [ENTER] Print  [s] Skip print: ").strip().lower()
-        if action != "s":
-            print(f"  Printing... ", end="", flush=True)
-            print_and_return()
-            print("sent!")
+        if not args.auto:
+            action = input("  [ENTER] Print  [s] Skip print: ").strip().lower()
+            if action == "s":
+                continue
+
+        # Print
+        print(f"  Printing... ", end="", flush=True)
+        print_and_return()
+        print("sent!")
+
+        if args.auto:
+            # Wait for printer to finish before next label
+            time.sleep(3)
 
     print(f"\n  All done!\n")
 
