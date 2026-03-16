@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiring Guide — Escort Bot</title>
+<link rel="stylesheet" href="../design-system.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inconsolata:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Plus Jakarta Sans',var(--font-sans),system-ui,sans-serif;
+  background:#f7f8fc;color:#0a0e1a;
+  min-height:100vh;overflow-x:hidden;
+}
+
+/* ─── Orbs ─── */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(80px);opacity:.25;will-change:transform;contain:strict}
+.orb-1{width:500px;height:500px;background:radial-gradient(circle,rgba(39,65,231,.12),transparent 70%);top:-6%;right:-5%;animation:orbF 22s ease-in-out infinite}
+.orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(105,137,255,.08),transparent 70%);bottom:10%;left:-4%;animation:orbF 28s ease-in-out infinite reverse}
+@keyframes orbF{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(25px,-20px) scale(1.05)}66%{transform:translate(-15px,15px) scale(.95)}}
+
+/* ─── Header ─── */
+.header{
+  position:sticky;top:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;height:56px;
+  background:rgba(247,248,252,.88);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(10,14,26,.06);
+}
+.header-left{display:flex;align-items:center;gap:12px}
+.breadcrumb{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#8890a6}
+.breadcrumb span{color:#2741E7}
+.header-title{font-size:.82rem;font-weight:800;letter-spacing:-.01em;color:#0a0e1a}
+.header-right{display:flex;align-items:center;gap:8px}
+.filter-btn{
+  font-family:inherit;font-size:.65rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:6px 14px;border-radius:100px;
+  border:1.5px solid rgba(10,14,26,.08);background:transparent;
+  color:#8890a6;cursor:pointer;transition:all .25s cubic-bezier(.22,1,.36,1);
+  white-space:nowrap;
+}
+.filter-btn:hover{border-color:#2741E7;color:#2741E7}
+.filter-btn.active{background:#2741E7;color:#fff;border-color:#2741E7;box-shadow:0 2px 12px rgba(39,65,231,.25)}
+
+/* ─── Canvas Layout ─── */
+.canvas-wrap{
+  position:relative;z-index:10;
+  width:100%;max-width:1400px;margin:24px auto 0;
+  padding:0 24px;
+}
+.diagram{
+  position:relative;
+  width:100%;aspect-ratio:16/9;
+  background:#fff;border-radius:20px;
+  border:1px solid rgba(10,14,26,.06);
+  box-shadow:0 4px 40px rgba(10,14,26,.04),0 1px 3px rgba(10,14,26,.03);
+  overflow:hidden;
+}
+
+/* ─── SVG Wires ─── */
+.wires-svg{position:absolute;inset:0;z-index:1;pointer-events:none}
+.wire-path{
+  fill:none;stroke-linecap:round;stroke-linejoin:round;
+  opacity:.35;transition:opacity .4s,stroke-width .3s;
+}
+.wire-path.highlight{opacity:1;stroke-width:3.5!important;filter:drop-shadow(0 0 6px currentColor)}
+.wire-path.dim{opacity:.08}
+
+/* Wire draw animation */
+@keyframes wireDraw{from{stroke-dashoffset:var(--len)}to{stroke-dashoffset:0}}
+.wire-path.animate{
+  stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
+  animation:wireDraw 1.2s cubic-bezier(.22,1,.36,1) forwards;
+}
+
+/* Pulse animation on highlighted wires */
+@keyframes wirePulse{
+  0%,100%{opacity:1}
+  50%{opacity:.55}
+}
+.wire-path.pulse{animation:wirePulse 1.6s ease-in-out infinite}
+
+/* ─── Component Nodes ─── */
+.node{
+  position:absolute;z-index:10;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  cursor:pointer;transition:transform .35s cubic-bezier(.22,1,.36,1);
+  transform:translateY(20px);opacity:0;
+}
+.node.visible{transform:translateY(0);opacity:1}
+.node:hover{transform:translateY(-3px) scale(1.03)}
+.node:hover .node-body{border-color:rgba(39,65,231,.3);box-shadow:0 8px 32px rgba(39,65,231,.12)}
+
+.node-body{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:14px;
+  background:#fff;border:1.5px solid rgba(10,14,26,.06);
+  box-shadow:0 2px 12px rgba(10,14,26,.04);
+  transition:all .35s cubic-bezier(.22,1,.36,1);
+  white-space:nowrap;
+}
+.node-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.node-info{display:flex;flex-direction:column;gap:1px}
+.node-name{font-size:.72rem;font-weight:800;letter-spacing:-.01em;color:#0a0e1a}
+.node-detail{font-size:.58rem;font-weight:600;color:#8890a6;letter-spacing:.02em}
+
+/* Node active state */
+.node.active .node-body{
+  border-color:#2741E7;
+  box-shadow:0 4px 24px rgba(39,65,231,.18);
+}
+
+/* ─── Central Pi ─── */
+.pi-node{
+  position:absolute;z-index:20;
+  left:50%;top:50%;transform:translate(-50%,-50%) scale(.95);
+  opacity:0;transition:all .5s cubic-bezier(.22,1,.36,1);
+}
+.pi-node.visible{transform:translate(-50%,-50%) scale(1);opacity:1}
+.pi-body{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:20px 28px;border-radius:20px;
+  background:linear-gradient(135deg,#1a6b3a 0%,#155d32 100%);
+  border:2px solid #2ecc71;
+  box-shadow:0 8px 40px rgba(26,107,58,.2),0 0 0 6px rgba(46,204,113,.08);
+  cursor:pointer;transition:all .35s cubic-bezier(.22,1,.36,1);
+}
+.pi-body:hover{
+  transform:scale(1.03);
+  box-shadow:0 12px 48px rgba(26,107,58,.28),0 0 0 8px rgba(46,204,113,.12);
+}
+.pi-label{font-size:1rem;font-weight:800;color:#fff;letter-spacing:-.02em}
+.pi-sub{font-size:.58rem;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.06em;text-transform:uppercase}
+.pi-pins{
+  display:flex;gap:2px;margin-top:2px;
+}
+.pi-pin{width:4px;height:4px;border-radius:1px;background:rgba(255,255,255,.5)}
+.pi-pin.used{background:#ffd700}
+
+/* ─── GPIO Detail Popup ─── */
+.gpio-popup{
+  position:absolute;z-index:50;
+  padding:16px 20px;border-radius:16px;
+  background:#fff;border:1px solid rgba(10,14,26,.06);
+  box-shadow:0 12px 48px rgba(10,14,26,.12);
+  opacity:0;pointer-events:none;
+  transition:all .3s cubic-bezier(.22,1,.36,1);
+  transform:translateY(8px);
+  max-width:320px;
+}
+.gpio-popup.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.gpio-popup h3{font-size:.72rem;font-weight:800;color:#2741E7;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.gpio-row{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 0;border-bottom:1px solid rgba(10,14,26,.04);
+  font-size:.68rem;
+}
+.gpio-row:last-child{border:none}
+.gpio-dot{width:8px;height:8px;border-radius:3px;flex-shrink:0;box-shadow:0 0 4px currentColor}
+.gpio-pin{font-family:'Inconsolata',monospace;font-weight:700;color:#0a0e1a;min-width:58px}
+.gpio-fn{color:#4a5168;font-weight:500}
+
+/* ─── Bottom Legend ─── */
+.legend{
+  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:16px;
+  padding:16px 24px;margin-top:16px;
+}
+.legend-item{
+  display:flex;align-items:center;gap:6px;
+  font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#8890a6;cursor:pointer;
+  padding:5px 12px;border-radius:100px;
+  border:1.5px solid transparent;
+  transition:all .25s cubic-bezier(.22,1,.36,1);
+}
+.legend-item:hover{border-color:currentColor;color:#4a5168}
+.legend-item.active{background:rgba(39,65,231,.06);border-color:#2741E7;color:#2741E7}
+.legend-wire{width:20px;height:3px;border-radius:2px}
+
+/* ─── Critical Bar ─── */
+.critical-bar{
+  max-width:1400px;margin:16px auto 32px;padding:0 24px;
+}
+.critical-inner{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 20px;border-radius:14px;
+  background:linear-gradient(90deg,rgba(220,38,38,.04),rgba(220,38,38,.01));
+  border:1px solid rgba(220,38,38,.12);
+}
+.critical-icon{font-size:1rem;flex-shrink:0}
+.critical-text{font-size:.7rem;font-weight:600;color:#4a5168;line-height:1.5}
+.critical-text strong{color:#dc2626}
+
+/* ─── Responsive ─── */
+@media(max-width:1100px){
+  .diagram{aspect-ratio:4/3}
+  .node-body{padding:8px 10px}
+  .node-icon{width:28px;height:28px;font-size:14px}
+  .node-name{font-size:.64rem}
+  .node-detail{font-size:.52rem}
+}
+@media(max-width:768px){
+  .diagram{aspect-ratio:3/4;min-height:600px}
+  .header{padding:0 16px}
+  .canvas-wrap{padding:0 12px}
+  .legend{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.05ms!important}
+  .orb{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- ─── Header ─── -->
+<header class="header">
+  <div class="header-left">
+    <span class="breadcrumb">Elktron <span>/</span> Escort Bot</span>
+    <span class="header-title">Wiring Diagram</span>
+  </div>
+  <div class="header-right">
+    <button class="filter-btn active" data-group="all">All Wires</button>
+    <button class="filter-btn" data-group="motor">Motors</button>
+    <button class="filter-btn" data-group="sensor">Sensors</button>
+    <button class="filter-btn" data-group="servo">Servos</button>
+    <button class="filter-btn" data-group="power">Power</button>
+  </div>
+</header>
+
+<!-- ─── Diagram ─── -->
+<div class="canvas-wrap">
+  <div class="diagram" id="diagram">
+
+    <!-- SVG wire layer -->
+    <svg class="wires-svg" id="wires" viewBox="0 0 1400 788" preserveAspectRatio="xMidYMid meet"></svg>
+
+    <!-- Central: Raspberry Pi 5 -->
+    <div class="pi-node" id="pi-node" style="left:50%;top:50%">
+      <div class="pi-body" id="pi-body">
+        <span class="pi-label">Raspberry Pi 5</span>
+        <span class="pi-sub">Bookworm 64-bit &middot; 4GB</span>
+        <div class="pi-pins" id="pi-pins"></div>
+      </div>
+    </div>
+
+    <!-- L298N — left -->
+    <div class="node" id="n-l298n" data-group="motor" style="left:12%;top:46%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(184,50,48,.08);color:#b83230">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="3" width="16" height="14" rx="2" fill="currentColor" opacity=".2"/><rect x="4" y="6" width="12" height="8" rx="1" fill="currentColor"/><rect x="0" y="7" width="3" height="2" rx=".5" fill="currentColor"/><rect x="0" y="11" width="3" height="2" rx=".5" fill="currentColor"/><rect x="17" y="7" width="3" height="2" rx=".5" fill="currentColor"/><rect x="17" y="11" width="3" height="2" rx=".5" fill="currentColor"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">L298N Driver</span>
+          <span class="node-detail">Dual H-Bridge &middot; 7.4V</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motors — far left -->
+    <div class="node" id="n-motors-l" data-group="motor" style="left:1%;top:28%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(212,172,13,.1);color:#9a7d0a">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="3" fill="currentColor" opacity=".3"/><rect x="3" y="5" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="15" y="8" width="4" height="4" rx="1" fill="currentColor"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">FL + RL</span>
+          <span class="node-detail">Left motors &middot; Ch A</span>
+        </div>
+      </div>
+    </div>
+    <div class="node" id="n-motors-r" data-group="motor" style="left:1%;top:66%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(212,172,13,.1);color:#9a7d0a">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="3" fill="currentColor" opacity=".3"/><rect x="3" y="5" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="15" y="8" width="4" height="4" rx="1" fill="currentColor"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">FR + RR</span>
+          <span class="node-detail">Right motors &middot; Ch B</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HC-SR04 — top right -->
+    <div class="node" id="n-hcsr04" data-group="sensor" style="right:10%;top:12%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(142,68,173,.08);color:#8e44ad">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2" fill="currentColor" opacity=".15"/><circle cx="7" cy="10" r="3.5" fill="currentColor" opacity=".5"/><circle cx="13" cy="10" r="3.5" fill="currentColor" opacity=".5"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">HC-SR04</span>
+          <span class="node-detail">Ultrasonic &middot; GPIO 24/25</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pan servo — right -->
+    <div class="node" id="n-pan" data-group="servo" style="right:6%;top:40%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(46,134,193,.08);color:#2e86c1">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="6" width="14" height="9" rx="2" fill="currentColor" opacity=".3"/><circle cx="13" cy="5" r="3" fill="currentColor" opacity=".5"/><rect x="12" y="2" width="2" height="4" rx="1" fill="currentColor"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">Pan Servo</span>
+          <span class="node-detail">MG90S &middot; GPIO 12</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tilt servo -->
+    <div class="node" id="n-tilt" data-group="servo" style="right:6%;top:56%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(46,134,193,.08);color:#2e86c1">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="6" width="14" height="9" rx="2" fill="currentColor" opacity=".3"/><circle cx="13" cy="5" r="3" fill="currentColor" opacity=".5"/><rect x="12" y="2" width="2" height="4" rx="1" fill="currentColor"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">Tilt Servo</span>
+          <span class="node-detail">MG90S &middot; GPIO 13</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Camera — far right -->
+    <div class="node" id="n-camera" data-group="sensor" style="right:2%;top:75%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(30,132,73,.08);color:#1e8449">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="2" fill="currentColor" opacity=".15"/><circle cx="10" cy="10" r="4" fill="currentColor" opacity=".4"/><circle cx="10" cy="10" r="2" fill="currentColor"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">Arducam</span>
+          <span class="node-detail">IMX708 &middot; CSI ribbon</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Power Bank — top center -->
+    <div class="node" id="n-powerbank" data-group="power" style="left:50%;top:4%;transform:translateX(-50%) translateY(20px)">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(10,14,26,.05);color:#4a5168">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="6" width="16" height="8" rx="3" fill="currentColor" opacity=".2"/><rect x="2" y="6" width="16" height="8" rx="3" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="16" y="8" width="3" height="4" rx="1" fill="currentColor" opacity=".5"/><circle cx="6" cy="10" r="1" fill="#16a34a"/><circle cx="9" cy="10" r="1" fill="#16a34a"/><circle cx="12" cy="10" r="1" fill="#16a34a"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">Anker 10K</span>
+          <span class="node-detail">USB-C &middot; 5V/3A</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battery Pack — bottom left -->
+    <div class="node" id="n-battery" data-group="power" style="left:10%;top:82%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(220,38,38,.06);color:#dc2626">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="5" width="7" height="10" rx="2" fill="currentColor" opacity=".3"/><rect x="11" y="5" width="7" height="10" rx="2" fill="currentColor" opacity=".3"/><line x1="9" y1="10" x2="11" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">18650 x2</span>
+          <span class="node-detail">7.4V series &middot; Motors</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LCD — bottom right -->
+    <div class="node" id="n-lcd" data-group="sensor" style="right:12%;top:85%">
+      <div class="node-body">
+        <div class="node-icon" style="background:rgba(27,79,114,.08);color:#1b4f72">
+          <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2" fill="currentColor" opacity=".15"/><rect x="4" y="6" width="12" height="7" rx="1" fill="currentColor" opacity=".4"/></svg>
+        </div>
+        <div class="node-info">
+          <span class="node-name">I2C LCD</span>
+          <span class="node-detail">QA-Pass &middot; GPIO 2/3</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- GPIO popup -->
+    <div class="gpio-popup" id="gpio-popup">
+      <h3 id="popup-title">GPIO Connections</h3>
+      <div id="popup-rows"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── Legend ─── -->
+<div class="legend" id="legend">
+  <div class="legend-item" data-group="motor">
+    <div class="legend-wire" style="background:#2741E7"></div>Motor Control
+  </div>
+  <div class="legend-item" data-group="motor">
+    <div class="legend-wire" style="background:#d4a017"></div>Motor Output
+  </div>
+  <div class="legend-item" data-group="sensor">
+    <div class="legend-wire" style="background:#8e44ad"></div>Ultrasonic
+  </div>
+  <div class="legend-item" data-group="servo">
+    <div class="legend-wire" style="background:#16a34a"></div>Servo Signal
+  </div>
+  <div class="legend-item" data-group="sensor">
+    <div class="legend-wire" style="background:#3498db"></div>I2C Data
+  </div>
+  <div class="legend-item" data-group="power">
+    <div class="legend-wire" style="background:#dc2626"></div>Power (+)
+  </div>
+  <div class="legend-item" data-group="power">
+    <div class="legend-wire" style="background:#4a5168"></div>Ground
+  </div>
+  <div class="legend-item" data-group="sensor">
+    <div class="legend-wire" style="background:#9b59b6"></div>CSI Ribbon
+  </div>
+</div>
+
+<!-- ─── Critical Notes ─── -->
+<div class="critical-bar">
+  <div class="critical-inner">
+    <span class="critical-icon">&#9888;&#65039;</span>
+    <p class="critical-text">
+      <strong>Common GND</strong> between Pi and L298N required &nbsp;&bull;&nbsp;
+      <strong>HC-SR04 ECHO</strong> needs 1k+2k voltage divider (5V &rarr; 3.3V) &nbsp;&bull;&nbsp;
+      <strong>Do NOT</strong> power Pi from Smart Car Board &nbsp;&bull;&nbsp;
+      Left motors parallel = Ch.A &nbsp;&bull;&nbsp; Right = Ch.B
+    </p>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// WIRING DATA — every connection in the system
+// ═══════════════════════════════════════════════════════
+const WIRES = [
+  // GPIO → L298N control (4 wires)
+  {from:'pi',to:'n-l298n',color:'#2741E7',group:'motor',label:'GPIO17 → IN1',w:2.5},
+  {from:'pi',to:'n-l298n',color:'#4260f5',group:'motor',label:'GPIO27 → IN2',w:2.5,offset:12},
+  {from:'pi',to:'n-l298n',color:'#e67e22',group:'motor',label:'GPIO22 → IN3',w:2.5,offset:24},
+  {from:'pi',to:'n-l298n',color:'#f1c40f',group:'motor',label:'GPIO23 → IN4',w:2.5,offset:36},
+  // Pi GND → L298N GND
+  {from:'pi',to:'n-l298n',color:'#4a5168',group:'power',label:'Pi GND → L298N GND',w:2,offset:48},
+  // L298N → Motors
+  {from:'n-l298n',to:'n-motors-l',color:'#d4a017',group:'motor',label:'OUT A → FL+RL',w:3},
+  {from:'n-l298n',to:'n-motors-r',color:'#d4a017',group:'motor',label:'OUT B → FR+RR',w:3},
+  // Battery → L298N
+  {from:'n-battery',to:'n-l298n',color:'#dc2626',group:'power',label:'7.4V → L298N VIN',w:3},
+  {from:'n-battery',to:'n-l298n',color:'#4a5168',group:'power',label:'Battery GND',w:2,offset:14},
+  // Pi → HC-SR04
+  {from:'pi',to:'n-hcsr04',color:'#8e44ad',group:'sensor',label:'GPIO25 → TRIG',w:2.5},
+  {from:'pi',to:'n-hcsr04',color:'#a855f7',group:'sensor',label:'GPIO24 → ECHO (via divider!)',w:2.5,offset:14},
+  {from:'pi',to:'n-hcsr04',color:'#dc2626',group:'sensor',label:'5V → HC-SR04 VCC',w:1.8,offset:28},
+  {from:'pi',to:'n-hcsr04',color:'#4a5168',group:'sensor',label:'GND → HC-SR04 GND',w:1.8,offset:42},
+  // Pi → Servos
+  {from:'pi',to:'n-pan',color:'#16a34a',group:'servo',label:'GPIO12 → Pan Signal',w:2.5},
+  {from:'pi',to:'n-pan',color:'#dc2626',group:'servo',label:'5V → Pan VCC',w:1.5,offset:14},
+  {from:'pi',to:'n-pan',color:'#4a5168',group:'servo',label:'GND → Pan GND',w:1.5,offset:28},
+  {from:'pi',to:'n-tilt',color:'#27ae60',group:'servo',label:'GPIO13 → Tilt Signal',w:2.5},
+  {from:'pi',to:'n-tilt',color:'#dc2626',group:'servo',label:'5V → Tilt VCC',w:1.5,offset:14},
+  {from:'pi',to:'n-tilt',color:'#4a5168',group:'servo',label:'GND → Tilt GND',w:1.5,offset:28},
+  // Pi → Camera CSI
+  {from:'pi',to:'n-camera',color:'#9b59b6',group:'sensor',label:'CSI Ribbon Cable',w:4},
+  // Power Bank → Pi
+  {from:'n-powerbank',to:'pi',color:'#dc2626',group:'power',label:'USB-C 5V/3A → Pi',w:4},
+  // Pi → LCD I2C
+  {from:'pi',to:'n-lcd',color:'#3498db',group:'sensor',label:'GPIO2 (SDA) → LCD',w:2},
+  {from:'pi',to:'n-lcd',color:'#2ecc71',group:'sensor',label:'GPIO3 (SCL) → LCD',w:2,offset:12},
+  {from:'pi',to:'n-lcd',color:'#dc2626',group:'sensor',label:'5V → LCD VCC',w:1.5,offset:24},
+  {from:'pi',to:'n-lcd',color:'#4a5168',group:'sensor',label:'GND → LCD GND',w:1.5,offset:36},
+];
+
+// GPIO pin detail data
+const GPIO_DETAIL = {
+  'n-l298n': [
+    {pin:'GPIO 17',fn:'Left Motor FWD → IN1',color:'#2741E7'},
+    {pin:'GPIO 27',fn:'Left Motor BWD → IN2',color:'#4260f5'},
+    {pin:'GPIO 22',fn:'Right Motor FWD → IN3',color:'#e67e22'},
+    {pin:'GPIO 23',fn:'Right Motor BWD → IN4',color:'#f1c40f'},
+    {pin:'GND (Pin 6)',fn:'Common Ground',color:'#4a5168'},
+  ],
+  'n-hcsr04': [
+    {pin:'GPIO 25',fn:'TRIG pulse',color:'#8e44ad'},
+    {pin:'GPIO 24',fn:'ECHO (via 1k+2k divider!)',color:'#a855f7'},
+    {pin:'5V (Pin 2)',fn:'Sensor power',color:'#dc2626'},
+    {pin:'GND (Pin 6)',fn:'Sensor ground',color:'#4a5168'},
+  ],
+  'n-pan': [
+    {pin:'GPIO 12',fn:'PWM signal (Pan)',color:'#16a34a'},
+    {pin:'5V (Pin 4)',fn:'Servo power (~150mA)',color:'#dc2626'},
+    {pin:'GND',fn:'Servo ground',color:'#4a5168'},
+  ],
+  'n-tilt': [
+    {pin:'GPIO 13',fn:'PWM signal (Tilt)',color:'#27ae60'},
+    {pin:'5V (Pin 4)',fn:'Servo power (~150mA)',color:'#dc2626'},
+    {pin:'GND',fn:'Servo ground',color:'#4a5168'},
+  ],
+  'n-lcd': [
+    {pin:'GPIO 2',fn:'I2C SDA (data)',color:'#3498db'},
+    {pin:'GPIO 3',fn:'I2C SCL (clock)',color:'#2ecc71'},
+    {pin:'5V',fn:'LCD power',color:'#dc2626'},
+    {pin:'GND',fn:'LCD ground',color:'#4a5168'},
+  ],
+  'n-camera': [
+    {pin:'CSI Port',fn:'Ribbon cable — no GPIO',color:'#9b59b6'},
+  ],
+  'n-powerbank': [
+    {pin:'USB-C',fn:'5V / 3A+ → Pi power',color:'#dc2626'},
+  ],
+  'n-battery': [
+    {pin:'+ Terminal',fn:'7.4V → L298N VIN',color:'#dc2626'},
+    {pin:'- Terminal',fn:'GND → L298N GND',color:'#4a5168'},
+  ],
+};
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+const svg = document.getElementById('wires');
+const diagram = document.getElementById('diagram');
+let activeGroup = 'all';
+let activeNode = null;
+
+// Build Pi GPIO pin indicators
+const piPins = document.getElementById('pi-pins');
+for(let i=0;i<20;i++){
+  const d = document.createElement('div');
+  d.className = 'pi-pin' + ([0,1,2,3,4,5,6,7,8,9].includes(i) ? ' used' : '');
+  piPins.appendChild(d);
+}
+
+// ═══════════════════════════════════════════════════════
+// WIRE DRAWING
+// ═══════════════════════════════════════════════════════
+function getNodeCenter(id){
+  const el = id === 'pi' ? document.getElementById('pi-body') : document.getElementById(id)?.querySelector('.node-body');
+  if(!el) return {x:700,y:394};
+  const dRect = diagram.getBoundingClientRect();
+  const nRect = el.getBoundingClientRect();
+  const scaleX = 1400 / dRect.width;
+  const scaleY = 788 / dRect.height;
+  return {
+    x: (nRect.left + nRect.width/2 - dRect.left) * scaleX,
+    y: (nRect.top + nRect.height/2 - dRect.top) * scaleY,
+  };
+}
+
+function buildWirePath(from, to, offset=0){
+  const a = getNodeCenter(from);
+  const b = getNodeCenter(to);
+  // Apply offset perpendicular to wire direction
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.sqrt(dx*dx+dy*dy) || 1;
+  const nx = -dy/len, ny = dx/len;
+  const ox = nx * offset * 0.6, oy = ny * offset * 0.6;
+  const ax = a.x+ox, ay = a.y+oy, bx = b.x+ox, by = b.y+oy;
+  // Route: horizontal out from source, then to target
+  const mx = (ax + bx) / 2;
+  const my = (ay + by) / 2;
+  // Use a gentle S-curve via two control points
+  const cp1x = ax + (bx-ax)*0.35, cp1y = ay;
+  const cp2x = ax + (bx-ax)*0.65, cp2y = by;
+  return `M${ax},${ay} C${cp1x},${cp1y} ${cp2x},${cp2y} ${bx},${by}`;
+}
+
+function drawWires(){
+  svg.innerHTML = '';
+  WIRES.forEach((w,i) => {
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = buildWirePath(w.from, w.to, w.offset||0);
+    path.setAttribute('d', d);
+    path.setAttribute('stroke', w.color);
+    path.setAttribute('stroke-width', w.w || 2);
+    path.classList.add('wire-path');
+    path.dataset.group = w.group;
+    path.dataset.from = w.from;
+    path.dataset.to = w.to;
+    path.dataset.label = w.label;
+    path.dataset.index = i;
+    // Animate on load
+    const len = path.getTotalLength ? 2000 : 1000;
+    path.style.setProperty('--len', len);
+    path.classList.add('animate');
+    path.style.animationDelay = `${0.3 + i * 0.06}s`;
+    svg.appendChild(path);
+  });
+  // After all drawn, update lengths for accurate animation
+  requestAnimationFrame(() => {
+    svg.querySelectorAll('.wire-path').forEach(p => {
+      if(p.getTotalLength){
+        const l = p.getTotalLength();
+        p.style.setProperty('--len', l);
+      }
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// FILTERING
+// ═══════════════════════════════════════════════════════
+function setFilter(group){
+  activeGroup = group;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.group === group);
+  });
+  svg.querySelectorAll('.wire-path').forEach(p => {
+    p.classList.remove('highlight','dim','pulse');
+    if(group === 'all'){
+      p.style.opacity = '';
+    } else if(p.dataset.group === group){
+      p.classList.add('highlight','pulse');
+    } else {
+      p.classList.add('dim');
+    }
+  });
+  // Highlight matching nodes
+  document.querySelectorAll('.node').forEach(n => {
+    if(group === 'all'){
+      n.classList.remove('active');
+      n.style.opacity = '';
+    } else if(n.dataset.group === group){
+      n.classList.add('active');
+      n.style.opacity = '';
+    } else {
+      n.classList.remove('active');
+      n.style.opacity = '.35';
+    }
+  });
+}
+
+document.querySelectorAll('.filter-btn').forEach(b => {
+  b.addEventListener('click', () => setFilter(b.dataset.group));
+});
+document.querySelectorAll('.legend-item').forEach(li => {
+  li.addEventListener('click', () => {
+    const g = li.dataset.group;
+    setFilter(activeGroup === g ? 'all' : g);
+    document.querySelectorAll('.legend-item').forEach(l => l.classList.toggle('active', l.dataset.group === g && activeGroup === g));
+  });
+});
+
+// ═══════════════════════════════════════════════════════
+// NODE HOVER — show GPIO popup & highlight wires
+// ═══════════════════════════════════════════════════════
+const popup = document.getElementById('gpio-popup');
+
+function showPopup(nodeId, el){
+  const detail = GPIO_DETAIL[nodeId];
+  if(!detail) return;
+  activeNode = nodeId;
+  // Position popup near node
+  const dRect = diagram.getBoundingClientRect();
+  const nRect = el.getBoundingClientRect();
+  let left = nRect.right - dRect.left + 12;
+  let top = nRect.top - dRect.top;
+  // Keep within bounds
+  if(left + 320 > dRect.width) left = nRect.left - dRect.left - 330;
+  if(top + 200 > dRect.height) top = dRect.height - 220;
+  if(top < 10) top = 10;
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+  document.getElementById('popup-title').textContent =
+    el.querySelector('.node-name')?.textContent + ' — GPIO Pins';
+  const rows = document.getElementById('popup-rows');
+  rows.innerHTML = detail.map(d =>
+    `<div class="gpio-row">
+      <div class="gpio-dot" style="background:${d.color};color:${d.color}"></div>
+      <span class="gpio-pin">${d.pin}</span>
+      <span class="gpio-fn">${d.fn}</span>
+    </div>`
+  ).join('');
+  popup.classList.add('show');
+  // Highlight connected wires
+  svg.querySelectorAll('.wire-path').forEach(p => {
+    const connected = p.dataset.from === nodeId || p.dataset.to === nodeId ||
+      (nodeId === 'pi-node' && (p.dataset.from === 'pi' || p.dataset.to === 'pi'));
+    if(connected){
+      p.classList.add('highlight','pulse');
+      p.classList.remove('dim');
+    } else {
+      p.classList.add('dim');
+      p.classList.remove('highlight','pulse');
+    }
+  });
+}
+
+function hidePopup(){
+  activeNode = null;
+  popup.classList.remove('show');
+  // Reset wire states based on current filter
+  setFilter(activeGroup);
+}
+
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('mouseenter', () => showPopup(n.id, n));
+  n.addEventListener('mouseleave', hidePopup);
+  n.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if(activeNode === n.id) hidePopup();
+    else showPopup(n.id, n);
+  });
+});
+
+// Pi node hover
+document.getElementById('pi-node').addEventListener('mouseenter', () => {
+  // Show all wires highlighted
+  svg.querySelectorAll('.wire-path').forEach(p => {
+    p.classList.add('highlight');
+    p.classList.remove('dim');
+  });
+});
+document.getElementById('pi-node').addEventListener('mouseleave', () => {
+  setFilter(activeGroup);
+});
+
+// Click anywhere to dismiss
+diagram.addEventListener('click', hidePopup);
+
+// ═══════════════════════════════════════════════════════
+// ENTRANCE ANIMATIONS
+// ═══════════════════════════════════════════════════════
+function animateEntrance(){
+  // Pi first
+  setTimeout(() => document.getElementById('pi-node').classList.add('visible'), 200);
+  // Then nodes, staggered
+  const nodes = document.querySelectorAll('.node');
+  nodes.forEach((n,i) => {
+    setTimeout(() => n.classList.add('visible'), 500 + i * 100);
+  });
+  // Wires after nodes
+  setTimeout(drawWires, 800);
+}
+
+// Redraw wires on resize
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    drawWires();
+    setFilter(activeGroup);
+  }, 200);
+});
+
+// Start
+animateEntrance();
+</script>
+</body>
+</html>
