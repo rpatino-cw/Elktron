@@ -3,7 +3,7 @@
 Elktron Escort Bot — Person-Following Robot + Rack Scanner
 Hackathon March 2026 | CoreWeave DCT
 
-Pi 5 + LK-COKOINO 4WD + TFLite MobileNet SSD v2 + Arducam 120° Wide
+Pi 5 + LK-COKOINO 4WD + OpenCV DNN MobileNet SSD v2 + Arducam 120° Wide
 Follows a vendor on the DC floor, stops at racks to scan top-to-bottom.
 
 Modes:
@@ -16,36 +16,52 @@ import os
 import time
 import argparse
 import numpy as np
+import cv2
 from datetime import datetime
 from picamera2 import Picamera2
 from gpiozero import Robot, DistanceSensor
-from tflite_runtime.interpreter import Interpreter
 from pan_tilt import PanTilt
+from pid import PIDController
 
 # ─── CONFIG ────────────────────────────────────────────────────────
-MODEL_PATH = "models/ssd_mobilenet_v2.tflite"
-LABELS_PATH = "models/coco_labels.txt"
-PERSON_CLASS_ID = 0          # COCO class 0 = person
+MODEL_PATH = "models/ssd_mobilenet_v2.pb"
+CONFIG_PATH = "models/ssd_mobilenet_v2.pbtxt"
+PERSON_CLASS_ID = 1          # COCO class 1 = person (OpenCV DNN uses 1-indexed)
 CONFIDENCE_THRESHOLD = 0.5   # Min detection confidence
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 INPUT_SIZE = (300, 300)      # MobileNet SSD input size
 
-# Motor GPIO pins (BCM) — adjust to LK-COKOINO / L298N wiring
-LEFT_MOTOR = (17, 27)       # (forward, backward)
-RIGHT_MOTOR = (22, 23)      # (forward, backward)
+# Motor GPIO pins (BCM) — single L298N drives all 4 motors as 2 parallel pairs
+# Channel A (OUT1/OUT2): FL+RL in parallel — left pair
+# Channel B (OUT3/OUT4): FR+RR in parallel — right pair
+LEFT_MOTOR = (17, 27)       # IN1/IN2 (forward, backward)
+RIGHT_MOTOR = (22, 23)      # IN3/IN4 (forward, backward)
 
 # Ultrasonic sensor pins (BCM)
 ULTRASONIC_ECHO = 24
 ULTRASONIC_TRIG = 25
 
 # Steering
-KP = 1.0                    # Proportional gain — tune on the floor
 BASE_SPEED = 0.5            # 0.0–1.0
 STOP_DISTANCE = 0.30        # meters — stop if obstacle closer than this
 TARGET_AREA_RATIO = 0.15    # target bbox area / frame area (how close to follow)
-AREA_TOLERANCE = 0.05       # dead zone around target area
 LOST_TIMEOUT = 1.5          # seconds with no detection before stopping
+
+# PID — Lateral (steering: keeps person centered in frame)
+KP_LATERAL = 1.0            # Proportional — immediate turn response
+KI_LATERAL = 0.1            # Integral — eliminates steady drift
+KD_LATERAL = 0.3            # Derivative — dampens oscillation
+MAX_INTEGRAL_LATERAL = 0.5  # Anti-windup clamp
+
+# PID — Distance (speed: keeps person at target follow distance)
+KP_DISTANCE = 1.2           # Proportional — speed up/slow down
+KI_DISTANCE = 0.05          # Integral — eliminates steady-state gap
+KD_DISTANCE = 0.2           # Derivative — smooth braking
+MAX_INTEGRAL_DISTANCE = 0.3 # Anti-windup clamp
+
+# Feed-forward
+KFF = 0.15                  # Feed-forward gain — predict target motion
 
 # Scan mode
 SCAN_TRIGGER_DISTANCE = 0.50  # meters — if person stops near rack, trigger scan
@@ -59,12 +75,6 @@ MODE_IDLE = "IDLE"
 
 # ─── SETUP ─────────────────────────────────────────────────────────
 
-def load_labels(path):
-    """Load COCO label map."""
-    with open(path, "r") as f:
-        return {i: line.strip() for i, line in enumerate(f.readlines())}
-
-
 def init_camera():
     """Initialize Pi Camera with picamera2."""
     cam = Picamera2()
@@ -77,13 +87,12 @@ def init_camera():
     return cam
 
 
-def init_tflite(model_path):
-    """Load TFLite model and allocate tensors."""
-    interpreter = Interpreter(model_path=model_path)
-    interpreter.allocate_tensors()
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    return interpreter, input_details, output_details
+def init_detector(model_path, config_path):
+    """Load MobileNet SSD via OpenCV DNN."""
+    net = cv2.dnn.readNetFromTensorflow(model_path, config_path)
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+    return net
 
 
 def init_robot():
@@ -95,30 +104,30 @@ def init_robot():
 
 # ─── DETECTION ─────────────────────────────────────────────────────
 
-def detect_person(frame, interpreter, input_details, output_details):
+def detect_person(frame, net):
     """
-    Run TFLite inference on a frame.
+    Run OpenCV DNN inference on a frame.
     Returns the largest person bounding box as (x, y, w, h) in pixels,
     or None if no person detected.
     """
-    img = np.resize(frame, (1, INPUT_SIZE[0], INPUT_SIZE[1], 3)).astype(np.uint8)
-    interpreter.set_tensor(input_details[0]["index"], img)
-    interpreter.invoke()
-
-    boxes = interpreter.get_tensor(output_details[0]["index"])[0]
-    classes = interpreter.get_tensor(output_details[1]["index"])[0]
-    scores = interpreter.get_tensor(output_details[2]["index"])[0]
+    blob = cv2.dnn.blobFromImage(frame, size=INPUT_SIZE, swapRB=True, crop=False)
+    net.setInput(blob)
+    detections = net.forward()
 
     best_box = None
     best_area = 0
 
-    for i in range(len(scores)):
-        if int(classes[i]) == PERSON_CLASS_ID and scores[i] >= CONFIDENCE_THRESHOLD:
-            ymin, xmin, ymax, xmax = boxes[i]
-            x = int(xmin * FRAME_WIDTH)
-            y = int(ymin * FRAME_HEIGHT)
-            w = int((xmax - xmin) * FRAME_WIDTH)
-            h = int((ymax - ymin) * FRAME_HEIGHT)
+    for i in range(detections.shape[2]):
+        class_id = int(detections[0, 0, i, 1])
+        confidence = detections[0, 0, i, 2]
+
+        if class_id == PERSON_CLASS_ID and confidence >= CONFIDENCE_THRESHOLD:
+            x = int(detections[0, 0, i, 3] * FRAME_WIDTH)
+            y = int(detections[0, 0, i, 4] * FRAME_HEIGHT)
+            x2 = int(detections[0, 0, i, 5] * FRAME_WIDTH)
+            y2 = int(detections[0, 0, i, 6] * FRAME_HEIGHT)
+            w = x2 - x
+            h = y2 - y
             area = w * h
             if area > best_area:
                 best_area = area
@@ -129,27 +138,47 @@ def detect_person(frame, interpreter, input_details, output_details):
 
 # ─── STEERING ──────────────────────────────────────────────────────
 
-def compute_steering(bbox):
+def compute_steering(bbox, lateral_pid, distance_pid, dt, prev_bbox=None):
     """
-    Given a person bounding box (x, y, w, h), compute left/right motor speeds.
+    PID-based steering with feed-forward.
+
+    Two PID loops:
+      1. Lateral — error = how far person is from frame center (steering)
+      2. Distance — error = target area ratio - actual area ratio (speed)
+
+    Feed-forward: uses frame-to-frame bbox center delta to predict
+    where the person is heading, reducing tracking lag.
+
     Returns (left_speed, right_speed) each in range [-1, 1].
     """
     x, y, w, h = bbox
     person_center_x = x + w / 2
     frame_center_x = FRAME_WIDTH / 2
 
-    error = (person_center_x - frame_center_x) / FRAME_WIDTH
+    # ── Lateral PID (steering) ──
+    lateral_error = (person_center_x - frame_center_x) / FRAME_WIDTH
+    steering = lateral_pid.update(lateral_error, dt)
 
+    # ── Distance PID (speed) ──
     area_ratio = (w * h) / (FRAME_WIDTH * FRAME_HEIGHT)
-    if area_ratio > TARGET_AREA_RATIO + AREA_TOLERANCE:
-        speed = 0.0
-    elif area_ratio < TARGET_AREA_RATIO - AREA_TOLERANCE:
-        speed = BASE_SPEED
-    else:
-        speed = BASE_SPEED * 0.3
+    distance_error = TARGET_AREA_RATIO - area_ratio  # positive = too far, go forward
+    speed = distance_pid.update(distance_error, dt)
 
-    left_speed = max(-1.0, min(1.0, speed + (error * KP)))
-    right_speed = max(-1.0, min(1.0, speed - (error * KP)))
+    # Clamp speed to [0, BASE_SPEED] — no reversing toward person
+    speed = max(0.0, min(BASE_SPEED, speed))
+
+    # ── Feed-forward (predict target motion) ──
+    ff = 0.0
+    if prev_bbox is not None:
+        px, py, pw, ph = prev_bbox
+        prev_center_x = px + pw / 2
+        delta_x = (person_center_x - prev_center_x) / FRAME_WIDTH
+        ff = KFF * delta_x  # positive = person moving right
+
+    # ── Combine into differential drive ──
+    turn = steering + ff
+    left_speed = max(-1.0, min(1.0, speed + turn))
+    right_speed = max(-1.0, min(1.0, speed - turn))
 
     return left_speed, right_speed
 
@@ -220,10 +249,20 @@ def main():
 
     print("[Elktron] Initializing escort bot...")
     camera = init_camera()
-    interpreter, input_det, output_det = init_tflite(MODEL_PATH)
+    net = init_detector(MODEL_PATH, CONFIG_PATH)
     robot, sonar = init_robot()
     pan_tilt = PanTilt(simulate=args.simulate)
     os.makedirs(SCAN_OUTPUT_DIR, exist_ok=True)
+
+    # PID controllers
+    lateral_pid = PIDController(
+        kp=KP_LATERAL, ki=KI_LATERAL, kd=KD_LATERAL,
+        max_integral=MAX_INTEGRAL_LATERAL, max_output=1.0
+    )
+    distance_pid = PIDController(
+        kp=KP_DISTANCE, ki=KI_DISTANCE, kd=KD_DISTANCE,
+        max_integral=MAX_INTEGRAL_DISTANCE, max_output=BASE_SPEED
+    )
 
     # Scan-only mode for testing
     if args.scan_only:
@@ -239,6 +278,7 @@ def main():
     prev_bbox = None
     stationary_since = None
     scan_count = 0
+    last_time = time.time()
 
     # Center camera for follow mode
     pan_tilt.center()
@@ -249,6 +289,9 @@ def main():
     try:
         while True:
             frame = camera.capture_array()
+            now = time.time()
+            dt = now - last_time
+            last_time = now
 
             # ── Obstacle override (all modes) ──
             if sonar.distance < STOP_DISTANCE:
@@ -258,7 +301,7 @@ def main():
                 continue
 
             # ── Detect person ──
-            bbox = detect_person(frame, interpreter, input_det, output_det)
+            bbox = detect_person(frame, net)
 
             if bbox is not None:
                 last_seen = time.time()
@@ -282,6 +325,8 @@ def main():
                         # Return camera to center for follow mode
                         pan_tilt.center()
                         mode = MODE_FOLLOW
+                        lateral_pid.reset()
+                        distance_pid.reset()
                         stationary_since = None
                         print(f"[MODE] SCAN → FOLLOW\n")
                         continue
@@ -290,7 +335,7 @@ def main():
 
                 # Normal follow mode
                 mode = MODE_FOLLOW
-                left, right = compute_steering(bbox)
+                left, right = compute_steering(bbox, lateral_pid, distance_pid, dt, prev_bbox)
                 drive(robot, left, right)
                 x, y, w, h = bbox
                 print(f"[FOLLOW] person@({x},{y}) size={w}x{h} → L={left:.2f} R={right:.2f}")
@@ -308,6 +353,8 @@ def main():
                     if mode != MODE_IDLE:
                         print(f"[MODE] {mode} → IDLE")
                         mode = MODE_IDLE
+                        lateral_pid.reset()
+                        distance_pid.reset()
                 else:
                     print(f"[SEARCH] Lost person, waiting {LOST_TIMEOUT - elapsed:.1f}s...")
 

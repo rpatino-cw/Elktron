@@ -10,8 +10,8 @@ The other robot is the SO-101 Arm (see `../robotics-site/`). The dashboard that 
 The bot is built on the **LK-COKOINO 4WD chassis** (CKK0011) — a basic 4-wheel-drive car kit with TT DC motors and an acrylic frame. Alex Murillo is providing her own chassis and Raspberry Pi. The full kit tutorial and drivers are in `../CKK0011-main/` (CH340 USB-serial driver, Arduino/Pi tutorials, assembly PDFs, and example Python code including `Demo1.py` for L298N motor control and `Demo2.py` for the Cokoino Robot Hat).
 
 **Key components:**
-- **Compute:** Raspberry Pi 5 (4GB or 8GB). Must run **Raspberry Pi OS Bookworm Lite 64-bit** — the only OS that supports Pi 5 + provides lgpio + picamera2 + Python 3.11. See `PI-SETUP.md` for full flashing and first-boot guide.
-- **Motors:** 4x TT DC motors driven by an **L298N dual H-bridge** motor driver. Differential (tank) steering — left pair and right pair controlled independently. GPIO pins: left motor (17 fwd, 27 bwd), right motor (22 fwd, 23 bwd). Full wiring in `WIRING.md`.
+- **Compute:** Raspberry Pi 5 (4GB or 8GB). Must run **Raspberry Pi OS Bookworm Lite 64-bit** — the only OS that supports Pi 5 + provides lgpio + picamera2 + Python 3.11. See `PI-SETUP.md` for full flashing and first-boot guide. **Claude Code (CLI) is installed on the Pi** — enables on-device AI-assisted development, live debugging, and iterating on motor/sensor/camera code directly on the hardware.
+- **Motors:** 4x TT DC motors driven by a **single L298N dual H-bridge** motor driver (one board handles all 4 motors — no second driver needed). The 4 motors wire as 2 parallel pairs: left pair (FL+RL) to Channel A (OUT1/OUT2), right pair (FR+RR) to Channel B (OUT3/OUT4). Differential (tank) steering — left pair and right pair controlled independently. GPIO pins: left motor (17 fwd, 27 bwd), right motor (22 fwd, 23 bwd). Each channel's 2 output wires reverse polarity for direction. Full wiring in `WIRING.md`.
 - **Camera:** Arducam 120-degree wide-angle autofocus (IMX708), connected via CSI ribbon cable. Used for both person detection (FOLLOW mode) and rack scanning (SCAN mode).
 - **Pan/Tilt:** Arducam pan/tilt platform with 2 MG90S micro servos. Pan on GPIO 12, tilt on GPIO 13. Controlled by `pan_tilt.py`. The tilt servo sweeps -60 to +60 degrees for rack scans.
 - **Ultrasonic:** HC-SR04 on GPIO 24 (echo) and 25 (trigger). Provides obstacle avoidance — bot stops if anything is within 30cm. **Critical:** ECHO pin is 5V; Pi 5 GPIO is 3.3V tolerant. A voltage divider (1k + 2k resistors) is required or use HC-SR04P (3.3V version).
@@ -25,7 +25,7 @@ escort-bot/
 ├── CLAUDE.md              # THIS FILE — full project context
 ├── main.py                # Robot brain — 327 lines, complete
 │                            Three modes: FOLLOW, SCAN, IDLE
-│                            TFLite MobileNet SSD v2 for person detection
+│                            OpenCV DNN MobileNet SSD v2 for person detection
 │                            Proportional steering with obstacle override
 │                            Triggers rack scan when person is stationary 3s
 ├── pan_tilt.py            # Pan/tilt servo controller — 226 lines, complete
@@ -34,14 +34,15 @@ escort-bot/
 │                            Rack scan: sweeps TILT_MIN to TILT_MAX in 5-degree steps
 ├── test_camera.py         # Camera-only test — runs detection without motors
 │                            Two modes: headless (terminal) and --display (live video)
-│                            Use this to validate TFLite before assembling the chassis
+│                            Use this to validate detection before assembling the chassis
 ├── install.sh             # One-command Pi 5 setup — apt, pip, model download
-├── requirements.txt       # picamera2, tflite-runtime, gpiozero, numpy, lgpio, Pillow
+├── requirements.txt       # picamera2, opencv-python, gpiozero, numpy, lgpio, Pillow
 ├── WIRING.md              # GPIO pin map, L298N wiring, HC-SR04 voltage divider, test commands
 ├── PI-SETUP.md            # Complete Pi 5 OS flashing + first boot + troubleshooting guide
 ├── scans/                 # Output dir — one subfolder per rack scan with JPEG frames
-├── models/                # TFLite model + COCO labels (created by install.sh)
-│   ├── ssd_mobilenet_v2.tflite
+├── models/                # MobileNet SSD model files (created by install.sh)
+│   ├── ssd_mobilenet_v2.pb
+│   ├── ssd_mobilenet_v2.pbtxt
 │   └── coco_labels.txt
 ├── showcase.html          # Project scope page (presentation)
 ├── simulation.html        # 3D escort bot simulation (Three.js)
@@ -50,6 +51,7 @@ escort-bot/
 ├── hardware-showcase.html # Hardware showcase page
 ├── hardware.html          # Hardware reference
 ├── mast-hardware.html     # Mast assembly details
+├── wiring-guide.html      # ★ THREE.JS — Interactive 3D wiring guide (GPIO, L298N, HC-SR04, servos, power)
 └── Soldier.glb            # 3D model for simulation
 ```
 
@@ -63,7 +65,7 @@ escort-bot/
 
 ## Detection Pipeline
 
-MobileNet SSD v2 (quantized TFLite) runs at ~20 FPS on Pi 5. Input: 300x300 RGB. Output: bounding boxes, class IDs, confidence scores. Only class 0 (person) is used. The largest detected person is tracked (handles multiple people in frame by following the closest/biggest one).
+MobileNet SSD v2 via OpenCV DNN runs at ~20 FPS on Pi 5. Input: 300x300 RGB. Output: bounding boxes, class IDs, confidence scores. Only class 0 (person) is used. The largest detected person is tracked (handles multiple people in frame by following the closest/biggest one).
 
 ## Simulation Rules
 
@@ -77,13 +79,26 @@ The escort bot can connect to **Jira** and **NetBox** via the CW MCP server to b
 
 | Parameter | Default | What It Controls |
 |-----------|---------|-----------------|
-| `KP` | 1.0 | Proportional steering gain — higher = more aggressive turning |
-| `BASE_SPEED` | 0.5 | Forward speed (0.0–1.0) — start low on a real floor |
+| `KP_LATERAL` | 1.0 | Lateral PID proportional — immediate turn response |
+| `KI_LATERAL` | 0.1 | Lateral PID integral — eliminates steady drift |
+| `KD_LATERAL` | 0.3 | Lateral PID derivative — dampens turn oscillation |
+| `KP_DISTANCE` | 1.2 | Distance PID proportional — speed up/slow down |
+| `KI_DISTANCE` | 0.05 | Distance PID integral — eliminates steady-state gap |
+| `KD_DISTANCE` | 0.2 | Distance PID derivative — smooth braking |
+| `KFF` | 0.15 | Feed-forward gain — predict target motion |
+| `BASE_SPEED` | 0.5 | Max forward speed (0.0-1.0) — start low on real floor |
 | `STOP_DISTANCE` | 0.30m | Ultrasonic cutoff — stop if obstacle closer than this |
 | `TARGET_AREA_RATIO` | 0.15 | How close to follow — higher = closer following distance |
-| `CONFIDENCE_THRESHOLD` | 0.5 | Min TFLite detection score to consider a person |
+| `CONFIDENCE_THRESHOLD` | 0.5 | Min detection confidence score to consider a person |
 | `SCAN_IDLE_TIME` | 3.0s | How long person must be still before triggering scan |
 | `LOST_TIMEOUT` | 1.5s | How long with no detection before switching to IDLE |
+
+### PID Tuning Guide (on the floor)
+
+1. Start with **P-only**: set Ki=0, Kd=0 for both. Increase Kp until the bot tracks but oscillates.
+2. Add **D**: increase Kd until oscillation stops. Too much D = sluggish response.
+3. Add **I**: increase Ki slowly until steady-state drift disappears. Too much I = slow windup oscillation.
+4. Tune **feed-forward (KFF)**: increase until the bot anticipates direction changes. Too much = overcorrection.
 
 ## Run Commands
 
@@ -104,6 +119,41 @@ python3 pan_tilt.py --scan       # Test full rack scan (real servos)
 |--------|------|
 | **Romeo Patino** | Architecture, software, integration |
 | **Alex Murillo** | Hardware build, her own chassis + Pi |
+
+## 3D / Three.js Files in This Folder
+
+This folder has the most Three.js pages in the project (6 of 11 total):
+
+| File | Three.js Ver | What It Renders |
+|------|-------------|-----------------|
+| `simulation.html` | v0.162.0 | DC floor simulation — 10 racks, hot/cold aisle, bot AI with collision detection. Uses `Soldier.glb` |
+| `assembly.html` | v0.162.0 | Assembly instructions — exploded view of chassis, step-by-step build |
+| `BUILD-GUIDE.html` | v0.170.0 | Comprehensive build guide — 3D models of each component |
+| `hardware-showcase.html` | v0.162.0 | All escort bot components rendered in 3D |
+| `hardware.html` | v0.162.0 | Interactive 3D models of individual components with specs |
+| `mast-hardware.html` | v0.162.0 | Mast assembly — PVC pipe, T-connector, pan-tilt mount, camera |
+
+**Non-Three.js HTML:**
+| File | What It Is |
+|------|-----------|
+| `showcase.html` | Escort bot scope page — CSS animations, no Three.js |
+
+**3D Assets:**
+| File | Format | Used By |
+|------|--------|---------|
+| `Soldier.glb` | GLB | `simulation.html` — person model for bot to follow |
+
+**Full 3D map:** See `../CLAUDE.md` → "Three.js / 3D Websites — Complete Map"
+
+## Dev Environment
+
+**Claude Code is installed directly on the Pi 5.** This means:
+- Write and debug Python (main.py, pan_tilt.py, test_camera.py) directly on the Pi — no laptop SSH + editor round-trip
+- Iterate on motor tuning, sensor thresholds, and camera detection in real-time on the actual hardware
+- Claude can read sensor output, inspect GPIO state, and fix code in one loop
+- Useful for demo day: rapid on-site fixes without needing a separate dev machine
+
+Access: `ssh pi@escort-bot.local` → run `claude` in the escort-bot directory.
 
 ## What's NOT Done Yet
 
