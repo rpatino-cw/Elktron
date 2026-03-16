@@ -1012,8 +1012,8 @@ const TASKS = [
   { id: 'FC-074', phase: 3, text: 'Run sonar_test.py — verify 30cm and 100cm readings', owner: null, priority: 'high', due: '3/15' },
   { id: 'FC-075', phase: 3, text: 'Assemble Arducam pan-tilt platform (2 servos)', owner: null, priority: 'high', due: '3/14' },
   { id: 'FC-076', phase: 3, text: 'Mount pan-tilt on chassis + connect servo controller', owner: null, priority: 'high', due: '3/15' },
-  { id: 'FC-077', phase: 3, text: 'Connect Arducam IMX708 via CSI ribbon cable', owner: null, priority: 'high', due: '3/15' },
-  { id: 'FC-078', phase: 3, text: 'Test camera: libcamera-hello + pan-tilt sweep', owner: null, priority: 'high', due: '3/15' },
+  { id: 'FC-077', phase: 3, text: 'Connect Arducam IMX708 via CSI ribbon cable', owner: null, priority: 'high', due: '3/15', status: 'done' },
+  { id: 'FC-078', phase: 3, text: 'Test camera: libcamera-hello + pan-tilt sweep', owner: null, priority: 'high', due: '3/15', status: 'done' },
   { id: 'FC-079', phase: 3, text: 'Cut PVC pipe to ~3.5 ft for camera mast', owner: null, priority: 'medium', due: '3/15' },
   { id: 'FC-080', phase: 3, text: 'Attach T-connector + secure mast to chassis', owner: null, priority: 'medium', due: '3/15' },
   { id: 'FC-081', phase: 3, text: 'Mount camera at top of mast + route CSI cable', owner: null, priority: 'high', due: '3/15' },
@@ -1025,11 +1025,11 @@ const TASKS = [
   { id: 'FC-087', phase: 3, text: 'Label all power connections for quick swap', owner: null, priority: 'low', due: '3/16' },
 
   // Phase 4 — Escort Software
-  { id: 'FC-088', phase: 4, text: 'Copy test_camera.py to Pi via SCP', owner: null, priority: 'high', due: '3/16' },
-  { id: 'FC-089', phase: 4, text: 'Run test_camera.py — verify person detection at 1m, 3m', owner: null, priority: 'high', due: '3/16' },
-  { id: 'FC-090', phase: 4, text: 'Walk side-to-side — verify bounding box tracks', owner: null, priority: 'high', due: '3/16' },
+  { id: 'FC-088', phase: 4, text: 'Copy test_camera.py to Pi via SCP', owner: null, priority: 'high', due: '3/16', status: 'done' },
+  { id: 'FC-089', phase: 4, text: 'Run test_camera.py — verify person detection at 1m, 3m', owner: null, priority: 'high', due: '3/16', status: 'done' },
+  { id: 'FC-090', phase: 4, text: 'Walk side-to-side — verify bounding box tracks', owner: null, priority: 'high', due: '3/16', status: 'done' },
   { id: 'FC-091', phase: 4, text: 'Test 2 people — should track closest (largest bbox)', owner: null, priority: 'medium', due: '3/16' },
-  { id: 'FC-092', phase: 4, text: 'Verify inference speed <100ms per frame', owner: null, priority: 'high', due: '3/16' },
+  { id: 'FC-092', phase: 4, text: 'Verify inference speed <100ms per frame', owner: null, priority: 'high', due: '3/16', status: 'done' },
   { id: 'FC-093', phase: 4, text: 'Test detection in fluorescent lighting (DC-like)', owner: null, priority: 'medium', due: '3/16' },
   { id: 'FC-094', phase: 4, text: 'Test detection with dark clothing + box carrying', owner: null, priority: 'medium', due: '3/16' },
   { id: 'FC-095', phase: 4, text: 'Copy main.py + pan_tilt.py to Pi', owner: 'romeo', priority: 'high', due: '3/16', status: 'done' },
@@ -1051,6 +1051,11 @@ const TASKS = [
   { id: 'FC-111', phase: 4, text: 'Add WebSocket telemetry output to main.py', owner: 'romeo', priority: 'medium', due: '3/18' },
 
   // Phase 5 — SO-101 Arm
+  // ── Simulation (pre-hardware) ──
+  { id: 'FC-240', phase: 5, text: 'Load SO-101 URDF into PyBullet simulation', owner: 'romeo', priority: 'high', due: '3/16', status: 'done' },
+  { id: 'FC-241', phase: 5, text: 'Simple arm motion test in PyBullet — joint control working', owner: 'romeo', priority: 'high', due: '3/16', status: 'done' },
+  { id: 'FC-242', phase: 5, text: 'Full simulation validation — arm kinematics + workspace limits', owner: 'romeo', priority: 'high', due: '3/16', status: 'progress' },
+  // ── Physical build ──
   { id: 'FC-112', phase: 5, text: 'Unbox HiWonder kit — inventory all parts vs listing', owner: null, priority: 'high', due: '3/18' },
   { id: 'FC-113', phase: 5, text: 'Verify all 12 servos spin freely — none DOA', owner: null, priority: 'high', due: '3/18' },
   { id: 'FC-114', phase: 5, text: 'Leader arm assembly: mount servos S1-S6', owner: null, priority: 'high', due: '3/18' },
@@ -1350,7 +1355,11 @@ const TICKET_DETAILS = {
   'FC-110': { desc: 'Write the pan_tilt.py servo control module. Provides sweep(), center(), and set_angle(pan, tilt) functions.', notes: ['This module is called by main.py during SCAN mode. It sends I2C commands to the servo controller.'] },
   'FC-111': { desc: 'Add WebSocket telemetry output to main.py. Send JSON payloads with mode, target position, motor speeds, sonar distance to the dashboard backend.', notes: ['Format: {"type":"escort","mode":"FOLLOW","target_x":0.55,"speed_l":0.3,"speed_r":0.35,"sonar_cm":85}. Send every 200ms.'], deps: ['FC-153'] },
 
-  // ── Phase 5: SO-101 Arm ──
+  // ── Phase 5: SO-101 Arm — Simulation ──
+  'FC-240': { desc: 'Load the SO-101 URDF (Unified Robot Description Format) into PyBullet physics simulator. Verify joint definitions, link lengths, and collision meshes render correctly.', notes: ['URDF defines the arm\'s kinematic chain. PyBullet uses it for physics-accurate simulation. This enables testing motion planning before hardware arrives.'] },
+  'FC-241': { desc: 'Test simple arm joint motions in PyBullet — move each of the 6 joints independently, verify range of motion matches real servo limits, confirm no self-collision.', checks: ['Joint 1 (base) rotates correctly', 'Joint 2 (shoulder) rotates correctly', 'Joint 3 (elbow) rotates correctly', 'Joint 4 (wrist pitch) rotates correctly', 'Joint 5 (wrist roll) rotates correctly', 'Joint 6 (gripper) opens/closes'], notes: ['This validates the URDF joint limits before physical assembly. Fix any issues in simulation — much cheaper than on real hardware.'] },
+  'FC-242': { desc: 'Full simulation validation: test arm kinematics end-to-end, verify workspace boundaries, test pick-and-place motion sequence (home → reach → grip → move → place → home).', notes: ['The simulation should match the real arm\'s workspace. Use this to pre-plan the optic seating trajectory before recording real demonstrations.'] },
+  // ── Phase 5: SO-101 Arm — Physical Build ──
   'FC-112': { desc: 'Unbox the HiWonder SO-101 kit. Inventory EVERY part against the listing. 12 servos, 2 BusLinker boards, 2 PSUs, 4 clamps, all structural parts, all screws.', links: [['HiWonder SO-101 Kit', 'https://www.hiwonder.com/products/lerobot-so-101'], ['SO-101 Assembly Guide', 'https://huggingface.co/docs/lerobot/en/so101']], checks: ['6x follower servos (HX-30HM)', '6x leader servos (HX-10HM)', '2x BusLinker V3.0', '1x 12V 5A PSU', '1x 5V PSU', '4x table clamps', 'All arm link parts', 'All screws + hardware'] },
   'FC-113': { desc: 'Individually power each of the 12 servos with the PSU and send a test command. Any servo that doesn\'t respond is DOA and needs replacement.', checks: ['Follower S1 ✓', 'Follower S2 ✓', 'Follower S3 ✓', 'Follower S4 ✓', 'Follower S5 ✓', 'Follower S6 ✓', 'Leader S1 ✓', 'Leader S2 ✓', 'Leader S3 ✓', 'Leader S4 ✓', 'Leader S5 ✓', 'Leader S6 ✓'], notes: ['DOA servos are not uncommon. Better to find out now than mid-assembly.'] },
   'FC-114': { desc: 'Assemble the LEADER arm. Mount servos S1 through S6 in sequence following the HuggingFace assembly guide. Each servo fits in a specific 3D-printed bracket.', links: [['Assembly Guide', 'https://huggingface.co/docs/lerobot/en/so101']], notes: ['The leader arm uses the lighter HX-10HM servos. It\'s used for teleoperation (human moves leader, follower mirrors).'] },
