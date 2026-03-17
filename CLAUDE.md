@@ -14,6 +14,34 @@
 
 ---
 
+## Feature Lock System — DO NOT MODIFY LOCKED REGIONS
+
+`escort-bot/assembly.html` has **16 locked regions** protected by `@LOCKED:name` / `@END-LOCKED:name` markers. A PreToolUse hook (`guard-locked-regions.sh`) **deterministically blocks** any Edit or Write that touches locked code. This is enforced at the tool level — you cannot bypass it.
+
+**Locked regions (do not modify):**
+| Region | What it protects |
+|--------|-----------------|
+| `scene-setup` | Scene, camera, renderer, lights, controls, ground |
+| `materials` | All shared MeshStandardMaterial definitions |
+| `geometry-builders` | createMotorSet, createChassis, createMotorBrackets |
+| `pi5-model` | Full Raspberry Pi 5 detailed 3D model |
+| `crt-sound` | CRT boot sound effect |
+| `monitor-osd` | Hovering monitor, boot terminal, holo-line |
+| `catenary-and-cables` | Catenary helper, HDMI cable builder |
+| `component-builders` | L298N, power bank, USB-C cable, PiSwitch, PVC mast, wiring harness |
+| `assembly-steps` | All 15 assembly step definitions |
+| `state-and-animation` | App state, animation helpers, step navigation, camera animation |
+| `pi-setup-quest` | Interactive terminal quest system |
+| `explode-collapse` | Explode/collapse toggle, step back |
+| `virtual-filesystem` | Virtual Pi filesystem + terminal emulator |
+| `event-listeners-edit-mode` | DOM listeners, keyboard, resize, edit mode, TransformControls |
+| `wire-tool` | Wire tool v2 — creation, editing, undo, persistence, UI |
+| `animate-and-init` | Animate loop, GLB loader, Pi/monitor init, SD card animation |
+
+**To modify locked code:** Remove the `@LOCKED:name` and `@END-LOCKED:name` markers from the specific region, then edit freely. Re-add markers when done.
+
+---
+
 ## Project: Elktron
 
 Two robots for the DC floor. One project, three core components + supporting infrastructure:
@@ -21,7 +49,7 @@ Two robots for the DC floor. One project, three core components + supporting inf
 | Component | Path | What It Does |
 |-----------|------|-------------|
 | **SO-101 Arm** | `robotics-site/so101/` | Imitation learning for DC tasks — optic seating, rack inspection. LeRobot + ACT policy. |
-| **Escort Bot** | `escort-bot/` | Person-following vendor escort. Pi 5 + TFLite MobileNet SSD + LK-COKOINO 4WD chassis. |
+| **Escort Bot** | `escort-bot/` | Person-following vendor escort. Pi 5 + OpenCV DNN MobileNet SSD + LK-COKOINO 4WD chassis. **Claude Code installed on Pi** — on-device AI dev. |
 | **Dashboard** | `elktron-app/` | Unified control panel — arm status, escort tracking, camera feeds, scan logs. FastAPI + vanilla JS. |
 | **Landing Page** | `robotics-site/index.html` | Elktron pitch/showcase site |
 | **Hub** | `hub.html` | Central navigation for all hackathon pages |
@@ -79,7 +107,7 @@ hackathon/
 │   ├── pan_tilt.py                    # Pan/tilt servo controller (226 lines)
 │   ├── test_camera.py                 # Camera-only detection test (no motors)
 │   ├── install.sh                     # One-command Pi 5 setup
-│   ├── requirements.txt               # picamera2, tflite-runtime, gpiozero, numpy, lgpio
+│   ├── requirements.txt               # picamera2, opencv-python, gpiozero, numpy, lgpio
 │   ├── WIRING.md                      # GPIO pin map, L298N wiring, HC-SR04 voltage divider
 │   ├── PI-SETUP.md                    # Pi 5 OS flashing + first boot guide (Bookworm Lite 64-bit)
 │   ├── Soldier.glb                    # 3D model (GLB) used in simulation
@@ -91,7 +119,8 @@ hackathon/
 │   ├── BUILD-GUIDE.html               # ★ THREE.JS — Step-by-step build guide with 3D
 │   ├── hardware-showcase.html         # ★ THREE.JS — Hardware showcase with 3D components
 │   ├── hardware.html                  # ★ THREE.JS — Hardware reference with 3D models
-│   └── mast-hardware.html             # ★ THREE.JS — Mast assembly details with 3D
+│   ├── mast-hardware.html             # ★ THREE.JS — Mast assembly details with 3D
+│   └── wiring-guide.html             # ★ THREE.JS — Interactive 3D wiring guide (GPIO, L298N, HC-SR04, servos, power)
 │
 ├── elktron-app/                     # DASHBOARD — FASTAPI + VANILLA JS
 │   ├── CLAUDE.md                      # Dashboard architecture spec — 5 panels, WebSocket
@@ -195,9 +224,9 @@ hackathon/
 
 ## Three.js / 3D Websites — Complete Map
 
-**11 HTML files use Three.js** (via CDN importmap). Here is every one:
+**12 HTML files use Three.js** (via CDN importmap). Here is every one:
 
-### Escort Bot — 3D Pages (6 files)
+### Escort Bot — 3D Pages (7 files)
 | File | Three.js Ver | What It Renders |
 |------|-------------|-----------------|
 | `escort-bot/simulation.html` | v0.162.0 | **DC floor simulation** — 10 racks (2 rows of 5), hot/cold aisle, escort bot AI with collision detection. Uses `Soldier.glb` model. Interactive: bot follows person through aisles. |
@@ -206,6 +235,7 @@ hackathon/
 | `escort-bot/hardware-showcase.html` | v0.162.0 | **Hardware showcase** — All escort bot components rendered in 3D: chassis, Pi 5, L298N, HC-SR04, camera, mast |
 | `escort-bot/hardware.html` | v0.162.0 | **Hardware reference** — Interactive 3D models of individual components with specs and pin diagrams |
 | `escort-bot/mast-hardware.html` | v0.162.0 | **Mast assembly** — 3D model of PVC mast, T-connector, pan-tilt mount, camera placement |
+| `escort-bot/wiring-guide.html` | v0.170.0 | **Wiring guide** — Interactive 3D wiring: GPIO connections, L298N, HC-SR04 voltage divider, servos, power distribution |
 
 ### Navigation & Overview (2 files)
 | File | Three.js Ver | What It Renders |
@@ -297,6 +327,21 @@ Consider standardizing to **v0.170.0** (latest used) for consistency.
 - Physical world beats software toys
 - Measurable delta beats vibes
 - Authenticity > flash
+
+## Photo-to-3D Pipeline (v2 — 6 Stages)
+
+Converts reference photos into interactive 3D assembly pages. Multi-view aware. Full docs: `img/2d_drawing/CLAUDE.md`
+
+| Stage | Name | Who | Tool | Output |
+|-------|------|-----|------|--------|
+| 1 | Trace | User (per view) | `~/dev/tracer/index.html` | JSON line data per view |
+| 2 | Analyze | Claude (per view) | Canvas HTML | Annotated 2D canvas per view |
+| 3 | Merge | Claude | HTML + table | Unified mm dimensions + multi-view blueprint |
+| 4 | ASCII 3D Preview | Claude | HTML `<pre>` + JS | Isometric ASCII wireframe |
+| 5 | 3D Model | Claude | Three.js v0.170.0 | Interactive 3D model |
+| 6 | Assembly Page | Claude | Three.js + design-system.css | Build guide |
+
+**Rules:** Three.js v0.170.0, inline geometry (no external models), design-system.css for assembly pages, approval gates between every stage. Stage 3 (Merge) combines all views — no Z-heights from imagination. Stage 4 (ASCII Preview) is mandatory — no Three.js build before ASCII preview is approved.
 
 ## Pipeline Relationships
 

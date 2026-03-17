@@ -1,8 +1,13 @@
 # Elktron Escort Bot — Pi 5 dependencies
 # Install with: pip install -r requirements.txt
+#
+# NOTE (2026-03-13): Switched from tflite-runtime to OpenCV DNN.
+# tflite-runtime has no wheel for Python 3.13 + aarch64 (Debian Trixie).
+# OpenCV's DNN module runs the same MobileNet SSD model with equivalent performance.
+# The system package python3-opencv (apt) is preferred over pip on Pi.
 
 picamera2>=0.3.12
 numpy>=1.24.0
-tflite-runtime>=2.14.0
+opencv-python>=4.8.0
 gpiozero>=2.0
 lgpio>=0.2.2.0

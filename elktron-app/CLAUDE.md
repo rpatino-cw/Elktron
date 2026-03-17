@@ -100,6 +100,12 @@ open http://localhost:8080
 4. **Rack Scan Log** — table of past scans with status (clean/flagged), expandable detail per scan
 5. **Training Console** — start recording, episode counter, upload to cloud, training progress, download model
 
+## 3D / Three.js Files
+
+This folder has **no Three.js pages**. Both `index.html` and `guide.html` are vanilla JS + CSS (WebSocket-driven dashboard).
+
+For the full map of all 11 Three.js pages in the project, see `../CLAUDE.md` → "Three.js / 3D Websites — Complete Map".
+
 ## Judging Track
 
 Build with Velocity

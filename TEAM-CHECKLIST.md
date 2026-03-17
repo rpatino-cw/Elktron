@@ -105,9 +105,9 @@ This can start immediately — only needs Pi 5 + MicroSD + power.
 | 2.12 | Install system deps: `sudo apt install -y python3-pip python3-venv libatlas-base-dev libjpeg-dev python3-opencv libcamera-apps` | Romeo | [ ] | One command, ~5 min |
 | 2.13 | Create Python venv: `python3 -m venv ~/escort-env` | Romeo | [ ] | Isolated from system Python |
 | 2.14 | Activate + install requirements: `source ~/escort-env/bin/activate && pip install -r requirements.txt` | Romeo | [ ] | Copy requirements.txt to Pi first |
-| 2.15 | Install TFLite runtime: `pip install tflite-runtime` | Romeo | [ ] | If fails: try `pip install tflite-runtime` from piwheels |
-| 2.16 | Download MobileNet SSD v2 model to Pi: run `install.sh` | Romeo | [ ] | Creates `~/models/` with `.tflite` + labels |
-| 2.17 | Test Python imports work: `python3 -c "import cv2, numpy, gpiozero, tflite_runtime; print('OK')"` | Romeo | [ ] | All should import cleanly |
+| 2.15 | Install OpenCV: `sudo apt install python3-opencv` | Romeo | [ ] | System package preferred over pip on Pi |
+| 2.16 | Download MobileNet SSD v2 model to Pi: run `install.sh` | Romeo | [ ] | Creates `~/models/` with `.pb` + `.pbtxt` |
+| 2.17 | Test Python imports work: `python3 -c "import cv2, numpy, gpiozero; print('OK')"` | Romeo | [ ] | All should import cleanly |
 | 2.18 | Set Pi to auto-connect to phone hotspot (backup WiFi) | Romeo | [ ] | `sudo nmcli dev wifi connect "iPhone" password "xxx"` |
 | 2.19 | **Alex's Pi:** Repeat steps 2.1–2.17 on Alex's Raspberry Pi | Alex | [ ] | Same OS + software, hostname `elktron-alex` |
 
@@ -282,7 +282,7 @@ for i in range(20):
 | 4B.1 | Copy `main.py` + `pan_tilt.py` to Pi | Romeo | [ ] | |
 | 4B.2 | Edit `main.py` config: verify GPIO pins match wiring | Romeo | [ ] | LEFT_MOTOR, RIGHT_MOTOR, ECHO, TRIG |
 | 4B.3 | Edit camera config: verify resolution + camera index | Romeo | [ ] | Use picamera2 for Arducam IMX708 |
-| 4B.4 | Edit model path: verify `models/ssd_mobilenet_v2.tflite` exists | Romeo | [ ] | |
+| 4B.4 | Edit model path: verify `models/ssd_mobilenet_v2.pb` exists | Romeo | [ ] | |
 | 4B.5 | **Bench test (wheels off ground):** run `main.py` | Romeo + Alex | [ ] | See checklist below |
 | 4B.6 | Stand in front → wheels spin forward | Alex observes | [ ] | |
 | 4B.7 | Move LEFT → right wheels speed up (bot tries to turn left) | Alex observes | [ ] | |

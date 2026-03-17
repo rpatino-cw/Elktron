@@ -9,22 +9,22 @@ Usage:
   python3 test_camera.py --display    # shows live video with bounding boxes (needs display)
 
 Requirements:
-  pip install --break-system-packages tflite-runtime numpy
-  (picamera2 is pre-installed on Pi OS Bookworm)
-  Run install.sh first to download the TFLite model.
+  sudo apt install python3-opencv  (or pip install opencv-python)
+  (picamera2 is pre-installed on Pi OS)
+  Run install.sh first to download the model files.
 """
 
 import sys
 import time
 import argparse
 import numpy as np
+import cv2
 from picamera2 import Picamera2
-from tflite_runtime.interpreter import Interpreter
 
 # ─── CONFIG ────────────────────────────────────────────────────────
-MODEL_PATH = "models/ssd_mobilenet_v2.tflite"
-LABELS_PATH = "models/coco_labels.txt"
-PERSON_CLASS_ID = 0
+MODEL_PATH = "models/ssd_mobilenet_v2.pb"
+CONFIG_PATH = "models/ssd_mobilenet_v2.pbtxt"
+PERSON_CLASS_ID = 1  # COCO class 1 = person (OpenCV DNN uses 1-indexed)
 CONFIDENCE_THRESHOLD = 0.5
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
@@ -55,35 +55,34 @@ def init_camera():
     return cam
 
 
-def init_tflite(model_path):
-    interpreter = Interpreter(model_path=model_path)
-    interpreter.allocate_tensors()
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-    return interpreter, input_details, output_details
+def init_detector(model_path, config_path):
+    net = cv2.dnn.readNetFromTensorflow(model_path, config_path)
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+    return net
 
 
 # ─── DETECTION ─────────────────────────────────────────────────────
 
-def detect_person(frame, interpreter, input_details, output_details):
-    img = np.resize(frame, (1, INPUT_SIZE[0], INPUT_SIZE[1], 3)).astype(np.uint8)
-    interpreter.set_tensor(input_details[0]["index"], img)
-    interpreter.invoke()
-
-    boxes = interpreter.get_tensor(output_details[0]["index"])[0]
-    classes = interpreter.get_tensor(output_details[1]["index"])[0]
-    scores = interpreter.get_tensor(output_details[2]["index"])[0]
+def detect_person(frame, net):
+    blob = cv2.dnn.blobFromImage(frame, size=INPUT_SIZE, swapRB=True, crop=False)
+    net.setInput(blob)
+    detections = net.forward()
 
     best_box = None
     best_area = 0
 
-    for i in range(len(scores)):
-        if int(classes[i]) == PERSON_CLASS_ID and scores[i] >= CONFIDENCE_THRESHOLD:
-            ymin, xmin, ymax, xmax = boxes[i]
-            x = int(xmin * FRAME_WIDTH)
-            y = int(ymin * FRAME_HEIGHT)
-            w = int((xmax - xmin) * FRAME_WIDTH)
-            h = int((ymax - ymin) * FRAME_HEIGHT)
+    for i in range(detections.shape[2]):
+        class_id = int(detections[0, 0, i, 1])
+        confidence = detections[0, 0, i, 2]
+
+        if class_id == PERSON_CLASS_ID and confidence >= CONFIDENCE_THRESHOLD:
+            x = int(detections[0, 0, i, 3] * FRAME_WIDTH)
+            y = int(detections[0, 0, i, 4] * FRAME_HEIGHT)
+            x2 = int(detections[0, 0, i, 5] * FRAME_WIDTH)
+            y2 = int(detections[0, 0, i, 6] * FRAME_HEIGHT)
+            w = x2 - x
+            h = y2 - y
             area = w * h
             if area > best_area:
                 best_area = area
@@ -124,23 +123,16 @@ def main():
     parser.add_argument("--fps", action="store_true", help="Show FPS counter")
     args = parser.parse_args()
 
-    cv2 = None
-    if args.display:
-        try:
-            import cv2 as _cv2
-            cv2 = _cv2
-        except ImportError:
-            print("[WARN] opencv-python not installed. Run: pip install --break-system-packages opencv-python")
-            print("[WARN] Falling back to headless mode.")
+    show_display = args.display
 
     print("[Elktron] Camera-only detection test")
     print(f"[Elktron] Model: {MODEL_PATH}")
     print(f"[Elktron] Confidence threshold: {CONFIDENCE_THRESHOLD}")
-    print(f"[Elktron] Display mode: {'ON' if cv2 else 'OFF'}")
+    print(f"[Elktron] Display mode: {'ON' if show_display else 'OFF'}")
     print()
 
     camera = init_camera()
-    interpreter, input_det, output_det = init_tflite(MODEL_PATH)
+    net = init_detector(MODEL_PATH, CONFIG_PATH)
 
     print("[Elktron] Ready. Point camera at a person.")
     print("[Elktron] Press Ctrl+C to stop.\n")
@@ -153,7 +145,7 @@ def main():
     try:
         while True:
             frame = camera.capture_array()
-            bbox = detect_person(frame, interpreter, input_det, output_det)
+            bbox = detect_person(frame, net)
 
             frame_count += 1
             elapsed = time.time() - fps_start
@@ -167,7 +159,7 @@ def main():
                 fps_str = f" | {fps:.1f} FPS" if args.fps else ""
                 print(f"[DETECT] person@({x},{y}) {w}x{h} area={area:.3f} → L={left:.2f} R={right:.2f} {action}{fps_str}")
 
-                if cv2 is not None:
+                if show_display:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                     cv2.putText(frame, f"{action} L={left:.2f} R={right:.2f}",
                                 (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
@@ -178,7 +170,7 @@ def main():
                 if gap > 2.0 and frame_count % 20 == 0:
                     print(f"[WAIT] No person for {gap:.1f}s...")
 
-            if cv2 is not None:
+            if show_display:
                 cv2.imshow("Elktron Escort Bot — Detection Test", frame)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
@@ -189,7 +181,7 @@ def main():
         pass
     finally:
         camera.stop()
-        if cv2 is not None:
+        if show_display:
             cv2.destroyAllWindows()
 
         total_time = time.time() - fps_start

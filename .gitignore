@@ -54,3 +54,6 @@ logs/
 
 # Reference PDFs (large, not needed in repo)
 img/*.pdf
+
+# Personal ops (not for repo)
+romeo-ops.html

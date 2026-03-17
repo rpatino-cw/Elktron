@@ -327,16 +327,21 @@ body {
 const PARTS = {
   escort: {
     title: 'Escort Bot',
-    cost: '~$103',
+    cost: '~$260',
     items: [
-      { name: 'LK-COKOINO 4WD Chassis Kit', price: '~$25', who: 'Raphael', status: 'transit', eta: '3/11', detail: 'Amazon — 4 motors, 4 wheels, chassis plates, screws' },
-      { name: 'Arducam 120° Wide Camera (IMX708)', price: '$59.99', who: 'Romeo', status: 'transit', eta: '3/14', detail: 'Amazon — CSI camera module for Pi 5. LAST ESCORT PART.' },
-      { name: 'Arducam Pan-Tilt Platform', price: '$26.99', who: 'Romeo', status: 'transit', eta: '3/12', detail: 'Amazon — 2 servos + controller + mounting bracket' },
-      { name: 'Pi 5 Active Cooler', price: '$9.98', who: 'Romeo', status: 'delivered', eta: 'Arrived', detail: 'Amazon — Prevents thermal throttle under YOLOv8n load' },
-      { name: 'WWZMDiB L298N Motor Driver 2-Pack', price: '$6.98', who: 'Romeo', status: 'transit', eta: '3/12', detail: 'Amazon — H-bridge for 4 DC motors' },
-      { name: 'ELEGOO HC-SR04 Ultrasonic 5-Pack', price: '$8.99', who: 'Romeo', status: 'transit', eta: '3/12', detail: 'Amazon — Distance sensing. Keep 2, rest spares.' },
-      { name: 'DIYables HC-SR04 2-Pack', price: '$6.99', who: 'Romeo', status: 'transit', eta: '3/12', detail: 'Amazon — Backup ultrasonic sensors' },
-      { name: 'QTEATAK 18650 Battery Holders 8-Pack', price: '$9.99', who: 'Romeo', status: 'transit', eta: '3/12', detail: 'Amazon — Need 1 for chassis, rest spares' },
+      { name: 'LK-COKOINO 4WD Chassis Kit', price: '$26.99', who: 'Alex', status: 'delivered', eta: 'Alex has it', detail: 'Amazon — 4 motors, 4 wheels, chassis plates, screws' },
+      { name: 'Arducam 120° Wide Camera (IMX708)', price: '$59.99', who: 'Romeo', status: 'transit', eta: 'Sat 3/15', detail: 'Amazon — CSI camera module for Pi 5. LAST ESCORT PART.' },
+      { name: 'Arducam Pan-Tilt Platform', price: '$26.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — 2 servos + I2C controller + mounting bracket' },
+      { name: 'Pi 5 Active Cooler', price: '$9.98', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/11', detail: 'Amazon — PWM blower + heatsink. Prevents thermal throttle.' },
+      { name: 'WWZMDiB L298N Motor Driver 2-Pack', price: '$6.98', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Dual H-bridge for 4 DC motors. Have a spare.' },
+      { name: 'ELEGOO HC-SR04 Ultrasonic 5-Pack', price: '$8.99', who: 'Romeo', status: 'transit', eta: '3/13', detail: 'Amazon — Distance sensing + 20 dupont cables included.' },
+      { name: 'DIYables HC-SR04 2-Pack', price: '$6.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Primary ultrasonic sensors' },
+      { name: 'QTEATAK 18650 Battery Holders 8-Pack', price: '$9.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — 1/2/3/4 slot holders, 2 of each' },
+      { name: 'QOJH 18650 Batteries (4-pack)', price: '$22.98', who: 'Romeo', status: 'transit', eta: 'Sat 3/15', detail: 'Amazon — 3.7V 3000mAh, button top. 2 in bot + 2 hot-swap.' },
+      { name: 'ACEBOTT 18650 Charger (dual-slot)', price: '$8.59', who: 'Romeo', status: 'transit', eta: 'Sat 3/15', detail: 'Amazon — Smart charger, auto-shutoff. CHARGE NIGHT BEFORE DEMO.' },
+      { name: 'Anker PowerCore 10K (USB-C)', price: '$21.99', who: 'Romeo', status: 'transit', eta: '3/13', detail: 'Amazon — 5V/3A. Powers Pi 5 on the bot. ~3-4 hrs runtime.' },
+      { name: 'USB-C Right-Angle Adapter 2-Pack', price: '$8.49', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Silkland 90°. Keeps cable flush on chassis.' },
+      { name: 'CanaKit 3.5A Pi PSU + PiSwitch', price: '$12.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Wall adapter for BENCH TESTING ONLY.' },
       { name: 'PVC Pipe 1" x 4ft + T-connector', price: '~$8', who: 'TBD', status: 'pickup', eta: 'HD Cart', detail: 'Home Depot — For camera mast. Needs someone to pick up.' },
     ]
   },
@@ -348,39 +353,27 @@ const PARTS = {
       { name: 'NexiGo N60 1080P Webcam', price: '~$25', who: 'Romeo', status: 'transit', eta: '3/11', detail: 'Amazon — Overhead camera for training data' },
     ]
   },
-  power: {
-    title: 'Power & Batteries',
-    cost: '~$48',
-    items: [
-      { name: 'Samsung 30Q 18650 Batteries + Charger', price: '~$18', who: 'Romeo', status: 'transit', eta: '3/11', detail: 'Amazon — Start charging IMMEDIATELY on arrival (4-6 hrs)' },
-      { name: 'MakerFocus Pi Battery Pack 10000mAh', price: '~$30', who: 'Romeo', status: 'transit', eta: '3/11', detail: 'Amazon — USB-C powers Pi 5 on the bot' },
-    ]
-  },
-  backup: {
-    title: 'Backup / Previously Ordered',
-    cost: '~$65',
-    items: [
-      { name: 'Freenove 4WD Smart Car Kit', price: '~$65', who: 'Romeo', status: 'transit', eta: '3/11', detail: 'Amazon — Original order. May use parts or keep as backup.' },
-    ]
-  },
   owned: {
     title: 'Already Owned',
     cost: '$0',
     items: [
-      { name: 'Raspberry Pi 5', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Main compute for escort bot' },
+      { name: 'Raspberry Pi 5', price: '—', who: 'Alex', status: 'owned', eta: 'Alex has it', detail: 'Main compute for escort bot — Alex bringing to build sessions' },
       { name: 'Raspberry Pi 4', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Backup / dashboard display' },
-      { name: 'Raspberry Pi (Raphael)', price: '—', who: 'Raphael', status: 'owned', eta: 'Have', detail: 'Backup Pi' },
+      { name: 'MicroSD Card', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Needs flashing with Bookworm Lite 64-bit' },
       { name: 'Raspberry Pi Pico', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Backup microcontroller' },
       { name: 'SIM Card', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'For mobile hotspot if needed' },
       { name: 'Velcro Strips', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'For mounting components' },
+      { name: 'Laptop (Mac M-series)', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Training + demo display' },
     ]
   },
   needed: {
     title: 'Still Needed',
-    cost: '~$8-25',
+    cost: '~$22-50',
     items: [
-      { name: 'MicroSD Card 32-64GB', price: '~$8', who: 'Romeo', status: 'pending', eta: 'Check', detail: 'Check if Romeo has one. If not: Samsung EVO Select 64GB.' },
-      { name: 'USB-C Power Bank 20000mAh (optional)', price: '~$25', who: 'TBD', status: 'pending', eta: 'Optional', detail: 'Best Buy — only if MakerFocus 10000mAh isn\'t enough' },
+      { name: 'Second USB-C Power Bank (backup)', price: '~$22', who: 'TBD', status: 'pending', eta: 'Optional', detail: 'Same Anker 10K. Demo is 3 hours — one bank might not last.' },
+      { name: 'Resistor kit (1k + 2k)', price: '~$3', who: 'TBD', status: 'pending', eta: 'Needed', detail: 'REQUIRED for HC-SR04 voltage divider. Without this, GPIO 24 fries.' },
+      { name: 'Half-size breadboard', price: '~$4', who: 'TBD', status: 'pending', eta: 'Needed', detail: 'Mounts voltage divider circuit on chassis.' },
+      { name: 'Jumper wires (if ELEGOO 20 not enough)', price: '~$5', who: 'TBD', status: 'pending', eta: 'Check', detail: 'ELEGOO 5-pack comes with 20 dupont cables — may suffice.' },
     ]
   }
 };
@@ -436,11 +429,12 @@ Object.entries(PARTS).forEach(([key, section]) => {
 sectionsEl.innerHTML += `
   <div class="action-box">
     <div class="action-title">Action Required</div>
-    <div class="action-item">1. <strong>MicroSD card</strong> — Romeo: check if you have a 32-64GB card. If not, order Samsung EVO Select 64GB (~$8).</div>
+    <div class="action-item">1. <strong>Resistor kit + breadboard</strong> — NEEDED for HC-SR04 voltage divider. Order ASAP or grab from electronics store.</div>
     <div class="action-item">2. <strong>PVC pipe pickup</strong> — Someone with a car needs to grab the pipe + T-connector from Home Depot ($8.09, already in cart).</div>
-    <div class="action-item">3. <strong>18650 batteries</strong> — Start charging THE MOMENT they arrive. Takes 4-6 hours.</div>
-    <div class="action-item">4. <strong>Arducam camera (3/14)</strong> — Last escort bot part. No camera testing until Saturday.</div>
-    <div class="action-item">5. <strong>SO-101 arm kit (~3/18)</strong> — Long pole. If delayed past 3/19, arm demo uses pre-recorded video as fallback.</div>
+    <div class="action-item">3. <strong>Arducam camera (Sat 3/15)</strong> — Last major escort bot part. No camera testing until Saturday.</div>
+    <div class="action-item">4. <strong>18650 batteries + charger (Sat 3/15)</strong> — Start charging THE MOMENT they arrive. Takes 4 hours.</div>
+    <div class="action-item">5. <strong>Flash MicroSD card</strong> — Romeo has card. Flash with Bookworm Lite 64-bit using Pi Imager. Can do now.</div>
+    <div class="action-item">6. <strong>SO-101 arm kit (~3/18)</strong> — Long pole. If delayed past 3/19, arm demo uses pre-recorded video as fallback.</div>
   </div>
 `;
 </script>

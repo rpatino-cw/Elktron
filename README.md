@@ -35,7 +35,7 @@ Build photos: [`progression/`](progression/)
 | Component | Stack |
 |-----------|-------|
 | SO-101 Arm | LeRobot (HuggingFace) · ACT policy · Feetech servos · Python |
-| Escort Bot | Raspberry Pi 5 · YOLOv8n · gpiozero · LK-COKOINO 4WD chassis |
+| Escort Bot | Raspberry Pi 5 · OpenCV DNN MobileNet SSD v2 · gpiozero · 4WD chassis · Claude Code (on-device AI dev) |
 | Dashboard | FastAPI · WebSocket · Vanilla JS · CSS Grid |
 
 ## Repo Structure
@@ -71,6 +71,9 @@ cd escort-bot
 chmod +x install.sh && ./install.sh
 # Wire motors + ultrasonic per WIRING.md
 python3 main.py
+
+# Claude Code is installed on the Pi — use it for on-device debugging:
+claude    # launches AI-assisted dev directly on the robot
 ```
 
 **SO-101 Arm (Mac/Linux):**

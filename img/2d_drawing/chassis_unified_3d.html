@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LK-COKOINO 4WD Chassis — Unified 3D Model</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0c;
+    color: #d4d4d8;
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  #canvas-container {
+    position: absolute;
+    inset: 0;
+  }
+
+  canvas { display: block; }
+
+  /* ── Controls Panel ────────────────────────────── */
+  #controls {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .ctrl-btn {
+    background: rgba(12, 12, 14, 0.85);
+    border: 1px solid rgba(201, 148, 58, 0.25);
+    color: #a1a1aa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    backdrop-filter: blur(8px);
+    text-align: left;
+    min-width: 140px;
+  }
+
+  .ctrl-btn:hover { border-color: rgba(201, 148, 58, 0.5); color: #e4e4e7; }
+  .ctrl-btn.active { border-color: #c9943a; color: #c9943a; background: rgba(201, 148, 58, 0.08); }
+
+  /* ── Info Panel ────────────────────────────────── */
+  #info-panel {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(12, 12, 14, 0.88);
+    border: 1px solid rgba(201, 148, 58, 0.2);
+    border-radius: 6px;
+    padding: 16px 20px;
+    min-width: 220px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+
+  #info-panel h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c9943a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .stat-row .label { color: #71717a; }
+  .stat-row .value { color: #d4d4d8; }
+
+  /* ── Hover Label ───────────────────────────────── */
+  #hover-label {
+    position: absolute;
+    display: none;
+    background: rgba(12, 12, 14, 0.92);
+    border: 1px solid #c9943a;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #c9943a;
+    pointer-events: none;
+    z-index: 20;
+    white-space: nowrap;
+    backdrop-filter: blur(6px);
+  }
+
+  /* ── Title Bar ─────────────────────────────────── */
+  #title-bar {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 10;
+  }
+
+  #title-bar h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #c9943a;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  #title-bar p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #52525b;
+    margin-top: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div id="controls">
+  <button class="ctrl-btn active" data-toggle="labels">Labels</button>
+  <button class="ctrl-btn" data-toggle="exploded">Exploded View</button>
+  <button class="ctrl-btn" data-toggle="wireframe">Wireframe</button>
+  <button class="ctrl-btn" data-toggle="transparent">Transparent</button>
+  <button class="ctrl-btn" data-toggle="grid">Grid</button>
+</div>
+
+<div id="info-panel">
+  <h2>Chassis Specs</h2>
+  <div class="stat-row"><span class="label">Length</span><span class="value">260 mm</span></div>
+  <div class="stat-row"><span class="label">Width</span><span class="value">130 mm</span></div>
+  <div class="stat-row"><span class="label">Height</span><span class="value">~85 mm</span></div>
+  <div class="stat-row"><span class="label">Components</span><span class="value" id="comp-count">—</span></div>
+  <div class="stat-row"><span class="label">Trace Lines</span><span class="value">47</span></div>
+  <div class="stat-row"><span class="label">Views Merged</span><span class="value">3</span></div>
+  <div class="stat-row" style="border:0; padding-top:8px;">
+    <span class="label">Hovered</span>
+    <span class="value" id="hover-name">—</span>
+  </div>
+</div>
+
+<div id="hover-label"></div>
+
+<div id="title-bar">
+  <h1>LK-COKOINO 4WD Chassis</h1>
+  <p>Unified model from 3 traced views (side + front + top) &mdash; 47 lines merged</p>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ════════════════════════════════════════════════════════════
+// COMPONENT DATA — all dimensions in mm, derived from trace pixel data
+// ════════════════════════════════════════════════════════════
+
+// Side view origin: L1 p1=(1000,3218), mm_per_px=0.0987
+// Front view origin: bottom-left at (952,3297), mm_per_px=0.0460
+
+// Side view key lines (px → mm conversion):
+// L1: bottom plate, x=[0..260], y=0
+// L2: top plate, x=[4.6..159], y≈47
+// L3: sensor bar, x=[-69..17], y≈20 (forward of front)
+// L4: switch enclosure right edge, x=257..258, y=[2..70]
+// L5: switch enclosure top, x=[173..258], y=70
+// L6: rear standoff, x=176, y=[0..68]
+// L7: mid standoff, x=81, y=[0..43]
+// L8: rear upper post, x=157, y=[47..74]
+// L9: mid-rear standoff, x=137, y=[0..47]
+// L10: front upper post, x=79, y=[47..73]
+// L11: front standoff, x=15, y=[0..27]  (shorter — partial trace)
+// L12: battery shelf, x=[255..288], y≈64
+// L13: battery right wall, x=288, y=[64..9]
+// L14: battery bottom, x=[288..247], y≈8
+
+const COMPONENTS = {
+  bottomPlate: {
+    name: 'Bottom Plate',
+    desc: 'Acrylic base plate — 260 x 130 mm',
+    dims: [260, 3, 130],
+    pos: [130, 1.5, 0],
+    color: 0x88BBDD,
+    transparent: true,
+    type: 'plate'
+  },
+  topPlate: {
+    name: 'Top Plate',
+    desc: 'Acrylic upper deck — 154 x 100 mm',
+    dims: [154, 3, 100],
+    pos: [82, 44.5, 0],  // centered on x, y=43mm standoff + 1.5mm
+    color: 0x88BBDD,
+    transparent: true,
+    type: 'plate'
+  },
+  headPlate: {
+    name: 'Head Plate',
+    desc: 'Vertical front plate — 130mm wide x 38mm tall',
+    dims: [3, 38, 130],
+    pos: [1.5, 22, 0],
+    color: 0x88BBDD,
+    transparent: true,
+    type: 'plate'
+  },
+
+  // 4 standoffs connecting bottom to top plate
+  standoffFL: {
+    name: 'Standoff — Front Left',
+    desc: 'Brass hex standoff, h=43mm',
+    radius: 3, height: 43,
+    pos: [15, 21.5, -40],
+    color: 0xC9943A,
+    type: 'standoff'
+  },
+  standoffFR: {
+    name: 'Standoff — Front Right',
+    desc: 'Brass hex standoff, h=43mm',
+    radius: 3, height: 43,
+    pos: [15, 21.5, 40],
+    color: 0xC9943A,
+    type: 'standoff'
+  },
+  standoffRL: {
+    name: 'Standoff — Rear Left',
+    desc: 'Brass hex standoff, h=43mm',
+    radius: 3, height: 43,
+    pos: [176, 21.5, -40],
+    color: 0xC9943A,
+    type: 'standoff'
+  },
+  standoffRR: {
+    name: 'Standoff — Rear Right',
+    desc: 'Brass hex standoff, h=43mm',
+    radius: 3, height: 43,
+    pos: [176, 21.5, 40],
+    color: 0xC9943A,
+    type: 'standoff'
+  },
+
+  // 2 mid standoffs (from L7, L9)
+  standoffML: {
+    name: 'Standoff — Mid Left',
+    desc: 'Brass hex standoff, h=43mm',
+    radius: 3, height: 43,
+    pos: [81, 21.5, -35],
+    color: 0xC9943A,
+    type: 'standoff'
+  },
+  standoffMR: {
+    name: 'Standoff — Mid Right',
+    desc: 'Brass hex standoff, h=43mm',
+    radius: 3, height: 43,
+    pos: [137, 21.5, 35],
+    color: 0xC9943A,
+    type: 'standoff'
+  },
+
+  // 2 upper posts
+  upperPostFront: {
+    name: 'Upper Post — Front',
+    desc: 'Metal post above top plate, h=25mm',
+    radius: 2.5, height: 25,
+    pos: [79, 46 + 12.5, -30],
+    color: 0xC0C0C0,
+    type: 'post'
+  },
+  upperPostRear: {
+    name: 'Upper Post — Rear',
+    desc: 'Metal post above top plate, h=25mm',
+    radius: 2.5, height: 25,
+    pos: [157, 46 + 12.5, 30],
+    color: 0xC0C0C0,
+    type: 'post'
+  },
+
+  // 2 motors (between plates)
+  motorFront: {
+    name: 'Motor — Front',
+    desc: 'DC motor, ~50 x 35 x 25 mm',
+    dims: [50, 30, 28],
+    pos: [40, 18, 0],
+    color: 0xFFD700,
+    type: 'motor'
+  },
+  motorRear: {
+    name: 'Motor — Rear',
+    desc: 'DC motor, ~50 x 35 x 25 mm',
+    dims: [50, 30, 28],
+    pos: [140, 18, 0],
+    color: 0xFFD700,
+    type: 'motor'
+  },
+
+  // 4 wheels
+  wheelFL: {
+    name: 'Wheel — Front Left',
+    desc: 'Rubber tire, r=33mm',
+    radius: 33, width: 26,
+    pos: [40, 15, -78],
+    color: 0x222222,
+    type: 'wheel'
+  },
+  wheelFR: {
+    name: 'Wheel — Front Right',
+    desc: 'Rubber tire, r=33mm',
+    radius: 33, width: 26,
+    pos: [40, 15, 78],
+    color: 0x222222,
+    type: 'wheel'
+  },
+  wheelRL: {
+    name: 'Wheel — Rear Left',
+    desc: 'Rubber tire, r=33mm',
+    radius: 33, width: 26,
+    pos: [200, 15, -78],
+    color: 0x222222,
+    type: 'wheel'
+  },
+  wheelRR: {
+    name: 'Wheel — Rear Right',
+    desc: 'Rubber tire, r=33mm',
+    radius: 33, width: 26,
+    pos: [200, 15, 78],
+    color: 0x222222,
+    type: 'wheel'
+  },
+
+  // Battery box (behind main frame)
+  batteryBox: {
+    name: 'Battery Box',
+    desc: 'AA battery holder, 33 x 44 x 50 mm',
+    dims: [33, 44, 50],
+    pos: [275, 26, 0],
+    color: 0x2a2a2a,
+    type: 'box'
+  },
+
+  // Sensor bar (below front)
+  sensorBar: {
+    name: 'Sensor Bar',
+    desc: 'IR line-tracking sensor, 86 x 5 x 12 mm',
+    dims: [86, 5, 12],
+    pos: [-40, -2, 0],
+    color: 0x228B22,
+    type: 'sensor'
+  },
+
+  // Switch enclosure (rear area on chassis)
+  switchEnclosure: {
+    name: 'Switch Enclosure',
+    desc: 'Power switch + wiring, 30 x 20 x 15 mm',
+    dims: [30, 20, 15],
+    pos: [230, 8, 48],
+    color: 0x555555,
+    type: 'box'
+  },
+};
+
+// ════════════════════════════════════════════════════════════
+// THREE.JS SCENE SETUP
+// ════════════════════════════════════════════════════════════
+
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0a0a0c);
+
+// Camera — angled view
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 5000);
+camera.position.set(350, 250, 300);
+camera.lookAt(130, 20, 0);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+container.appendChild(renderer.domElement);
+
+// CSS2D Renderer for labels
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(window.innerWidth, window.innerHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+container.appendChild(labelRenderer.domElement);
+
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.target.set(130, 20, 0);
+controls.minDistance = 80;
+controls.maxDistance = 1200;
+
+// ── Lighting ────────────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
+scene.add(ambientLight);
+
+const hemiLight = new THREE.HemisphereLight(0xBDE0FF, 0x443322, 0.4);
+hemiLight.position.set(0, 100, 0);
+scene.add(hemiLight);
+
+const keyLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+keyLight.position.set(200, 300, 250);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.width = 2048;
+keyLight.shadow.mapSize.height = 2048;
+keyLight.shadow.camera.near = 10;
+keyLight.shadow.camera.far = 800;
+keyLight.shadow.camera.left = -200;
+keyLight.shadow.camera.right = 200;
+keyLight.shadow.camera.top = 200;
+keyLight.shadow.camera.bottom = -200;
+keyLight.shadow.bias = -0.0002;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0xaaccff, 0.4);
+fillLight.position.set(-150, 100, -100);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0xffeedd, 0.3);
+rimLight.position.set(-50, 50, 200);
+scene.add(rimLight);
+
+// ── Ground ──────────────────────────────────────────
+const groundGeo = new THREE.PlaneGeometry(1200, 1200);
+const groundMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.5;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Grid
+const gridHelper = new THREE.GridHelper(600, 60, 0x1a1a2e, 0x111122);
+gridHelper.position.set(130, -0.4, 0);
+gridHelper.visible = false;
+scene.add(gridHelper);
+
+// ════════════════════════════════════════════════════════════
+// BUILD COMPONENTS
+// ════════════════════════════════════════════════════════════
+
+const meshes = [];
+const labels = [];
+const originalPositions = new Map();
+
+function createMaterial(color, isTransparent, type) {
+  if (type === 'plate') {
+    return new THREE.MeshPhysicalMaterial({
+      color,
+      roughness: 0.15,
+      metalness: 0.0,
+      transmission: 0.35,
+      thickness: 2,
+      ior: 1.45,
+      transparent: true,
+      opacity: 0.7,
+      side: THREE.DoubleSide,
+      envMapIntensity: 0.6,
+    });
+  }
+  if (type === 'standoff' || type === 'post') {
+    return new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.25,
+      metalness: 0.85,
+    });
+  }
+  if (type === 'motor') {
+    return new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.4,
+      metalness: 0.3,
+    });
+  }
+  if (type === 'wheel') {
+    return new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.9,
+      metalness: 0.0,
+    });
+  }
+  if (type === 'sensor') {
+    return new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.5,
+      metalness: 0.1,
+      emissive: new THREE.Color(0x002200),
+      emissiveIntensity: 0.3,
+    });
+  }
+  return new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.6,
+    metalness: 0.2,
+  });
+}
+
+function createLabel(name) {
+  const div = document.createElement('div');
+  div.style.fontFamily = "'JetBrains Mono', monospace";
+  div.style.fontSize = '10px';
+  div.style.color = '#c9943a';
+  div.style.background = 'rgba(10,10,12,0.8)';
+  div.style.padding = '2px 6px';
+  div.style.borderRadius = '3px';
+  div.style.border = '1px solid rgba(201,148,58,0.3)';
+  div.style.whiteSpace = 'nowrap';
+  div.textContent = name;
+  const label = new CSS2DObject(div);
+  label.position.set(0, 0, 0);
+  return label;
+}
+
+let componentCount = 0;
+
+for (const [key, comp] of Object.entries(COMPONENTS)) {
+  let geometry, mesh;
+
+  if (comp.type === 'standoff') {
+    // Hex standoff
+    geometry = new THREE.CylinderGeometry(comp.radius, comp.radius, comp.height, 6);
+    mesh = new THREE.Mesh(geometry, createMaterial(comp.color, false, comp.type));
+  } else if (comp.type === 'post') {
+    geometry = new THREE.CylinderGeometry(comp.radius, comp.radius, comp.height, 12);
+    mesh = new THREE.Mesh(geometry, createMaterial(comp.color, false, comp.type));
+  } else if (comp.type === 'wheel') {
+    // Tire: torus-like shape
+    const outerGeo = new THREE.CylinderGeometry(comp.radius, comp.radius, comp.width, 24);
+    mesh = new THREE.Mesh(outerGeo, createMaterial(comp.color, false, comp.type));
+    // Add hub cap
+    const hubGeo = new THREE.CylinderGeometry(comp.radius * 0.5, comp.radius * 0.5, comp.width + 2, 16);
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.7 });
+    const hub = new THREE.Mesh(hubGeo, hubMat);
+    mesh.add(hub);
+    // Rotate wheel to align with Z axis
+    mesh.rotation.x = Math.PI / 2;
+  } else {
+    geometry = new THREE.BoxGeometry(...comp.dims);
+    mesh = new THREE.Mesh(geometry, createMaterial(comp.color, comp.transparent, comp.type));
+  }
+
+  mesh.position.set(...comp.pos);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  mesh.userData = { key, ...comp };
+
+  // Store original position for exploded view
+  originalPositions.set(key, new THREE.Vector3(...comp.pos));
+
+  // Label
+  const label = createLabel(comp.name);
+  label.position.set(0, (comp.dims ? comp.dims[1] / 2 : comp.height / 2 || comp.radius || 10) + 8, 0);
+  mesh.add(label);
+  labels.push(label);
+
+  scene.add(mesh);
+  meshes.push(mesh);
+  componentCount++;
+}
+
+document.getElementById('comp-count').textContent = componentCount;
+
+// ── Motor axles (thin cylinders connecting motor to wheel) ──
+function addAxle(motorPos, wheelZOffset) {
+  const axleLength = Math.abs(wheelZOffset) - 14;
+  const axleGeo = new THREE.CylinderGeometry(2, 2, axleLength, 8);
+  const axleMat = new THREE.MeshStandardMaterial({ color: 0x999999, roughness: 0.3, metalness: 0.7 });
+  const axle = new THREE.Mesh(axleGeo, axleMat);
+  axle.rotation.x = Math.PI / 2;
+  axle.position.set(motorPos[0], motorPos[1], wheelZOffset > 0 ? wheelZOffset / 2 : wheelZOffset / 2);
+  scene.add(axle);
+}
+
+addAxle([40, 18], -78);
+addAxle([40, 18], 78);
+addAxle([200, 18], -78);  // Rear motor is at x=140 but wheels at x=200
+addAxle([200, 18], 78);
+
+// ════════════════════════════════════════════════════════════
+// INTERACTION — Raycasting
+// ════════════════════════════════════════════════════════════
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const hoverLabel = document.getElementById('hover-label');
+const hoverNameEl = document.getElementById('hover-name');
+let hoveredMesh = null;
+
+function onMouseMove(event) {
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(meshes);
+
+  if (hoveredMesh && hoveredMesh.material.emissive) {
+    hoveredMesh.material.emissive.setHex(hoveredMesh.userData._origEmissive || 0x000000);
+    hoveredMesh.material.emissiveIntensity = hoveredMesh.userData._origEmissiveInt || 0;
+  }
+
+  if (intersects.length > 0) {
+    const mesh = intersects[0].object;
+    if (mesh.userData.name) {
+      hoveredMesh = mesh;
+      if (mesh.material.emissive) {
+        mesh.userData._origEmissive = mesh.material.emissive.getHex();
+        mesh.userData._origEmissiveInt = mesh.material.emissiveIntensity;
+        mesh.material.emissive.setHex(0xc9943a);
+        mesh.material.emissiveIntensity = 0.15;
+      }
+      hoverLabel.style.display = 'block';
+      hoverLabel.textContent = `${mesh.userData.name} — ${mesh.userData.desc}`;
+      hoverLabel.style.left = (event.clientX + 14) + 'px';
+      hoverLabel.style.top = (event.clientY - 10) + 'px';
+      hoverNameEl.textContent = mesh.userData.name;
+      document.body.style.cursor = 'pointer';
+    }
+  } else {
+    hoveredMesh = null;
+    hoverLabel.style.display = 'none';
+    hoverNameEl.textContent = '—';
+    document.body.style.cursor = 'default';
+  }
+}
+
+window.addEventListener('mousemove', onMouseMove);
+
+// ════════════════════════════════════════════════════════════
+// TOGGLE CONTROLS
+// ════════════════════════════════════════════════════════════
+
+const state = {
+  labels: true,
+  exploded: false,
+  wireframe: false,
+  transparent: false,
+  grid: false,
+};
+
+function updateLabels() {
+  labels.forEach(l => { l.element.style.display = state.labels ? 'block' : 'none'; });
+}
+
+function updateExploded() {
+  const spread = 40;
+  meshes.forEach(m => {
+    const orig = originalPositions.get(m.userData.key);
+    if (!orig) return;
+    if (state.exploded) {
+      const yOffset =
+        m.userData.type === 'plate' && m.userData.key === 'topPlate' ? spread * 2.5 :
+        m.userData.type === 'plate' && m.userData.key === 'headPlate' ? spread * 1 :
+        m.userData.type === 'standoff' ? spread * 1.2 :
+        m.userData.type === 'post' ? spread * 3.5 :
+        m.userData.type === 'motor' ? spread * 0.5 :
+        m.userData.type === 'wheel' ? -spread * 0.3 :
+        m.userData.type === 'sensor' ? -spread * 1.5 :
+        m.userData.key === 'batteryBox' ? spread * 1 :
+        0;
+      m.position.set(orig.x, orig.y + yOffset, orig.z);
+    } else {
+      m.position.copy(orig);
+    }
+  });
+}
+
+function updateWireframe() {
+  meshes.forEach(m => { m.material.wireframe = state.wireframe; });
+}
+
+function updateTransparent() {
+  meshes.forEach(m => {
+    if (m.userData.type === 'plate') {
+      m.material.opacity = state.transparent ? 0.2 : 0.7;
+      m.material.transmission = state.transparent ? 0.7 : 0.35;
+    }
+  });
+}
+
+function updateGrid() {
+  gridHelper.visible = state.grid;
+}
+
+document.querySelectorAll('.ctrl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const key = btn.dataset.toggle;
+    state[key] = !state[key];
+    btn.classList.toggle('active', state[key]);
+
+    if (key === 'labels') updateLabels();
+    if (key === 'exploded') updateExploded();
+    if (key === 'wireframe') updateWireframe();
+    if (key === 'transparent') updateTransparent();
+    if (key === 'grid') updateGrid();
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// ANIMATION LOOP
+// ════════════════════════════════════════════════════════════
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+animate();
+
+// ── Resize ──────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  labelRenderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+</script>
+</body>
+</html>

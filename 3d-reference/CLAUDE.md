@@ -4,9 +4,17 @@
 
 This folder is designated for storing 3D reference files used in the Elktron hackathon project. These include STL files, OBJ exports, STEP files, Blender exports, or any 3D model references that inform the physical design of the two robots (SO-101 Arm and Escort Bot).
 
+## Three.js Page in This Folder
+
+| File | Three.js Ver | What It Renders |
+|------|-------------|-----------------|
+| `pi5-3d-model.html` | v0.162.0 | Interactive 3D model of Raspberry Pi 5 board, components labeled |
+
+**Full 3D map:** See `../CLAUDE.md` → "Three.js / 3D Websites — Complete Map" for all 11 Three.js pages.
+
 ## Current Status
 
-**This folder is currently empty.** It was created as a placeholder during the project setup phase. As the hackathon progresses (hardware arriving March 11–18, 2026), this folder will be populated with:
+**This folder is mostly empty (besides the Pi 5 3D model page).** It was created as a placeholder during the project setup phase. As the hackathon progresses (hardware arriving March 11–18, 2026), this folder will be populated with:
 
 - **Chassis 3D models** — If the LK-COKOINO chassis frame is modeled in Blender or CAD for planning the mast mount, camera placement, and Pi mounting position
 - **Mast assembly models** — The escort bot mast (PVC pipe + T-connector + camera mount) may need a 3D reference for fabrication
@@ -58,6 +66,24 @@ Examples:
 | `.step` / `.stp` | CAD interchange (if using Fusion 360 or FreeCAD) |
 | `.blend` | Blender native (prefer keeping main scene in `../robotics-site/`) |
 | `.fbx` | Animation interchange (if needed) |
+
+## This Folder Is Stage 4 of the Photo-to-3D Pipeline
+
+| Stage | Name | Folder |
+|-------|------|--------|
+| 1 | Trace | `~/dev/tracer/index.html` |
+| 2 | Frame Analysis | `../img/2d_drawing/` |
+| 3 | 2D Diagram | `../2d_manual_3d/` |
+| **4** | **3D Model** | **This folder** |
+| 5 | Assembly Page | `../escort-bot/assembly.html` (and similar) |
+
+Three.js requirements for Stage 4 output:
+- **Version:** v0.170.0 via CDN importmap
+- **Geometry:** Inline only — all shapes built in code, no external model files
+- **Controls:** OrbitControls for camera interaction
+- **Labels:** Part labels visible on hover or always-on
+
+Full pipeline docs: `../img/2d_drawing/CLAUDE.md`
 
 ## Rules
 

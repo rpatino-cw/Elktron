@@ -21,12 +21,22 @@
 
 ## L298N Motor Driver Wiring
 
+> **One L298N handles all 4 motors.** The L298N is a dual H-bridge (2 channels).
+> The 4 TT motors wire as 2 parallel pairs — no second driver needed.
+> - **Channel A** (OUT1/OUT2) → Left pair (Front-Left + Rear-Left) wired in parallel
+> - **Channel B** (OUT3/OUT4) → Right pair (Front-Right + Rear-Right) wired in parallel
+> Each channel's output wires reverse polarity for direction — they are NOT separate ground/hot.
+
 ```
 BATTERY (7.4V)                 L298N                    MOTORS
 ─────────────┐          ┌──────────────┐
-  (+) ───────┼──────────┤ +12V (VIN)   │
-  (-) ───────┼──────────┤ GND          ├──── Left Motor (+/-)
-             │          │              ├──── Right Motor (+/-)
+  (+) ───────┼──────────┤ +12V (VIN)   │         ┌── Front-Left
+             │          │              ├── OUT1/2 ┤                (Channel A — LEFT)
+  (-) ───────┼──────────┤ GND          │         └── Rear-Left
+             │          │              │
+             │          │              │         ┌── Front-Right
+             │          │              ├── OUT3/4 ┤                (Channel B — RIGHT)
+             │          │              │         └── Rear-Right
              │     Pi ──┤ IN1 ← GPIO17 │
              │     Pi ──┤ IN2 ← GPIO27 │
              │     Pi ──┤ IN3 ← GPIO22 │

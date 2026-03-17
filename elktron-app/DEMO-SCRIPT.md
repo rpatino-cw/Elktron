@@ -70,7 +70,7 @@ It monitors for unauthorized contact — if someone touches a rack unit they're 
 - Escort Bot: ~$145, MobileNet SSD at 20 FPS on Pi 5, 5-node scan in under 5 min
 - Total project cost: ~$408
 - Training time: ~2 hours (recording) + ~4 hours (model training, unattended)
-- Framework: LeRobot (HuggingFace), TFLite, FastAPI, vanilla JS
+- Framework: LeRobot (HuggingFace), OpenCV DNN, FastAPI, vanilla JS
 
 ## Judging Track
 **Build with Velocity** — AI to accelerate DC construction and operations

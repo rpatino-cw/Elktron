@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elktron — Folder Topology</title>
+  <link rel="stylesheet" href="design-system.css">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <style>
+    /* ---- Layout ---- */
+    body { background: var(--bg-primary); overflow-x: hidden; }
+
+    .page-wrapper {
+      padding-top: var(--nav-height);
+    }
+
+    /* ---- Nav overrides ---- */
+    .fc-nav-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--text-secondary);
+    }
+
+    /* ---- Breadcrumb ---- */
+    .breadcrumb-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3) var(--space-8);
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+    }
+    .breadcrumb-bar span { color: var(--text-tertiary); }
+    .breadcrumb-bar .current { color: var(--accent-primary); font-weight: var(--weight-semibold); }
+
+    /* ---- Stats bar ---- */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-8);
+      padding: var(--space-4) var(--space-8);
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .stat-count {
+      font-family: var(--font-mono);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-bold);
+      color: var(--text-primary);
+    }
+    .stat-label {
+      font-size: var(--text-xs);
+      font-weight: var(--weight-semibold);
+      letter-spacing: var(--tracking-widest);
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-round);
+      flex-shrink: 0;
+    }
+
+    /* ---- Search ---- */
+    .search-bar {
+      padding: var(--space-4) var(--space-8);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+    .search-bar input {
+      max-width: 400px;
+    }
+    .search-results-count {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+    .search-clear {
+      font-size: var(--text-xs);
+      color: var(--accent-primary);
+      cursor: pointer;
+      font-weight: var(--weight-semibold);
+      display: none;
+    }
+    .search-clear:hover { color: var(--accent-primary-hover); }
+
+    /* ---- Legend ---- */
+    .legend-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      padding: var(--space-3) var(--space-8);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+    }
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ---- Tree container ---- */
+    .tree-container {
+      padding: var(--space-6) var(--space-4);
+      overflow: auto;
+      min-height: calc(100vh - 240px);
+    }
+
+    /* ---- D3 Tree Styles ---- */
+    .node-group { cursor: pointer; }
+
+    .node-circle {
+      stroke-width: 2px;
+      transition: r 0.15s var(--ease-out);
+    }
+    .node-group:hover .node-circle {
+      r: 7;
+    }
+
+    .node-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      fill: var(--text-primary);
+    }
+    .node-label-desc {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      fill: var(--text-tertiary);
+    }
+    .node-count {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      fill: var(--text-tertiary);
+    }
+
+    .link {
+      fill: none;
+      stroke: var(--border-default);
+      stroke-width: 1.2px;
+    }
+
+    /* ---- Tooltip ---- */
+    .tooltip {
+      position: fixed;
+      pointer-events: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-sm);
+      padding: var(--space-3) var(--space-4);
+      box-shadow: var(--shadow-lg);
+      z-index: var(--z-overlay);
+      max-width: 320px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .tooltip.visible { opacity: 1; }
+    .tooltip-name {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+    .tooltip-desc {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    .tooltip-meta {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      margin-top: 4px;
+      font-family: var(--font-mono);
+    }
+
+    /* ---- Highlight matched nodes ---- */
+    .node-match .node-label {
+      font-weight: 700;
+      fill: var(--accent-primary);
+    }
+    .node-dimmed .node-label,
+    .node-dimmed .node-label-desc,
+    .node-dimmed .node-count {
+      opacity: 0.2;
+    }
+    .node-dimmed .node-circle {
+      opacity: 0.2;
+    }
+    .link-dimmed {
+      opacity: 0.1;
+    }
+
+    /* ---- Expand/Collapse all buttons ---- */
+    .tree-controls {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    @media (max-width: 768px) {
+      .stats-bar { flex-wrap: wrap; gap: var(--space-4); padding: var(--space-3) var(--space-4); }
+      .legend-bar { flex-wrap: wrap; gap: var(--space-3); padding: var(--space-3) var(--space-4); }
+      .search-bar { padding: var(--space-3) var(--space-4); }
+      .breadcrumb-bar { padding: var(--space-3) var(--space-4); }
+      .tree-container { padding: var(--space-4) var(--space-2); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="fc-nav">
+    <a href="hub.html" class="fc-nav-brand">ELKTRON</a>
+    <span class="fc-nav-center">Folder Topology</span>
+    <div class="tree-controls">
+      <button class="fc-btn fc-btn-ghost" id="expandAll" title="Expand all folders">Expand All</button>
+      <button class="fc-btn fc-btn-ghost" id="collapseAll" title="Collapse all folders">Collapse All</button>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+      <span>~</span><span>/</span>
+      <span>hackathon</span><span>/</span>
+      <span class="current">topology-folders.html</span>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar" id="statsBar"></div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" class="fc-input" id="searchInput" placeholder="Search files and folders..." style="max-width:400px">
+      <span class="search-results-count" id="searchCount"></span>
+      <span class="search-clear" id="searchClear">Clear</span>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-bar">
+      <div class="legend-item"><div class="legend-swatch" style="background:#2741E7"></div>Folder</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#16a34a"></div>Python</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#e07020"></div>HTML</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#e07020;outline:2px solid #e07020;outline-offset:1px"></div>Three.js</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#7c3aed"></div>Markdown</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#9ca3af"></div>Asset / Other</div>
+    </div>
+
+    <!-- Tree -->
+    <div class="tree-container" id="treeContainer">
+      <svg id="treeSvg"></svg>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip">
+    <div class="tooltip-name" id="tooltipName"></div>
+    <div class="tooltip-desc" id="tooltipDesc"></div>
+    <div class="tooltip-meta" id="tooltipMeta"></div>
+  </div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const treeData = {
+  name: "hackathon/", type: "folder", desc: "Elktron hackathon project root",
+  children: [
+    { name: "CLAUDE.md", type: "md", desc: "Master config" },
+    { name: "PROGRESS.md", type: "md", desc: "Status tracker" },
+    { name: "README.md", type: "md", desc: "GitHub overview" },
+    { name: "PARTS-LIST.md", type: "md", desc: "Hardware BOM" },
+    { name: "CHECKLIST-SO101.md", type: "md", desc: "Arm checklist" },
+    { name: "CHECKLIST-ESCORT-BOT.md", type: "md", desc: "Bot checklist" },
+    { name: "TEAM.md", type: "md", desc: "Roster" },
+    { name: "TEAM-CHECKLIST.md", type: "md", desc: "Master tasks" },
+    { name: "VELOCITY.md", type: "md", desc: "Philosophy" },
+    { name: "WORKFLOW.md", type: "md", desc: "Demo timeline" },
+    { name: "DEMO-SCRIPT.md", type: "md", desc: "Narration" },
+    { name: "ADW-SUMMARY.md", type: "md", desc: "CW reference" },
+    { name: "design-system.css", type: "asset", desc: "Shared tokens" },
+    { name: "hub.html", type: "threejs", desc: "Three.js hub" },
+    { name: "daily.html", type: "threejs", desc: "Three.js standup" },
+    { name: "shopping-list.html", type: "html", desc: "Shopping list" },
+    { name: "pitch-deck.html", type: "html", desc: "Pitch deck" },
+    { name: "pitch-playbook.html", type: "html", desc: "Pitch playbook" },
+    { name: "romeo-ops.html", type: "html", desc: "Romeo ops page" },
+    { name: "raphael-checklist.html", type: "html", desc: "Raphael checklist" },
+    { name: "parts-status.html", type: "html", desc: "Parts status" },
+    { name: "elktron-sites.zip", type: "asset", desc: "Archive of all sites" },
+    {
+      name: "robotics-site/", type: "folder", desc: "SO-101 arm + landing page",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "Arm overview config" },
+        { name: "index.html", type: "html", desc: "Landing page" },
+        { name: "topology.html", type: "threejs", desc: "Three.js system topology" },
+        { name: "elktron-robots.blend", type: "asset", desc: "Blender 3D scene" },
+        { name: "optic-staging-tray.blend", type: "asset", desc: "Blender optic tray" },
+        { name: "optic-staging-tray.obj", type: "asset", desc: "OBJ export" },
+        { name: "optic-staging-tray.mtl", type: "asset", desc: "OBJ material" },
+        { name: "hero-render.png", type: "asset", desc: "Hero render image" },
+        { name: "arm-render.png", type: "asset", desc: "SO-101 arm render" },
+        { name: "guide-render.png", type: "asset", desc: "Guide render" },
+        { name: "so101-real.png", type: "asset", desc: "Real SO-101 photo" },
+        {
+          name: "so101/", type: "folder", desc: "Arm code and training pipeline",
+          children: [
+            { name: "showcase.html", type: "html", desc: "SO-101 showcase page" },
+            { name: "record.py", type: "py", desc: "Record demos via teleoperation" },
+            { name: "train.py", type: "py", desc: "Train ACT policy" },
+            { name: "deploy.py", type: "py", desc: "Deploy trained model" },
+            { name: "install.sh", type: "asset", desc: "venv + LeRobot setup" },
+            { name: "requirements.txt", type: "asset", desc: "Python dependencies" },
+            { name: "HARDWARE.md", type: "md", desc: "BOM and assembly notes" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "escort-bot/", type: "folder", desc: "Person-following escort robot",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "Deep escort bot spec" },
+        { name: "main.py", type: "py", desc: "Robot brain, 327 lines" },
+        { name: "pan_tilt.py", type: "py", desc: "Servo controller, 226 lines" },
+        { name: "test_camera.py", type: "py", desc: "Camera-only detection test" },
+        { name: "install.sh", type: "asset", desc: "One-command Pi 5 setup" },
+        { name: "requirements.txt", type: "asset", desc: "Pi 5 Python deps" },
+        { name: "WIRING.md", type: "md", desc: "GPIO pin map, L298N wiring" },
+        { name: "PI-SETUP.md", type: "md", desc: "Pi 5 OS flashing guide" },
+        { name: "Soldier.glb", type: "asset", desc: "3D model for simulation" },
+        { name: "door-open-phase.png", type: "asset", desc: "Escort workflow diagram" },
+        { name: "scan-verification.png", type: "asset", desc: "Scan verification diagram" },
+        { name: "showcase.html", type: "html", desc: "Escort bot scope page" },
+        { name: "simulation.html", type: "threejs", desc: "Three.js DC floor sim" },
+        { name: "assembly.html", type: "threejs", desc: "Three.js assembly view" },
+        { name: "BUILD-GUIDE.html", type: "threejs", desc: "Three.js build guide" },
+        { name: "hardware-showcase.html", type: "threejs", desc: "Three.js hardware showcase" },
+        { name: "hardware.html", type: "threejs", desc: "Three.js hardware reference" },
+        { name: "mast-hardware.html", type: "threejs", desc: "Three.js mast assembly" },
+        { name: "wiring-guide.html", type: "threejs", desc: "Three.js wiring guide" }
+      ]
+    },
+    {
+      name: "elktron-app/", type: "folder", desc: "Dashboard — FastAPI + vanilla JS",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "Dashboard architecture spec" },
+        { name: "README.md", type: "md", desc: "Dashboard quick start" },
+        { name: "DEMO-SCRIPT.md", type: "md", desc: "Dashboard demo script" },
+        { name: "index.html", type: "html", desc: "Dashboard UI" },
+        { name: "guide.html", type: "html", desc: "Dashboard usage guide" },
+        { name: "requirements.txt", type: "asset", desc: "FastAPI deps" },
+        { name: ".venv/", type: "folder", desc: "Python virtual environment" },
+        {
+          name: "api/", type: "folder", desc: "FastAPI backend",
+          children: [
+            { name: "server.py", type: "py", desc: "FastAPI + WebSocket server" },
+            { name: "arm.py", type: "py", desc: "LeRobot serial interface" },
+            { name: "escort.py", type: "py", desc: "Pi 5 telemetry bridge" },
+            { name: "models.py", type: "py", desc: "Pydantic schemas" }
+          ]
+        }
+      ]
+    },
+    {
+      name: "3d-reference/", type: "folder", desc: "3D model references and assets",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "3D pipeline config" },
+        { name: "pi5-3d-model.html", type: "threejs", desc: "Three.js Pi 5 model" }
+      ]
+    },
+    {
+      name: "2d_manual_3d/", type: "folder", desc: "2D-to-3D conversion workspace",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "Pipeline rules" },
+        { name: "chassis_ascii3d.py", type: "py", desc: "ASCII 3D preview generator" },
+        { name: "pi5-layout-v6.json", type: "asset", desc: "Pi 5 layout v6" },
+        { name: "pi5-layout.json", type: "asset", desc: "Pi 5 layout data" }
+      ]
+    },
+    {
+      name: "CKK0011-main/", type: "folder", desc: "Vendor repo — LK-COKOINO chassis kit",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "Chassis kit context" },
+        { name: "README.md", type: "md", desc: "Manufacturer README" },
+        { name: "CH340 Driver/", type: "folder", desc: "USB-serial driver (Windows)" },
+        {
+          name: "Tutorial/", type: "folder", desc: "Assembly guides and code",
+          children: [
+            {
+              name: "Arduino/", type: "folder", desc: "Arduino tutorials",
+              children: [
+                { name: "Sketches/", type: "folder", desc: ".ino source files" }
+              ]
+            },
+            {
+              name: "RaspberryPi/", type: "folder", desc: "Pi tutorials + Python",
+              children: [
+                {
+                  name: "Code/", type: "folder", desc: "Motor and servo demos",
+                  children: [
+                    { name: "Demo1.py", type: "py", desc: "L298N motor control" },
+                    { name: "Demo2.py", type: "py", desc: "Robot Hat I2C control" },
+                    { name: "Servo_test.py", type: "py", desc: "MG90S servo PWM test" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      name: "img/", type: "folder", desc: "Reference images and documentation",
+      children: [
+        { name: "CLAUDE.md", type: "md", desc: "Asset manifest" },
+        { name: "car_*.jpg (x10)", type: "asset", desc: "Chassis photos" },
+        { name: "frame_overall_view.jpg", type: "asset", desc: "Acrylic frame top-down" },
+        { name: "*.pdf (x3)", type: "asset", desc: "Amazon listings + docs" },
+        {
+          name: "2d_drawing/", type: "folder", desc: "2D blueprint workspace",
+          children: [
+            { name: "CLAUDE.md", type: "md", desc: "Strict trace workflow" },
+            { name: "frame_trace.html", type: "html", desc: "Canvas tracing tool" },
+            { name: "*.png reference images", type: "asset", desc: "Traced reference PNGs" }
+          ]
+        },
+        { name: "car_chassis_pics/", type: "folder", desc: "Chassis photo collection" }
+      ]
+    },
+    {
+      name: "taskboard/", type: "folder", desc: "Team task board",
+      children: [
+        { name: "index.html", type: "threejs", desc: "Three.js task board" }
+      ]
+    },
+    {
+      name: "glb/", type: "folder", desc: "Generated 3D models",
+      children: [
+        { name: "Meshy_AI_*.glb", type: "asset", desc: "Meshy AI generated models" }
+      ]
+    },
+    {
+      name: "reference/", type: "folder", desc: "External reference docs",
+      children: [
+        { name: "slack-evi01-build-dct-2026-03-12.md", type: "md", desc: "Slack build log" }
+      ]
+    }
+  ]
+};
+
+// ============================================================
+// COLOR MAP
+// ============================================================
+const typeColors = {
+  folder:  "#2741E7",
+  py:      "#16a34a",
+  html:    "#e07020",
+  threejs: "#e07020",
+  md:      "#7c3aed",
+  asset:   "#9ca3af"
+};
+
+function nodeColor(d) { return typeColors[d.data.type] || "#9ca3af"; }
+
+// ============================================================
+// STATS
+// ============================================================
+function computeStats(node) {
+  let folders = 0, files = 0, py = 0, html = 0, md = 0, threejs = 0;
+  function walk(n) {
+    if (n.type === "folder") { folders++; if (n.children) n.children.forEach(walk); }
+    else {
+      files++;
+      if (n.type === "py") py++;
+      else if (n.type === "html") html++;
+      else if (n.type === "threejs") { html++; threejs++; }
+      else if (n.type === "md") md++;
+    }
+  }
+  walk(node);
+  return { folders, files, py, html, md, threejs };
+}
+
+function renderStats() {
+  const s = computeStats(treeData);
+  const bar = document.getElementById("statsBar");
+  const items = [
+    { color: "#2741E7", count: s.folders, label: "Folders" },
+    { color: "#9ca3af", count: s.files, label: "Files" },
+    { color: "#16a34a", count: s.py, label: "Python" },
+    { color: "#e07020", count: s.html, label: "HTML" },
+    { color: "#e07020", count: s.threejs, label: "Three.js" },
+    { color: "#7c3aed", count: s.md, label: "Markdown" },
+  ];
+  bar.innerHTML = items.map(i => `
+    <div class="stat-item">
+      <div class="stat-dot" style="background:${i.color}"></div>
+      <span class="stat-count">${i.count}</span>
+      <span class="stat-label">${i.label}</span>
+    </div>
+  `).join("");
+}
+renderStats();
+
+// ============================================================
+// COUNT CHILDREN PER FOLDER
+// ============================================================
+function countDescendants(node) {
+  if (!node.children) return 0;
+  let count = 0;
+  function walk(n) {
+    if (n.children) n.children.forEach(c => { count++; walk(c); });
+  }
+  walk(node);
+  return count;
+}
+
+// ============================================================
+// D3 TREE
+// ============================================================
+const margin = { top: 20, right: 200, bottom: 20, left: 40 };
+const nodeHeight = 26;
+
+const svg = d3.select("#treeSvg");
+const gLinks = svg.append("g").attr("class", "links-group");
+const gNodes = svg.append("g").attr("class", "nodes-group");
+
+const root = d3.hierarchy(treeData);
+
+// Start with top-level folders expanded, deeper ones collapsed
+root.descendants().forEach(d => {
+  if (d.depth > 1 && d.children) {
+    d._children = d.children;
+    d.children = null;
+  }
+});
+
+const tooltip = document.getElementById("tooltip");
+const tooltipName = document.getElementById("tooltipName");
+const tooltipDesc = document.getElementById("tooltipDesc");
+const tooltipMeta = document.getElementById("tooltipMeta");
+
+let i = 0;
+const duration = 400;
+
+function update(source) {
+  // Recompute tree layout
+  const nodes = root.descendants();
+  const links = root.links();
+
+  // Assign y positions (vertical layout — each node gets a row)
+  let index = 0;
+  root.eachBefore(d => {
+    d.x = index * nodeHeight;
+    d.y = d.depth * 220;
+    index++;
+  });
+
+  const height = (index + 1) * nodeHeight + margin.top + margin.bottom;
+  const maxY = d3.max(nodes, d => d.y) || 0;
+  const width = maxY + margin.left + margin.right + 300;
+
+  svg
+    .transition().duration(duration)
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`);
+
+  // ---- LINKS ----
+  const link = gLinks.selectAll("path.link").data(links, d => d.target.data.name + d.target.depth);
+
+  const linkEnter = link.enter()
+    .append("path")
+    .attr("class", "link")
+    .attr("d", () => {
+      const o = { x: source.x0 ?? source.x, y: source.y0 ?? source.y };
+      return diagonal({ source: o, target: o });
+    });
+
+  link.merge(linkEnter)
+    .transition().duration(duration)
+    .attr("d", d => diagonal(d));
+
+  link.exit()
+    .transition().duration(duration)
+    .attr("d", () => {
+      const o = { x: source.x, y: source.y };
+      return diagonal({ source: o, target: o });
+    })
+    .remove();
+
+  // ---- NODES ----
+  const node = gNodes.selectAll("g.node-group").data(nodes, d => d.id || (d.id = ++i));
+
+  const nodeEnter = node.enter()
+    .append("g")
+    .attr("class", "node-group")
+    .attr("transform", `translate(${(source.y0 ?? source.y) + margin.left},${(source.x0 ?? source.x) + margin.top})`)
+    .on("click", (event, d) => {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else if (d._children) {
+        d.children = d._children;
+        d._children = null;
+      }
+      update(d);
+    })
+    .on("mouseenter", (event, d) => {
+      tooltipName.textContent = d.data.name;
+      tooltipDesc.textContent = d.data.desc || "";
+      const typeName = d.data.type === "threejs" ? "HTML (Three.js)" :
+                       d.data.type === "py" ? "Python" :
+                       d.data.type === "html" ? "HTML" :
+                       d.data.type === "md" ? "Markdown" :
+                       d.data.type === "folder" ? "Folder" : "Asset";
+      const childCount = d.data.type === "folder" ? ` | ${countDescendants(d.data)} items` : "";
+      tooltipMeta.textContent = typeName + childCount;
+      tooltip.classList.add("visible");
+    })
+    .on("mousemove", (event) => {
+      tooltip.style.left = (event.clientX + 14) + "px";
+      tooltip.style.top = (event.clientY - 10) + "px";
+    })
+    .on("mouseleave", () => {
+      tooltip.classList.remove("visible");
+    });
+
+  // Circle
+  nodeEnter.append("circle")
+    .attr("class", "node-circle")
+    .attr("r", 5)
+    .attr("fill", d => d.data.type === "folder" ? (d._children ? nodeColor(d) : "#fff") : nodeColor(d))
+    .attr("stroke", d => nodeColor(d));
+
+  // Three.js ring
+  nodeEnter.filter(d => d.data.type === "threejs")
+    .append("circle")
+    .attr("r", 8)
+    .attr("fill", "none")
+    .attr("stroke", "#e07020")
+    .attr("stroke-width", 1.5)
+    .attr("stroke-dasharray", "2,2");
+
+  // Label
+  nodeEnter.append("text")
+    .attr("class", "node-label")
+    .attr("dy", "0.35em")
+    .attr("x", d => d.data.type === "threejs" ? 14 : 12)
+    .text(d => d.data.name);
+
+  // Description
+  nodeEnter.append("text")
+    .attr("class", "node-label-desc")
+    .attr("dy", "0.35em")
+    .attr("x", d => {
+      const nameLen = d.data.name.length * 7.2 + (d.data.type === "threejs" ? 14 : 12) + 8;
+      return nameLen;
+    })
+    .text(d => d.data.desc && d.data.type !== "folder" ? d.data.desc : "");
+
+  // Folder file count badge
+  nodeEnter.filter(d => d.data.type === "folder")
+    .append("text")
+    .attr("class", "node-count")
+    .attr("dy", "0.35em")
+    .attr("x", d => d.data.name.length * 7.2 + 20)
+    .text(d => `(${countDescendants(d.data)})`);
+
+  // Update
+  const nodeUpdate = node.merge(nodeEnter);
+
+  nodeUpdate.transition().duration(duration)
+    .attr("transform", d => `translate(${d.y + margin.left},${d.x + margin.top})`);
+
+  nodeUpdate.select("circle.node-circle")
+    .attr("fill", d => d.data.type === "folder" ? (d._children ? nodeColor(d) : "#fff") : nodeColor(d))
+    .attr("stroke", d => nodeColor(d));
+
+  // Exit
+  const nodeExit = node.exit()
+    .transition().duration(duration)
+    .attr("transform", `translate(${source.y + margin.left},${source.x + margin.top})`)
+    .remove();
+
+  nodeExit.select("circle").attr("r", 0);
+  nodeExit.select("text").style("fill-opacity", 0);
+
+  // Stash old positions
+  nodes.forEach(d => {
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+}
+
+function diagonal(d) {
+  return `M${d.source.y + margin.left},${d.source.x + margin.top}
+          C${(d.source.y + d.target.y) / 2 + margin.left},${d.source.x + margin.top}
+           ${(d.source.y + d.target.y) / 2 + margin.left},${d.target.x + margin.top}
+           ${d.target.y + margin.left},${d.target.x + margin.top}`;
+}
+
+// Initial render
+root.x0 = 0;
+root.y0 = 0;
+update(root);
+
+// ============================================================
+// EXPAND / COLLAPSE ALL
+// ============================================================
+document.getElementById("expandAll").addEventListener("click", () => {
+  root.descendants().forEach(d => {
+    if (d._children) {
+      d.children = d._children;
+      d._children = null;
+    }
+  });
+  update(root);
+});
+
+document.getElementById("collapseAll").addEventListener("click", () => {
+  root.descendants().forEach(d => {
+    if (d.depth > 0 && d.children) {
+      d._children = d.children;
+      d.children = null;
+    }
+  });
+  update(root);
+});
+
+// ============================================================
+// SEARCH
+// ============================================================
+const searchInput = document.getElementById("searchInput");
+const searchCount = document.getElementById("searchCount");
+const searchClear = document.getElementById("searchClear");
+
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.trim().toLowerCase();
+
+  if (!query) {
+    clearSearch();
+    return;
+  }
+
+  searchClear.style.display = "inline";
+
+  // Expand all to search
+  root.descendants().forEach(d => {
+    if (d._children) {
+      d.children = d._children;
+      d._children = null;
+    }
+  });
+  update(root);
+
+  // Find matches
+  const allNodes = root.descendants();
+  const matchSet = new Set();
+
+  allNodes.forEach(d => {
+    if (d.data.name.toLowerCase().includes(query) || (d.data.desc && d.data.desc.toLowerCase().includes(query))) {
+      // Mark this node and all ancestors
+      let node = d;
+      while (node) {
+        matchSet.add(node);
+        node = node.parent;
+      }
+    }
+  });
+
+  const matchCount = allNodes.filter(d => d.data.name.toLowerCase().includes(query) || (d.data.desc && d.data.desc.toLowerCase().includes(query))).length;
+  searchCount.textContent = `${matchCount} match${matchCount !== 1 ? "es" : ""}`;
+
+  // Apply classes
+  d3.selectAll(".node-group")
+    .classed("node-match", d => d.data.name.toLowerCase().includes(query) || (d.data.desc && d.data.desc.toLowerCase().includes(query)))
+    .classed("node-dimmed", d => !matchSet.has(d));
+
+  d3.selectAll("path.link")
+    .classed("link-dimmed", d => !matchSet.has(d.target));
+});
+
+searchClear.addEventListener("click", clearSearch);
+
+function clearSearch() {
+  searchInput.value = "";
+  searchCount.textContent = "";
+  searchClear.style.display = "none";
+  d3.selectAll(".node-group").classed("node-match", false).classed("node-dimmed", false);
+  d3.selectAll("path.link").classed("link-dimmed", false);
+}
+
+// Keyboard shortcut: Escape clears search
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") clearSearch();
+  if (e.key === "/" && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+});
+</script>
+</body>
+</html>

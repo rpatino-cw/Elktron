@@ -1,4 +1,6 @@
-# 2D Manual to 3D — Conversion Workspace
+# 2D Manual to 3D — Conversion Workspace (Stage 3-4)
+
+> **This folder is the Stage 3-4 workspace** of the Photo-to-3D Pipeline. Full pipeline docs: `../img/2d_drawing/CLAUDE.md`
 
 ## What This Folder Is
 

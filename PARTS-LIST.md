@@ -1,6 +1,6 @@
 # Elktron — Complete Parts List
 
-> **Last updated:** 2026-03-09
+> **Last updated:** 2026-03-12
 > **Budget estimate:** ~$430–$455 total (before owned items)
 > **Hackathon date:** March 23, 2026
 
@@ -51,13 +51,13 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 
 ### Compute (OWNED)
 
-- [x] ✅ **Raspberry Pi 5** (8GB) — OWNED
-- [x] ✅ **Raspberry Pi 4** — OWNED (backup)
-- [x] ✅ **Raspberry Pi Pico** — OWNED (not ideal for CV)
-- [x] ✅ **MicroSD card** — OWNED
+- [x] ✅ **Raspberry Pi 5** (8GB) — Alex has it (bringing to build sessions)
+- [x] ✅ **Raspberry Pi 4** — OWNED by Romeo (backup)
+- [x] ✅ **Raspberry Pi Pico** — OWNED by Romeo (not ideal for CV)
+- [x] ✅ **MicroSD card** — OWNED by Romeo
 - [x] ✅ **Raspberry Pi 5 Active Cooler (OFFICIAL)** — DELIVERED 3/11
   - PWM temp-controlled blower + aluminum heatsink + thermal tape
-  - REQUIRED — TFLite CV workload will thermal throttle Pi 5 without cooling
+  - REQUIRED — CV inference workload will thermal throttle Pi 5 without cooling
 
 > **Pi 5 OS Setup Guide:** See [`escort-bot/PI-SETUP.md`](escort-bot/PI-SETUP.md)
 > **OS:** Raspberry Pi OS Lite (64-bit) — Bookworm. Only official OS for Pi 5. Lite = headless, no desktop wasting RAM.
@@ -80,7 +80,7 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 
 ### Motor Control
 
-- [x] ✅ **L298N motor driver (2-pack)** — ORDERED 3/10, arriving 3/12
+- [x] ✅ **L298N motor driver (2-pack)** — **DELIVERED 3/12** — $6.98
   - WWZMDiB 2x L298N DC Dual H-Bridge — have a spare
   - Wiring: GPIO 17/27 (left motor), 22/23 (right motor). See WIRING.md.
 - [ ] 🛒 Jumper wires M-F x20 (20cm) — ~$5 — Amazon (GPIO → L298N)
@@ -88,40 +88,40 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 
 ### Sensors
 
-- [x] ✅ **HC-SR04 ultrasonic sensors** — ORDERED 3/10
-  - DIYables 2-pack (arriving 3/12) + ELEGOO 5-pack (arriving 3/14) — plenty of spares
+- [x] ✅ **HC-SR04 ultrasonic sensors** — DIYables **DELIVERED 3/12** ($6.99), ELEGOO arriving 3/13 ($8.99)
+  - DIYables 2-pack (delivered) + ELEGOO 5-pack (arriving 3/13) — plenty of spares
   - ⚠️ ECHO pin is 5V — needs voltage divider (1kΩ + 2kΩ) or use HC-SR04P
 - [ ] 🛒 Resistor kit (1kΩ + 2kΩ for voltage divider) — ~$3 — Amazon
 
 ### Vision
 
-- [x] ✅ **Arducam Camera Module 3 Wide (IMX708, 120°)** — ORDERED 3/10, arriving Saturday 3/15
+- [x] ✅ **Arducam Camera Module 3 Wide (IMX708, 120°)** — ORDERED 3/10, arriving Saturday 3/15 — $59.99
   - Autofocus, Pi 5 compatible, includes 15cm 15-22 pin FFC cable + acrylic case
-- [x] ✅ **Arducam Pan/Tilt Platform** — ORDERED 3/10, arriving 3/12
+- [x] ✅ **Arducam Pan/Tilt Platform** — **DELIVERED 3/12** — $26.99
   - Compatible with Pi Camera Module 3/V1/V2
   - Pan on GPIO 12, tilt on GPIO 13. Controlled by `pan_tilt.py`.
 
 ### Power (ALL PORTABLE — no wall outlets on DC floor)
 
-- [x] ✅ **18650 Li-ion batteries (4-pack)** — $33.86 — ORDERED 3/11, arriving Saturday 3/15
+- [x] ✅ **18650 Li-ion batteries (4-pack)** — $22.98 — ORDERED 3/11, arriving Saturday 3/15
   - QOJH 3.7V 3000mAh, button top, protected
   - WHY 4-PACK: 2 in the bot, 2 charged and ready to hot-swap during demo
-- [x] ✅ **18650 dual-slot charger** — (in same order) — ORDERED 3/11, arriving Saturday 3/15
+- [x] ✅ **18650 dual-slot charger** — $8.59 — ORDERED 3/11, arriving Saturday 3/15
   - ACEBOTT smart charger, auto-shutoff, US plug
   - CHARGE NIGHT BEFORE DEMO — full charge takes ~4 hours
-- [x] ✅ **18650 battery holder bundle (8-pack)** — ORDERED 3/10, arriving 3/12
+- [x] ✅ **18650 battery holder bundle (8-pack)** — **DELIVERED 3/12** — $9.99
   - QTEATAK — 1-slot (3.7V), 2-slot (7.4V), 3-slot (11.1V), 4-slot (14.8V) — 2 of each
   - Gives flexibility if chassis holder breaks or need different voltage configs
-- [x] ✅ **USB-C power bank (Pi power)** — $22 — ORDERED 3/11, arriving Friday 3/14
+- [x] ✅ **USB-C power bank (Pi power)** — $21.99 — ORDERED 3/11, arriving 3/13
   - Anker PowerCore 10K, 10000mAh, 5V/3A USB-C
   - MUST support 5V/3A output — Pi 5 will brownout on weak banks
   - Runtime: ~3-4 hours continuous CV workload
 - [ ] 🛒 **Second USB-C power bank (backup/swap)** — ~$22
   - Same model. Demo runs 2-5pm — one bank may not last. Swap takes 10 seconds.
 - [ ] 🛒 Short USB-C cable (6-12 inches, power bank → Pi) — ~$5 — Amazon
-- [x] ✅ **USB-C right-angle adapter (2-pack)** — $9.11 — ORDERED 3/11, arriving 3/12
+- [x] ✅ **USB-C right-angle adapter (2-pack)** — $8.49 — **DELIVERED 3/12**
   - Silkland 90° adapter, 240W/40Gbps — overkill specs but keeps cable flush on chassis
-- [x] ✅ **CanaKit 3.5A Pi Power Supply with PiSwitch** — $13.93 — ORDERED 3/11, arriving 3/12
+- [x] ✅ **CanaKit 3.5A Pi Power Supply with PiSwitch** — $12.99 — **DELIVERED 3/12**
   - Wall adapter with inline on/off switch — USE FOR BENCH TESTING + DEVELOPMENT
   - NOT portable — still need USB-C power bank for untethered DC floor demo
 

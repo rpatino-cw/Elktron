@@ -11,16 +11,16 @@
 | Requirement | Why Bookworm 64-bit Lite |
 |-------------|--------------------------|
 | **Pi 5 support** | Bookworm is the **only** official OS for Pi 5. Bullseye does NOT support Pi 5. |
-| **64-bit** | Required for TFLite runtime performance. 32-bit halves inference speed on Pi 5's Cortex-A76 cores. |
+| **64-bit** | Required for OpenCV DNN performance. 32-bit halves inference speed on Pi 5's Cortex-A76 cores. |
 | **Lite (no desktop)** | Robot runs headless. No GPU wasted on desktop compositor. All resources go to CV + motor control. Saves ~500MB RAM. |
 | **picamera2** | Pre-installed on Bookworm. Uses libcamera stack (not legacy raspistill). |
 | **gpiozero 2.0+** | Bookworm ships with lgpio backend (not RPi.GPIO), which is the only GPIO lib that works on Pi 5. |
-| **Python 3.11+** | Bookworm ships Python 3.11. TFLite and OpenCV wheels are built for 3.11. |
+| **Python 3.11+** | Bookworm ships Python 3.11. OpenCV wheels are built for 3.11+. |
 
 **Do NOT use:**
 - Bullseye (no Pi 5 support)
 - Ubuntu (GPIO support is worse, picamera2 setup is painful)
-- 32-bit (halves TFLite performance)
+- 32-bit (halves inference performance)
 - Desktop version (wastes RAM/GPU on a headless robot)
 
 ---
@@ -133,7 +133,7 @@ chmod +x install.sh
 ./install.sh
 ```
 
-This installs: picamera2, TFLite runtime, gpiozero, lgpio, and downloads the MobileNet SSD model.
+This installs: picamera2, OpenCV, gpiozero, lgpio, and downloads the MobileNet SSD model.
 
 ---
 
@@ -146,12 +146,11 @@ libcamera-hello --timeout 5000
 # Test GPIO (should print pin info without errors)
 python3 -c "from gpiozero import Device; print('GPIO OK:', Device.pin_factory)"
 
-# Test TFLite (should print model input shape)
+# Test OpenCV DNN (should print model loaded)
 python3 -c "
-import tflite_runtime.interpreter as tflite
-interp = tflite.Interpreter(model_path='models/ssd_mobilenet_v2.tflite')
-interp.allocate_tensors()
-print('TFLite OK. Input shape:', interp.get_input_details()[0]['shape'])
+import cv2
+net = cv2.dnn.readNetFromTensorflow('models/ssd_mobilenet_v2.pb', 'models/ssd_mobilenet_v2.pbtxt')
+print('OpenCV DNN OK. Backend:', cv2.dnn.DNN_BACKEND_OPENCV)
 "
 
 # If all three pass, run the bot:
@@ -167,7 +166,7 @@ python3 main.py
 | `ssh: connect to host escort-bot.local port 22: Connection refused` | Pi hasn't finished booting. Wait 90s. Or WiFi creds were wrong — reflash with correct SSID/password. |
 | `ModuleNotFoundError: No module named 'lgpio'` | Run `sudo apt install python3-lgpio` — Pi 5 needs lgpio, not RPi.GPIO |
 | `libcamera-hello` shows no camera | Check CSI ribbon cable is seated firmly. Use the Pi 5 CSI port (between HDMI ports). |
-| `tflite-runtime` won't install | Use `pip install --break-system-packages tflite-runtime` (Bookworm enforces PEP 668) |
+| `python3-opencv` not found | Run `sudo apt install python3-opencv` (preferred over pip on Pi) |
 | Pi throttles / gets hot | Attach heatsink or active cooler. Pi 5 throttles at 85°C under CV workload. |
 | GPIO permission denied | Add user to gpio group: `sudo usermod -aG gpio pi && reboot` |
 
@@ -182,6 +181,26 @@ python3 main.py
 
 ---
 
+## Claude Code (AI-Assisted Dev on the Pi)
+
+Claude Code CLI is installed on the Pi. This gives you an AI coding assistant directly on the robot hardware.
+
+```bash
+# SSH into Pi, then:
+cd ~/escort-bot
+claude
+```
+
+**What this unlocks:**
+- Edit and debug `main.py`, `pan_tilt.py`, `test_camera.py` without leaving the Pi
+- Ask Claude to read sensor output, inspect GPIO pins, and fix code in one loop
+- Iterate on motor calibration, detection thresholds, and PID tuning with AI assistance
+- On demo day: rapid on-site fixes without needing a laptop with the codebase
+
+**Tip:** Run `claude` in the `~/escort-bot` directory so it picks up the project CLAUDE.md for full context.
+
+---
+
 ## Quick Reference
 
 | Item | Value |
@@ -193,6 +212,7 @@ python3 main.py
 | Python | 3.11+ (system) |
 | GPIO lib | lgpio (via gpiozero 2.0+) |
 | Camera lib | picamera2 + libcamera |
-| ML runtime | TFLite (MobileNet SSD v2, quantized) |
+| ML runtime | OpenCV DNN (MobileNet SSD v2) |
+| AI dev tool | Claude Code CLI (installed) |
 | Imager download | https://downloads.raspberrypi.com/imager/imager_latest.dmg |
 | OS downloads | https://www.raspberrypi.com/software/operating-systems/ |

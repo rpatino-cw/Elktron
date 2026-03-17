@@ -1,0 +1,279 @@
+{
+  "components": [
+    {
+      "id": "soc",
+      "name": "BCM2712 SoC",
+      "cat": "processor",
+      "desc": "Quad Cortex-A76 @ 2.4GHz · 16nm",
+      "x_mm": 19,
+      "y_mm": 23,
+      "w_mm": 16,
+      "h_mm": 15.5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "ram",
+      "name": "LPDDR4X RAM",
+      "cat": "memory",
+      "desc": "8GB · 4267 MT/s",
+      "x_mm": 20.5,
+      "y_mm": 12.5,
+      "w_mm": 12,
+      "h_mm": 8,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "rp1",
+      "name": "RP1 Southbridge",
+      "cat": "io",
+      "desc": "I/O controller · PCIe 2.0 x4 to SoC",
+      "x_mm": 57,
+      "y_mm": 13,
+      "w_mm": 12,
+      "h_mm": 12,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "wifi",
+      "name": "WiFi 5 / BT 5.0",
+      "cat": "network",
+      "desc": "802.11ac dual-band · metal shield",
+      "x_mm": 7.5,
+      "y_mm": 7.5,
+      "w_mm": 10,
+      "h_mm": 10,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "pmic",
+      "name": "DA9091 PMIC",
+      "cat": "power",
+      "desc": "Renesas power management IC",
+      "x_mm": 11,
+      "y_mm": 42,
+      "w_mm": 5,
+      "h_mm": 5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "gpio",
+      "name": "40-Pin GPIO Header",
+      "cat": "connector",
+      "desc": "2x20 · 2.54mm pitch · HAT+ compatible",
+      "x_mm": 8,
+      "y_mm": 1,
+      "w_mm": 55,
+      "h_mm": 5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "usbc",
+      "name": "USB-C Power",
+      "cat": "power",
+      "desc": "5V / 5A input · PD negotiation",
+      "x_mm": 9,
+      "y_mm": 52,
+      "w_mm": 9,
+      "h_mm": 3.5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "hdmi0",
+      "name": "Micro HDMI 0",
+      "cat": "display",
+      "desc": "Primary · 4Kp60 + HDR",
+      "x_mm": 22.5,
+      "y_mm": 52,
+      "w_mm": 6.5,
+      "h_mm": 3.5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "hdmi1",
+      "name": "Micro HDMI 1",
+      "cat": "display",
+      "desc": "Secondary · 4Kp60",
+      "x_mm": 34.5,
+      "y_mm": 52,
+      "w_mm": 6.5,
+      "h_mm": 3.5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "usb2",
+      "name": "USB 2.0 (2x)",
+      "cat": "connector",
+      "desc": "480 Mbps · stacked Type-A",
+      "x_mm": 75,
+      "y_mm": 1.5,
+      "w_mm": 12,
+      "h_mm": 14.5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "usb3",
+      "name": "USB 3.0 (2x)",
+      "cat": "connector",
+      "desc": "5 Gbps · stacked Type-A",
+      "x_mm": 75,
+      "y_mm": 18,
+      "w_mm": 12,
+      "h_mm": 15,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "eth",
+      "name": "Gigabit Ethernet",
+      "cat": "network",
+      "desc": "RJ-45 · PoE+ ready · Gig-E",
+      "x_mm": 73.5,
+      "y_mm": 35.5,
+      "w_mm": 14,
+      "h_mm": 17,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "sd",
+      "name": "MicroSD Slot",
+      "cat": "storage",
+      "desc": "Underside · push-push · UHS-I",
+      "x_mm": -5,
+      "y_mm": 20,
+      "w_mm": 8,
+      "h_mm": 13,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "csi",
+      "name": "CSI-2 Camera",
+      "cat": "connector",
+      "desc": "4-lane MIPI · 22-pin · 0.5mm FFC",
+      "x_mm": 51.5,
+      "y_mm": 40.5,
+      "w_mm": 13.5,
+      "h_mm": 3,
+      "rot": 270,
+      "visible": true
+    },
+    {
+      "id": "dsi",
+      "name": "DSI Display",
+      "cat": "connector",
+      "desc": "4-lane MIPI · 22-pin · 0.5mm FFC",
+      "x_mm": 57,
+      "y_mm": 40.5,
+      "w_mm": 13.5,
+      "h_mm": 3,
+      "rot": 270,
+      "visible": true
+    },
+    {
+      "id": "pcie",
+      "name": "PCIe 2.0 x1 FPC",
+      "cat": "connector",
+      "desc": "16-pin · for NVMe HAT+",
+      "x_mm": 3.5,
+      "y_mm": 23,
+      "w_mm": 8,
+      "h_mm": 2.5,
+      "rot": 270,
+      "visible": true
+    },
+    {
+      "id": "fan",
+      "name": "Fan Header",
+      "cat": "connector",
+      "desc": "4-pin JST-SH · PWM control",
+      "x_mm": 71.5,
+      "y_mm": 1.5,
+      "w_mm": 4.5,
+      "h_mm": 2,
+      "rot": 90,
+      "visible": true
+    },
+    {
+      "id": "uart",
+      "name": "UART Debug",
+      "cat": "debug",
+      "desc": "3-pin JST-SH · serial console",
+      "x_mm": 30,
+      "y_mm": 52,
+      "w_mm": 3.5,
+      "h_mm": 2.5,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "pwr",
+      "name": "Power Button",
+      "cat": "power",
+      "desc": "Tactile momentary switch",
+      "x_mm": 0.5,
+      "y_mm": 36.5,
+      "w_mm": 3,
+      "h_mm": 3,
+      "rot": 0,
+      "visible": true
+    },
+    {
+      "id": "leds",
+      "name": "Status LEDs",
+      "cat": "debug",
+      "desc": "PWR (red) + ACT (green)",
+      "x_mm": 1,
+      "y_mm": 44.5,
+      "w_mm": 4,
+      "h_mm": 1,
+      "rot": 180,
+      "visible": true
+    },
+    {
+      "id": "rtc",
+      "name": "RTC Battery",
+      "cat": "power",
+      "desc": "JST-SH 2-pin · CR2032 backup",
+      "x_mm": 18.5,
+      "y_mm": 52,
+      "w_mm": 3.5,
+      "h_mm": 2,
+      "rot": 0,
+      "visible": true
+    }
+  ],
+  "holes": [
+    {
+      "id": "hole-tl",
+      "x_mm": 4.5,
+      "y_mm": 4
+    },
+    {
+      "id": "hole-bl",
+      "x_mm": 4.5,
+      "y_mm": 52
+    },
+    {
+      "id": "hole-tr",
+      "x_mm": 67,
+      "y_mm": 3.5
+    },
+    {
+      "id": "hole-br",
+      "x_mm": 67,
+      "y_mm": 52
+    }
+  ],
+  "cables": []
+}

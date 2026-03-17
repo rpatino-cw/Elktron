@@ -40,13 +40,41 @@ DCTs perform repetitive physical tasks (seating optics, inspecting racks, dressi
 ```
 robotics-site/
 ├── CLAUDE.md              # this file
-├── index.html             # Elktron landing page (dark luxury-tech)
-├── elktron-robots.blend # 3D assets
-└── (future)
-    ├── teleop/            # keyboard teleop scripts
-    ├── training/          # imitation learning configs
-    └── demo/              # recorded demo videos
+├── index.html             # Elktron landing page (dark luxury-tech, NO Three.js)
+├── topology.html          # ★ THREE.JS — System topology visualization
+├── elktron-robots.blend   # 3D assets (Blender scene — both robots)
+├── elktron-robots.blend1  # Blender auto-backup
+├── optic-staging-tray.blend  # Blender — optic staging tray model
+├── optic-staging-tray.obj    # OBJ export of optic tray
+├── optic-staging-tray.mtl    # OBJ material file
+├── hero-render.png        # Hero render image (from Blender)
+├── arm-render.png         # SO-101 arm render
+├── guide-render.png       # Guide render
+├── so101-real.png         # Real SO-101 photo
+└── so101/
+    ├── showcase.html      # SO-101 showcase page (CSS animations, NO Three.js)
+    ├── record.py          # Record demos via leader-follower teleoperation
+    ├── train.py           # Train ACT policy (cuda/mps/cpu)
+    ├── deploy.py          # Deploy trained model for autonomous execution
+    ├── install.sh         # venv + LeRobot from source + deps
+    ├── requirements.txt   # lerobot, torch, opencv, numpy, tensorboard
+    └── HARDWARE.md        # BOM, assembly notes, kit tiers, compute options
 ```
+
+## 3D Files in This Folder
+
+| File | Type | Three.js? |
+|------|------|-----------|
+| `topology.html` | System topology visualization | **Yes** — Three.js |
+| `index.html` | Landing page | No — CSS only |
+| `so101/showcase.html` | SO-101 scope page | No — CSS animations |
+| `elktron-robots.blend` | Blender scene (both robots) | N/A — source asset |
+| `optic-staging-tray.blend` | Blender model | N/A — source asset |
+| `optic-staging-tray.obj/.mtl` | OBJ export | N/A — source asset |
+
+## All Three.js Pages (full project)
+
+See `../CLAUDE.md` → "Three.js / 3D Websites — Complete Map" for the full list of all 11 Three.js HTML files across the hackathon.
 
 ## Status
 - [x] Landing page built (index.html)

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chassis Front — Traced Outline Analysis</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0c;
+    color: #d4d0cc;
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: #787472;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-top: 0.3rem; margin-bottom: 1.5rem;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+  .canvas-wrap {
+    background: #0e0e11;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 1rem;
+    position: relative;
+  }
+  canvas { width: 100%; border-radius: 3px; cursor: crosshair; }
+  .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+  .panel {
+    background: #141418;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 1.2rem;
+  }
+  .panel h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: #c9943a;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: #787472;
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .stat-val { font-size: 0.82rem; font-weight: 500; color: #e8e6e3; }
+  .stat-val.accent { color: #c9943a; }
+  .region-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.4rem 0; cursor: pointer;
+  }
+  .region-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .region-text { font-size: 0.75rem; color: #a09890; line-height: 1.4; }
+  .region-text strong { color: #d4d0cc; font-weight: 500; }
+  .note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; color: #5a5550;
+    line-height: 1.7; margin-top: 0.5rem;
+  }
+  .note em { color: #c9943a; font-style: normal; }
+  .controls { display: flex; gap: 0.3rem; margin-top: 0.8rem; flex-wrap: wrap; }
+  .ctrl-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 0.05em; text-transform: uppercase;
+    padding: 0.3rem 0.6rem; border-radius: 3px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #787472; cursor: pointer; transition: all 0.2s;
+  }
+  .ctrl-btn:hover { background: rgba(255,255,255,0.08); color: #d4d0cc; }
+  .ctrl-btn.active {
+    background: rgba(201,148,58,0.12);
+    border-color: rgba(201,148,58,0.3);
+    color: #c9943a;
+  }
+  .orient-note {
+    background: rgba(90,143,212,0.06);
+    border: 1px solid rgba(90,143,212,0.15);
+    border-radius: 4px; padding: 0.8rem; margin-top: 0.5rem;
+  }
+  .orient-note h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem; color: #5a8fd4;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .orient-item {
+    font-size: 0.7rem; color: #a09890; line-height: 1.6;
+    padding-left: 0.8rem; text-indent: -0.8rem;
+  }
+  .orient-item::before { content: "→ "; color: #5a8fd4; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Chassis Front — Exact Trace Analysis</h1>
+<div class="subtitle">11 lines from your traced outline &mdash; head-on front view &mdash; 4284 × 5712 px</div>
+
+<div class="layout">
+  <div class="canvas-wrap">
+    <canvas id="main" width="1200" height="900"></canvas>
+    <div class="controls" id="controls"></div>
+  </div>
+
+  <div class="sidebar">
+    <div class="panel">
+      <h2>Geometry Measurements</h2>
+      <div id="measurements"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Identified Regions (5)</h2>
+      <div id="regions"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Orientation</h2>
+      <div class="orient-note">
+        <h3>Front View Reference</h3>
+        <div id="orient"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Line Data</h2>
+      <div class="note" id="line-info"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Raw Line Data (Stage 1 — 11 lines) ─────────────────
+const rawLines = [
+  { line:1,  p1:{x:952,y:3061},  p2:{x:2008,y:3077}, bent:false, cp:null },
+  { line:2,  p1:{x:2008,y:3077}, p2:{x:2678,y:3084}, bent:true,  cp:{x:2339,y:3069} },
+  { line:3,  p1:{x:2670,y:3084}, p2:{x:3781,y:3100}, bent:false, cp:null },
+  { line:4,  p1:{x:1898,y:3281}, p2:{x:2796,y:3289}, bent:false, cp:null },
+  { line:5,  p1:{x:2118,y:3274}, p2:{x:2118,y:3108}, bent:false, cp:null },
+  { line:6,  p1:{x:2599,y:3084}, p2:{x:2599,y:3297}, bent:false, cp:null },
+  { line:7,  p1:{x:1890,y:2738}, p2:{x:2835,y:2738}, bent:false, cp:null },
+  { line:8,  p1:{x:2189,y:2738}, p2:{x:2189,y:3053}, bent:false, cp:null },
+  { line:9,  p1:{x:2599,y:2730}, p2:{x:2591,y:3069}, bent:false, cp:null },
+  { line:10, p1:{x:2047,y:2478}, p2:{x:2047,y:2722}, bent:false, cp:null },
+  { line:11, p1:{x:2717,y:2486}, p2:{x:2717,y:2738}, bent:false, cp:null },
+];
+
+// ─── Coordinate Mapping ─────────────────────────────────
+// Source bounding box: x[800..3900] y[2380..3400]
+const SRC = { xMin: 800, xMax: 3900, yMin: 2380, yMax: 3400 };
+const DST = { xMin: 60, xMax: 1140, yMin: 60, yMax: 840 };
+
+function mapX(x) { return DST.xMin + (x - SRC.xMin) / (SRC.xMax - SRC.xMin) * (DST.xMax - DST.xMin); }
+function mapY(y) { return DST.yMin + (y - SRC.yMin) / (SRC.yMax - SRC.yMin) * (DST.yMax - DST.yMin); }
+
+const lines = rawLines.map(l => ({
+  line: l.line,
+  p1: { x: mapX(l.p1.x), y: mapY(l.p1.y) },
+  p2: { x: mapX(l.p2.x), y: mapY(l.p2.y) },
+  bent: l.bent,
+  cp: l.cp ? { x: mapX(l.cp.x), y: mapY(l.cp.y) } : null,
+  raw: l
+}));
+
+// ─── Region Classification ──────────────────────────────
+const regions = {
+  headPlate: {
+    name: 'Head Plate (Front-Facing)',
+    color: '#5a8fd4',
+    lines: [1, 2, 3],
+    desc: 'L1 = left span (1056px). L2 = center span with curve (670px, bent). L3 = right span (1111px). This is the HEAD PLATE — a wide acrylic plate forming the front face of the chassis, seen head-on. Very wide because you\'re looking at its full face, not an edge.'
+  },
+  undercarriage: {
+    name: 'Motor / Undercarriage',
+    color: '#e05555',
+    lines: [4, 5, 6],
+    desc: 'L4 = horizontal bottom of motor housing area (898px). L5 = left motor mount vertical (166px). L6 = right motor mount vertical (213px). These define the motor/wheel assembly visible below the head plate.'
+  },
+  topPlate: {
+    name: 'Top Plate (Front Edge)',
+    color: '#55bb77',
+    lines: [7],
+    desc: 'L7 = top plate front edge (945px). Narrower than head plate — set back from edges. Horizontal at y=2738.'
+  },
+  standoffs: {
+    name: 'Brass Standoffs (Plate-to-Plate)',
+    color: '#d4a833',
+    lines: [8, 9],
+    desc: 'L8 = left standoff (315px, x=2189). L9 = right standoff (339px, x≈2595). Vertical brass hex standoffs connecting top plate to head plate.'
+  },
+  upperPosts: {
+    name: 'Upper Posts (Above Top Plate)',
+    color: '#8855cc',
+    lines: [10, 11],
+    desc: 'L10 = left upper post (244px, x=2047). L11 = right upper post (252px, x=2717). Brass posts extending above the top plate for mounting a 2nd deck, camera mast, or accessories.'
+  },
+};
+
+// ─── Canvas Setup ────────────────────────────────────────
+const canvas = document.getElementById('main');
+const ctx = canvas.getContext('2d');
+const dpr = window.devicePixelRatio || 1;
+canvas.width = 1200 * dpr;
+canvas.height = 900 * dpr;
+canvas.style.width = '100%';
+canvas.style.height = 'auto';
+ctx.scale(dpr, dpr);
+
+// ─── Drawing State ───────────────────────────────────────
+let showGrid = true;
+let showNumbers = true;
+let showRegions = true;
+let showDimensions = true;
+let showZones = false;
+let highlightRegion = null;
+
+// ─── Draw Functions ──────────────────────────────────────
+function drawLine(l, color, width = 2, dash = []) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.setLineDash(dash);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(l.p1.x, l.p1.y);
+  if (l.bent && l.cp) {
+    ctx.quadraticCurveTo(l.cp.x, l.cp.y, l.p2.x, l.p2.y);
+  } else {
+    ctx.lineTo(l.p2.x, l.p2.y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawDot(x, y, r, color) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawLabel(x, y, text, color, align = 'left') {
+  ctx.save();
+  ctx.font = '11px "JetBrains Mono", monospace';
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function drawDimension(x1, y1, x2, y2, label, offset, side) {
+  ctx.save();
+  const ox = side === 'right' ? offset : side === 'left' ? -offset : 0;
+  const oy = side === 'bottom' ? offset : side === 'top' ? -offset : 0;
+
+  ctx.strokeStyle = 'rgba(201,148,58,0.35)';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3, 3]);
+
+  ctx.beginPath();
+  if (oy !== 0) {
+    ctx.moveTo(x1, y1); ctx.lineTo(x1, y1 + oy);
+    ctx.moveTo(x2, y2); ctx.lineTo(x2, y2 + oy);
+  } else {
+    ctx.moveTo(x1, y1); ctx.lineTo(x1 + ox, y1);
+    ctx.moveTo(x2, y2); ctx.lineTo(x2 + ox, y2);
+  }
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  if (oy !== 0) {
+    const dy = y1 + oy * 0.8;
+    ctx.moveTo(x1, dy); ctx.lineTo(x2, dy);
+    ctx.moveTo(x1, dy); ctx.lineTo(x1 + 5, dy - 3); ctx.moveTo(x1, dy); ctx.lineTo(x1 + 5, dy + 3);
+    ctx.moveTo(x2, dy); ctx.lineTo(x2 - 5, dy - 3); ctx.moveTo(x2, dy); ctx.lineTo(x2 - 5, dy + 3);
+    ctx.stroke();
+    ctx.fillStyle = '#c9943a';
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, (x1 + x2) / 2, dy - 6);
+  } else {
+    const dx = x1 + ox * 0.8;
+    ctx.moveTo(dx, y1); ctx.lineTo(dx, y2);
+    ctx.moveTo(dx, y1); ctx.lineTo(dx - 3, y1 + 5); ctx.moveTo(dx, y1); ctx.lineTo(dx + 3, y1 + 5);
+    ctx.moveTo(dx, y2); ctx.lineTo(dx - 3, y2 - 5); ctx.moveTo(dx, y2); ctx.lineTo(dx + 3, y2 - 5);
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(dx - 8, (y1 + y2) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#c9943a';
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+// ─── Render ─────────────────────────────────────────────
+function render() {
+  ctx.clearRect(0, 0, 1200, 900);
+  ctx.fillStyle = '#0a0a0c';
+  ctx.fillRect(0, 0, 1200, 900);
+
+  // Grid
+  if (showGrid) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.025)';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= 1200; x += 100) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 900); ctx.stroke();
+    }
+    for (let y = 0; y <= 900; y += 100) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1200, y); ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.font = '9px "JetBrains Mono", monospace';
+    for (let x = 0; x <= 1200; x += 200) ctx.fillText(x, x + 2, 12);
+    for (let y = 200; y <= 900; y += 200) ctx.fillText(y, 4, y - 2);
+  }
+
+  // Zone backgrounds
+  if (showZones) {
+    const zoneDefs = [
+      { name: 'HEAD PLATE', x1: 900, y1: 3020, x2: 3830, y2: 3120, color: 'rgba(90,143,212,0.10)' },
+      { name: 'TOP PLATE', x1: 1850, y1: 2700, x2: 2870, y2: 2770, color: 'rgba(85,187,119,0.10)' },
+      { name: 'MOTOR AREA', x1: 1860, y1: 3080, x2: 2830, y2: 3320, color: 'rgba(224,85,85,0.08)' },
+      { name: 'STANDOFFS', x1: 2150, y1: 2700, x2: 2640, y2: 3100, color: 'rgba(212,168,51,0.08)' },
+      { name: 'UPPER POSTS', x1: 2000, y1: 2440, x2: 2760, y2: 2760, color: 'rgba(136,85,204,0.08)' },
+    ];
+    zoneDefs.forEach(z => {
+      const x = mapX(z.x1), y = mapY(z.y1);
+      const w = mapX(z.x2) - x, h = mapY(z.y2) - y;
+      ctx.fillStyle = z.color;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = z.color.replace(/[\d.]+\)$/, '0.25)');
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText(z.name, x + 4, y + 11);
+    });
+  }
+
+  // Draw regions or plain lines
+  if (showRegions) {
+    Object.entries(regions).forEach(([key, region]) => {
+      const isHighlighted = !highlightRegion || highlightRegion === key;
+      const alpha = isHighlighted ? 1 : 0.15;
+
+      region.lines.forEach(lineNum => {
+        const l = lines.find(ll => ll.line === lineNum);
+        if (l) {
+          const c = region.color;
+          const r = parseInt(c.slice(1,3), 16);
+          const g = parseInt(c.slice(3,5), 16);
+          const b = parseInt(c.slice(5,7), 16);
+          drawLine(l, `rgba(${r},${g},${b},${alpha})`, isHighlighted ? 2.5 : 1.5);
+
+          if (showNumbers && isHighlighted) {
+            const mx = (l.p1.x + l.p2.x) / 2;
+            const my = (l.p1.y + l.p2.y) / 2;
+            drawLabel(mx + 8, my - 5, `L${l.line}`, `rgba(${r},${g},${b},0.6)`);
+          }
+        }
+      });
+    });
+  } else {
+    lines.forEach(l => drawLine(l, 'rgba(228,224,218,0.8)', 2));
+  }
+
+  // Endpoint dots
+  const allPoints = new Set();
+  lines.forEach(l => {
+    allPoints.add(`${l.p1.x.toFixed(1)},${l.p1.y.toFixed(1)}`);
+    allPoints.add(`${l.p2.x.toFixed(1)},${l.p2.y.toFixed(1)}`);
+  });
+  allPoints.forEach(p => {
+    const [x, y] = p.split(',').map(Number);
+    drawDot(x, y, 3, 'rgba(201,148,58,0.5)');
+  });
+
+  // Dimensions
+  if (showDimensions) {
+    const L = n => lines.find(l => l.line === n);
+
+    // Full head plate span L1+L2+L3
+    drawDimension(L(1).p1.x, L(1).p1.y, L(3).p2.x, L(3).p2.y, '2829px — full head plate width', 30, 'bottom');
+
+    // Left head plate segment L1
+    drawDimension(L(1).p1.x, L(1).p1.y, L(1).p2.x, L(1).p2.y, '1056px L1', 55, 'bottom');
+
+    // Right head plate segment L3
+    drawDimension(L(3).p1.x, L(3).p1.y, L(3).p2.x, L(3).p2.y, '1111px L3', 55, 'bottom');
+
+    // Top plate L7
+    drawDimension(L(7).p1.x, L(7).p1.y, L(7).p2.x, L(7).p2.y, '945px — top plate', -22, 'top');
+
+    // Motor area width L4
+    drawDimension(L(4).p1.x, L(4).p1.y, L(4).p2.x, L(4).p2.y, '898px — motor housing', 22, 'bottom');
+
+    // Left standoff height L8
+    drawDimension(L(8).p1.x, L(8).p1.y, L(8).p2.x, L(8).p2.y, '315px standoff', -35, 'left');
+
+    // Right standoff height L9
+    drawDimension(L(9).p1.x, L(9).p1.y, L(9).p2.x, L(9).p2.y, '339px standoff', 35, 'right');
+
+    // Left upper post L10
+    drawDimension(L(10).p1.x, L(10).p1.y, L(10).p2.x, L(10).p2.y, '244px post', -28, 'left');
+
+    // Right upper post L11
+    drawDimension(L(11).p1.x, L(11).p1.y, L(11).p2.x, L(11).p2.y, '252px post', 28, 'right');
+
+    // Left motor mount height L5
+    drawDimension(L(5).p1.x, L(5).p1.y, L(5).p2.x, L(5).p2.y, '166px', -20, 'left');
+
+    // Scale note
+    ctx.fillStyle = 'rgba(201,148,58,0.3)';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillText('Source: 4284 × 5712 px · All dims in source pixels · Head-on front view', 40, 885);
+  }
+
+  // Region labels on canvas
+  if (showRegions && !highlightRegion) {
+    drawLabel(mapX(1400), mapY(3030), 'HEAD PLATE (left)', '#5a8fd4');
+    drawLabel(mapX(3200), mapY(3030), 'HEAD PLATE (right)', '#5a8fd4');
+    drawLabel(mapX(2300), mapY(3030), 'curve', '#5a8fd4');
+    drawLabel(mapX(2200), mapY(3340), 'MOTOR AREA', '#e05555');
+    drawLabel(mapX(2300), mapY(2700), 'TOP PLATE', '#55bb77');
+    drawLabel(mapX(2050), mapY(2900), 'STANDOFFS', '#d4a833');
+    drawLabel(mapX(2300), mapY(2440), 'UPPER POSTS', '#8855cc');
+  }
+}
+
+// ─── Pixel length utility ───────────────────────────────
+function rawLen(l) {
+  const dx = l.p2.x - l.p1.x, dy = l.p2.y - l.p1.y;
+  return Math.round(Math.sqrt(dx * dx + dy * dy));
+}
+
+// ─── Measurements ────────────────────────────────────────
+const measurements = [
+  ['Head plate left (L1)', `${rawLen(rawLines[0])}px`, 'straight segment'],
+  ['Head plate center (L2)', `${rawLen(rawLines[1])}px`, 'curved'],
+  ['Head plate right (L3)', `${rawLen(rawLines[2])}px`, 'straight segment'],
+  ['Full head plate width', `${rawLines[2].p2.x - rawLines[0].p1.x}px`, 'L1 start → L3 end'],
+  ['Motor housing (L4)', `${rawLen(rawLines[3])}px`, 'below head plate'],
+  ['Left motor mount (L5)', `${rawLen(rawLines[4])}px`, 'vertical'],
+  ['Right motor mount (L6)', `${rawLen(rawLines[5])}px`, 'vertical'],
+  ['Top plate (L7)', `${rawLen(rawLines[6])}px`, 'front edge'],
+  ['Left standoff (L8)', `${rawLen(rawLines[7])}px`, 'plate-to-plate'],
+  ['Right standoff (L9)', `${rawLen(rawLines[8])}px`, 'plate-to-plate'],
+  ['Left upper post (L10)', `${rawLen(rawLines[9])}px`, 'above top plate'],
+  ['Right upper post (L11)', `${rawLen(rawLines[10])}px`, 'above top plate'],
+  ['Total lines', '11', '10 straight + 1 curved'],
+];
+
+const measEl = document.getElementById('measurements');
+measurements.forEach(([lab, val, note]) => {
+  const row = document.createElement('div');
+  row.className = 'stat-row';
+  row.innerHTML = `<span class="stat-label">${lab}</span><span class="stat-val${note ? ' accent' : ''}">${val} — ${note}</span>`;
+  measEl.appendChild(row);
+});
+
+// ─── Regions Panel ───────────────────────────────────────
+const regEl = document.getElementById('regions');
+Object.entries(regions).forEach(([key, r]) => {
+  const item = document.createElement('div');
+  item.className = 'region-item';
+  item.innerHTML = `<div class="region-dot" style="background:${r.color}"></div><div class="region-text"><strong>${r.name}</strong> — Lines ${r.lines.join(', ')}<br>${r.desc}</div>`;
+  item.addEventListener('mouseenter', () => { highlightRegion = key; render(); });
+  item.addEventListener('mouseleave', () => { highlightRegion = null; render(); });
+  regEl.appendChild(item);
+});
+
+// ─── Orientation Panel ──────────────────────────────────
+const orientEl = document.getElementById('orient');
+[
+  'View: HEAD-ON FRONT — camera facing the front bumper of the chassis',
+  'Left on canvas = LEFT side of car (driver perspective)',
+  'Right on canvas = RIGHT side of car',
+  'Top of canvas = UP (top plate, upper posts)',
+  'Bottom of canvas = DOWN (motors, wheels, undercarriage)',
+  'HEAD PLATE (L1+L2+L3) — wide front-facing acrylic plate, seen face-on (not an edge)',
+  'Top plate (L7) is narrower — centered between standoffs',
+  'Two brass standoffs (L8, L9) connect head plate to top plate',
+  'Two upper posts (L10, L11) extend above top plate',
+  'Motor housing (L4) and mount verticals (L5, L6) below head plate',
+  'L2 has a curve (bend point at 2339,3069) — possible cutout, slot, or decorative shaping in the head plate',
+].forEach(d => {
+  const div = document.createElement('div');
+  div.className = 'orient-item';
+  div.textContent = d;
+  orientEl.appendChild(div);
+});
+
+// ─── Line Info ──────────────────────────────────────────
+document.getElementById('line-info').innerHTML =
+  `<em>11 lines</em> total — 10 straight + 1 curved (L2)<br><br>` +
+  `<em>Horizontal (5):</em> L1 (head plate left), L2 (head plate center, curved), L3 (head plate right), L4 (motor housing bottom), L7 (top plate)<br>` +
+  `<em>Vertical (6):</em> L5 (left motor mount), L6 (right motor mount), L8 (left standoff), L9 (right standoff), L10 (left upper post), L11 (right upper post)<br><br>` +
+  `<em>Bounding box:</em> x[952..3781] y[2478..3297]<br>` +
+  `<em>Trace area:</em> 2829 × 819 px (wide — front profile)<br>` +
+  `<em>Notable:</em> L2 is the only curved line — center of HEAD PLATE has a curve. L1+L2+L3 form the continuous front face of the wide head plate.`;
+
+// ─── Toggle Controls ────────────────────────────────────
+[
+  ['Grid', () => showGrid, v => showGrid = v],
+  ['Numbers', () => showNumbers, v => showNumbers = v],
+  ['Regions', () => showRegions, v => showRegions = v],
+  ['Dims', () => showDimensions, v => showDimensions = v],
+  ['Zones', () => showZones, v => showZones = v],
+].forEach(([name, getter, setter]) => {
+  const btn = document.createElement('button');
+  btn.className = 'ctrl-btn' + (getter() ? ' active' : '');
+  btn.textContent = name;
+  btn.addEventListener('click', () => {
+    setter(!getter());
+    btn.classList.toggle('active');
+    render();
+  });
+  document.getElementById('controls').appendChild(btn);
+});
+
+// ─── Initial Render ─────────────────────────────────────
+render();
+</script>
+</body>
+</html>

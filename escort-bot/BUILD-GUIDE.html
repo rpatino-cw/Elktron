@@ -383,7 +383,7 @@
           <div class="part-section-label">Code</div>
           <span class="code-ref">main.py → init_camera()</span>
           <span class="code-ref">main.py → detect_person()</span>
-          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Uses picamera2 → libcamera stack. Feeds 640x360 RGB frames to YOLOv8n.</p>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Uses picamera2 → libcamera stack. Feeds 640x480 RGB frames to OpenCV DNN.</p>
         </div>
         <div class="part-section">
           <div class="part-section-label">Test</div>
@@ -450,7 +450,7 @@
       <div class="part" data-delay="250">
         <div class="part-num">06</div>
         <div class="part-name">L298N Motor Driver</div>
-        <div class="part-role">The muscle. Converts Pi signals into motor power.</div>
+        <div class="part-role">The muscle. One dual H-bridge handles all 4 motors — 2 parallel pairs (left + right). No second driver needed.</div>
         <div class="part-section">
           <div class="part-section-label">Install</div>
           <ul>
@@ -658,7 +658,7 @@ OS:      Raspberry Pi OS (other)
            > Pi OS Lite (64-bit)
              Debian Bookworm, no desktop
 Storage: Your MicroSD card</div>
-        <div class="cmd-note"><strong>Lite = headless.</strong> No desktop, all RAM for CV + motors. 64-bit required for YOLOv8n performance.</div>
+        <div class="cmd-note"><strong>Lite = headless.</strong> No desktop, all RAM for CV + motors. 64-bit required for inference performance.</div>
       </div>
 
       <div class="cmd-card">
@@ -694,8 +694,8 @@ arp -a | grep -i "dc:a6\|b8:27\|d8:3a\|2c:cf"</div>
         <div class="cmd-code"><span class="c"># lgpio missing?</span>
 sudo apt install python3-lgpio
 
-<span class="c"># ultralytics won't install?</span>
-pip install --break-system-packages ultralytics
+<span class="c"># opencv not installed?</span>
+sudo apt install python3-opencv
 
 <span class="c"># GPIO permission denied?</span>
 sudo usermod -aG gpio pi && sudo reboot
@@ -739,7 +739,7 @@ echo performance | sudo tee \
 cd ~/escort-bot
 chmod +x install.sh
 ./install.sh</div>
-        <div class="cmd-note">Installs picamera2, ultralytics, gpiozero, lgpio. Downloads YOLOv8n model. ~15 min.</div>
+        <div class="cmd-note">Installs picamera2, OpenCV, gpiozero, lgpio. Downloads MobileNet SSD model. ~15 min.</div>
       </div>
 
       <div class="cmd-card">

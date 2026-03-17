@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elktron — Pitch Playbook</title>
+<link rel="stylesheet" href="design-system.css">
+<style>
+  body {
+    padding-top: var(--nav-height);
+  }
+
+  /* === MASTHEAD === */
+  .masthead {
+    padding: var(--space-16) 0 var(--space-12);
+    border-bottom: 1px solid var(--border-subtle);
+    text-align: center;
+  }
+  .masthead-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    margin-bottom: var(--space-3);
+  }
+  .masthead h1 {
+    font-size: var(--text-5xl);
+    margin-bottom: var(--space-2);
+  }
+  .masthead-sub {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+    max-width: 540px;
+    margin: var(--space-3) auto 0;
+    line-height: var(--leading-relaxed);
+  }
+  .masthead-date {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    margin-top: var(--space-6);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  /* === SECTION === */
+  .pb-section {
+    padding: var(--space-16) 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .pb-section:last-of-type {
+    border-bottom: none;
+  }
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    margin-bottom: var(--space-2);
+  }
+  .section-title {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-2);
+  }
+  .section-intro {
+    color: var(--text-secondary);
+    font-size: var(--text-base);
+    max-width: 600px;
+    margin-bottom: var(--space-10);
+    line-height: var(--leading-relaxed);
+  }
+
+  /* === THREE-UP GRID === */
+  .three-up {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+  @media (max-width: 900px) {
+    .three-up { grid-template-columns: 1fr; }
+  }
+
+  /* === OPTION CARD === */
+  .option-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+    position: relative;
+    transition: border-color var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out),
+                transform var(--duration-normal) var(--ease-out);
+  }
+  .option-card:hover {
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .option-number {
+    font-size: var(--text-5xl);
+    font-weight: var(--weight-extrabold);
+    line-height: 1;
+    color: var(--bg-elevated);
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-5);
+  }
+  .option-card h3 {
+    font-size: var(--text-xl);
+    margin-bottom: var(--space-3);
+    line-height: var(--leading-tight);
+  }
+  .option-card p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+    line-height: var(--leading-relaxed);
+  }
+  .option-card strong {
+    color: var(--text-primary);
+  }
+  .option-card ul {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-3) 0;
+  }
+  .option-card li {
+    font-size: var(--text-sm);
+    padding: var(--space-1) 0;
+    padding-left: 1.2rem;
+    position: relative;
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+  .option-card li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.65rem;
+    width: 5px;
+    height: 5px;
+    border-radius: var(--radius-round);
+    background: var(--accent-primary);
+  }
+  .option-card li strong {
+    color: var(--text-primary);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* === VERDICT BAR === */
+  .verdict {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    margin-top: var(--space-4);
+    background: var(--accent-primary-muted);
+    border-radius: var(--radius-sm);
+  }
+  .verdict-label {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    flex-shrink: 0;
+    font-weight: var(--weight-semibold);
+  }
+  .verdict-text {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+  }
+
+  /* === DETAIL BLOCK === */
+  .detail-block {
+    background: var(--bg-elevated);
+    border-left: 3px solid var(--accent-primary);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: var(--space-5) var(--space-6);
+    margin: var(--space-6) 0;
+  }
+  .detail-block h4 {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    margin-bottom: var(--space-2);
+    font-weight: var(--weight-semibold);
+  }
+  .detail-block p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+  .detail-block strong {
+    color: var(--text-primary);
+  }
+
+  /* === COMPARE TABLE === */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--space-8) 0;
+    font-size: var(--text-sm);
+  }
+  .compare-table th {
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    border-bottom: 2px solid var(--text-primary);
+  }
+  .compare-table td {
+    padding: var(--space-3) var(--space-4);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+    line-height: var(--leading-relaxed);
+  }
+  .compare-table td strong {
+    color: var(--text-primary);
+  }
+  .compare-table tr:hover td {
+    background: var(--bg-hover);
+  }
+
+  /* === PROPS GRID === */
+  .props-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+  .prop-item {
+    padding: var(--space-5);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    transition: border-color var(--duration-normal) var(--ease-out),
+                box-shadow var(--duration-normal) var(--ease-out);
+  }
+  .prop-item:hover {
+    border-color: var(--border-default);
+    box-shadow: var(--shadow-sm);
+  }
+  .prop-item h4 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-1);
+  }
+  .prop-item p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+  .prop-vibe {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--status-success);
+    margin-top: var(--space-3);
+    font-weight: var(--weight-semibold);
+  }
+
+  /* === TOOLS GRID === */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+  .tool-item {
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    transition: border-color var(--duration-normal) var(--ease-out);
+  }
+  .tool-item:hover {
+    border-color: var(--border-default);
+  }
+  .tool-item h4 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-1);
+  }
+  .tool-cost {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--status-success);
+    margin-bottom: var(--space-3);
+    font-weight: var(--weight-medium);
+  }
+  .tool-item p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+  .tool-item strong {
+    color: var(--text-primary);
+  }
+
+  /* === TALHA SECTION === */
+  .talha-callout {
+    background: var(--bg-dark);
+    color: #ffffff;
+    padding: var(--space-8);
+    border-radius: var(--radius-md);
+    margin: var(--space-6) 0;
+  }
+  .talha-callout h3 {
+    font-size: var(--text-xl);
+    color: var(--accent-secondary);
+    margin-bottom: var(--space-4);
+  }
+  .talha-callout p {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: rgba(255,255,255,0.7);
+    margin-bottom: var(--space-3);
+  }
+  .talha-callout strong {
+    color: #ffffff;
+  }
+  .talha-step {
+    display: flex;
+    gap: var(--space-4);
+    margin: var(--space-4) 0;
+    align-items: flex-start;
+  }
+  .talha-step-num {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-extrabold);
+    color: var(--accent-secondary);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 2rem;
+    font-family: var(--font-mono);
+  }
+  .talha-step-text {
+    font-size: var(--text-sm);
+    color: rgba(255,255,255,0.7);
+    line-height: var(--leading-relaxed);
+  }
+  .talha-step-text strong {
+    color: #ffffff;
+  }
+
+  /* === PHASE TITLE === */
+  .phase-title {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-semibold);
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  /* === TWO COLUMN === */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-8);
+    margin-top: var(--space-6);
+  }
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  /* === CHECKLIST === */
+  .checklist {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-3) 0;
+  }
+  .checklist li {
+    font-size: var(--text-sm);
+    padding: var(--space-2) 0;
+    padding-left: 1.8rem;
+    position: relative;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+  }
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.7rem;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-default);
+    border-radius: 3px;
+  }
+  .checklist li strong {
+    color: var(--text-primary);
+  }
+
+  /* === FOOTER === */
+  .pb-footer {
+    text-align: center;
+    padding: var(--space-10) 0 var(--space-8);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--text-tertiary);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  /* === ANIMATIONS === */
+  @media (prefers-reduced-motion: no-preference) {
+    .option-card, .tool-item, .prop-item {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    .option-card.visible, .tool-item.visible, .prop-item.visible {
+      animation: fc-fade-up var(--duration-slow) var(--ease-out) forwards;
+    }
+    .three-up .option-card:nth-child(2).visible { animation-delay: 0.1s; }
+    .three-up .option-card:nth-child(3).visible { animation-delay: 0.2s; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="fc-nav">
+  <a href="hub.html" class="fc-nav-brand">Elktron</a>
+  <ul class="fc-nav-links">
+    <li><a href="#delivery">Delivery</a></li>
+    <li><a href="#stories">Stories</a></li>
+    <li><a href="#styles">Styles</a></li>
+    <li><a href="#props">Props</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#talha">Talha</a></li>
+    <li><a href="#tips">Tips</a></li>
+    <li><a href="#checklist">Checklist</a></li>
+  </ul>
+</nav>
+
+<!-- MASTHEAD -->
+<header class="masthead fc-container">
+  <div class="masthead-label fc-animate-up">Internal Playbook</div>
+  <h1 class="fc-animate-up fc-delay-1">The Pitch Playbook</h1>
+  <p class="masthead-sub fc-animate-up fc-delay-2">Three ways to present. Three stories to tell. Three styles to choose from. Pick one from each — or mix.</p>
+  <div class="masthead-date fc-animate-up fc-delay-3">Demo Day: March 23, 2026 &middot; Team Elktron &middot; "More. Better. Faster."</div>
+</header>
+
+<!-- SECTION 1: DELIVERY METHODS -->
+<section id="delivery" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part One</div>
+  <h2 class="section-title">Three Ways to Deliver</h2>
+  <p class="section-intro">How the project reaches the judges. Each format has different strengths. Pick the one that matches your hardware readiness on March 22.</p>
+
+  <div class="three-up">
+    <div class="option-card">
+      <span class="option-number">1</span>
+      <span class="fc-badge fc-badge-info">Recommended</span>
+      <h3>Pre-Recorded Video + Live Q&A</h3>
+      <p><strong>2:30 edited video</strong> shown to judges, then you answer questions live with the robots on the table.</p>
+      <ul>
+        <li><strong>Why this wins:</strong> You control the narrative. No live-demo failures. Judges see polished footage AND real hardware.</li>
+        <li><strong>Film:</strong> 1 evening (March 21 or 22)</li>
+        <li><strong>Edit:</strong> 3-4 hours (Talha)</li>
+        <li><strong>Format:</strong> MP4, 1080p, subtitles burned in</li>
+        <li><strong>Live element:</strong> Robots on table, powered on. Judges can see/touch them during Q&A.</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Best for</span>
+        <span class="verdict-text">Hardware works but is finicky. Story matters more than live proof.</span>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <span class="option-number">2</span>
+      <span class="fc-badge fc-badge-warning">High Risk</span>
+      <h3>Live Demo on the Floor</h3>
+      <p><strong>2-3 minute live walkthrough</strong> with both robots running in real-time. Romeo narrates, bots perform.</p>
+      <ul>
+        <li><strong>Why this wins:</strong> Nothing beats a live robot moving on the DC floor. Instant People's Choice.</li>
+        <li><strong>Risk:</strong> Motors stall. Camera loses lock. Arm drops the optic. Wi-Fi interference.</li>
+        <li><strong>Mitigation:</strong> Pre-record a backup video. If live fails, pivot: "Here's what it looked like in testing" and play the tape.</li>
+        <li><strong>Need:</strong> Floor access approval, extension cord, clear aisle, vendor volunteer (Raphael).</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Best for</span>
+        <span class="verdict-text">Everything works perfectly in testing. You've done 5+ dry runs.</span>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <span class="option-number">3</span>
+      <span class="fc-badge fc-badge-neutral">Safe Fallback</span>
+      <h3>Slide Deck + Video Clips</h3>
+      <p><strong>5 slides max</strong> with embedded 15-30s video clips of each robot. Romeo presents, Talha runs slides.</p>
+      <ul>
+        <li><strong>Slide 1:</strong> The problem — one photo of a tech escorting a vendor</li>
+        <li><strong>Slide 2:</strong> Escort bot clip (15s) + one sentence</li>
+        <li><strong>Slide 3:</strong> SO-101 arm clip (15s) + one sentence</li>
+        <li><strong>Slide 4:</strong> Dashboard screenshot + impact numbers</li>
+        <li><strong>Slide 5:</strong> "More. Better. Faster." + team photo</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Best for</span>
+        <span class="verdict-text">Arm kit arrived late. Only escort bot works. Need a polished Plan B.</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 2: THREE STORIES -->
+<section id="stories" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part Two</div>
+  <h2 class="section-title">Three Stories to Tell</h2>
+  <p class="section-intro">Same robots, three different narrative angles. Pick the one that fits your energy and what the judges seem to care about.</p>
+
+  <div class="three-up">
+    <div class="option-card">
+      <span class="option-number">1</span>
+      <span class="fc-badge fc-badge-info">Strongest</span>
+      <h3>"I Do This Job Every Day"</h3>
+      <p><strong>The angle:</strong> Romeo is a DCT. He built robots to solve his own pain. This isn't a software engineer imagining DC problems — it's a technician who's tired of escorting vendors and seating optics by hand.</p>
+      <p><strong>Opening line:</strong> "I'm a data center technician at EVI01. I seat optics, escort vendors, and inspect racks. I built two robots to do it for me."</p>
+      <ul>
+        <li><strong>Emotional hook:</strong> Authenticity. A builder solving their own problem.</li>
+        <li><strong>Key moment:</strong> Show Romeo demonstrating the task to the arm — teaching it by hand, then stepping back.</li>
+        <li><strong>Closing line:</strong> "The best automation comes from the people who do the work."</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Power</span>
+        <span class="verdict-text">Judges remember the person, not just the product.</span>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <span class="option-number">2</span>
+      <span class="fc-badge fc-badge-success">Scale Play</span>
+      <h3>"What If Every DC Had These?"</h3>
+      <p><strong>The angle:</strong> Start with the math. X optics per week, Y vendor escorts, Z tech-hours burned. Then show how robots collapse those numbers.</p>
+      <p><strong>Opening line:</strong> "CoreWeave is building data centers faster than anyone. The floor work doesn't scale with headcount — it scales with robots."</p>
+      <ul>
+        <li><strong>Emotional hook:</strong> Ambition. This isn't a toy — it's the start of a fleet.</li>
+        <li><strong>Key moment:</strong> Dashboard showing both robots running simultaneously.</li>
+        <li><strong>Closing line:</strong> "Two robots today. Twenty next quarter. Same software."</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Power</span>
+        <span class="verdict-text">Best for OKR alignment and exec-level judges.</span>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <span class="option-number">3</span>
+      <span class="fc-badge fc-badge-warning">Crowd Favorite</span>
+      <h3>"We Built This in a Week"</h3>
+      <p><strong>The angle:</strong> Show the build journey. Parts arriving. Chassis assembly. First motor test. First person detection. Montage energy.</p>
+      <p><strong>Opening line:</strong> "Seven days ago this was a $25 chassis kit and a Raspberry Pi on a desk."</p>
+      <ul>
+        <li><strong>Emotional hook:</strong> Transformation. The audience watches something become real.</li>
+        <li><strong>Key moment:</strong> Timelapse of assembly, then cut to the bot rolling and following.</li>
+        <li><strong>Closing line:</strong> "From parts to patrol in one week. That's building with velocity."</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Power</span>
+        <span class="verdict-text">Best for People's Choice. Everyone loves a build montage.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-block">
+    <h4>Mix &amp; Match</h4>
+    <p>You can combine stories. Start with the DCT story (30s), show the build montage (30s), end with the scale vision (30s). The strongest pitches layer <strong>personal + proof + vision</strong>.</p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 3: THREE STYLES -->
+<section id="styles" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part Three</div>
+  <h2 class="section-title">Three Visual Styles</h2>
+  <p class="section-intro">How the video and slides look and feel. This sets the tone before anyone says a word.</p>
+
+  <div class="three-up">
+    <div class="option-card">
+      <span class="option-number">1</span>
+      <span class="fc-badge fc-badge-info">Recommended</span>
+      <h3>The Floor Report</h3>
+      <p><strong>Documentary.</strong> Steady handheld footage. Natural lighting. Real DC floor sounds. Minimal graphics — just white text on footage.</p>
+      <ul>
+        <li><strong>Music:</strong> Low electronic hum, almost ambient. Or no music — just floor sounds.</li>
+        <li><strong>Text:</strong> White sans-serif, bottom-left. No animations.</li>
+        <li><strong>Color grade:</strong> Slightly desaturated, cool tones. Industrial.</li>
+        <li><strong>Transitions:</strong> Hard cuts only. No fades, no wipes.</li>
+        <li><strong>Vibe:</strong> "This is real. This is happening."</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Pair with</span>
+        <span class="verdict-text">The DCT Story or The Build Story</span>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <span class="option-number">2</span>
+      <span class="fc-badge fc-badge-warning">Hard to Edit</span>
+      <h3>The Launch Trailer</h3>
+      <p><strong>Hype reel.</strong> Fast cuts synced to music. Bold title cards. Motion graphics for stats. Dramatic reveals.</p>
+      <ul>
+        <li><strong>Music:</strong> Building electronic track with a drop. Drums hit when the robot moves.</li>
+        <li><strong>Text:</strong> Large, bold, animated. Numbers count up. Stats fly in.</li>
+        <li><strong>Color grade:</strong> High contrast, punchy.</li>
+        <li><strong>Transitions:</strong> Fast cuts on beat. Speed ramps.</li>
+        <li><strong>Vibe:</strong> "The future is here and we built it this week."</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Pair with</span>
+        <span class="verdict-text">The Scale Story or The Build Story</span>
+      </div>
+    </div>
+
+    <div class="option-card">
+      <span class="option-number">3</span>
+      <span class="fc-badge fc-badge-neutral">Safest</span>
+      <h3>The Investor Deck</h3>
+      <p><strong>Clean minimal.</strong> White backgrounds. One idea per frame. Robot footage in clean boxes. Calm. Confident. Precise.</p>
+      <ul>
+        <li><strong>Music:</strong> Light piano or no music. VO carries it.</li>
+        <li><strong>Text:</strong> Dark text on white. Big numbers.</li>
+        <li><strong>Color grade:</strong> Clean, bright, slightly warm whites.</li>
+        <li><strong>Transitions:</strong> Smooth slides. Fade to white.</li>
+        <li><strong>Vibe:</strong> "We're professionals who built something serious."</li>
+      </ul>
+      <div class="verdict">
+        <span class="verdict-label">Pair with</span>
+        <span class="verdict-text">The Scale Story. Best if arm footage is limited.</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Factor</th>
+        <th>Documentary</th>
+        <th>Hype Reel</th>
+        <th>Clean Minimal</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Footage needed</strong></td>
+        <td>Most — long, steady takes</td>
+        <td>Medium — many short clips</td>
+        <td>Least — a few key clips</td>
+      </tr>
+      <tr>
+        <td><strong>Edit difficulty</strong></td>
+        <td>Easy — cut and arrange</td>
+        <td>Hard — timing, effects, sync</td>
+        <td>Medium — clean layouts</td>
+      </tr>
+      <tr>
+        <td><strong>Talha skill match</strong></td>
+        <td>Good — straightforward cuts</td>
+        <td>Harder — needs rhythm sense</td>
+        <td>Good — template-friendly</td>
+      </tr>
+      <tr>
+        <td><strong>If robots fail</strong></td>
+        <td>Can still work with B-roll</td>
+        <td>Falls flat without footage</td>
+        <td>Slides carry it</td>
+      </tr>
+      <tr>
+        <td><strong>Crowd response</strong></td>
+        <td>Respect</td>
+        <td>Excitement</td>
+        <td>Trust</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="detail-block">
+    <h4>Suggested Combo</h4>
+    <p><strong>Documentary style + DCT story + pre-recorded video with live Q&A.</strong> Lowest risk, highest authenticity. Talha can edit it. The robots sell themselves when they move — no flashy effects needed.</p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 4: PROPS -->
+<section id="props" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part Four</div>
+  <h2 class="section-title">Props, Staging &amp; Set Dressing</h2>
+  <p class="section-intro">Physical objects and staging that make the demo unforgettable. Judges remember what they can see and touch.</p>
+
+  <div class="props-grid">
+    <div class="prop-item">
+      <h4>Real Optic Transceivers</h4>
+      <p>Have 2-3 optics on the table. Let judges hold one. "This is what the arm seats — 400 of these per rack turn-up."</p>
+      <div class="prop-vibe">Pass-around prop</div>
+    </div>
+    <div class="prop-item">
+      <h4>Mini Switch Panel</h4>
+      <p>A small switch with empty SFP ports. The arm demo target. Even unpowered, it makes the task real.</p>
+      <div class="prop-vibe">Demo surface</div>
+    </div>
+    <div class="prop-item">
+      <h4>Escort Bot on Table</h4>
+      <p>Powered on, camera light active. Even idle, a robot with a blinking camera is more interesting than any slide.</p>
+      <div class="prop-vibe">Attention magnet</div>
+    </div>
+    <div class="prop-item">
+      <h4>Arm on a Stand</h4>
+      <p>SO-101 clamped to table edge. If trained, do a quick teleop demo. If not, it's still a real robot arm.</p>
+      <div class="prop-vibe">Physical gravity</div>
+    </div>
+    <div class="prop-item">
+      <h4>Before/After Poster</h4>
+      <p>One printed sheet. Left: "Before — 1 tech escorts 1 vendor, 10 min/optic." Right: "After — autonomous."</p>
+      <div class="prop-vibe">Visual anchor</div>
+    </div>
+    <div class="prop-item">
+      <h4>Dashboard on Tablet</h4>
+      <p>iPad showing the Elktron dashboard live. Hand it to a judge. "This is the control panel."</p>
+      <div class="prop-vibe">Interactive handoff</div>
+    </div>
+    <div class="prop-item">
+      <h4>Team Badges / Stickers</h4>
+      <p>Simple name badges with the Elktron logo. Canva + printer. $5. Makes you look like a real team.</p>
+      <div class="prop-vibe">Team identity</div>
+    </div>
+    <div class="prop-item">
+      <h4>Rack Photo / Blueprint</h4>
+      <p>A printed photo of an actual EVI01 rack. "This is where the bot patrols. This is where the arm works."</p>
+      <div class="prop-vibe">Context bridge</div>
+    </div>
+  </div>
+
+  <div class="detail-block">
+    <h4>Table Layout</h4>
+    <p><strong>Left:</strong> Escort bot (powered on) + rack photo. <strong>Center:</strong> Laptop with dashboard + video. <strong>Right:</strong> SO-101 arm + optics + switch panel. <strong>Front edge:</strong> Before/After poster taped flat.</p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 5: TOOLS -->
+<section id="tools" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part Five</div>
+  <h2 class="section-title">Tools for Filming &amp; Editing</h2>
+  <p class="section-intro">Everything Talha needs to produce the video. All free or already available.</p>
+
+  <div class="tools-grid">
+    <div class="tool-item">
+      <h4>DaVinci Resolve</h4>
+      <div class="tool-cost">Free — macOS / Windows</div>
+      <p>Professional video editor. Color grading, cuts, text overlays, audio sync. <strong>This is the one to use.</strong></p>
+    </div>
+    <div class="tool-item">
+      <h4>CapCut Desktop</h4>
+      <div class="tool-cost">Free — easier option</div>
+      <p>Simpler editor. Auto-captions, templates, beat sync. If Resolve feels overwhelming, start here.</p>
+    </div>
+    <div class="tool-item">
+      <h4>Phone Camera</h4>
+      <div class="tool-cost">Free — already have</div>
+      <p>Film in 1080p 30fps. Lock exposure. Use a tripod or prop against books. Steady > high-res.</p>
+    </div>
+    <div class="tool-item">
+      <h4>OBS Studio</h4>
+      <div class="tool-cost">Free — screen recording</div>
+      <p>Record the dashboard demo. Set to 1080p, capture browser window.</p>
+    </div>
+    <div class="tool-item">
+      <h4>Canva</h4>
+      <div class="tool-cost">Free tier</div>
+      <p>Title cards, posters, badges, stickers, slide deck. Drag-and-drop. Talha-friendly.</p>
+    </div>
+    <div class="tool-item">
+      <h4>Epidemic Sound / Artlist</h4>
+      <div class="tool-cost">Free trial</div>
+      <p>Search "tech documentary minimal." Download before trial ends. One track is all you need.</p>
+    </div>
+    <div class="tool-item">
+      <h4>Voice Memo (iPhone)</h4>
+      <div class="tool-cost">Free — voiceover</div>
+      <p>Record VO in a quiet room. Phone 6 inches from mouth. Clarity > quality for 2:30.</p>
+    </div>
+    <div class="tool-item">
+      <h4>Google Slides</h4>
+      <div class="tool-cost">Free — fallback deck</div>
+      <p>Embed video clips into slides. Present from laptop. Works if going with Method 3.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 6: TALHA -->
+<section id="talha" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part Six</div>
+  <h2 class="section-title">Talha's Playbook</h2>
+  <p class="section-intro">Step-by-step for the media lead. No jargon. Do these in order.</p>
+
+  <div class="talha-callout">
+    <h3>The Only Thing That Matters</h3>
+    <p>You are not making a movie. You are making a <strong>2 minute and 30 second video</strong> that shows two robots doing real work. The judges will watch it once. They need to understand it immediately. <strong>Simple beats fancy every time.</strong></p>
+  </div>
+
+  <h3 class="phase-title">Week Before Demo (March 16-21)</h3>
+
+  <div class="talha-callout">
+    <div class="talha-step">
+      <span class="talha-step-num">1</span>
+      <div class="talha-step-text"><strong>Download DaVinci Resolve</strong> (free) or CapCut (free, easier). Install it. Open it. Make a blank project called "Elktron." That's it for day one.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">2</span>
+      <div class="talha-step-text"><strong>Watch one YouTube tutorial:</strong> search "DaVinci Resolve beginner 2024." Watch the first 15 minutes. You now know enough. Build momentum by doing, not watching.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">3</span>
+      <div class="talha-step-text"><strong>Practice edit:</strong> Film yourself walking for 30 seconds. Import it. Cut it to 10 seconds. Add white text that says "TEST." Export. If you can do this, you can edit the demo video.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">4</span>
+      <div class="talha-step-text"><strong>Make title cards in Canva.</strong> You need 3: "2 tasks. 2 robots. 1 crew." / "Before: [X]. After: [Y]." / "More. Better. Faster." White text on black. Save as PNG.</div>
+    </div>
+  </div>
+
+  <h3 class="phase-title">Filming Day (March 21 or 22)</h3>
+
+  <div class="talha-callout">
+    <div class="talha-step">
+      <span class="talha-step-num">5</span>
+      <div class="talha-step-text"><strong>Film everything on the shot list.</strong> Romeo tells you what to point the camera at. Your job: hold steady, keep the robot in frame, film each shot 3 times. Film MORE than you need.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">6</span>
+      <div class="talha-step-text"><strong>Record Romeo's voiceover.</strong> Quiet room. Romeo reads the script into a phone. One take — if he messes up, pause and re-say that line. Cut mistakes later.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">7</span>
+      <div class="talha-step-text"><strong>Screen-record the dashboard.</strong> Open OBS, hit record, click through the dashboard for 30 seconds. Stop. Done.</div>
+    </div>
+  </div>
+
+  <h3 class="phase-title">Edit Day (March 22)</h3>
+
+  <div class="talha-callout">
+    <div class="talha-step">
+      <span class="talha-step-num">8</span>
+      <div class="talha-step-text"><strong>Import everything</strong> into your project: footage clips, voiceover audio, title card PNGs, dashboard recording, music track.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">9</span>
+      <div class="talha-step-text"><strong>Lay the voiceover first.</strong> This is your backbone. When Romeo talks about the escort bot — put escort bot footage there. When he talks about the arm — arm footage there.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">10</span>
+      <div class="talha-step-text"><strong>Drop title cards between sections.</strong> 2-3 seconds each. Black screen, white text. They give the audience a breath.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">11</span>
+      <div class="talha-step-text"><strong>Add music LAST, keep it at 10-15% volume.</strong> If you can't hear Romeo clearly over the music, it's too loud. Music is wallpaper.</div>
+    </div>
+    <div class="talha-step">
+      <span class="talha-step-num">12</span>
+      <div class="talha-step-text"><strong>Export:</strong> 1080p, MP4. Watch once. Send to Romeo. Fix flags. Export again. <strong>Done.</strong></div>
+    </div>
+  </div>
+
+  <div class="detail-block">
+    <h4>Talha's Golden Rules</h4>
+    <p><strong>Rule 1:</strong> Stuck for 10 minutes? Ask Romeo or YouTube. Don't spiral.<br>
+    <strong>Rule 2:</strong> Ugly and done beats pretty and unfinished. Ship it.<br>
+    <strong>Rule 3:</strong> The voiceover IS the video. Everything else is decoration.<br>
+    <strong>Rule 4:</strong> Film everything 3 times. Edit is just picking the best take.<br>
+    <strong>Rule 5:</strong> The whole video is 2:30. That's one song. You can do this.</p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 7: TIPS -->
+<section id="tips" class="pb-section">
+<div class="fc-container">
+  <div class="section-label">Part Seven</div>
+  <h2 class="section-title">Tips &amp; Tricks</h2>
+  <p class="section-intro">Hard-won hackathon presentation wisdom.</p>
+
+  <div class="two-col">
+    <div>
+      <h3 class="phase-title" style="margin-top:0;">Filming Tips</h3>
+      <ul class="checklist">
+        <li>Film in <strong>landscape</strong> (horizontal). Always. No vertical video.</li>
+        <li><strong>Lock exposure</strong> — tap and hold on the subject until AE/AF Lock shows.</li>
+        <li>Use a <strong>stack of books</strong> as a tripod. Steady shot > handheld.</li>
+        <li>Film robots at <strong>their level</strong> — get low. Eye-level makes it look alive.</li>
+        <li>Get one <strong>"hero shot"</strong> of each robot from a low angle. This is your thumbnail.</li>
+        <li>Film <strong>DC floor B-roll</strong> — lights, cable trays, racks. 5 seconds. Use for transitions.</li>
+        <li>Film the <strong>team working</strong> — soldering, typing, assembling. Build montage gold.</li>
+        <li><strong>Turn off notifications</strong> on your phone before filming.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="phase-title" style="margin-top:0;">Presentation Tips</h3>
+      <ul class="checklist">
+        <li><strong>First 10 seconds</strong> decide everything. Start with the problem or a robot moving.</li>
+        <li>Say <strong>"More. Better. Faster."</strong> at least once. Judges listen for their theme.</li>
+        <li>Mention the team is <strong>cross-functional</strong> — DC ops, software, hardware, media.</li>
+        <li>Don't know an answer? <strong>"Great phase-2 question. Here's what we'd explore..."</strong></li>
+        <li>Let judges <strong>touch the robots</strong> during Q&A. Physical = memorable.</li>
+        <li>Have the <strong>dashboard running</strong> on a second screen. Casually point to it.</li>
+        <li><strong>Don't apologize</strong> for what isn't done. Frame: "Phase 1 is X. Phase 2 is Y."</li>
+        <li>End with a <strong>clear sentence</strong>. "Elktron. More hands on the floor."</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="detail-block">
+    <h4>The 3-Second Rule</h4>
+    <p>No shot should last longer than <strong>5 seconds</strong> without a cut, text, or new element. Attention spans at demo day are brutal. Keep it moving.</p>
+  </div>
+  <div class="detail-block">
+    <h4>The Buddy Test</h4>
+    <p>Show the video to someone who knows nothing about the project. If they can't explain what Elktron does in one sentence, the video isn't clear enough.</p>
+  </div>
+  <div class="detail-block">
+    <h4>Audio = 70% of Video Quality</h4>
+    <p>Perfect audio + mediocre footage = professional. Perfect footage + bad audio = amateur. <strong>Prioritize clear voiceover over fancy shots.</strong> Record in a closet if needed — fabric absorbs echo.</p>
+  </div>
+</div>
+</section>
+
+<!-- SECTION 8: CHECKLIST -->
+<section id="checklist" class="pb-section" style="border-bottom: none;">
+<div class="fc-container">
+  <div class="section-label">Part Eight</div>
+  <h2 class="section-title">Final Checklist</h2>
+  <p class="section-intro">Everything that needs to be done, in order, for demo day.</p>
+
+  <div class="two-col">
+    <div>
+      <h3 class="phase-title" style="margin-top:0;">By March 20</h3>
+      <ul class="checklist">
+        <li>Decide delivery method (video, live, or slides)</li>
+        <li>Decide story angle (DCT, scale, or build)</li>
+        <li>Decide visual style (documentary, hype, or minimal)</li>
+        <li>Talha: editor installed and test edit completed</li>
+        <li>Talha: title cards made in Canva</li>
+        <li>Romeo: finalize voiceover script with real numbers</li>
+        <li>Music track downloaded</li>
+        <li>Gather props: optics, switch panel, rack photo</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="phase-title" style="margin-top:0;">March 21-22</h3>
+      <ul class="checklist">
+        <li>Film all shots on the shot list (3 takes each)</li>
+        <li>Record Romeo's voiceover</li>
+        <li>Screen-record the dashboard</li>
+        <li>Talha: edit video (voiceover first, footage second)</li>
+        <li>Talha: add title cards + music</li>
+        <li>Export and review with Romeo</li>
+        <li>Final export — 1080p MP4</li>
+        <li>Upload backup to Google Drive</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h3 class="phase-title">March 23 — Demo Day</h3>
+      <ul class="checklist">
+        <li>Arrive early — claim a table</li>
+        <li>Set up: bot left, laptop center, arm right</li>
+        <li>Power on both robots</li>
+        <li>Open dashboard on laptop</li>
+        <li>Tape before/after poster to table front</li>
+        <li>Test video playback on projector/screen</li>
+        <li>Backup video on USB drive AND phone</li>
+        <li>Romeo: speak the pitch once out loud (dry run)</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="phase-title">Emergency Fallbacks</h3>
+      <ul class="checklist">
+        <li>Video won't play — show from phone, HDMI adapter</li>
+        <li>Escort bot motors fail — run camera detection on screen</li>
+        <li>Arm kit didn't arrive — show pipeline + dashboard mock</li>
+        <li>Projector fails — huddle judges around laptop</li>
+        <li>Everything fails — Romeo talks with props on table</li>
+        <li>Robots on the table ARE the demo, even powered off</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer class="pb-footer">
+  Elktron Pitch Playbook &middot; Team Elktron &middot; CoreWeave Hackathon March 2026
+</footer>
+
+<script>
+  // Intersection observer for stagger animations
+  if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.option-card, .tool-item, .prop-item').forEach(el => {
+      observer.observe(el);
+    });
+  }
+
+  // Smooth scroll for nav
+  document.querySelectorAll('.fc-nav-links a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Active nav state on scroll
+  const sections = document.querySelectorAll('.pb-section');
+  const navLinks = document.querySelectorAll('.fc-nav-links a');
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.fc-nav-links a[href="#${entry.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.2 });
+  sections.forEach(s => navObserver.observe(s));
+</script>
+</body>
+</html>

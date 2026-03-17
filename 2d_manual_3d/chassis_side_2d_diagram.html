@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LK-COKOINO Chassis — Side View 2D Diagram</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0c;
+    --surface: #141418;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e6e3;
+    --text-dim: #787472;
+    --accent: #c9943a;
+    --blue: #5a8fd4;
+    --red: #e05555;
+    --green: #55bb77;
+    --orange: #cc6633;
+    --gold: #d4a833;
+    --purple: #8855cc;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  #grid-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    background-position: center center;
+  }
+  #grid-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, transparent 30%, var(--bg) 75%);
+  }
+
+  #canvas-container {
+    position: fixed; inset: 0; z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas#board { display: block; }
+
+  .ui-overlay {
+    position: fixed; z-index: 10; pointer-events: none;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .ui-overlay.visible { opacity: 1; transform: translateY(0); }
+
+  .title-block { top: 0.8rem; left: 1rem; }
+  .title-block h1 {
+    font-size: 1rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1;
+  }
+  .title-block .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem; color: var(--text-dim);
+    margin-top: 0.2rem; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    position: fixed; top: 0.6rem; left: 50%; transform: translateX(-50%);
+    z-index: 20; display: flex; gap: 0.25rem; align-items: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 0.3rem 0.4rem;
+  }
+  .tb-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.25rem 0.5rem; border: 1px solid transparent;
+    border-radius: 3px; background: transparent;
+    color: var(--text-dim); cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .tb-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .tb-btn.active { color: var(--accent); border-color: rgba(201,148,58,0.4); background: rgba(201,148,58,0.08); }
+  .tb-sep { width: 1px; height: 14px; background: var(--border); margin: 0 0.15rem; }
+
+  /* Parts panel */
+  .comp-panel {
+    position: fixed; top: 2.5rem; right: 0.8rem; z-index: 15;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.6rem 0.7rem;
+    width: 240px; max-height: 80vh; overflow-y: auto;
+    pointer-events: all;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
+  .comp-panel.visible { opacity: 1; transform: translateY(0); }
+  .comp-panel-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.5rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .part-item {
+    display: flex; align-items: flex-start; gap: 0.5rem;
+    padding: 0.35rem 0.2rem; cursor: pointer;
+    border-radius: 3px; transition: background 0.15s;
+  }
+  .part-item:hover { background: rgba(255,255,255,0.03); }
+  .part-item.active { background: rgba(201,148,58,0.08); }
+  .part-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; margin-top: 3px; }
+  .part-name {
+    font-size: 0.7rem; font-weight: 500; color: var(--text); line-height: 1.3;
+  }
+  .part-desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; color: var(--text-dim); line-height: 1.5; margin-top: 0.15rem;
+  }
+
+  /* Specs panel */
+  .specs-panel {
+    position: fixed; bottom: 0.8rem; left: 0.8rem; z-index: 15;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 0.6rem 0.7rem;
+    width: 220px; pointer-events: all;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .specs-panel.visible { opacity: 1; transform: translateY(0); }
+  .specs-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.4rem; padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .spec-row {
+    display: flex; justify-content: space-between; padding: 0.2rem 0;
+    font-size: 0.65rem;
+  }
+  .spec-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .spec-val { font-weight: 500; color: var(--text); font-size: 0.65rem; }
+  .spec-val.accent { color: var(--accent); }
+
+  /* Tooltip */
+  .tooltip {
+    position: fixed; z-index: 25;
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 0.5rem 0.7rem; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; color: var(--text);
+    pointer-events: none; opacity: 0;
+    transition: opacity 0.15s; white-space: nowrap;
+    max-width: 280px;
+  }
+  .tooltip.active { opacity: 1; }
+  .tooltip .tt-label { font-weight: 600; margin-bottom: 0.15rem; }
+  .tooltip .tt-detail { color: var(--text-dim); font-size: 0.5rem; white-space: normal; }
+
+  /* Loading */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 100; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 1.2rem;
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  .loading-screen.hidden { opacity: 0; pointer-events: none; }
+  .loading-bar {
+    width: 120px; height: 2px;
+    background: rgba(255,255,255,0.06); border-radius: 1px; overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%; background: var(--accent);
+    width: 0%; transition: width 0.3s ease;
+  }
+  .loading-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--text-dim);
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loading">
+  <div class="loading-text">Rendering diagram</div>
+  <div class="loading-bar"><div class="loading-bar-fill" id="loading-fill"></div></div>
+</div>
+
+<div id="grid-bg"></div>
+<div id="canvas-container"><canvas id="board"></canvas></div>
+
+<div class="ui-overlay title-block" id="ui-title">
+  <h1>LK-COKOINO 4WD Chassis — Side View</h1>
+  <div class="subtitle">Stage 3 &mdash; 2D Component Diagram &mdash; Left side (driver's perspective)</div>
+</div>
+
+<div class="toolbar" id="toolbar">
+  <button class="tb-btn active" id="tb-labels" title="Toggle labels (L)">Labels</button>
+  <button class="tb-btn active" id="tb-dims" title="Toggle dimensions (D)">Dims</button>
+  <button class="tb-btn" id="tb-mounts" title="Toggle mounting points (M)">Mounts</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn active" id="tb-parts" title="Toggle parts panel (P)">Parts</button>
+  <button class="tb-btn active" id="tb-specs" title="Toggle specs panel (S)">Specs</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-drag" title="Toggle drag mode (G)" style="color:var(--orange)">Drag</button>
+  <button class="tb-btn" id="tb-save" title="Copy positions to clipboard">Save</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn" id="tb-help" title="Keyboard shortcuts (?)">?</button>
+</div>
+
+<div class="comp-panel" id="comp-panel">
+  <div class="comp-panel-title">Components (6 regions)</div>
+  <div id="comp-list"></div>
+</div>
+
+<div class="specs-panel" id="specs-panel">
+  <div class="specs-title">Chassis Specs</div>
+  <div id="specs-list"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const tooltip = document.getElementById('tooltip');
+const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+// Chassis physical estimates (mm) based on trace pixel ratios + known dimensions
+// Actual chassis: ~260mm long x ~130mm wide x ~80mm plate gap
+const CHASSIS_MM_W = 260;  // length (front to rear, bottom plate only)
+const CHASSIS_MM_H = 85;   // height (bottom plate to top of enclosure)
+// Total visual span: -69mm (sensor) to +293mm (battery) = 362mm
+const PLATE_GAP_MM = 42;   // gap between plates
+
+// Canvas dimensions
+const CW = 1400;
+const CH = 700;
+
+// Drawing area (padded)
+const PAD = { top: 80, right: 60, bottom: 80, left: 100 };
+const DW = CW - PAD.left - PAD.right;  // drawing width
+const DH = CH - PAD.top - PAD.bottom;  // drawing height
+
+// Total visual span including sensor overhang + battery
+const TOTAL_W = 82 + CHASSIS_MM_W + 33; // -82 to +293 = 375mm
+const SCALE = Math.min(DW / TOTAL_W, DH / CHASSIS_MM_H) * 0.85;
+
+// Origin: offset so x=0 (plate start) is properly positioned with room for sensor overhang
+const OX = PAD.left + (DW - TOTAL_W * SCALE) / 2 + 82 * SCALE;
+const OY = PAD.top + (DH - CHASSIS_MM_H * SCALE) / 2 + 20;
+
+function mmX(mm) { return OX + mm * SCALE; }
+function mmY(mm) { return OY + (CHASSIS_MM_H - mm) * SCALE; } // flip Y — 0 = bottom
+
+// ─── Component Data ──────────────────────────────────────
+// All positions in mm from front-left-bottom of chassis
+const parts = [
+  {
+    id: 'bottom-plate',
+    name: 'Bottom Acrylic Plate',
+    color: 'var(--blue)',
+    hex: '#5a8fd4',
+    desc: '3mm clear acrylic. Full chassis length. Motor mounts, wheel cutouts, standoff holes.',
+    dims: { x: 0, y: 0, w: 260, h: 3 },
+    shape: 'rect',
+    specs: ['260 × 130 mm', '3mm thick', 'Clear acrylic']
+  },
+  {
+    id: 'top-plate',
+    name: 'Top Acrylic Plate',
+    color: 'var(--blue)',
+    hex: '#5a8fd4',
+    desc: 'Shorter than bottom — covers front ~60%. Pi, motor driver, and sensors mount here.',
+    dims: { x: 5, y: 45, w: 154, h: 3 },
+    shape: 'rect',
+    specs: ['155 × 130 mm', '3mm thick', 'Clear acrylic']
+  },
+  {
+    id: 'sensor-mount',
+    name: 'Sensor Mount Pole (L11)',
+    color: 'var(--gold)',
+    hex: '#d4a833',
+    desc: 'Front mounting pole at x≈15mm. Extends from 5mm below bottom plate up to 19mm between plates. The IR sensor bar sits on top.',
+    dims: { x: 3, yTop: 27, yBot: 3 },
+    shape: 'sensor-mount',
+    specs: ['~24mm total', 'Front pole', 'Sensor bar anchor']
+  },
+  {
+    id: 'sensor-bar',
+    name: 'IR Sensor Bar',
+    color: 'var(--red)',
+    hex: '#e05555',
+    desc: '5-channel IR line-tracking sensor. Sits ON TOP of L11 mount at 18mm height (between plates). Extends 69mm forward from chassis front.',
+    dims: { x: -82, y: 27, w: 86, h: 5 },
+    shape: 'rect',
+    specs: ['86mm long', '69mm overhang', 'Sits on L11']
+  },
+  {
+    id: 'switch-enclosure',
+    name: 'Switch / Power Area',
+    color: 'var(--green)',
+    hex: '#55bb77',
+    desc: 'Rear section with two standoffs (L4, L6) and a top base plate (L5). Power switch and USB port mounted between standoffs.',
+    // Two standoffs + a top base connecting them
+    standoffL: { x: 175, y: 3, h: 65 },  // L6 — left standoff — 68mm reach from math
+    standoffR: { x: 258, y: 3, h: 65 },  // L4 — right standoff — 68mm reach from math
+    topBase: { x: 175, y: 68, w: 85, h: 3 }, // L5 — top base plate sitting on top of standoffs
+    shape: 'enclosure',
+    specs: ['2 standoffs + base', 'Power switch', 'USB port']
+  },
+  {
+    id: 'battery-box',
+    name: 'Battery Box (External)',
+    color: 'var(--orange)',
+    hex: '#cc6633',
+    desc: 'External battery holder mounted BEHIND the chassis frame. Holds 2× 18650 Li-ion cells.',
+    dims: { x: 260, y: 4, w: 33, h: 44 },
+    shape: 'rect',
+    specs: ['33 × 44mm face', '2× 18650', 'External mount']
+  },
+  {
+    id: 'standoffs',
+    name: 'Brass Standoffs',
+    color: 'var(--gold)',
+    hex: '#d4a833',
+    desc: 'M3 hex brass standoffs connecting top and bottom plates. 4 positions along chassis length.',
+    positions: [
+      { x: 82, y: 3, h: 42 },   // center (between motors) — L7
+      { x: 140, y: 3, h: 42 },  // mid-rear — L9
+    ],
+    shape: 'standoffs',
+    specs: ['M3 hex brass', '42mm height', '2 mid positions']
+  },
+  {
+    id: 'upper-posts',
+    name: 'Upper Tall Posts',
+    color: 'var(--purple)',
+    hex: '#8855cc',
+    desc: 'Brass posts extending above top plate. For mounting second deck, camera mast, or accessories.',
+    positions: [
+      { x: 82, y: 48, h: 14 },   // center post
+      { x: 155, y: 48, h: 15 },  // rear post
+    ],
+    shape: 'posts',
+    specs: ['~14-15mm tall', '2 positions', 'Above top plate']
+  },
+  {
+    id: 'front-motor',
+    name: 'Front DC Motor + Wheel',
+    color: '#e8c955',
+    hex: '#e8c955',
+    desc: 'TT gear motor with yellow gearbox. Drives front wheel. Mounted between plates.',
+    dims: { x: 30, y: 5, w: 50, h: 35 },
+    shape: 'motor',
+    specs: ['TT DC motor', 'Yellow gearbox', '3-6V']
+  },
+  {
+    id: 'rear-motor',
+    name: 'Rear DC Motor + Wheel',
+    color: '#e8c955',
+    hex: '#e8c955',
+    desc: 'Same TT gear motor. Drives rear wheel. Both sides share same motor configuration.',
+    dims: { x: 110, y: 5, w: 50, h: 35 },
+    shape: 'motor',
+    specs: ['TT DC motor', 'Yellow gearbox', '3-6V']
+  },
+];
+
+// Mounting points for the escort bot mast
+const mountPoints = [
+  { x: 82, y: 62, label: 'Mast base', desc: 'PVC T-connector mounts here — center post' },
+  { x: 155, y: 63, label: 'Mast support', desc: 'Zip-tie anchor to rear post' },
+  { x: 40, y: 48, label: 'Pi mount', desc: 'Raspberry Pi 5 on top plate, front area' },
+  { x: 120, y: 48, label: 'L298N mount', desc: 'Motor driver on top plate, mid section' },
+];
+
+// ─── Drawing State ───────────────────────────────────────
+let showLabels = true;
+let showDims = true;
+let showMounts = false;
+let showPartsPanel = true;
+let showSpecsPanel = true;
+let hoveredPart = null;
+let selectedPart = null;
+
+// ─── Canvas Setup ────────────────────────────────────────
+function resize() {
+  const maxW = window.innerWidth;
+  const maxH = window.innerHeight;
+  const ratio = CW / CH;
+  let w, h;
+  if (maxW / maxH > ratio) {
+    h = maxH; w = h * ratio;
+  } else {
+    w = maxW; h = w / ratio;
+  }
+  canvas.width = CW * dpr;
+  canvas.height = CH * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  render();
+}
+
+// ─── Drawing Helpers ─────────────────────────────────────
+function setAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawRoundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+}
+
+function drawDimLine(x1, y1, x2, y2, label, offset, side) {
+  ctx.save();
+  const ox = side === 'right' ? offset : side === 'left' ? -offset : 0;
+  const oy = side === 'bottom' ? offset : side === 'top' ? -offset : 0;
+
+  // Extension lines
+  ctx.strokeStyle = setAlpha('#c9943a', 0.3);
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  if (oy !== 0) {
+    ctx.moveTo(x1, y1); ctx.lineTo(x1, y1 + oy);
+    ctx.moveTo(x2, y2); ctx.lineTo(x2, y2 + oy);
+  } else {
+    ctx.moveTo(x1, y1); ctx.lineTo(x1 + ox, y1);
+    ctx.moveTo(x2, y2); ctx.lineTo(x2 + ox, y2);
+  }
+  ctx.stroke();
+
+  // Dimension line + arrows
+  ctx.setLineDash([]);
+  ctx.strokeStyle = setAlpha('#c9943a', 0.5);
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  if (oy !== 0) {
+    const dy = y1 + oy * 0.8;
+    ctx.moveTo(x1, dy); ctx.lineTo(x2, dy);
+    // arrows
+    ctx.moveTo(x1, dy); ctx.lineTo(x1 + 4, dy - 3); ctx.moveTo(x1, dy); ctx.lineTo(x1 + 4, dy + 3);
+    ctx.moveTo(x2, dy); ctx.lineTo(x2 - 4, dy - 3); ctx.moveTo(x2, dy); ctx.lineTo(x2 - 4, dy + 3);
+    ctx.stroke();
+    ctx.fillStyle = '#c9943a';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, (x1 + x2) / 2, dy - 5);
+  } else {
+    const dx = x1 + ox * 0.8;
+    ctx.moveTo(dx, y1); ctx.lineTo(dx, y2);
+    ctx.moveTo(dx, y1); ctx.lineTo(dx - 3, y1 + 4); ctx.moveTo(dx, y1); ctx.lineTo(dx + 3, y1 + 4);
+    ctx.moveTo(dx, y2); ctx.lineTo(dx - 3, y2 - 4); ctx.moveTo(dx, y2); ctx.lineTo(dx + 3, y2 - 4);
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(dx - 7, (y1 + y2) / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#c9943a';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(label, 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+// ─── Render ──────────────────────────────────────────────
+function render() {
+  ctx.clearRect(0, 0, CW, CH);
+
+  // Background
+  ctx.fillStyle = '#0a0a0c';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // Subtle grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x <= CW; x += 50) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke();
+  }
+  for (let y = 0; y <= CH; y += 50) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke();
+  }
+
+  // Ground line
+  const groundY = mmY(-12);
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath();
+  ctx.moveTo(PAD.left - 20, groundY);
+  ctx.lineTo(CW - PAD.right + 20, groundY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.font = '9px "JetBrains Mono", monospace';
+  ctx.fillText('GROUND LEVEL', PAD.left - 20, groundY + 14);
+
+  // Direction indicators
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.font = '10px "JetBrains Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('◀ FRONT', mmX(-75), mmY(CHASSIS_MM_H / 2));
+  ctx.fillText('REAR ▶', mmX(CHASSIS_MM_W + 40), mmY(CHASSIS_MM_H / 2));
+  ctx.textAlign = 'left';
+
+  // Draw each part
+  parts.forEach(part => {
+    const isHovered = hoveredPart === part.id;
+    const isSelected = selectedPart === part.id;
+    const isActive = isHovered || isSelected;
+    const dimmed = (hoveredPart || selectedPart) && !isActive;
+    const alpha = dimmed ? 0.15 : isActive ? 1 : 0.7;
+
+    ctx.save();
+
+    if (part.shape === 'sensor-mount') {
+      const d = part.dims;
+      const x = mmX(d.x);
+      const yTop = mmY(d.yTop);  // top of pole (between plates)
+      const yBot = mmY(d.yBot);  // bottom of pole (below bottom plate)
+      const sw = 6;
+
+      // Pole body — extends above and below bottom plate
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.25);
+      ctx.fillRect(x - sw/2, yTop, sw, yBot - yTop);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.7);
+      ctx.lineWidth = isActive ? 2 : 1;
+      ctx.strokeRect(x - sw/2, yTop, sw, yBot - yTop);
+
+      // Hex pattern
+      ctx.beginPath(); ctx.setLineDash([2, 3]);
+      ctx.moveTo(x, yTop + 4); ctx.lineTo(x, yBot - 4);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.3); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Connection dot where sensor bar meets pole top
+      ctx.beginPath();
+      ctx.arc(x, yTop, 3, 0, Math.PI * 2);
+      ctx.fillStyle = setAlpha('#e05555', alpha * 0.6);
+      ctx.fill();
+
+      if (isActive) {
+        ctx.shadowColor = setAlpha(part.hex, 0.3);
+        ctx.shadowBlur = 8;
+        ctx.strokeStyle = setAlpha(part.hex, 0.4);
+        ctx.strokeRect(x - sw/2, yTop, sw, yBot - yTop);
+        ctx.shadowBlur = 0;
+      }
+
+      if (showLabels && !dimmed) {
+        ctx.font = `${isActive ? 'bold ' : ''}9px "JetBrains Mono", monospace`;
+        ctx.fillStyle = setAlpha(part.hex, alpha);
+        ctx.textAlign = 'center';
+        ctx.fillText('L11 MOUNT', x, yTop - 6);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    if (part.shape === 'rect') {
+      const d = part.dims;
+      const x = mmX(d.x);
+      const y = mmY(d.y + d.h);
+      const w = d.w * SCALE;
+      const h = d.h * SCALE;
+
+      // Fill
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.12);
+      drawRoundRect(x, y, w, h, 2);
+      ctx.fill();
+
+      // Stroke
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.8);
+      ctx.lineWidth = isActive ? 2 : 1.2;
+      ctx.stroke();
+
+      // Glow on hover
+      if (isActive) {
+        ctx.shadowColor = setAlpha(part.hex, 0.3);
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = setAlpha(part.hex, 0.5);
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      // Label
+      if (showLabels && !dimmed) {
+        ctx.font = `${isActive ? 'bold ' : ''}10px "JetBrains Mono", monospace`;
+        ctx.fillStyle = setAlpha(part.hex, alpha);
+        const labelX = x + w / 2;
+        const labelY = part.id === 'sensor-bar' ? y - 8 :
+                        part.id === 'battery-box' ? y + h / 2 + 3 :
+                        y - 6;
+        ctx.textAlign = 'center';
+        ctx.fillText(part.name.toUpperCase(), labelX, labelY);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    if (part.shape === 'standoffs') {
+      part.positions.forEach((pos, i) => {
+        const x = mmX(pos.x);
+        const y1 = mmY(pos.y + pos.h);
+        const y2 = mmY(pos.y);
+        const w = 6;
+
+        // Standoff body
+        ctx.fillStyle = setAlpha(part.hex, alpha * 0.25);
+        ctx.fillRect(x - w/2, y1, w, y2 - y1);
+        ctx.strokeStyle = setAlpha(part.hex, alpha * 0.7);
+        ctx.lineWidth = isActive ? 2 : 1;
+        ctx.strokeRect(x - w/2, y1, w, y2 - y1);
+
+        // Hex pattern
+        ctx.beginPath();
+        ctx.setLineDash([2, 3]);
+        ctx.moveTo(x, y1 + 4); ctx.lineTo(x, y2 - 4);
+        ctx.strokeStyle = setAlpha(part.hex, alpha * 0.3);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        if (isActive) {
+          ctx.shadowColor = setAlpha(part.hex, 0.3);
+          ctx.shadowBlur = 8;
+          ctx.strokeStyle = setAlpha(part.hex, 0.4);
+          ctx.strokeRect(x - w/2, y1, w, y2 - y1);
+          ctx.shadowBlur = 0;
+        }
+      });
+
+      if (showLabels && !dimmed) {
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = setAlpha(part.hex, alpha);
+        ctx.textAlign = 'center';
+        ctx.fillText('STANDOFFS', mmX(100), mmY(22));
+        ctx.textAlign = 'left';
+      }
+    }
+
+    if (part.shape === 'enclosure') {
+      // Two standoffs + top base plate
+      const sL = part.standoffL;
+      const sR = part.standoffR;
+      const tb = part.topBase;
+      const sw = 6;
+
+      // Left standoff (L6)
+      const lx = mmX(sL.x), ly1 = mmY(sL.y + sL.h), ly2 = mmY(sL.y);
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.25);
+      ctx.fillRect(lx - sw/2, ly1, sw, ly2 - ly1);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.7);
+      ctx.lineWidth = isActive ? 2 : 1;
+      ctx.strokeRect(lx - sw/2, ly1, sw, ly2 - ly1);
+      ctx.beginPath(); ctx.setLineDash([2, 3]);
+      ctx.moveTo(lx, ly1 + 4); ctx.lineTo(lx, ly2 - 4);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.3); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Right standoff (L4)
+      const rx = mmX(sR.x), ry1 = mmY(sR.y + sR.h), ry2 = mmY(sR.y);
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.25);
+      ctx.fillRect(rx - sw/2, ry1, sw, ry2 - ry1);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.7);
+      ctx.lineWidth = isActive ? 2 : 1;
+      ctx.strokeRect(rx - sw/2, ry1, sw, ry2 - ry1);
+      ctx.beginPath(); ctx.setLineDash([2, 3]);
+      ctx.moveTo(rx, ry1 + 4); ctx.lineTo(rx, ry2 - 4);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.3); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Top base plate (L5)
+      const bx = mmX(tb.x), by = mmY(tb.y + tb.h);
+      const bw = tb.w * SCALE, bh = tb.h * SCALE;
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.15);
+      drawRoundRect(bx, by, bw, bh, 1);
+      ctx.fill();
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.6);
+      ctx.lineWidth = isActive ? 1.5 : 1;
+      ctx.stroke();
+
+      // Light fill between standoffs
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.04);
+      ctx.fillRect(lx + sw/2, ly1, rx - lx - sw, ly2 - ly1);
+
+      // Switch icon
+      const switchX = (lx + rx) / 2 - 8;
+      const switchY = (ly1 + ly2) / 2 - 5;
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.3);
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(switchX, switchY, 16, 10);
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.15);
+      ctx.fillRect(switchX, switchY, 16, 10);
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.5);
+      ctx.fillRect(switchX + 9, switchY + 2, 5, 6);
+
+      if (isActive) {
+        ctx.shadowColor = setAlpha(part.hex, 0.3);
+        ctx.shadowBlur = 8;
+        ctx.strokeStyle = setAlpha(part.hex, 0.4);
+        ctx.strokeRect(lx - sw/2, ly1, sw, ly2 - ly1);
+        ctx.strokeRect(rx - sw/2, ry1, sw, ry2 - ry1);
+        ctx.shadowBlur = 0;
+      }
+
+      if (showLabels && !dimmed) {
+        ctx.font = `${isActive ? 'bold ' : ''}9px "JetBrains Mono", monospace`;
+        ctx.fillStyle = setAlpha(part.hex, alpha);
+        ctx.textAlign = 'center';
+        ctx.fillText('SWITCH / POWER AREA', (lx + rx) / 2, ly1 - 6);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    if (part.shape === 'posts') {
+      part.positions.forEach((pos, i) => {
+        const x = mmX(pos.x);
+        const y1 = mmY(pos.y + pos.h);
+        const y2 = mmY(pos.y);
+        const w = 5;
+
+        ctx.fillStyle = setAlpha(part.hex, alpha * 0.2);
+        ctx.fillRect(x - w/2, y1, w, y2 - y1);
+        ctx.strokeStyle = setAlpha(part.hex, alpha * 0.7);
+        ctx.lineWidth = isActive ? 2 : 1;
+        ctx.strokeRect(x - w/2, y1, w, y2 - y1);
+
+        // Cap
+        ctx.fillStyle = setAlpha(part.hex, alpha * 0.5);
+        ctx.fillRect(x - w/2 - 2, y1, w + 4, 3);
+
+        if (isActive) {
+          ctx.shadowColor = setAlpha(part.hex, 0.3);
+          ctx.shadowBlur = 8;
+          ctx.strokeStyle = setAlpha(part.hex, 0.4);
+          ctx.strokeRect(x - w/2, y1, w, y2 - y1);
+          ctx.shadowBlur = 0;
+        }
+      });
+
+      if (showLabels && !dimmed) {
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = setAlpha(part.hex, alpha);
+        ctx.textAlign = 'center';
+        ctx.fillText('UPPER POSTS', mmX(120), mmY(67));
+        ctx.textAlign = 'left';
+      }
+    }
+
+    if (part.shape === 'motor') {
+      const d = part.dims;
+      const x = mmX(d.x);
+      const y = mmY(d.y + d.h);
+      const w = d.w * SCALE;
+      const h = d.h * SCALE;
+
+      // Motor body (rounded)
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.1);
+      drawRoundRect(x, y, w, h, 4);
+      ctx.fill();
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.5);
+      ctx.lineWidth = isActive ? 1.5 : 0.8;
+      ctx.setLineDash([4, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Wheel circle
+      const wheelR = 16 * SCALE / SCALE * 0.9;
+      const wheelCx = x + w / 2;
+      const wheelCy = mmY(d.y) + 2;
+      ctx.beginPath();
+      ctx.arc(wheelCx, wheelCy, wheelR, 0, Math.PI * 2);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.5);
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Wheel hub
+      ctx.beginPath();
+      ctx.arc(wheelCx, wheelCy, 3, 0, Math.PI * 2);
+      ctx.fillStyle = setAlpha(part.hex, alpha * 0.4);
+      ctx.fill();
+
+      // Axle line
+      ctx.beginPath();
+      ctx.moveTo(wheelCx, wheelCy - wheelR); ctx.lineTo(wheelCx, wheelCy + wheelR);
+      ctx.strokeStyle = setAlpha(part.hex, alpha * 0.2);
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      if (showLabels && !dimmed) {
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillStyle = setAlpha(part.hex, alpha * 0.8);
+        ctx.textAlign = 'center';
+        ctx.fillText(part.id === 'front-motor' ? 'FRONT MOTOR' : 'REAR MOTOR', wheelCx, mmY(-3));
+        ctx.textAlign = 'left';
+      }
+
+      if (isActive) {
+        ctx.shadowColor = setAlpha(part.hex, 0.2);
+        ctx.shadowBlur = 10;
+        drawRoundRect(x, y, w, h, 4);
+        ctx.strokeStyle = setAlpha(part.hex, 0.3);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    ctx.restore();
+  });
+
+  // Mounting points
+  if (showMounts) {
+    mountPoints.forEach(mp => {
+      const x = mmX(mp.x);
+      const y = mmY(mp.y);
+
+      // Crosshair
+      ctx.strokeStyle = 'rgba(255,100,100,0.5)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y);
+      ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8);
+      ctx.stroke();
+
+      // Circle
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,100,100,0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Pulsing ring
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,100,100,0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Label
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillStyle = 'rgba(255,100,100,0.7)';
+      ctx.textAlign = 'center';
+      ctx.fillText(mp.label.toUpperCase(), x, y - 14);
+      ctx.textAlign = 'left';
+    });
+  }
+
+  // Dimensions
+  if (showDims) {
+    // Full chassis length (bottom plate)
+    drawDimLine(mmX(0), mmY(-2), mmX(260), mmY(-2), '~260mm chassis', 30, 'bottom');
+
+    // Sensor bar overhang
+    drawDimLine(mmX(-69), mmY(14), mmX(0), mmY(14), '~69mm overhang', 22, 'bottom');
+
+    // Top plate length
+    drawDimLine(mmX(5), mmY(50), mmX(159), mmY(50), '~154mm top plate', -18, 'top');
+
+    // Plate gap (standoff height)
+    drawDimLine(mmX(-8), mmY(3), mmX(-8), mmY(45), '~42mm gap', -30, 'left');
+
+    // Battery box depth
+    drawDimLine(mmX(260), mmY(50), mmX(293), mmY(50), '~33mm', -15, 'top');
+
+    // Enclosure height (above plates)
+    drawDimLine(mmX(270), mmY(3), mmX(270), mmY(68), '~68mm encl', 18, 'right');
+
+    // Upper post height
+    drawDimLine(mmX(78), mmY(48), mmX(78), mmY(62), '~14mm', -22, 'left');
+
+    // Scale note
+    ctx.fillStyle = 'rgba(201,148,58,0.25)';
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.fillText('Dimensions derived from 14-line trace (4284×5712px). Scale: 0.099 mm/px. ±5mm tolerance.', PAD.left, CH - 12);
+  }
+
+  // Stage label
+  ctx.fillStyle = 'rgba(201,148,58,0.15)';
+  ctx.font = 'bold 11px "JetBrains Mono", monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('STAGE 3 — 2D COMPONENT DIAGRAM', CW - PAD.right, CH - 12);
+  ctx.textAlign = 'left';
+}
+
+// ─── Hit Testing ─────────────────────────────────────────
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (CW / rect.width),
+    y: (e.clientY - rect.top) * (CH / rect.height)
+  };
+}
+
+function hitTest(cx, cy) {
+  // Check rects first
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const part = parts[i];
+    if (part.shape === 'rect') {
+      const d = part.dims;
+      const x = mmX(d.x), y = mmY(d.y + d.h);
+      const w = d.w * SCALE, h = d.h * SCALE;
+      if (cx >= x && cx <= x + w && cy >= y && cy <= y + h) return part;
+    }
+    if (part.shape === 'motor') {
+      const d = part.dims;
+      const x = mmX(d.x), y = mmY(d.y + d.h);
+      const w = d.w * SCALE, h = d.h * SCALE;
+      if (cx >= x && cx <= x + w && cy >= y && cy <= y + h + 20) return part;
+    }
+    if (part.shape === 'standoffs') {
+      for (const pos of part.positions) {
+        const x = mmX(pos.x), y1 = mmY(pos.y + pos.h), y2 = mmY(pos.y);
+        if (cx >= x - 10 && cx <= x + 10 && cy >= y1 && cy <= y2) return part;
+      }
+    }
+    if (part.shape === 'posts') {
+      for (const pos of part.positions) {
+        const x = mmX(pos.x), y1 = mmY(pos.y + pos.h), y2 = mmY(pos.y);
+        if (cx >= x - 10 && cx <= x + 10 && cy >= y1 && cy <= y2) return part;
+      }
+    }
+    if (part.shape === 'enclosure') {
+      const lx = mmX(part.standoffL.x), rx = mmX(part.standoffR.x);
+      const y1 = mmY(part.standoffL.y + part.standoffL.h), y2 = mmY(part.standoffL.y);
+      if (cx >= lx - 10 && cx <= rx + 10 && cy >= y1 && cy <= y2) return part;
+    }
+    if (part.shape === 'sensor-mount') {
+      const x = mmX(part.dims.x);
+      const yTop = mmY(part.dims.yTop), yBot = mmY(part.dims.yBot);
+      if (cx >= x - 10 && cx <= x + 10 && cy >= yTop && cy <= yBot) return part;
+    }
+  }
+  return null;
+}
+
+// ─── Drag Mode State ─────────────────────────────────────
+let dragMode = false;
+let dragging = null; // { part, startMmX, startMmY, startMouseX, startMouseY }
+
+function getPartMmPos(part) {
+  const d = part.dims;
+  if (part.shape === 'sensor-mount') return { x: d.x, y: d.yBot };
+  if (part.shape === 'enclosure') return { x: d.standoffL.x, y: d.standoffL.y };
+  if (part.shape === 'motor') return { x: d.x, y: d.y };
+  if (d.points) return { x: d.points[0].x, y: d.points[0].y }; // standoffs/posts
+  return { x: d.x, y: d.y };
+}
+
+function setPartMmPos(part, dx, dy) {
+  const d = part.dims;
+  if (part.shape === 'sensor-mount') {
+    d.x += dx; d.yBot += dy; d.yTop += dy;
+  } else if (part.shape === 'enclosure') {
+    d.standoffL.x += dx; d.standoffL.y += dy;
+    d.standoffR.x += dx; d.standoffR.y += dy;
+    d.topBase.x += dx; d.topBase.y += dy;
+  } else if (d.points) {
+    d.points.forEach(p => { p.x += dx; p.y += dy; });
+  } else {
+    d.x += dx; d.y += dy;
+  }
+}
+
+// ─── Mouse Interaction ───────────────────────────────────
+canvas.addEventListener('mousedown', (e) => {
+  if (!dragMode) return;
+  const pos = getCanvasPos(e);
+  const hit = hitTest(pos.x, pos.y);
+  if (hit) {
+    const mmPos = getPartMmPos(hit);
+    dragging = { part: hit, startMmX: mmPos.x, startMmY: mmPos.y, startPxX: pos.x, startPxY: pos.y };
+    selectedPart = hit.id;
+    canvas.style.cursor = 'grabbing';
+    render();
+  }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const pos = getCanvasPos(e);
+
+  if (dragging) {
+    const dxPx = pos.x - dragging.startPxX;
+    const dyPx = pos.y - dragging.startPxY;
+    // Convert pixel delta to mm delta (Y is flipped)
+    const dxMm = dxPx / SCALE;
+    const dyMm = -dyPx / SCALE;
+    // Reset to start, then apply delta
+    const curPos = getPartMmPos(dragging.part);
+    const offsetX = (dragging.startMmX + dxMm) - curPos.x;
+    const offsetY = (dragging.startMmY + dyMm) - curPos.y;
+    setPartMmPos(dragging.part, offsetX, offsetY);
+    render();
+    // Show live coords in tooltip
+    const newPos = getPartMmPos(dragging.part);
+    tooltip.innerHTML = `<div class="tt-label" style="color:${dragging.part.hex}">${dragging.part.name}</div><div class="tt-detail">x: ${newPos.x.toFixed(1)}mm &nbsp; y: ${newPos.y.toFixed(1)}mm</div>`;
+    tooltip.classList.add('active');
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY - 10) + 'px';
+    return;
+  }
+
+  const hit = hitTest(pos.x, pos.y);
+  if (hit) {
+    hoveredPart = hit.id;
+    canvas.style.cursor = dragMode ? 'grab' : 'pointer';
+    tooltip.innerHTML = `<div class="tt-label" style="color:${hit.hex}">${hit.name}</div><div class="tt-detail">${hit.desc}</div>`;
+    tooltip.classList.add('active');
+    tooltip.style.left = (e.clientX + 12) + 'px';
+    tooltip.style.top = (e.clientY - 10) + 'px';
+  } else {
+    hoveredPart = null;
+    canvas.style.cursor = dragMode ? 'crosshair' : 'default';
+    tooltip.classList.remove('active');
+  }
+  render();
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (dragging) {
+    dragging = null;
+    canvas.style.cursor = dragMode ? 'crosshair' : 'default';
+  }
+});
+
+canvas.addEventListener('click', (e) => {
+  if (dragMode) return; // click handled by mousedown/up in drag mode
+  const pos = getCanvasPos(e);
+  const hit = hitTest(pos.x, pos.y);
+  selectedPart = hit ? hit.id : null;
+
+  document.querySelectorAll('.part-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === selectedPart);
+  });
+  render();
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoveredPart = null;
+  dragging = null;
+  tooltip.classList.remove('active');
+  render();
+});
+
+// ─── Parts Panel ─────────────────────────────────────────
+const compList = document.getElementById('comp-list');
+parts.forEach(part => {
+  const item = document.createElement('div');
+  item.className = 'part-item';
+  item.dataset.id = part.id;
+  item.innerHTML = `
+    <div class="part-dot" style="background:${part.hex}"></div>
+    <div>
+      <div class="part-name">${part.name}</div>
+      <div class="part-desc">${part.specs.join(' · ')}</div>
+    </div>
+  `;
+  item.addEventListener('mouseenter', () => { hoveredPart = part.id; render(); });
+  item.addEventListener('mouseleave', () => { hoveredPart = null; render(); });
+  item.addEventListener('click', () => {
+    selectedPart = selectedPart === part.id ? null : part.id;
+    document.querySelectorAll('.part-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === selectedPart);
+    });
+    render();
+  });
+  compList.appendChild(item);
+});
+
+// ─── Specs Panel ─────────────────────────────────────────
+const specsList = document.getElementById('specs-list');
+[
+  ['Platform', 'LK-COKOINO 4WD'],
+  ['Drive', '4× TT DC Motors'],
+  ['Frame', '2× Acrylic plates'],
+  ['Plate gap', '~42mm'],
+  ['Length', '~260mm'],
+  ['Power', '2× 18650 Li-ion'],
+  ['Controller', 'L298N H-Bridge'],
+  ['Brain', 'Raspberry Pi 5'],
+  ['Sensors', 'IR line + HC-SR04'],
+  ['Camera', 'Arducam pan/tilt'],
+].forEach(([label, val]) => {
+  const row = document.createElement('div');
+  row.className = 'spec-row';
+  row.innerHTML = `<span class="spec-label">${label}</span><span class="spec-val">${val}</span>`;
+  specsList.appendChild(row);
+});
+
+// ─── Toolbar Controls ────────────────────────────────────
+function toggleBtn(id, getter, setter) {
+  const btn = document.getElementById(id);
+  btn.addEventListener('click', () => {
+    setter(!getter());
+    btn.classList.toggle('active');
+    render();
+  });
+}
+
+toggleBtn('tb-labels', () => showLabels, v => showLabels = v);
+toggleBtn('tb-dims', () => showDims, v => showDims = v);
+toggleBtn('tb-mounts', () => showMounts, v => showMounts = v);
+
+document.getElementById('tb-parts').addEventListener('click', () => {
+  showPartsPanel = !showPartsPanel;
+  document.getElementById('tb-parts').classList.toggle('active');
+  document.getElementById('comp-panel').classList.toggle('visible');
+});
+
+document.getElementById('tb-specs').addEventListener('click', () => {
+  showSpecsPanel = !showSpecsPanel;
+  document.getElementById('tb-specs').classList.toggle('active');
+  document.getElementById('specs-panel').classList.toggle('visible');
+});
+
+// Help
+document.getElementById('tb-drag').addEventListener('click', () => {
+  dragMode = !dragMode;
+  document.getElementById('tb-drag').classList.toggle('active', dragMode);
+  canvas.style.cursor = dragMode ? 'crosshair' : 'default';
+  if (!dragMode) dragging = null;
+});
+
+document.getElementById('tb-save').addEventListener('click', () => {
+  const positions = {};
+  parts.forEach(p => {
+    if (p.dims) positions[p.id] = JSON.parse(JSON.stringify(p.dims));
+    else if (p.positions) positions[p.id] = { positions: JSON.parse(JSON.stringify(p.positions)) };
+    else if (p.standoffL) positions[p.id] = { standoffL: JSON.parse(JSON.stringify(p.standoffL)), standoffR: JSON.parse(JSON.stringify(p.standoffR)), topBase: JSON.parse(JSON.stringify(p.topBase)) };
+  });
+  const json = JSON.stringify(positions, null, 2);
+  navigator.clipboard.writeText(json).then(() => {
+    const btn = document.getElementById('tb-save');
+    btn.textContent = 'Copied!';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = 'Save'; btn.style.color = ''; }, 1500);
+  });
+});
+
+document.getElementById('tb-help').addEventListener('click', () => {
+  alert('Keyboard Shortcuts:\n\nL — Toggle labels\nD — Toggle dimensions\nM — Toggle mount points\nP — Toggle parts panel\nS — Toggle specs panel\nG — Toggle drag mode\nEsc — Deselect / exit drag\n\nDrag mode: Click and drag components to reposition.\nSave: Copies all positions as JSON to clipboard.');
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'l' || e.key === 'L') document.getElementById('tb-labels').click();
+  if (e.key === 'd' || e.key === 'D') document.getElementById('tb-dims').click();
+  if (e.key === 'm' || e.key === 'M') document.getElementById('tb-mounts').click();
+  if (e.key === 'p' || e.key === 'P') document.getElementById('tb-parts').click();
+  if (e.key === 's' || e.key === 'S') document.getElementById('tb-specs').click();
+  if (e.key === 'g' || e.key === 'G') document.getElementById('tb-drag').click();
+  if (e.key === 'Escape') {
+    if (dragMode) { dragMode = false; dragging = null; document.getElementById('tb-drag').classList.remove('active'); canvas.style.cursor = 'default'; }
+    selectedPart = null;
+    document.querySelectorAll('.part-item').forEach(el => el.classList.remove('active'));
+    render();
+  }
+  if (e.key === '?') document.getElementById('tb-help').click();
+});
+
+// ─── Init ────────────────────────────────────────────────
+const loadingFill = document.getElementById('loading-fill');
+loadingFill.style.width = '60%';
+
+window.addEventListener('resize', resize);
+resize();
+
+setTimeout(() => { loadingFill.style.width = '100%'; }, 200);
+setTimeout(() => {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('ui-title').classList.add('visible');
+  document.getElementById('comp-panel').classList.add('visible');
+  document.getElementById('specs-panel').classList.add('visible');
+}, 600);
+</script>
+</body>
+</html>

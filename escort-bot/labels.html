@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escort Bot Labels — Print Sheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;700&family=Inter:wght@600;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a1a;
+    --paper: #fff;
+    --cut: #ccc;
+    --red: #c0392b;
+    --blue: #2471a3;
+    --amber: #d4a017;
+    --green: #1e8449;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f5f5f0;
+    color: var(--ink);
+    padding: 2rem;
+  }
+
+  /* ── PRINT INSTRUCTIONS (screen only) ── */
+  .print-instructions {
+    max-width: 680px;
+    margin: 0 auto 2rem;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 1.5rem 2rem;
+  }
+
+  .print-instructions h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .print-instructions h2 {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 1rem 0 0.4rem;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 0.2rem;
+  }
+
+  .print-instructions ol, .print-instructions ul {
+    padding-left: 1.4rem;
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+
+  .print-instructions li { margin-bottom: 0.25rem; }
+  .print-instructions code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    background: #eee;
+    padding: 0.1em 0.35em;
+    border-radius: 2px;
+  }
+
+  .print-instructions .tip {
+    background: #fef9e7;
+    border-left: 3px solid var(--amber);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    margin-top: 0.75rem;
+  }
+
+  .print-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1.5rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+  }
+  .print-btn:hover { background: #333; }
+
+  /* ── LABEL SHEETS ── */
+  .sheet {
+    width: 8in;
+    min-height: 10in;
+    margin: 0 auto 1.5rem;
+    background: var(--paper);
+    padding: 0.5in;
+    border: 1px solid #ddd;
+    page-break-after: always;
+  }
+
+  .sheet-title {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #888;
+    margin-bottom: 0.3in;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.1in;
+  }
+
+  /* ── LABEL BASE ── */
+  .label {
+    border: 1px dashed var(--cut);
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+    vertical-align: top;
+    margin: 0.06in;
+    position: relative;
+  }
+
+  .label::after {
+    content: '';
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 5px; height: 5px;
+    border-top: 1px solid var(--cut);
+    border-right: 1px solid var(--cut);
+  }
+  .label::before {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 2px;
+    width: 5px; height: 5px;
+    border-bottom: 1px solid var(--cut);
+    border-left: 1px solid var(--cut);
+  }
+
+  /* ── WIRE LABELS — 1.5" x 0.5" flag style ── */
+  .wire-label {
+    width: 1.5in;
+    height: 1in; /* 0.5" x 2 halves */
+    padding: 0;
+  }
+
+  .wire-half {
+    width: 100%;
+    height: 0.5in;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .wire-half .fn {
+    font-size: 8pt;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.04em;
+  }
+
+  .wire-half .gpio {
+    font-size: 6.5pt;
+    font-weight: 500;
+    color: #555;
+    margin-top: 1px;
+  }
+
+  .wire-label .fold-line {
+    width: 100%;
+    height: 0;
+    border-top: 1px dotted var(--red);
+    position: relative;
+  }
+
+  .wire-label .fold-line::after {
+    content: 'FOLD';
+    position: absolute;
+    right: 3px;
+    top: -5px;
+    font-size: 4pt;
+    color: var(--red);
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  /* color-coded wire categories */
+  .wire-label.motor { border-color: var(--green); }
+  .wire-label.motor .fn { color: var(--green); }
+  .wire-label.sensor { border-color: var(--blue); }
+  .wire-label.sensor .fn { color: var(--blue); }
+  .wire-label.servo { border-color: #7d3c98; }
+  .wire-label.servo .fn { color: #7d3c98; }
+  .wire-label.power-wire { border-color: var(--red); }
+  .wire-label.power-wire .fn { color: var(--red); }
+
+  /* ── BOARD LABELS — 2" x 0.75" ── */
+  .board-label {
+    width: 2in;
+    height: 0.75in;
+    padding: 0.08in 0.12in;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .board-label .name {
+    font-size: 9pt;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+
+  .board-label .detail {
+    font-size: 6.5pt;
+    font-weight: 600;
+    color: #666;
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* ── POWER LABELS — 2.5" x 1" ── */
+  .power-label {
+    width: 2.5in;
+    height: 1in;
+    padding: 0.1in;
+    border-width: 3px;
+    border-style: solid;
+  }
+
+  .power-label.motor-power {
+    border-color: var(--red);
+    background: #fdedec;
+  }
+
+  .power-label.pi-power {
+    border-color: var(--blue);
+    background: #eaf2f8;
+  }
+
+  .power-label .icon {
+    font-size: 14pt;
+    line-height: 1;
+  }
+
+  .power-label .name {
+    font-size: 10pt;
+    font-weight: 800;
+    margin-top: 2px;
+  }
+
+  .power-label .warning {
+    font-size: 7pt;
+    font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    margin-top: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .power-label.motor-power .name { color: var(--red); }
+  .power-label.pi-power .name { color: var(--blue); }
+
+  /* ── ORIENTATION LABELS — 1.5" x 1" ── */
+  .orient-label {
+    width: 1.5in;
+    height: 1in;
+    padding: 0.1in;
+  }
+
+  .orient-label .arrow {
+    font-size: 28pt;
+    line-height: 1;
+  }
+
+  .orient-label .dir {
+    font-size: 12pt;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── BRANDING LABEL — 3" x 1" ── */
+  .brand-label {
+    width: 3in;
+    height: 1in;
+    padding: 0.1in;
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .brand-label .team {
+    font-size: 16pt;
+    font-weight: 800;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+  }
+
+  .brand-label .role {
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #aaa;
+    margin-top: 3px;
+  }
+
+  /* ── SECTION DIVIDERS ── */
+  .section-header {
+    width: 100%;
+    font-size: 0.55rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #999;
+    margin: 0.2in 0 0.1in;
+    padding-bottom: 0.05in;
+    border-bottom: 1px solid #eee;
+  }
+
+  /* ── PRINT STYLES ── */
+  @media print {
+    body {
+      background: white;
+      padding: 0;
+    }
+
+    .print-instructions { display: none; }
+
+    .sheet {
+      border: none;
+      margin: 0;
+      padding: 0.4in;
+      width: 8.5in;
+      min-height: 11in;
+    }
+
+    .label {
+      border-color: #bbb;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .power-label, .brand-label {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- PRINT INSTRUCTIONS (visible on screen only)   -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="print-instructions">
+  <h1>Escort Bot — Label Print Guide</h1>
+
+  <h2>How to Print</h2>
+  <ol>
+    <li>Click <strong>Print Labels</strong> below (or <code>Cmd + P</code>)</li>
+    <li>Set paper to <strong>US Letter (8.5" x 11")</strong></li>
+    <li>Set margins to <strong>None</strong> or <strong>Minimum</strong></li>
+    <li>Check <strong>"Background graphics"</strong> (needed for power labels + branding)</li>
+    <li>Scale: <strong>100%</strong> (do not fit-to-page)</li>
+    <li>Print to paper or <strong>Save as PDF</strong> first to preview</li>
+  </ol>
+
+  <h2>How to Cut</h2>
+  <ul>
+    <li>Cut along the <strong>dashed lines</strong> around each label</li>
+    <li>Corner marks show exact cut points</li>
+    <li>Use a ruler + X-Acto knife for clean edges, or scissors work fine</li>
+  </ul>
+
+  <h2>How to Attach</h2>
+  <ul>
+    <li><strong>Wire labels:</strong> Cut out the full rectangle. Fold at the red <code>FOLD</code> line. Wrap around the wire so text shows on both sides. Secure with a small piece of clear tape.</li>
+    <li><strong>Board labels:</strong> Tape flat onto the board or nearby surface with clear packing tape.</li>
+    <li><strong>Power labels:</strong> Tape directly onto the battery pack / power bank. Use wide clear tape to seal the whole label (spill protection).</li>
+    <li><strong>Orientation labels:</strong> Tape to the top surface of the chassis.</li>
+    <li><strong>Branding:</strong> Tape centered on the top plate of the chassis.</li>
+  </ul>
+
+  <div class="tip">
+    <strong>Label maker?</strong> If you have a Dymo/Brother, use the wire label text directly on 1/2" tape. For boards, use 3/4" tape. This printed sheet is designed for regular paper + tape.
+  </div>
+
+  <button class="print-btn" onclick="window.print()">Print Labels</button>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- PAGE 1: WIRE LABELS + BOARD LABELS            -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-title">Elktron Escort Bot — Label Sheet 1 of 2 &nbsp;&bull;&nbsp; Wire + Board Labels</div>
+
+  <!-- MOTOR WIRES -->
+  <div class="section-header">Motor Wires (green)</div>
+
+  <div class="label wire-label motor">
+    <div class="wire-half"><span class="fn">LEFT FWD</span><span class="gpio">GPIO 17 &rarr; L298N IN1</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">LEFT FWD</span><span class="gpio">GPIO 17 &rarr; L298N IN1</span></div>
+  </div>
+
+  <div class="label wire-label motor">
+    <div class="wire-half"><span class="fn">LEFT BWD</span><span class="gpio">GPIO 27 &rarr; L298N IN2</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">LEFT BWD</span><span class="gpio">GPIO 27 &rarr; L298N IN2</span></div>
+  </div>
+
+  <div class="label wire-label motor">
+    <div class="wire-half"><span class="fn">RIGHT FWD</span><span class="gpio">GPIO 22 &rarr; L298N IN3</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">RIGHT FWD</span><span class="gpio">GPIO 22 &rarr; L298N IN3</span></div>
+  </div>
+
+  <div class="label wire-label motor">
+    <div class="wire-half"><span class="fn">RIGHT BWD</span><span class="gpio">GPIO 23 &rarr; L298N IN4</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">RIGHT BWD</span><span class="gpio">GPIO 23 &rarr; L298N IN4</span></div>
+  </div>
+
+  <!-- MOTOR OUTPUT WIRES -->
+  <div class="label wire-label motor">
+    <div class="wire-half"><span class="fn">L298N &rarr; LEFT</span><span class="gpio">Motor A Terminal</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">L298N &rarr; LEFT</span><span class="gpio">Motor A Terminal</span></div>
+  </div>
+
+  <div class="label wire-label motor">
+    <div class="wire-half"><span class="fn">L298N &rarr; RIGHT</span><span class="gpio">Motor B Terminal</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">L298N &rarr; RIGHT</span><span class="gpio">Motor B Terminal</span></div>
+  </div>
+
+  <!-- SENSOR WIRES -->
+  <div class="section-header">Sensor Wires (blue)</div>
+
+  <div class="label wire-label sensor">
+    <div class="wire-half"><span class="fn">ULTRA ECHO</span><span class="gpio">GPIO 24 &larr; HC-SR04</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">ULTRA ECHO</span><span class="gpio">GPIO 24 &larr; HC-SR04</span></div>
+  </div>
+
+  <div class="label wire-label sensor">
+    <div class="wire-half"><span class="fn">ULTRA TRIG</span><span class="gpio">GPIO 25 &rarr; HC-SR04</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">ULTRA TRIG</span><span class="gpio">GPIO 25 &rarr; HC-SR04</span></div>
+  </div>
+
+  <div class="label wire-label sensor">
+    <div class="wire-half"><span class="fn">SENSOR 5V</span><span class="gpio">Pin 2 &rarr; HC-SR04 VCC</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">SENSOR 5V</span><span class="gpio">Pin 2 &rarr; HC-SR04 VCC</span></div>
+  </div>
+
+  <div class="label wire-label sensor">
+    <div class="wire-half"><span class="fn">SENSOR GND</span><span class="gpio">Pin 6 &rarr; HC-SR04 GND</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">SENSOR GND</span><span class="gpio">Pin 6 &rarr; HC-SR04 GND</span></div>
+  </div>
+
+  <!-- SERVO WIRES -->
+  <div class="section-header">Servo Wires (purple)</div>
+
+  <div class="label wire-label servo">
+    <div class="wire-half"><span class="fn">PAN SERVO</span><span class="gpio">GPIO 12 &rarr; MG90S</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">PAN SERVO</span><span class="gpio">GPIO 12 &rarr; MG90S</span></div>
+  </div>
+
+  <div class="label wire-label servo">
+    <div class="wire-half"><span class="fn">TILT SERVO</span><span class="gpio">GPIO 13 &rarr; MG90S</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">TILT SERVO</span><span class="gpio">GPIO 13 &rarr; MG90S</span></div>
+  </div>
+
+  <!-- POWER WIRES -->
+  <div class="section-header">Power Wires (red)</div>
+
+  <div class="label wire-label power-wire">
+    <div class="wire-half"><span class="fn">18650 &rarr; L298N</span><span class="gpio">7.4V IN &bull; CHECK +/-</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">18650 &rarr; L298N</span><span class="gpio">7.4V IN &bull; CHECK +/-</span></div>
+  </div>
+
+  <div class="label wire-label power-wire">
+    <div class="wire-half"><span class="fn">COMMON GND</span><span class="gpio">Pi GND &harr; L298N GND</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn">COMMON GND</span><span class="gpio">Pi GND &harr; L298N GND</span></div>
+  </div>
+
+  <!-- BOARD LABELS -->
+  <div class="section-header">Board / Module Labels</div>
+
+  <div class="label board-label">
+    <span class="name">RASPBERRY PI 5</span>
+    <span class="detail">ESCORT BOT BRAIN &bull; 5V/3A USB-C</span>
+  </div>
+
+  <div class="label board-label">
+    <span class="name">L298N MOTOR DRIVER</span>
+    <span class="detail">7.4V IN &bull; 2 CH &bull; 4 MOTORS (2 PARALLEL PAIRS) &bull; IN1-IN4</span>
+  </div>
+
+  <div class="label board-label">
+    <span class="name">HC-SR04 ULTRASONIC</span>
+    <span class="detail">FRONT OBSTACLE &bull; 5V &rarr; 3.3V DIVIDER</span>
+  </div>
+
+  <div class="label board-label">
+    <span class="name">VOLTAGE DIVIDER</span>
+    <span class="detail">1k + 2k &bull; 5V ECHO &rarr; 3.3V SAFE</span>
+  </div>
+
+  <div class="label board-label">
+    <span class="name">ARDUCAM IMX708</span>
+    <span class="detail">120&deg; FOV &bull; CSI RIBBON &bull; AUTOFOCUS</span>
+  </div>
+
+  <div class="label board-label">
+    <span class="name">PAN/TILT PLATFORM</span>
+    <span class="detail">2&times; MG90S &bull; PAN G12 &bull; TILT G13</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- PAGE 2: POWER + ORIENTATION + BRANDING        -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-title">Elktron Escort Bot — Label Sheet 2 of 2 &nbsp;&bull;&nbsp; Power + Orientation + Branding</div>
+
+  <!-- POWER LABELS -->
+  <div class="section-header">Power Source Labels (safety-critical)</div>
+
+  <div class="label power-label motor-power">
+    <span class="icon">&#9889;</span>
+    <span class="name">18650 PACK &mdash; 7.4V</span>
+    <span class="warning">Motors only &bull; Check polarity &bull; Do not connect to Pi</span>
+  </div>
+
+  <div class="label power-label pi-power">
+    <span class="icon">&#9679;</span>
+    <span class="name">POWER BANK &mdash; 5V</span>
+    <span class="warning">Raspberry Pi only &bull; 3A min &bull; USB-C</span>
+  </div>
+
+  <!-- ORIENTATION LABELS -->
+  <div class="section-header">Orientation Labels (stick to chassis)</div>
+
+  <div class="label orient-label">
+    <span class="dir">FRONT</span>
+    <span class="arrow">&#9650;</span>
+  </div>
+
+  <div class="label orient-label">
+    <span class="dir">LEFT</span>
+    <span class="arrow">&#9664;</span>
+  </div>
+
+  <div class="label orient-label">
+    <span class="dir">RIGHT</span>
+    <span class="arrow">&#9654;</span>
+  </div>
+
+  <div class="label orient-label">
+    <span class="arrow">&#9650;</span>
+    <span class="dir" style="font-size:9pt;">CAM UP</span>
+  </div>
+
+  <!-- BRANDING -->
+  <div class="section-header">Branding (top of chassis)</div>
+
+  <div class="label brand-label">
+    <span class="team">ELKTRON</span>
+    <span class="role">Escort Bot &mdash; CoreWeave Hackathon 2026</span>
+  </div>
+
+  <!-- SPARE / CUSTOM -->
+  <div class="section-header">Blank Spares (write your own)</div>
+
+  <div class="label wire-label" style="border-color:#999;">
+    <div class="wire-half"><span class="fn" style="color:#999;">___________</span><span class="gpio">&nbsp;</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn" style="color:#999;">___________</span><span class="gpio">&nbsp;</span></div>
+  </div>
+
+  <div class="label wire-label" style="border-color:#999;">
+    <div class="wire-half"><span class="fn" style="color:#999;">___________</span><span class="gpio">&nbsp;</span></div>
+    <div class="fold-line"></div>
+    <div class="wire-half"><span class="fn" style="color:#999;">___________</span><span class="gpio">&nbsp;</span></div>
+  </div>
+
+  <div class="label board-label" style="border-color:#999;">
+    <span class="name" style="color:#999;">_______________</span>
+    <span class="detail">&nbsp;</span>
+  </div>
+
+  <div class="label board-label" style="border-color:#999;">
+    <span class="name" style="color:#999;">_______________</span>
+    <span class="detail">&nbsp;</span>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="section-header" style="margin-top:0.4in;">Color Legend</div>
+  <div style="font-size:0.7rem; line-height:2; font-family:'IBM Plex Mono',monospace; font-weight:500;">
+    <span style="display:inline-block;width:12px;height:12px;background:var(--green);vertical-align:middle;margin-right:6px;"></span> Green = Motor wires &nbsp;&nbsp;
+    <span style="display:inline-block;width:12px;height:12px;background:var(--blue);vertical-align:middle;margin-right:6px;"></span> Blue = Sensor wires &nbsp;&nbsp;
+    <span style="display:inline-block;width:12px;height:12px;background:#7d3c98;vertical-align:middle;margin-right:6px;"></span> Purple = Servo wires &nbsp;&nbsp;
+    <span style="display:inline-block;width:12px;height:12px;background:var(--red);vertical-align:middle;margin-right:6px;"></span> Red = Power wires
+  </div>
+
+  <!-- QUICK REFERENCE TABLE -->
+  <div class="section-header" style="margin-top:0.3in;">Quick Reference — GPIO Pin Map</div>
+  <table style="font-size:0.65rem; font-family:'IBM Plex Mono',monospace; border-collapse:collapse; width:100%; margin-top:0.1in;">
+    <tr style="border-bottom:1px solid #ccc; font-weight:700;">
+      <td style="padding:3px 8px;">Function</td>
+      <td style="padding:3px 8px;">BCM</td>
+      <td style="padding:3px 8px;">Pin</td>
+      <td style="padding:3px 8px;">Connects To</td>
+    </tr>
+    <tr><td style="padding:3px 8px;">Left Motor FWD</td><td style="padding:3px 8px;">17</td><td style="padding:3px 8px;">11</td><td style="padding:3px 8px;">L298N IN1</td></tr>
+    <tr><td style="padding:3px 8px;">Left Motor BWD</td><td style="padding:3px 8px;">27</td><td style="padding:3px 8px;">13</td><td style="padding:3px 8px;">L298N IN2</td></tr>
+    <tr><td style="padding:3px 8px;">Right Motor FWD</td><td style="padding:3px 8px;">22</td><td style="padding:3px 8px;">15</td><td style="padding:3px 8px;">L298N IN3</td></tr>
+    <tr><td style="padding:3px 8px;">Right Motor BWD</td><td style="padding:3px 8px;">23</td><td style="padding:3px 8px;">16</td><td style="padding:3px 8px;">L298N IN4</td></tr>
+    <tr><td style="padding:3px 8px;">Ultrasonic ECHO</td><td style="padding:3px 8px;">24</td><td style="padding:3px 8px;">18</td><td style="padding:3px 8px;">HC-SR04 (via divider)</td></tr>
+    <tr><td style="padding:3px 8px;">Ultrasonic TRIG</td><td style="padding:3px 8px;">25</td><td style="padding:3px 8px;">22</td><td style="padding:3px 8px;">HC-SR04 TRIG</td></tr>
+    <tr><td style="padding:3px 8px;">Pan Servo</td><td style="padding:3px 8px;">12</td><td style="padding:3px 8px;">32</td><td style="padding:3px 8px;">MG90S (pan)</td></tr>
+    <tr><td style="padding:3px 8px;">Tilt Servo</td><td style="padding:3px 8px;">13</td><td style="padding:3px 8px;">33</td><td style="padding:3px 8px;">MG90S (tilt)</td></tr>
+    <tr><td style="padding:3px 8px;">Sensor VCC</td><td style="padding:3px 8px;">5V</td><td style="padding:3px 8px;">2</td><td style="padding:3px 8px;">HC-SR04 VCC</td></tr>
+    <tr><td style="padding:3px 8px;">Common GND</td><td style="padding:3px 8px;">GND</td><td style="padding:3px 8px;">6</td><td style="padding:3px 8px;">HC-SR04 + L298N</td></tr>
+  </table>
+</div>
+
+</body>
+</html>

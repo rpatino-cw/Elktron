@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chassis — ASCII 3D Preview</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a0c;
+    --surface: #141418;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8e6e3;
+    --dim: #787472;
+    --accent: #c9943a;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  header {
+    padding: 0.8rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 1rem; font-weight: 600; letter-spacing: -0.02em; }
+  header .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .toolbar {
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.5rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .tb-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tb-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .tb-btn.active { color: var(--accent); border-color: rgba(201,148,58,0.4); background: rgba(201,148,58,0.08); }
+  .tb-sep { width: 1px; height: 16px; background: var(--border); margin: 0 0.2rem; }
+  .tb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-right: 0.2rem;
+  }
+  .viewport {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  pre#render {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.15;
+    color: var(--text);
+    white-space: pre;
+    user-select: none;
+    letter-spacing: 0.02em;
+  }
+  .legend {
+    position: absolute;
+    bottom: 0.8rem;
+    right: 0.8rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.6rem 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--dim);
+    line-height: 1.8;
+  }
+  .legend .lbl { color: var(--accent); }
+  .info {
+    position: absolute;
+    bottom: 0.8rem;
+    left: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5rem;
+    color: var(--dim);
+    line-height: 1.8;
+    letter-spacing: 0.04em;
+  }
+  .info kbd {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.5rem;
+    color: var(--text);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>LK-COKOINO 4WD Chassis</h1>
+  <span class="tag">Stage 3.5 &mdash; ASCII 3D Preview</span>
+</header>
+
+<div class="toolbar" id="toolbar">
+  <span class="tb-label">Rotate:</span>
+  <button class="tb-btn active" data-angle="0">Front</button>
+  <button class="tb-btn" data-angle="1">Right</button>
+  <button class="tb-btn" data-angle="2">Back</button>
+  <button class="tb-btn" data-angle="3">Left</button>
+  <div class="tb-sep"></div>
+  <span class="tb-label">View:</span>
+  <button class="tb-btn active" id="tb-wire">Wireframe</button>
+  <button class="tb-btn" id="tb-solid">Solid</button>
+  <div class="tb-sep"></div>
+  <button class="tb-btn active" id="tb-labels">Labels</button>
+  <button class="tb-btn active" id="tb-dims">Dims</button>
+  <div class="tb-sep"></div>
+  <span class="tb-label">Zoom:</span>
+  <button class="tb-btn" id="tb-zout">&minus;</button>
+  <button class="tb-btn" id="tb-zin">+</button>
+</div>
+
+<div class="viewport">
+  <pre id="render"></pre>
+  <div class="legend">
+    <span class="lbl">&#x2500;&#x2502;</span> Bottom plate (260&times;130&times;3mm)<br>
+    <span class="lbl">&#x2550;&#x2551;</span> Top plate (155&times;130&times;3mm)<br>
+    <span class="lbl">&#x2503;</span> Standoffs / Posts<br>
+    <span class="lbl">&#x2588;</span> Motors (TT gearbox)<br>
+    <span class="lbl">&#x2592;</span> Battery box<br>
+    <span class="lbl">&#x2591;</span> Sensor bar
+  </div>
+  <div class="info">
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> Rotate &nbsp;
+    <kbd>W</kbd> Wire/Solid &nbsp;
+    <kbd>L</kbd> Labels &nbsp;
+    <kbd>D</kbd> Dims &nbsp;
+    <kbd>+</kbd><kbd>&minus;</kbd> Zoom
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CHASSIS 3D DATA — all dimensions in mm from approved Stage 2
+// ============================================================
+// Physical measurements:
+//   Chassis length: 260mm    Width: 130mm
+//   Bottom plate: 260 x 130 x 3mm
+//   Top plate: 155 x 130 x 3mm (offset 5mm from front)
+//   Plate gap: 42mm (standoff height)
+//   Upper posts: ~14mm above top plate
+//   Battery box: 33 x 50 x 44mm (rear-mounted)
+//   Sensor bar: 86 x 20 x 5mm (69mm overhang forward)
+//   Motors: 50 x 30 x 35mm (4 total, 2 front + 2 rear)
+
+// 3D boxes: [x, y, z, w, d, h, id, char]
+// Origin: front-left-bottom of chassis. X=right, Y=back, Z=up.
+const components = [
+  // Bottom plate
+  { x:0, y:0, z:0, w:130, d:260, h:3, id:'bottom-plate', ch:'─│', label:'BOTTOM PLATE' },
+  // Top plate (offset 5mm from front edge)
+  { x:0, y:5, z:45, w:130, d:155, h:3, id:'top-plate', ch:'═║', label:'TOP PLATE' },
+  // 4 Standoffs (connecting plates)
+  { x:18, y:30, z:3, w:4, d:4, h:42, id:'standoff-fl', ch:'┃', label:'' },
+  { x:108, y:30, z:3, w:4, d:4, h:42, id:'standoff-fr', ch:'┃', label:'' },
+  { x:18, y:140, z:3, w:4, d:4, h:42, id:'standoff-rl', ch:'┃', label:'' },
+  { x:108, y:140, z:3, w:4, d:4, h:42, id:'standoff-rr', ch:'┃', label:'STANDOFFS' },
+  // 2 Upper posts (above top plate)
+  { x:18, y:30, z:48, w:4, d:4, h:14, id:'post-l', ch:'┃', label:'' },
+  { x:108, y:135, z:48, w:4, d:4, h:15, id:'post-r', ch:'┃', label:'POSTS' },
+  // Front motors (left + right)
+  { x:-10, y:30, z:5, w:30, d:50, h:35, id:'motor-fl', ch:'█', label:'MOTOR' },
+  { x:110, y:30, z:5, w:30, d:50, h:35, id:'motor-fr', ch:'█', label:'MOTOR' },
+  // Rear motors (left + right)
+  { x:-10, y:110, z:5, w:30, d:50, h:35, id:'motor-rl', ch:'█', label:'' },
+  { x:110, y:110, z:5, w:30, d:50, h:35, id:'motor-rr', ch:'█', label:'' },
+  // Battery box (rear-mounted)
+  { x:40, y:260, z:4, w:50, d:33, h:44, id:'battery', ch:'▓', label:'BATTERY' },
+  // Sensor bar (front overhang)
+  { x:30, y:-69, z:27, w:70, d:86, h:5, id:'sensor', ch:'░', label:'SENSOR BAR' },
+  // Switch enclosure top base
+  { x:0, y:175, z:68, w:130, d:85, h:3, id:'switch-base', ch:'═║', label:'SWITCH BASE' },
+];
+
+// ============================================================
+// ISOMETRIC PROJECTION ENGINE
+// ============================================================
+let angle = 0;        // 0=front, 1=right, 2=back, 3=left
+let showWire = true;
+let showLabels = true;
+let showDims = true;
+let zoom = 1.0;
+
+const W = 160;        // ascii canvas width
+const H = 80;         // ascii canvas height
+const buf = [];       // char buffer
+const zbuf = [];      // z-buffer
+
+function clearBuf() {
+  for (let i = 0; i < H; i++) {
+    buf[i] = [];
+    zbuf[i] = [];
+    for (let j = 0; j < W; j++) {
+      buf[i][j] = ' ';
+      zbuf[i][j] = -Infinity;
+    }
+  }
+}
+
+// Isometric projection: 3D → 2D
+// angle: 0-3 (90° increments around Y axis)
+function project(x, y, z) {
+  // Center the chassis
+  const cx = 65, cy = 130, cz = 35;
+  x -= cx; y -= cy; z -= cz;
+
+  // Rotate around vertical (Z) axis
+  const a = angle * Math.PI / 2;
+  const cos = Math.cos(a), sin = Math.sin(a);
+  const rx = x * cos - y * sin;
+  const ry = x * sin + y * cos;
+  const rz = z;
+
+  // Isometric: 30° angles
+  // screen_x = (rx - ry) * cos30
+  // screen_y = (rx + ry) * sin30 - rz
+  const cos30 = 0.866;
+  const sin30 = 0.5;
+
+  const sx = (rx - ry) * cos30 * zoom;
+  const sy = ((rx + ry) * sin30 - rz) * zoom;
+
+  // Depth for z-buffer (higher = closer to camera)
+  const depth = -rx * sin - ry * cos + rz * 0.5;
+
+  // Map to buffer coords
+  const bx = Math.round(W / 2 + sx * 0.28);
+  const by = Math.round(H / 2 + sy * 0.28);
+
+  return { bx, by, depth };
+}
+
+function plotChar(bx, by, depth, ch) {
+  if (bx < 0 || bx >= W || by < 0 || by >= H) return;
+  if (depth >= zbuf[by][bx]) {
+    zbuf[by][bx] = depth;
+    buf[by][bx] = ch;
+  }
+}
+
+// Bresenham line in 2D buffer space
+function drawLine2D(x0, y0, x1, y1, depth, ch) {
+  const dx = Math.abs(x1 - x0);
+  const dy = Math.abs(y1 - y0);
+  const sx = x0 < x1 ? 1 : -1;
+  const sy = y0 < y1 ? 1 : -1;
+  let err = dx - dy;
+  let x = x0, y = y0;
+  const steps = Math.max(dx, dy);
+  for (let i = 0; i <= steps; i++) {
+    plotChar(x, y, depth, ch);
+    if (x === x1 && y === y1) break;
+    const e2 = 2 * err;
+    if (e2 > -dy) { err -= dy; x += sx; }
+    if (e2 < dx) { err += dx; y += sy; }
+  }
+}
+
+// Draw a 3D wireframe box
+function drawBox(comp) {
+  const { x, y, z, w, d, h } = comp;
+
+  // 8 corners
+  const corners = [
+    [x, y, z],         [x+w, y, z],
+    [x+w, y+d, z],     [x, y+d, z],
+    [x, y, z+h],       [x+w, y, z+h],
+    [x+w, y+d, z+h],   [x, y+d, z+h],
+  ];
+
+  const proj = corners.map(c => project(c[0], c[1], c[2]));
+
+  // 12 edges of a box
+  const edges = [
+    [0,1],[1,2],[2,3],[3,0], // bottom
+    [4,5],[5,6],[6,7],[7,4], // top
+    [0,4],[1,5],[2,6],[3,7], // verticals
+  ];
+
+  // Pick characters based on component
+  let hch, vch;
+  if (comp.ch === '═║') { hch = '═'; vch = '║'; }
+  else if (comp.ch === '─│') { hch = '─'; vch = '│'; }
+  else if (comp.ch === '┃') { hch = '┃'; vch = '┃'; }
+  else { hch = comp.ch[0] || '·'; vch = comp.ch[0] || '·'; }
+
+  if (showWire) {
+    edges.forEach(([a, b]) => {
+      const pa = proj[a], pb = proj[b];
+      const avgDepth = (pa.depth + pb.depth) / 2;
+      // Choose char based on edge direction
+      const isVert = (a < 4 && b >= 4) || (a >= 4 && b < 4);
+      const ch = isVert ? vch : hch;
+      drawLine2D(pa.bx, pa.by, pb.bx, pb.by, avgDepth, ch);
+    });
+    // Corners
+    proj.forEach(p => {
+      if (comp.ch === '═║') plotChar(p.bx, p.by, p.depth + 0.1, '╬');
+      else if (comp.ch === '─│') plotChar(p.bx, p.by, p.depth + 0.1, '┼');
+      else plotChar(p.bx, p.by, p.depth + 0.1, '+');
+    });
+  } else {
+    // Solid: fill visible faces
+    const fillCh = comp.ch.length > 1 ? comp.ch[0] : comp.ch;
+    fillFace(proj, [4,5,6,7], fillCh); // top face
+    // Determine which side faces to draw based on angle
+    const sideA = angle === 0 || angle === 3;
+    const sideB = angle === 0 || angle === 1;
+    if (sideA) fillFace(proj, [0,1,5,4], fillCh);
+    if (sideB) fillFace(proj, [1,2,6,5], fillCh);
+    if (!sideA) fillFace(proj, [2,3,7,6], fillCh);
+    if (!sideB) fillFace(proj, [3,0,4,7], fillCh);
+  }
+
+  // Label
+  if (showLabels && comp.label) {
+    const center = project(x + w/2, y + d/2, z + h + 3);
+    const lbl = comp.label;
+    const startX = center.bx - Math.floor(lbl.length / 2);
+    for (let i = 0; i < lbl.length; i++) {
+      plotChar(startX + i, center.by, 999, lbl[i]);
+    }
+  }
+}
+
+function fillFace(proj, indices, ch) {
+  // Simple scanline fill of a projected quad
+  const pts = indices.map(i => proj[i]);
+  const minY = Math.min(...pts.map(p => p.by));
+  const maxY = Math.max(...pts.map(p => p.by));
+  const avgDepth = pts.reduce((s, p) => s + p.depth, 0) / 4;
+
+  for (let y = minY; y <= maxY; y++) {
+    const xs = [];
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length];
+      if ((a.by <= y && b.by >= y) || (b.by <= y && a.by >= y)) {
+        if (a.by === b.by) {
+          xs.push(a.bx, b.bx);
+        } else {
+          const t = (y - a.by) / (b.by - a.by);
+          xs.push(Math.round(a.bx + t * (b.bx - a.bx)));
+        }
+      }
+    }
+    if (xs.length >= 2) {
+      const xMin = Math.min(...xs);
+      const xMax = Math.max(...xs);
+      for (let x = xMin; x <= xMax; x++) {
+        plotChar(x, y, avgDepth, ch);
+      }
+    }
+  }
+}
+
+// Dimension annotations
+function drawDimText(x0, y0, z0, x1, y1, z1, text, offsetZ) {
+  const pa = project(x0, y0, z0 + (offsetZ || 0));
+  const pb = project(x1, y1, z1 + (offsetZ || 0));
+  // Draw arrow line
+  drawLine2D(pa.bx, pa.by, pb.bx, pb.by, 998, '·');
+  // Arrow heads
+  plotChar(pa.bx, pa.by, 998, '<');
+  plotChar(pb.bx, pb.by, 998, '>');
+  // Text at midpoint
+  const mx = Math.round((pa.bx + pb.bx) / 2);
+  const my = Math.round((pa.by + pb.by) / 2) - 1;
+  const startX = mx - Math.floor(text.length / 2);
+  for (let i = 0; i < text.length; i++) {
+    plotChar(startX + i, my, 999, text[i]);
+  }
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function render() {
+  clearBuf();
+
+  // Sort components by depth (back to front) for proper overlap
+  const sorted = [...components].sort((a, b) => {
+    const ca = project(a.x + a.w/2, a.y + a.d/2, a.z + a.h/2);
+    const cb = project(b.x + b.w/2, b.y + b.d/2, b.z + b.h/2);
+    return ca.depth - cb.depth;
+  });
+
+  sorted.forEach(drawBox);
+
+  // Dimension lines
+  if (showDims) {
+    drawDimText(0, -10, 0, 130, -10, 0, '130mm', 0);
+    drawDimText(-15, 0, 0, -15, 260, 0, '260mm', 0);
+    drawDimText(135, 130, 0, 135, 130, 62, '62mm', 0);
+  }
+
+  // Ground plane hint
+  const g1 = project(-20, -20, 0);
+  const g2 = project(150, -20, 0);
+  const g3 = project(-20, 290, 0);
+  drawLine2D(g1.bx, g1.by, g2.bx, g2.by, -999, '.');
+  drawLine2D(g1.bx, g1.by, g3.bx, g3.by, -999, '.');
+
+  // Convert buffer to string
+  let out = '';
+  for (let y = 0; y < H; y++) {
+    let row = '';
+    for (let x = 0; x < W; x++) {
+      row += buf[y][x];
+    }
+    out += row.replace(/\s+$/, '') + '\n';
+  }
+
+  document.getElementById('render').textContent = out;
+}
+
+// ============================================================
+// UI CONTROLS
+// ============================================================
+// Rotation buttons
+document.querySelectorAll('[data-angle]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    angle = parseInt(btn.dataset.angle);
+    document.querySelectorAll('[data-angle]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+// Wire/Solid toggle
+document.getElementById('tb-wire').addEventListener('click', () => {
+  showWire = true;
+  document.getElementById('tb-wire').classList.add('active');
+  document.getElementById('tb-solid').classList.remove('active');
+  render();
+});
+document.getElementById('tb-solid').addEventListener('click', () => {
+  showWire = false;
+  document.getElementById('tb-solid').classList.add('active');
+  document.getElementById('tb-wire').classList.remove('active');
+  render();
+});
+
+// Labels toggle
+document.getElementById('tb-labels').addEventListener('click', function() {
+  showLabels = !showLabels;
+  this.classList.toggle('active');
+  render();
+});
+
+// Dims toggle
+document.getElementById('tb-dims').addEventListener('click', function() {
+  showDims = !showDims;
+  this.classList.toggle('active');
+  render();
+});
+
+// Zoom
+document.getElementById('tb-zin').addEventListener('click', () => {
+  zoom = Math.min(zoom + 0.15, 2.5);
+  render();
+});
+document.getElementById('tb-zout').addEventListener('click', () => {
+  zoom = Math.max(zoom - 0.15, 0.4);
+  render();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  switch (e.key) {
+    case '1': document.querySelector('[data-angle="0"]').click(); break;
+    case '2': document.querySelector('[data-angle="1"]').click(); break;
+    case '3': document.querySelector('[data-angle="2"]').click(); break;
+    case '4': document.querySelector('[data-angle="3"]').click(); break;
+    case 'w': case 'W':
+      showWire ? document.getElementById('tb-solid').click() : document.getElementById('tb-wire').click();
+      break;
+    case 'l': case 'L': document.getElementById('tb-labels').click(); break;
+    case 'd': case 'D': document.getElementById('tb-dims').click(); break;
+    case '+': case '=': document.getElementById('tb-zin').click(); break;
+    case '-': case '_': document.getElementById('tb-zout').click(); break;
+  }
+});
+
+// Initial render
+render();
+</script>
+</body>
+</html>

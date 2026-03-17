@@ -85,7 +85,7 @@ CKK0011-main/
 | **GPIO lib** | RPi.GPIO | gpiozero (required for Pi 5 — lgpio backend) |
 | **Motor control** | `GPIO.output()` + `GPIO.PWM()` | `Robot(left=(17,27), right=(22,23))` |
 | **Servo control** | Raw PWM via `GPIO.PWM()` | `AngularServo` from gpiozero |
-| **Camera** | Not included | picamera2 + TFLite MobileNet SSD |
+| **Camera** | Not included | picamera2 + OpenCV DNN MobileNet SSD |
 | **Purpose** | Basic driving demos | Autonomous person-following + rack scanning |
 | **Pi version** | Pi 3/4 era (RPi.GPIO) | Pi 5 only (lgpio) |
 
