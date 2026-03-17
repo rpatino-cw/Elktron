@@ -59,7 +59,7 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
   - PWM temp-controlled blower + aluminum heatsink + thermal tape
   - REQUIRED — CV inference workload will thermal throttle Pi 5 without cooling
 
-> **Pi 5 OS Setup Guide:** See [`escort-bot/PI-SETUP.md`](escort-bot/PI-SETUP.md)
+> **Pi 5 OS Setup Guide:** See [`escort-bot/PI-SETUP.md`](../escort-bot/PI-SETUP.md)
 > **OS:** Raspberry Pi OS Lite (64-bit) — Bookworm. Only official OS for Pi 5. Lite = headless, no desktop wasting RAM.
 > **Imager download:** https://downloads.raspberrypi.com/imager/imager_latest.dmg
 
@@ -100,6 +100,11 @@ Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 - [x] ✅ **Arducam Pan/Tilt Platform** — **DELIVERED 3/12** — $26.99
   - Compatible with Pi Camera Module 3/V1/V2
   - Pan on GPIO 12, tilt on GPIO 13. Controlled by `pan_tilt.py`.
+- [x] ✅ **Arducam Camera Ribbon Flex Extension Cable Set (7pc)** — ORDERED 3/17, arriving 3/18 — $10.71
+  - Amazon: https://www.amazon.com/dp/B07SM6JTTM
+  - Lengths: 2.87", 5.9", 5.91", 7.87", 11.8", 19.69", 39.37" (~3ft+)
+  - Longest cable (39.37") for running CSI from Pi base up PVC mast to camera
+  - Includes 15-pin and 22-pin widths (Pi 5 uses 22-pin)
 
 ### Power (ALL PORTABLE — no wall outlets on DC floor)
 

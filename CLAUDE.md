@@ -88,12 +88,6 @@ hackathon/
 │   ├── CLAUDE.md                      # Robotics site config — arm overview, status, resources
 │   ├── index.html                     # Elktron landing page (dark luxury-tech, CSS only)
 │   ├── topology.html                  # ★ THREE.JS — System topology visualization
-│   ├── elktron-robots.blend         # Blender 3D scene — both robots
-│   ├── elktron-robots.blend1        # Blender auto-backup
-│   ├── optic-staging-tray.blend       # Blender — optic staging tray model
-│   ├── optic-staging-tray.blend1      # Blender auto-backup
-│   ├── optic-staging-tray.obj         # OBJ export of optic tray
-│   ├── optic-staging-tray.mtl         # OBJ material file
 │   ├── hero-render.png                # Hero render image (from Blender)
 │   ├── arm-render.png                 # SO-101 arm render
 │   ├── guide-render.png               # Guide render
@@ -117,8 +111,9 @@ hackathon/
 │   ├── WIRING.md                      # GPIO pin map, L298N wiring, HC-SR04 voltage divider
 │   ├── PI-SETUP.md                    # Pi 5 OS flashing + first boot guide (Bookworm Lite 64-bit)
 │   ├── Soldier.glb                    # 3D model (GLB) used in simulation
-│   ├── door-open-phase.png            # Escort workflow diagram
-│   ├── scan-verification.png          # Scan verification diagram
+│   ├── assets/
+│   │   ├── door-open-phase.png        # Escort workflow diagram
+│   │   └── scan-verification.png      # Scan verification diagram
 │   ├── showcase.html                  # Escort bot scope page (CSS animations, no Three.js)
 │   ├── simulation.html                # ★ THREE.JS — DC floor simulation (10 racks, bot AI)
 │   ├── assembly.html                  # ★ THREE.JS — Assembly instructions with 3D models
@@ -150,33 +145,33 @@ hackathon/
 │   ├── CLAUDE.md                      # Pipeline: 2D blueprint → approval → 3D model
 │   └── pi5-layout.json               # Pi 5 component layout data
 │
-├── CKK0011-main/                      # VENDOR REPO — LK-COKOINO CHASSIS KIT
+├── CKK0011-main/                      # VENDOR REPO — LK-COKOINO CHASSIS KIT (original, copy in reference/)
 │   ├── CLAUDE.md                      # Context — assembly PDFs, L298N code, CH340 driver
-│   ├── README.md                      # Manufacturer README (cokoino@outlook.com)
-│   ├── CH340 Driver/                  # USB-serial driver (Windows only, not needed for Pi + L298N)
-│   └── Tutorial/
-│       ├── Arduino/                   # Arduino tutorials + sketches (5 experiments)
-│       │   └── Sketches/             # .ino source files (motor, LED, ultrasonic, tracking)
-│       └── RaspberryPi/              # ★ MOST RELEVANT — Pi tutorials + Python code
-│           ├── Code/
-│           │   ├── Demo1.py          # L298N motor control (RPi.GPIO — not Pi 5 compatible)
-│           │   ├── Demo2.py          # Cokoino Robot Hat motor control (I2C/smbus)
-│           │   └── Servo_test.py     # MG90S servo PWM test
-│           └── *.pdf                 # Assembly guides, wiring tutorials (6 PDFs)
+│   ├── README.md                      # Manufacturer README
+│   └── Tutorial/                      # Arduino + RaspberryPi tutorials, PDFs, code
 │
-├── img/                               # REFERENCE IMAGES + DOCUMENTATION
-│   ├── CLAUDE.md                      # Asset manifest — categorized photo inventory
-│   ├── car_*.jpg (x10)               # LK-COKOINO chassis photos (measurements, angles, parts)
-│   ├── frame_overall_view.jpg         # Acrylic frame top-down (hole patterns)
-│   ├── raspberry pi above vew.jpg     # Pi 5 top-down reference
-│   ├── cable-net.png                  # Network cable reference
-│   ├── *.pdf (x3)                     # Amazon listing + reviews + Cokoino official docs
-│   ├── 2d_car                         # 2D reference (missing file extension)
+├── img/                               # ACTIVE IMAGES (referenced by HTML/README)
+│   ├── CLAUDE.md                      # Asset manifest
+│   ├── car_1.jpg                      # Chassis photo (used in robotics-site/index.html CSS)
+│   ├── car_all_sides_view.jpg         # Multi-angle view (used in robotics-site/index.html)
+│   ├── car_parts.jpg                  # Parts layout (used in robotics-site/index.html)
+│   ├── frame_overall_view.jpg         # Frame top-down (used in robotics-site/index.html)
+│   ├── escort-bot-render.png          # 3D render of escort bot (used in README.md)
 │   └── 2d_drawing/                    # 2D BLUEPRINT WORKSPACE
 │       ├── CLAUDE.md                  # Strict workflow: trace → draft → approval → 3D
 │       ├── frame_trace.html           # Frame tracing tool (canvas-based, no Three.js)
 │       ├── 2d_car_reference.png       # Car reference for tracing
 │       └── rc_chassis_frame_lines.png # Traced frame lines
+│
+├── reference/                         # ALL REFERENCE FILES (not linked by any HTML)
+│   ├── chassis-photos/                # Car measurements, assembly photos, Amazon product shots
+│   ├── product-docs/                  # Amazon listing PDF, reviews PDF, Cokoino manual PDF
+│   ├── vendor-kit/                    # Copy of CKK0011-main tutorials + code
+│   ├── 3d-source/                     # Blender .blend/.blend1, OBJ/MTL files
+│   ├── 3d-previews/                   # 3D car preview screenshots
+│   ├── labels/                        # P-touch label PNGs (ptouch, v2, preview — 81 files)
+│   ├── blueprints/                    # chassis_blueprint.pdf
+│   └── misc/                          # Duplicate photos, screenshots, misc reference
 │
 └── taskboard/                         # TEAM TASK BOARD
     └── index.html                     # ★ THREE.JS — Interactive task board with 3D elements
@@ -216,7 +211,7 @@ hackathon/
 | `CKK0011-main/CLAUDE.md` | Vendor chassis kit context — assembly guides, motor code (Demo1.py), RPi.GPIO vs gpiozero differences |
 | `3d-reference/CLAUDE.md` | 3D model pipeline — file naming, format guide (STL/OBJ/GLB/STEP), folder relationships |
 | `2d_manual_3d/CLAUDE.md` | 2D-to-3D conversion workspace — pipeline steps, approval gate, conversion methods (Blender/OpenSCAD/FreeCAD) |
-| `img/CLAUDE.md` | Image asset manifest — categorized photo inventory with descriptions, known issues |
+| `img/CLAUDE.md` | Active image manifest — only images referenced by HTML/README remain here |
 | `img/2d_drawing/CLAUDE.md` | Strict 2D blueprint rules — trace faithfully, no guessing, approval required before 3D |
 
 ### Other Markdown in Subdirectories

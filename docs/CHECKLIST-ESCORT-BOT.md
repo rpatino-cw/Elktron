@@ -16,6 +16,7 @@
 - [x] ~~Order 18650 batteries~~ — **QOJH 4-pack arriving Sat 3/15**
 - [x] ~~Order USB-C power bank~~ — **Anker PowerCore 10K arriving 3/13**
 - [x] ~~Order pan/tilt platform~~ — **Arducam Pan Tilt DELIVERED 3/12**
+- [x] ~~Order CSI ribbon extension cables~~ — **Arducam 7pc Flex Cable Set ORDERED 3/17, arriving 3/18** ($10.71)
 - [x] ~~Order CanaKit Pi PSU~~ — **DELIVERED 3/12 (bench testing only)**
 - [x] ~~Order USB-C right-angle adapter~~ — **Silkland 2-pack DELIVERED 3/12**
 - [ ] Order jumper wires: 20x male-to-female, 10x male-to-male (ELEGOO 5-pack comes with 20 dupont cables — may suffice)

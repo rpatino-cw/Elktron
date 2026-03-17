@@ -220,6 +220,7 @@ Tracked in `#the-elks-2026` Slack list.
 | ELEGOO HC-SR04 5-Pack | 3/10 | 3/13 | In transit — arriving tomorrow |
 | 18650 batteries (4-pack) + charger | 3/11 | 3/15 | In transit — arriving Saturday |
 | Arducam Camera Module 3 Wide (IMX708) | 3/10 | 3/15 | In transit — arriving Saturday |
+| Arducam Ribbon Flex Extension Cable Set (7pc) | 3/17 | 3/18 | In transit — arriving tomorrow |
 | PVC Pipe 1" x 10ft + Tee fitting | — | **Pickup ready** | In HD cart ($8.09) — still needs pickup |
 
 **Backup / Alternatives**
