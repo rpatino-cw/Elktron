@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Label Placement Guide — Escort Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --paper:#f4f0e8;--paper-dark:#ebe5d8;--ink:#1c1a15;--ink-mid:#4a4639;--ink-light:#8a8475;
+  --red:#c4392a;--red-bg:#c4392a12;--blue:#2454a0;--blue-bg:#2454a010;
+  --green:#2a7d3f;--green-bg:#2a7d3f10;--orange:#b86314;--orange-bg:#b8631410;
+  --purple:#6b3fa0;--purple-bg:#6b3fa010;
+  --rule:#c8c0b0;--rule-light:#ddd6c8;
+  --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--paper);color:var(--ink);min-height:100vh;padding:0}
+
+/* PAGE FRAME — looks like a printed spec sheet */
+.page{max-width:1100px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,3vw,40px)}
+
+/* HEADER — stamp-like */
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding-bottom:20px;border-bottom:2px solid var(--ink);margin-bottom:32px}
+.hdr-left{flex:1}
+.hdr-doc{font-family:var(--mono);font-size:0.7rem;font-weight:500;color:var(--ink-light);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px}
+.hdr h1{font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:700;line-height:1.1;letter-spacing:-0.02em}
+.hdr-sub{font-size:0.85rem;color:var(--ink-mid);margin-top:6px;line-height:1.45}
+.hdr-stamp{flex-shrink:0;border:2px solid var(--red);padding:8px 16px;text-align:center;transform:rotate(-2deg)}
+.hdr-stamp-title{font-family:var(--mono);font-size:0.65rem;font-weight:500;color:var(--red);letter-spacing:0.15em;text-transform:uppercase}
+.hdr-stamp-count{font-size:1.4rem;font-weight:700;color:var(--red);line-height:1.1}
+
+/* LEGEND BAR */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:12px 0;border-bottom:1px solid var(--rule);margin-bottom:28px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.72rem;font-weight:500;color:var(--ink-mid)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.legend-dot.motor{background:var(--green)}.legend-dot.sensor{background:var(--blue)}
+.legend-dot.board{background:var(--ink)}.legend-dot.power{background:var(--orange)}
+.legend-dot.orient{background:var(--purple)}.legend-dot.brand{background:var(--red)}
+
+/* SCHEMATIC AREA */
+.schematic-wrap{position:relative;margin:0 auto 40px;max-width:740px}
+.schematic{position:relative;background:var(--paper-dark);border:1px solid var(--rule);padding:32px;aspect-ratio:16/11;overflow:visible}
+.schematic::before{content:'';position:absolute;inset:8px;border:1px dashed var(--rule-light);pointer-events:none}
+
+/* BOT DIAGRAM — CSS-drawn top-down view */
+.bot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:200px;height:280px}
+.chassis{position:absolute;inset:0;border:2px solid var(--ink);border-radius:8px;background:repeating-linear-gradient(0deg,transparent,transparent 19px,var(--rule-light) 19px,var(--rule-light) 20px)}
+.chassis::after{content:'CHASSIS';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:0.55rem;color:var(--ink-light);letter-spacing:0.1em}
+
+/* Components on chassis */
+.comp{position:absolute;border:1.5px solid;font-family:var(--mono);font-size:0.5rem;font-weight:500;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;letter-spacing:0.04em;z-index:2;background:var(--paper)}
+.comp-pi{width:56px;height:40px;top:25%;left:50%;transform:translateX(-50%);border-color:var(--ink);color:var(--ink)}
+.comp-l298n{width:44px;height:32px;top:52%;left:50%;transform:translateX(-50%);border-color:var(--ink);color:var(--ink)}
+.comp-batt{width:36px;height:50px;top:70%;left:50%;transform:translateX(-50%);border-color:var(--orange);color:var(--orange)}
+.comp-hcsr04{width:32px;height:18px;top:4%;left:50%;transform:translateX(-50%);border-color:var(--blue);color:var(--blue)}
+.comp-cam{width:20px;height:20px;top:-60px;left:50%;transform:translateX(-50%);border-color:var(--blue);color:var(--blue);border-radius:50%}
+.comp-mast{width:4px;height:55px;top:-55px;left:50%;transform:translateX(-50%);border-color:var(--ink-light);background:var(--rule-light)}
+.comp-pantilt{width:28px;height:16px;top:-62px;left:50%;transform:translateX(-50%) translateY(-14px);border-color:var(--blue);color:var(--blue);font-size:0.4rem}
+
+/* Wheels */
+.wheel{position:absolute;width:18px;height:44px;border:2px solid var(--green);border-radius:4px;background:var(--green-bg);z-index:1}
+.wheel::after{font-family:var(--mono);font-size:0.4rem;color:var(--green);letter-spacing:0.05em;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-90deg);white-space:nowrap}
+.wh-fl{top:10%;left:-24px}.wh-fl::after{content:'FL'}
+.wh-rl{bottom:10%;left:-24px}.wh-rl::after{content:'RL'}
+.wh-fr{top:10%;right:-24px}.wh-fr::after{content:'FR'}
+.wh-rr{bottom:10%;right:-24px}.wh-rr::after{content:'RR'}
+
+/* Direction arrow */
+.dir-arrow{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:14px solid var(--purple);z-index:3}
+
+/* CALLOUT LINES */
+.callout{position:absolute;z-index:10}
+.callout-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:0.6rem;font-weight:500;color:#fff;flex-shrink:0}
+.callout-num.motor{background:var(--green)}.callout-num.sensor{background:var(--blue)}
+.callout-num.board{background:var(--ink)}.callout-num.power{background:var(--orange)}
+.callout-num.orient{background:var(--purple)}.callout-num.brand{background:var(--red)}
+
+/* TABLE — the real reference */
+.label-section{margin-bottom:32px}
+.label-section-hdr{display:flex;align-items:center;gap:10px;padding:10px 0 8px;border-bottom:1.5px solid var(--ink)}
+.label-section-dot{width:12px;height:12px;border-radius:2px;flex-shrink:0}
+.label-section-title{font-size:0.85rem;font-weight:700;letter-spacing:0.02em}
+.label-section-count{font-family:var(--mono);font-size:0.65rem;color:var(--ink-light);margin-left:auto}
+
+.label-table{width:100%;border-collapse:collapse;margin-top:8px}
+.label-table th{font-family:var(--mono);font-size:0.6rem;font-weight:500;color:var(--ink-light);text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule);letter-spacing:0.1em;text-transform:uppercase}
+.label-table td{font-size:0.8rem;padding:8px 10px;border-bottom:1px solid var(--rule-light);vertical-align:top}
+.label-table tr:last-child td{border-bottom:none}
+.label-table .num{font-family:var(--mono);font-weight:500;width:36px;color:var(--ink-light)}
+.label-table .name{font-weight:600}
+.label-table .where{color:var(--ink-mid);font-size:0.78rem;line-height:1.45}
+.label-table .preview{width:120px}
+.label-table .preview img{height:28px;width:auto;border:1px solid var(--rule);display:block}
+
+/* PRINT NOTE */
+.print-note{font-family:var(--mono);font-size:0.65rem;color:var(--ink-light);text-align:center;padding:20px 0;border-top:1px solid var(--rule);margin-top:40px;letter-spacing:0.05em}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(244,240,232,0.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:0 clamp(16px,3vw,40px);height:44px;display:flex;align-items:center;gap:20px;border-bottom:1px solid var(--rule)}
+.nav-brand{font-weight:700;font-size:0.8rem;color:var(--ink);letter-spacing:0.04em}
+.nav a{color:var(--ink-mid);text-decoration:none;font-size:0.75rem;font-weight:500;transition:color .2s}
+.nav a:hover{color:var(--ink)}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .schematic{aspect-ratio:auto;min-height:420px}
+  .hdr{flex-direction:column}
+  .label-table .preview{display:none}
+}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity 0.5s cubic-bezier(.16,1,.3,1),transform 0.5s cubic-bezier(.16,1,.3,1)}
+.reveal.vis{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav-brand">Elktron</span>
+  <a href="../hub.html">Hub</a>
+  <a href="assembly.html">Assembly</a>
+  <a href="wiring-guide.html">Wiring</a>
+  <a href="wiring-wizard.html">Wizard</a>
+</nav>
+
+<div class="page">
+
+<!-- HEADER -->
+<header class="hdr reveal">
+  <div class="hdr-left">
+    <div class="hdr-doc">ELK-ESC-LBL-001 Rev A</div>
+    <h1>Label Placement Guide</h1>
+    <div class="hdr-sub">Where to stick each P-touch label on the escort bot. 27 labels across 6 categories &mdash; wires, boards, power, orientation, and branding.</div>
+  </div>
+  <div class="hdr-stamp">
+    <div class="hdr-stamp-title">Labels</div>
+    <div class="hdr-stamp-count">27</div>
+  </div>
+</header>
+
+<!-- LEGEND -->
+<div class="legend reveal">
+  <span class="legend-item"><span class="legend-dot motor"></span>Motor wires (01&ndash;06)</span>
+  <span class="legend-item"><span class="legend-dot sensor"></span>Sensor wires (07&ndash;12)</span>
+  <span class="legend-item"><span class="legend-dot board"></span>Boards (15&ndash;20)</span>
+  <span class="legend-item"><span class="legend-dot power"></span>Power (13&ndash;14, 21&ndash;22)</span>
+  <span class="legend-item"><span class="legend-dot orient"></span>Orientation (23&ndash;26)</span>
+  <span class="legend-item"><span class="legend-dot brand"></span>Brand (27)</span>
+</div>
+
+<!-- SCHEMATIC -->
+<div class="schematic-wrap reveal">
+  <div class="schematic">
+    <div class="bot">
+      <!-- Direction -->
+      <div class="dir-arrow" title="FRONT"></div>
+
+      <!-- Mast + Camera -->
+      <div class="comp comp-mast"></div>
+      <div class="comp comp-pantilt">P/T</div>
+      <div class="comp comp-cam">CAM</div>
+
+      <!-- Chassis -->
+      <div class="chassis">
+        <!-- Boards -->
+        <div class="comp comp-hcsr04">SR04</div>
+        <div class="comp comp-pi">PI 5</div>
+        <div class="comp comp-l298n">L298N</div>
+        <div class="comp comp-batt">18650<br>&times;2</div>
+
+        <!-- Wheels -->
+        <div class="wheel wh-fl"></div>
+        <div class="wheel wh-rl"></div>
+        <div class="wheel wh-fr"></div>
+        <div class="wheel wh-rr"></div>
+      </div>
+
+      <!-- Callout numbers — positioned around the bot -->
+      <!-- Motor wires: on wheels -->
+      <span class="callout" style="top:14%;left:-56px" title="Wire: Left FWD"><span class="callout-num motor">01</span></span>
+      <span class="callout" style="top:22%;left:-56px" title="Wire: Left BWD"><span class="callout-num motor">02</span></span>
+      <span class="callout" style="top:14%;right:-56px" title="Wire: Right FWD"><span class="callout-num motor">03</span></span>
+      <span class="callout" style="top:22%;right:-56px" title="Wire: Right BWD"><span class="callout-num motor">04</span></span>
+
+      <!-- L298N channel labels -->
+      <span class="callout" style="top:54%;left:-56px" title="L298N Left Channel"><span class="callout-num motor">05</span></span>
+      <span class="callout" style="top:54%;right:-56px" title="L298N Right Channel"><span class="callout-num motor">06</span></span>
+
+      <!-- Sensor wires -->
+      <span class="callout" style="top:2%;left:-56px" title="Ultrasonic ECHO"><span class="callout-num sensor">07</span></span>
+      <span class="callout" style="top:2%;right:-56px" title="Ultrasonic TRIG"><span class="callout-num sensor">08</span></span>
+      <span class="callout" style="top:8%;left:-56px" title="Sensor 5V"><span class="callout-num sensor">09</span></span>
+      <span class="callout" style="top:8%;right:-56px" title="Sensor GND"><span class="callout-num sensor">10</span></span>
+
+      <!-- Servo wires -->
+      <span class="callout" style="top:-22%;left:-56px" title="Pan servo"><span class="callout-num sensor">11</span></span>
+      <span class="callout" style="top:-22%;right:-56px" title="Tilt servo"><span class="callout-num sensor">12</span></span>
+
+      <!-- Power -->
+      <span class="callout" style="top:74%;left:-56px" title="18650 battery"><span class="callout-num power">13</span></span>
+      <span class="callout" style="top:82%;left:-56px" title="Common GND"><span class="callout-num power">14</span></span>
+
+      <!-- Boards -->
+      <span class="callout" style="top:27%;right:-56px" title="Pi 5"><span class="callout-num board">15</span></span>
+      <span class="callout" style="top:55%;right:-80px" title="L298N board"><span class="callout-num board">16</span></span>
+      <span class="callout" style="top:3%;left:-80px" title="HC-SR04"><span class="callout-num board">17</span></span>
+      <span class="callout" style="top:35%;left:-56px" title="Voltage divider"><span class="callout-num board">18</span></span>
+      <span class="callout" style="top:-30%;left:-56px" title="Arducam"><span class="callout-num board">19</span></span>
+      <span class="callout" style="top:-24%;left:50%;transform:translateX(-50%) translateY(-36px)" title="Pan/Tilt"><span class="callout-num board">20</span></span>
+
+      <!-- Power units -->
+      <span class="callout" style="top:74%;right:-56px" title="18650 pack"><span class="callout-num power">21</span></span>
+      <span class="callout" style="top:82%;right:-56px" title="Power bank"><span class="callout-num power">22</span></span>
+
+      <!-- Orientation -->
+      <span class="callout" style="top:-8%;left:50%;transform:translateX(-50%)" title="FRONT"><span class="callout-num orient">23</span></span>
+      <span class="callout" style="top:48%;left:-80px" title="LEFT"><span class="callout-num orient">24</span></span>
+      <span class="callout" style="top:48%;right:-80px" title="RIGHT"><span class="callout-num orient">25</span></span>
+      <span class="callout" style="top:-34%;right:-56px" title="CAM UP"><span class="callout-num orient">26</span></span>
+
+      <!-- Brand -->
+      <span class="callout" style="bottom:-8px;left:50%;transform:translateX(-50%)" title="ELKTRON"><span class="callout-num brand">27</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- LABEL TABLES -->
+
+<!-- MOTOR WIRES -->
+<section class="label-section reveal">
+  <div class="label-section-hdr">
+    <span class="label-section-dot" style="background:var(--green)"></span>
+    <span class="label-section-title">Motor Wires</span>
+    <span class="label-section-count">01&ndash;06</span>
+  </div>
+  <table class="label-table">
+    <thead><tr><th>#</th><th>Label</th><th>Stick it on</th><th>Preview</th></tr></thead>
+    <tbody>
+      <tr><td class="num">01</td><td class="name">LEFT FWD</td><td class="where">The wire running from <strong>GPIO 17</strong> to <strong>L298N IN1</strong>. Wrap around wire near the Pi end. This is the left-side forward signal.</td><td class="preview"><img src="../reference/labels/ptouch-v2/01_left_fwd.png" alt=""></td></tr>
+      <tr><td class="num">02</td><td class="name">LEFT BWD</td><td class="where">The wire from <strong>GPIO 27</strong> to <strong>L298N IN2</strong>. Wrap near Pi end. Left-side reverse signal.</td><td class="preview"><img src="../reference/labels/ptouch-v2/02_left_bwd.png" alt=""></td></tr>
+      <tr><td class="num">03</td><td class="name">RIGHT FWD</td><td class="where">Wire from <strong>GPIO 22</strong> to <strong>L298N IN3</strong>. Wrap near Pi end. Right-side forward.</td><td class="preview"><img src="../reference/labels/ptouch-v2/03_right_fwd.png" alt=""></td></tr>
+      <tr><td class="num">04</td><td class="name">RIGHT BWD</td><td class="where">Wire from <strong>GPIO 23</strong> to <strong>L298N IN4</strong>. Wrap near Pi end. Right-side reverse.</td><td class="preview"><img src="../reference/labels/ptouch-v2/04_right_bwd.png" alt=""></td></tr>
+      <tr><td class="num">05</td><td class="name">L298N LEFT</td><td class="where">Stick on the <strong>OUT1/OUT2 wires</strong> leaving the L298N toward the left motor pair (FL + RL). These are the power output lines &mdash; not GPIO signal.</td><td class="preview"><img src="../reference/labels/ptouch-v2/05_l298n_left.png" alt=""></td></tr>
+      <tr><td class="num">06</td><td class="name">L298N RIGHT</td><td class="where">Stick on the <strong>OUT3/OUT4 wires</strong> leaving the L298N toward the right motor pair (FR + RR).</td><td class="preview"><img src="../reference/labels/ptouch-v2/06_l298n_right.png" alt=""></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SENSOR WIRES -->
+<section class="label-section reveal">
+  <div class="label-section-hdr">
+    <span class="label-section-dot" style="background:var(--blue)"></span>
+    <span class="label-section-title">Sensor &amp; Servo Wires</span>
+    <span class="label-section-count">07&ndash;12</span>
+  </div>
+  <table class="label-table">
+    <thead><tr><th>#</th><th>Label</th><th>Stick it on</th><th>Preview</th></tr></thead>
+    <tbody>
+      <tr><td class="num">07</td><td class="name">ULTRA ECHO</td><td class="where">Wire from <strong>HC-SR04 ECHO pin</strong> through the <strong>voltage divider</strong> (1k&Omega; + 2k&Omega;) to <strong>GPIO 24</strong>. Label the wire between the divider and the Pi &mdash; this is the safe 3.3V side.</td><td class="preview"><img src="../reference/labels/ptouch-v2/07_ultra_echo.png" alt=""></td></tr>
+      <tr><td class="num">08</td><td class="name">ULTRA TRIG</td><td class="where">Wire from <strong>GPIO 25</strong> directly to <strong>HC-SR04 TRIG pin</strong>. Label near the Pi end.</td><td class="preview"><img src="../reference/labels/ptouch-v2/08_ultra_trig.png" alt=""></td></tr>
+      <tr><td class="num">09</td><td class="name">SENSOR 5V</td><td class="where">The <strong>5V power wire</strong> from Pi Pin 2 to HC-SR04 VCC. Label near where it leaves the Pi header.</td><td class="preview"><img src="../reference/labels/ptouch-v2/09_sensor_5v.png" alt=""></td></tr>
+      <tr><td class="num">10</td><td class="name">SENSOR GND</td><td class="where">The <strong>ground wire</strong> from Pi Pin 9 to HC-SR04 GND. Label near the Pi end.</td><td class="preview"><img src="../reference/labels/ptouch-v2/10_sensor_gnd.png" alt=""></td></tr>
+      <tr><td class="num">11</td><td class="name">PAN SERVO</td><td class="where">The signal wire going to the <strong>pan (horizontal) servo</strong> on the pan/tilt platform. Connected to <strong>GPIO 12</strong>. Label where the wire meets the servo connector.</td><td class="preview"><img src="../reference/labels/ptouch-v2/11_pan_servo.png" alt=""></td></tr>
+      <tr><td class="num">12</td><td class="name">TILT SERVO</td><td class="where">The signal wire going to the <strong>tilt (vertical) servo</strong>. Connected to <strong>GPIO 13</strong>. Label at the servo connector end.</td><td class="preview"><img src="../reference/labels/ptouch-v2/12_tilt_servo.png" alt=""></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- POWER -->
+<section class="label-section reveal">
+  <div class="label-section-hdr">
+    <span class="label-section-dot" style="background:var(--orange)"></span>
+    <span class="label-section-title">Power</span>
+    <span class="label-section-count">13&ndash;14, 21&ndash;22</span>
+  </div>
+  <table class="label-table">
+    <thead><tr><th>#</th><th>Label</th><th>Stick it on</th><th>Preview</th></tr></thead>
+    <tbody>
+      <tr><td class="num">13</td><td class="name">18650 WIRE</td><td class="where">The <strong>positive and negative leads</strong> running from the 18650 battery holder to the Smart Car Board / L298N +12V input. Label both wires near the battery holder.</td><td class="preview"><img src="../reference/labels/ptouch-v2/13_18650_wire.png" alt=""></td></tr>
+      <tr><td class="num">14</td><td class="name">COMMON GND</td><td class="where">The <strong>ground bridge wire</strong> between Pi GND (Pin 6) and L298N GND. This is critical &mdash; without it, GPIO signals won't reference correctly. Label both ends.</td><td class="preview"><img src="../reference/labels/ptouch-v2/14_common_gnd.png" alt=""></td></tr>
+      <tr><td class="num">21</td><td class="name">PWR 18650</td><td class="where">Stick directly on the <strong>18650 battery holder</strong> housing. Indicates this is the motor power source (7.4V).</td><td class="preview"><img src="../reference/labels/ptouch-v2/21_pwr_18650.png" alt=""></td></tr>
+      <tr><td class="num">22</td><td class="name">PWR BANK</td><td class="where">Stick on or next to the <strong>USB-C power bank</strong>. Indicates this powers the Pi 5 (5V/3A). Place where it's visible when mounted on chassis.</td><td class="preview"><img src="../reference/labels/ptouch-v2/22_pwr_bank.png" alt=""></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- BOARDS -->
+<section class="label-section reveal">
+  <div class="label-section-hdr">
+    <span class="label-section-dot" style="background:var(--ink)"></span>
+    <span class="label-section-title">Board Identification</span>
+    <span class="label-section-count">15&ndash;20</span>
+  </div>
+  <table class="label-table">
+    <thead><tr><th>#</th><th>Label</th><th>Stick it on</th><th>Preview</th></tr></thead>
+    <tbody>
+      <tr><td class="num">15</td><td class="name">RASPBERRY PI 5</td><td class="where">Stick on any <strong>visible flat surface of the Pi 5</strong> &mdash; top of the board near the edge, avoiding the GPIO header and heat sink. Should be readable when looking down at the chassis.</td><td class="preview"><img src="../reference/labels/ptouch-v2/15_pi5.png" alt=""></td></tr>
+      <tr><td class="num">16</td><td class="name">L298N</td><td class="where">Stick on the <strong>L298N motor driver board</strong> &mdash; the flat area next to the heat sink. Identifies the motor controller.</td><td class="preview"><img src="../reference/labels/ptouch-v2/16_l298n.png" alt=""></td></tr>
+      <tr><td class="num">17</td><td class="name">HC-SR04</td><td class="where">Stick on the <strong>back of the ultrasonic sensor</strong> PCB, or on the chassis surface directly below the sensor mount. Identifies the range finder.</td><td class="preview"><img src="../reference/labels/ptouch-v2/17_hcsr04.png" alt=""></td></tr>
+      <tr><td class="num">18</td><td class="name">DIVIDER</td><td class="where">Stick near the <strong>voltage divider resistors</strong> (1k&Omega; + 2k&Omega;). If soldered on a small breadboard, label the breadboard. If inline, wrap around the junction. Critical safety component &mdash; 5V &rarr; 3.3V for ECHO pin.</td><td class="preview"><img src="../reference/labels/ptouch-v2/18_divider.png" alt=""></td></tr>
+      <tr><td class="num">19</td><td class="name">ARDUCAM</td><td class="where">Stick on the <strong>camera ribbon cable</strong> near where it exits the Pi&rsquo;s CSI port, or on the camera module housing if there&rsquo;s space. Identifies the IMX708 wide-angle camera.</td><td class="preview"><img src="../reference/labels/ptouch-v2/19_arducam.png" alt=""></td></tr>
+      <tr><td class="num">20</td><td class="name">PAN/TILT</td><td class="where">Stick on the <strong>pan/tilt platform base</strong> &mdash; the Arducam B0283 bracket. Place where it won&rsquo;t interfere with servo movement.</td><td class="preview"><img src="../reference/labels/ptouch-v2/20_pantilt.png" alt=""></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ORIENTATION -->
+<section class="label-section reveal">
+  <div class="label-section-hdr">
+    <span class="label-section-dot" style="background:var(--purple)"></span>
+    <span class="label-section-title">Orientation</span>
+    <span class="label-section-count">23&ndash;26</span>
+  </div>
+  <table class="label-table">
+    <thead><tr><th>#</th><th>Label</th><th>Stick it on</th><th>Preview</th></tr></thead>
+    <tbody>
+      <tr><td class="num">23</td><td class="name">FRONT</td><td class="where">Stick on the <strong>front edge of the chassis</strong> frame &mdash; the side the ultrasonic sensor faces. Arrow should point forward (direction of travel). This is the most important orientation label.</td><td class="preview"><img src="../reference/labels/ptouch-v2/23_front.png" alt=""></td></tr>
+      <tr><td class="num">24</td><td class="name">LEFT</td><td class="where">Stick on the <strong>left side rail</strong> of the chassis (left when looking from behind). Motor pair FL + RL is on this side.</td><td class="preview"><img src="../reference/labels/ptouch-v2/24_left.png" alt=""></td></tr>
+      <tr><td class="num">25</td><td class="name">RIGHT</td><td class="where">Stick on the <strong>right side rail</strong>. Motor pair FR + RR is on this side.</td><td class="preview"><img src="../reference/labels/ptouch-v2/25_right.png" alt=""></td></tr>
+      <tr><td class="num">26</td><td class="name">CAM UP</td><td class="where">Stick on the <strong>PVC mast</strong> near the top, with the arrow pointing upward. Indicates correct mast orientation so the camera faces the right direction after assembly.</td><td class="preview"><img src="../reference/labels/ptouch-v2/26_cam_up.png" alt=""></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- BRAND -->
+<section class="label-section reveal">
+  <div class="label-section-hdr">
+    <span class="label-section-dot" style="background:var(--red)"></span>
+    <span class="label-section-title">Branding</span>
+    <span class="label-section-count">27</span>
+  </div>
+  <table class="label-table">
+    <thead><tr><th>#</th><th>Label</th><th>Stick it on</th><th>Preview</th></tr></thead>
+    <tbody>
+      <tr><td class="num">27</td><td class="name">ELKTRON</td><td class="where">Stick on the <strong>rear face of the chassis</strong> &mdash; the back panel or bottom plate rear edge. This is the name badge. Centered, level, visible when the bot drives away from you.</td><td class="preview"><img src="../reference/labels/ptouch-v2/27_elktron.png" alt=""></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="print-note">ELK-ESC-LBL-001 &mdash; Print this page for reference during assembly. Labels printed on Brother P-touch (12mm TZe tape).</div>
+
+</div>
+
+<script>
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const siblings = [...e.target.parentElement.querySelectorAll('.reveal')];
+      const idx = siblings.indexOf(e.target);
+      e.target.style.transitionDelay = `${idx * 60}ms`;
+      e.target.classList.add('vis');
+      obs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
