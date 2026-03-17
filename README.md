@@ -23,7 +23,7 @@ Data center technicians spend 2+ hours per vendor escort — walking alongside c
 <table>
 <tr>
 <td align="center" width="50%">
-<img src="progression/chassis-l298n-full.jpg" width="360" alt="Escort Bot — assembled chassis with L298N motor driver" />
+<img src="img/escort-bot-render.png" width="360" alt="Escort Bot — fully assembled 3D render with mast and pan-tilt camera" />
 <h3>Escort Bot</h3>
 <code>Raspberry Pi 5 · YOLOv8n · 4WD Chassis</code>
 <br/><br/>
