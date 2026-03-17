@@ -96,7 +96,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .pip.current{background:var(--accent);width:20px;border-radius:3px;opacity:1}
 
 /* INTERSTITIAL */
-.interstitial{position:fixed;inset:0;z-index:200;background:rgba(26,31,54,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:28px;padding:32px;opacity:0;pointer-events:none;transition:opacity .4s var(--ease-out-quart)}
+.interstitial{position:fixed;inset:0;z-index:200;background:rgba(26,31,54,.95);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:32px;opacity:0;pointer-events:none;transition:opacity .4s var(--ease-out-quart);overflow-y:auto}
 .interstitial.show{opacity:1;pointer-events:auto}
 .interstitial h2{color:#fff;font-size:2.25rem;font-weight:800;text-align:center;letter-spacing:-.02em}
 .interstitial p{color:rgba(255,255,255,.75);font-size:1.0625rem;text-align:center;max-width:480px;line-height:1.7}
@@ -166,6 +166,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="danger-badge">!</div>
   <h2>STOP — Read This Carefully</h2>
   <p>The HC-SR04 ECHO pin outputs <strong>5 volts</strong>. Your Raspberry Pi GPIO pins can only handle <strong>3.3 volts</strong>. Without a voltage divider, you <strong>will permanently damage your Pi</strong>.</p>
+  <p style="margin-top:12px;font-size:.8rem;color:var(--text-mid)">Use your <strong>100Ω + 200Ω resistors</strong> on the breadboard (same 1:2 ratio).</p>
+  <img src="assets/IMG_1130.png" alt="Breadboard" style="margin-top:12px;max-width:140px;border-radius:var(--radius-sm);border:1px solid rgba(255,255,255,.15);flex-shrink:0" />
   <button class="btn btn-next" onclick="dismissInterstitial()">I Understand — Show Me How</button>
 </div>
 
@@ -447,12 +449,14 @@ const STEPS=[
  diagram:'hcsr04-trig'},
 
 {title:"HC-SR04 — ECHO + Voltage Divider",
- info:`On the breadboard:<br>
- 1. <span class="pin-ref">ECHO</span> → <strong>1kΩ resistor</strong> → junction<br>
- 2. Junction → wire to <span class="pin-ref">Pin 18</span> (GPIO24)<br>
- 3. Junction → <strong>2kΩ resistor</strong> → GND<br><br>
- Result: 5V × (2k ÷ 3k) = <strong>3.33V</strong> — safe for Pi.`,
- why:"ECHO outputs 5V. Pi GPIO is 3.3V max. Without the divider, you fry the Pi.",
+ info:`On the breadboard — all row 4 holes (a-e) are internally connected:<br>
+ 1. ECHO wire → hole <span class="pin-ref">a2</span> → <strong>100Ω resistor</strong> across to <span class="pin-ref">c2</span><br>
+ 2. Short jumper wire from <span class="pin-ref">c2</span> down to <span class="pin-ref">b4</span><br>
+ 3. <strong>200Ω resistor</strong> from <span class="pin-ref">d4</span> down to <span class="pin-ref">d8</span> → GND<br>
+ 4. Wire from <span class="pin-ref">e4</span> → <span class="pin-ref">Pin 18</span> (GPIO24)<br><br>
+ Each connection gets its own hole. Row 4 connects them internally.<br>
+ Result: 5V × (200 ÷ 300) = <strong>3.33V</strong> — safe for Pi.`,
+ why:"ECHO outputs 5V. Pi GPIO is 3.3V max. Without the divider, you fry the Pi. One lead per hole — never stack wires in the same hole.",
  diagram:'voltage-divider',danger:'danger',interstitial:true,
  callout:"DO NOT skip the voltage divider. 5V on a 3.3V GPIO = permanent damage.",
  test:`python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"`},
@@ -505,7 +509,8 @@ const CHECKLIST_ITEMS=[
   "Pi GND (Pin 6) → L298N GND","ENA/ENB jumpers ON",
   "HC-SR04 VCC → Pin 2 (5V)","HC-SR04 GND → Pin 6",
   "HC-SR04 TRIG → Pin 22 (GPIO25)",
-  "HC-SR04 ECHO → voltage divider → Pin 18 (GPIO24)",
+  "HC-SR04 ECHO → a2, 100Ω a2-c2, jumper c2→b4, 200Ω d4-d8, wire e4→Pin 18",
+  "200Ω bottom (d8) → GND (Pin 20)",
   "Pan servo: Pin 32 + Pin 4 + Pin 9",
   "Tilt servo: Pin 33 + Pin 2 + Pin 14",
   "Camera ribbon in CAM port (blue side out)",
@@ -652,43 +657,147 @@ function buildDiagram(type){
   }
 
   case 'voltage-divider': {
-    const pi=piHeader(470,10,[18]);
-    const hc=hcsr04Board(20,30,['ECHO']);
+    const pi=piHeader(530,30,[18,20]);
+    const hc=hcsr04Board(20,50,['ECHO']);
     let c=hc.svg;
-    // Breadboard
-    c+=`<rect x="180" y="10" width="240" height="210" rx="8" fill="#f0ede4" stroke="#c9c3b3" stroke-width="1.5"/>`;
-    c+=`<text x="300" y="28" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="9" fill="var(--text-mid)" letter-spacing=".06em">BREADBOARD</text>`;
-    // Breadboard holes (grid)
-    for(let r=0;r<8;r++) for(let col=0;col<10;col++){
-      c+=`<circle cx="${200+col*20}" cy="${50+r*20}" r="2" fill="rgba(0,0,0,.08)"/>`;
+
+    // ─── Realistic Breadboard (matches IMG_1130.png) ───
+    const bbx=160,bby=10,bbw=320,bbh=280;
+    // Outer body — white with subtle shadow
+    c+=`<rect x="${bbx}" y="${bby}" width="${bbw}" height="${bbh}" rx="6" fill="#f5f3ee" stroke="#d0ccc0" stroke-width="1.5"/>`;
+    // Inner border
+    c+=`<rect x="${bbx+3}" y="${bby+3}" width="${bbw-6}" height="${bbh-6}" rx="4" fill="none" stroke="#e0ddd4" stroke-width=".5"/>`;
+
+    // Power rails — LEFT side (- blue outer, + red inner)
+    // Blue (-) rail
+    c+=`<line x1="${bbx+9}" y1="${bby+20}" x2="${bbx+9}" y2="${bby+bbh-20}" stroke="#4a90d9" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`;
+    c+=`<text x="${bbx+9}" y="${bby+14}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#4a90d9">−</text>`;
+    c+=`<text x="${bbx+9}" y="${bby+bbh-8}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#4a90d9">−</text>`;
+    // Red (+) rail
+    c+=`<line x1="${bbx+20}" y1="${bby+20}" x2="${bbx+20}" y2="${bby+bbh-20}" stroke="#e53935" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`;
+    c+=`<text x="${bbx+20}" y="${bby+14}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#e53935">+</text>`;
+    c+=`<text x="${bbx+20}" y="${bby+bbh-8}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#e53935">+</text>`;
+    // Left rail holes (two columns)
+    for(let r=0;r<12;r++){
+      c+=`<rect x="${bbx+7}" y="${bby+22+r*20}" width="4" height="4" rx=".5" fill="rgba(0,0,0,.06)" stroke="rgba(74,144,217,.2)" stroke-width=".5"/>`;
+      c+=`<rect x="${bbx+18}" y="${bby+22+r*20}" width="4" height="4" rx=".5" fill="rgba(0,0,0,.06)" stroke="rgba(229,57,53,.2)" stroke-width=".5"/>`;
     }
-    // 1kΩ resistor
-    const r1x1=220,r1x2=280,r1y=70;
-    c+=`<rect x="${r1x1}" y="${r1y-6}" width="${r1x2-r1x1}" height="12" rx="3" fill="#d4a574" stroke="#a07040" stroke-width="1.5"/>`;
-    c+=`<text x="${(r1x1+r1x2)/2}" y="${r1y-10}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="10" fill="var(--wire-orange)">1kΩ</text>`;
-    // Junction node
-    const jx=300,jy=90;
-    c+=`<circle cx="${jx}" cy="${jy}" r="5" fill="var(--accent)" class="pin-active"/>`;
-    c+=`<text x="${jx+10}" y="${jy+4}" font-family="var(--mono)" font-size="8" font-weight="700" fill="var(--accent)">JUNCTION</text>`;
-    // 2kΩ resistor (vertical)
-    c+=`<rect x="${jx-6}" y="${jy+20}" width="12" height="60" rx="3" fill="#d4a574" stroke="#a07040" stroke-width="1.5"/>`;
-    c+=`<text x="${jx+14}" y="${jy+55}" font-family="var(--mono)" font-weight="800" font-size="10" fill="var(--wire-orange)">2kΩ</text>`;
-    // GND label
-    c+=`<text x="${jx}" y="${jy+100}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="10" fill="var(--wire-black)">→ GND</text>`;
+
+    // Power rails — RIGHT side (+ red inner, - blue outer)
+    // Red (+) rail
+    c+=`<line x1="${bbx+bbw-20}" y1="${bby+20}" x2="${bbx+bbw-20}" y2="${bby+bbh-20}" stroke="#e53935" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`;
+    c+=`<text x="${bbx+bbw-20}" y="${bby+14}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#e53935">+</text>`;
+    c+=`<text x="${bbx+bbw-20}" y="${bby+bbh-8}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#e53935">+</text>`;
+    // Blue (-) rail
+    c+=`<line x1="${bbx+bbw-9}" y1="${bby+20}" x2="${bbx+bbw-9}" y2="${bby+bbh-20}" stroke="#4a90d9" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`;
+    c+=`<text x="${bbx+bbw-9}" y="${bby+14}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#4a90d9">−</text>`;
+    c+=`<text x="${bbx+bbw-9}" y="${bby+bbh-8}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="7" fill="#4a90d9">−</text>`;
+    // Right rail holes (two columns)
+    for(let r=0;r<12;r++){
+      c+=`<rect x="${bbx+bbw-22}" y="${bby+22+r*20}" width="4" height="4" rx=".5" fill="rgba(0,0,0,.06)" stroke="rgba(229,57,53,.2)" stroke-width=".5"/>`;
+      c+=`<rect x="${bbx+bbw-11}" y="${bby+22+r*20}" width="4" height="4" rx=".5" fill="rgba(0,0,0,.06)" stroke="rgba(74,144,217,.2)" stroke-width=".5"/>`;
+    }
+
+    // Center channel (divider groove)
+    c+=`<rect x="${bbx+28}" y="${bby+16}" width="${bbw-56}" height="${bbh-32}" rx="3" fill="#faf9f5" stroke="#e8e4da" stroke-width=".5"/>`;
+    c+=`<line x1="${bbx+28+((bbw-56)/2)}" y1="${bby+16}" x2="${bbx+28+((bbw-56)/2)}" y2="${bby+bbh-16}" stroke="#ddd8cc" stroke-width="1.5"/>`;
+
+    // Column labels (a-e left, f-j right)
+    const cols='abcde';const cols2='fghij';
+    const holeStartX=bbx+42,holeGap=20,halfGap=(bbw-56)/2;
+    // Top labels
+    for(let i=0;i<5;i++){
+      c+=`<text x="${holeStartX+i*holeGap}" y="${bby+26}" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="6" fill="#b0a890">${cols[i]}</text>`;
+      c+=`<text x="${holeStartX+halfGap+10+i*holeGap}" y="${bby+26}" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="6" fill="#b0a890">${cols2[i]}</text>`;
+    }
+    // Bottom labels
+    for(let i=0;i<5;i++){
+      c+=`<text x="${holeStartX+i*holeGap}" y="${bby+bbh-20}" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="6" fill="#b0a890">${cols[i]}</text>`;
+      c+=`<text x="${holeStartX+halfGap+10+i*holeGap}" y="${bby+bbh-20}" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="6" fill="#b0a890">${cols2[i]}</text>`;
+    }
+
+    // Hole grid — left half (a-e) and right half (f-j), 10 rows
+    const rowStartY=bby+36;
+    for(let r=0;r<10;r++){
+      // Row number labels
+      c+=`<text x="${holeStartX-10}" y="${rowStartY+r*22+4}" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="6" fill="#b0a890">${r+1}</text>`;
+      c+=`<text x="${holeStartX+halfGap+10+4*holeGap+10}" y="${rowStartY+r*22+4}" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="6" fill="#b0a890">${r+1}</text>`;
+      // Left holes (a-e)
+      for(let col=0;col<5;col++){
+        c+=`<rect x="${holeStartX+col*holeGap-2}" y="${rowStartY+r*22-2}" width="4.5" height="4.5" rx=".8" fill="rgba(0,0,0,.04)" stroke="rgba(0,0,0,.1)" stroke-width=".4"/>`;
+      }
+      // Right holes (f-j)
+      for(let col=0;col<5;col++){
+        c+=`<rect x="${holeStartX+halfGap+10+col*holeGap-2}" y="${rowStartY+r*22-2}" width="4.5" height="4.5" rx=".8" fill="rgba(0,0,0,.04)" stroke="rgba(0,0,0,.1)" stroke-width=".4"/>`;
+      }
+    }
+
+    // ─── 100Ω Resistor (horizontal, row 2, columns a→c) ───
+    const r1y=rowStartY+1*22; // row 2
+    const r1x1=holeStartX,r1x2=holeStartX+2*holeGap; // a2 to c2
+    // Resistor body
+    c+=`<rect x="${r1x1+6}" y="${r1y-5}" width="${r1x2-r1x1-12}" height="10" rx="3" fill="#d4a574" stroke="#a07040" stroke-width="1.2"/>`;
+    // Resistor leads
+    c+=`<line x1="${r1x1}" y1="${r1y}" x2="${r1x1+6}" y2="${r1y}" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>`;
+    c+=`<line x1="${r1x2-6}" y1="${r1y}" x2="${r1x2}" y2="${r1y}" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>`;
+    // Lead dots in holes
+    c+=`<circle cx="${r1x1}" cy="${r1y}" r="2.5" fill="#888"/>`;  // a2
+    c+=`<circle cx="${r1x2}" cy="${r1y}" r="2.5" fill="#888"/>`;  // c2
+    c+=`<text x="${(r1x1+r1x2)/2}" y="${r1y-10}" text-anchor="middle" font-family="var(--mono)" font-weight="800" font-size="10" fill="var(--wire-orange)">100Ω</text>`;
+    // Hole position labels
+    c+=`<text x="${r1x1}" y="${r1y+12}" text-anchor="middle" font-family="var(--mono)" font-size="6" font-weight="700" fill="var(--wire-purple)" opacity=".8">a2</text>`;
+    c+=`<text x="${r1x2}" y="${r1y+12}" text-anchor="middle" font-family="var(--mono)" font-size="6" font-weight="700" fill="var(--wire-purple)" opacity=".8">c2</text>`;
+
+    // ─── Row 4 = junction row (a-e internally connected) ───
+    // Spread connections: a4=ECHO wire, b4=100Ω jumper, d4=200Ω top, e4=GPIO out
+    const row4y=rowStartY+3*22;
+    const a4x=holeStartX, b4x=holeStartX+1*holeGap, c4x=holeStartX+2*holeGap;
+    const d4x=holeStartX+3*holeGap, e4x=holeStartX+4*holeGap;
+
+    // Row highlight showing internal connection (b4 through e4)
+    c+=`<rect x="${b4x-4}" y="${row4y-5}" width="${e4x-b4x+8}" height="10" rx="3" fill="rgba(39,65,231,0.08)" stroke="rgba(39,65,231,0.15)" stroke-width=".5"/>`;
+    c+=`<text x="${(b4x+e4x)/2}" y="${row4y-9}" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="700" fill="var(--accent)" opacity=".7">ROW 4 — internally connected</text>`;
+
+    // Hole markers for used holes with position labels (a4 unused — ECHO enters at a2)
+    c+=`<circle cx="${b4x}" cy="${row4y}" r="2.5" fill="#888"/>`;
+    c+=`<text x="${b4x}" y="${row4y+12}" text-anchor="middle" font-family="var(--mono)" font-size="6" font-weight="700" fill="#888" opacity=".8">b4</text>`;
+    c+=`<circle cx="${d4x}" cy="${row4y}" r="2.5" fill="#888"/>`;
+    c+=`<text x="${d4x}" y="${row4y+12}" text-anchor="middle" font-family="var(--mono)" font-size="6" font-weight="700" fill="#888" opacity=".8">d4</text>`;
+    c+=`<circle cx="${e4x}" cy="${row4y}" r="2.5" fill="var(--accent)"/>`;
+    c+=`<text x="${e4x}" y="${row4y+12}" text-anchor="middle" font-family="var(--mono)" font-size="6" font-weight="700" fill="var(--accent)" opacity=".8">e4</text>`;
+
+    // ─── 200Ω Resistor (vertical, d4→d8) ───
+    const r2top=row4y,r2bot=rowStartY+7*22;
+    c+=`<rect x="${d4x-5}" y="${r2top+8}" width="10" height="${r2bot-r2top-16}" rx="3" fill="#d4a574" stroke="#a07040" stroke-width="1.2"/>`;
+    // Leads
+    c+=`<line x1="${d4x}" y1="${r2top}" x2="${d4x}" y2="${r2top+8}" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>`;
+    c+=`<line x1="${d4x}" y1="${r2bot-8}" x2="${d4x}" y2="${r2bot}" stroke="#888" stroke-width="1.5" stroke-linecap="round"/>`;
+    c+=`<circle cx="${d4x}" cy="${r2bot}" r="2.5" fill="#888"/>`;  // d8
+    c+=`<text x="${d4x}" y="${r2bot+12}" text-anchor="middle" font-family="var(--mono)" font-size="6" font-weight="700" fill="#888" opacity=".8">d8</text>`;
+    c+=`<text x="${d4x+16}" y="${(r2top+r2bot)/2+3}" font-family="var(--mono)" font-weight="800" font-size="10" fill="var(--wire-orange)">200Ω</text>`;
+
+    // Wire: 100Ω output (c2) → jumper down to b4
+    c+=wirePath(r1x2,r1y,b4x,row4y,'var(--wire-purple)',0.5,true);
+
     // Pi header
     c+=pi.svg;
-    // Wires
+    // Wire: ECHO → a4 (directly to row 4, not through resistor)
+    // Actually ECHO goes through 100Ω first: ECHO → a2 → 100Ω → c2 → jumper → b4 (row 4)
     const echoPos=hc.pinPos('ECHO');
     c+=wirePath(echoPos.x,echoPos.y,r1x1,r1y,'var(--wire-purple)',0.2,false);
-    c+=wirePath(r1x2,r1y,jx,jy,'var(--wire-purple)',0.5,true);
+    // Wire: e4 → GPIO24 (Pin 18)
     const gpioPos=pi.pinPos(18);
-    c+=wirePath(jx,jy,gpioPos.x,gpioPos.y,'var(--accent)',0.8,false);
-    c+=wirePath(jx,jy+6,jx,jy+20,'var(--wire-black)',0.6,true);
-    c+=wirePath(jx,jy+80,jx,jy+90,'var(--wire-black)',0.9,true);
+    c+=wirePath(e4x,row4y,gpioPos.x,gpioPos.y,'var(--accent)',0.8,false);
+
+    // Wire: d8 (200Ω bottom) → Pi GND (Pin 20)
+    const gndPos=pi.pinPos(20);
+    c+=wirePath(d4x,r2bot,gndPos.x,gndPos.y,'var(--wire-black)',1.0,false);
+    c+=labelTag((d4x+gndPos.x)/2,r2bot+20,'GND (Pin 20)','var(--wire-black)','middle',1.1);
+
     // Voltage math box
-    c+=`<rect x="180" y="198" width="240" height="24" rx="4" fill="var(--bg-dark)" class="stagger" style="--del:1.2s"/>`;
-    c+=`<text x="300" y="214" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="10" fill="#a5d6a7" class="stagger" style="--del:1.3s">5V × (2k ÷ 3k) = 3.33V ✓ Safe for Pi</text>`;
-    return mkSvg(660,235,c);
+    c+=`<rect x="${bbx}" y="${bby+bbh+6}" width="${bbw}" height="24" rx="4" fill="var(--bg-dark)" class="stagger" style="--del:1.2s"/>`;
+    c+=`<text x="${bbx+bbw/2}" y="${bby+bbh+22}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="10" fill="#a5d6a7" class="stagger" style="--del:1.3s">5V × (200 ÷ 300) = 3.33V ✓ Safe for Pi</text>`;
+    return mkSvg(720,310,c);
   }
 
   case 'pan-servo': {

@@ -15,7 +15,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 ::selection{background:rgba(39,65,231,0.12);color:#0a0e1a}
 
 /* ── Three.js Full Background ── */
-#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.35}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.12}
 
 /* ── Nav ── */
 .nav{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,40px);background:rgba(250,251,254,0.6);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(39,65,231,0.06);z-index:100;transition:all 0.4s cubic-bezier(0.16,1,0.3,1)}
@@ -33,7 +33,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 .nav-cta:hover::before{opacity:1}
 
 /* ── Hero ── */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding-top:56px}
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding-top:56px;background:linear-gradient(135deg,rgba(250,251,254,0.92) 0%,rgba(245,243,248,0.88) 50%,rgba(250,251,254,0.92) 100%)}
 .hero-content{position:relative;z-index:2;max-width:600px;padding:0 clamp(16px,4vw,40px);margin-left:clamp(24px,8vw,120px)}
 .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;font-size:0.6875rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2741E7;background:rgba(39,65,231,0.06);border:1px solid rgba(39,65,231,0.12);border-radius:100px;margin-bottom:24px;animation:badge-pulse 4s ease infinite}
 .hero-badge .dot{width:7px;height:7px;border-radius:50%;background:#2741E7;box-shadow:0 0 8px rgba(39,65,231,0.6);animation:dot-pulse 2s ease infinite}
@@ -48,7 +48,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 .hero-stat-label{font-size:0.6875rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6380;margin-top:6px}
 
 /* ── Content ── */
-.main{position:relative;z-index:1;background:linear-gradient(to bottom,rgba(250,251,254,0.7) 0%,rgba(250,251,254,0.95) 15%,#fafbfe 30%)}
+.main{position:relative;z-index:1;background:#fafbfe}
 .container{max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
 .section{padding:clamp(48px,8vw,100px) 0}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:16px;border-bottom:1px solid rgba(39,65,231,0.08);position:relative}
@@ -71,8 +71,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 .tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;border-radius:100px;line-height:1.3}
 .tag::before{content:'';width:5px;height:5px;border-radius:50%;animation:tag-dot 3s ease infinite}
 .tag-3d{background:rgba(39,65,231,0.06);color:#2741E7}.tag-3d::before{background:#2741E7;box-shadow:0 0 6px rgba(39,65,231,0.5)}
-.tag-css{background:rgba(22,163,74,0.06);color:#16a34a}.tag-css::before{background:#16a34a;box-shadow:0 0 6px rgba(22,163,74,0.5)}
-.tag-app{background:rgba(217,119,6,0.06);color:#d97706}.tag-app::before{background:#d97706;box-shadow:0 0 6px rgba(217,119,6,0.5)}
+.tag-sim{background:rgba(124,58,237,0.06);color:#7c3aed}.tag-sim::before{background:#7c3aed;box-shadow:0 0 6px rgba(124,58,237,0.5)}
+.tag-guide{background:rgba(13,148,136,0.06);color:#0d9488}.tag-guide::before{background:#0d9488;box-shadow:0 0 6px rgba(13,148,136,0.5)}
+.tag-tool{background:rgba(217,119,6,0.06);color:#d97706}.tag-tool::before{background:#d97706;box-shadow:0 0 6px rgba(217,119,6,0.5)}
+.tag-ref{background:rgba(71,85,105,0.06);color:#475569}.tag-ref::before{background:#475569;box-shadow:0 0 6px rgba(71,85,105,0.5)}
+.tag-present{background:rgba(219,39,119,0.06);color:#db2777}.tag-present::before{background:#db2777;box-shadow:0 0 6px rgba(219,39,119,0.5)}
 
 /* ── Footer ── */
 .footer{position:relative;z-index:1;padding:48px 0;border-top:1px solid rgba(39,65,231,0.08);text-align:center}
@@ -118,8 +121,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 </head>
 <body>
 
-<div class="scan-line"></div>
-<div class="grid-overlay"></div>
+<!-- scan-line and grid-overlay removed — too much blue -->
+
 <canvas id="bgCanvas"></canvas>
 
 <!-- Nav -->
@@ -144,7 +147,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
     <h1>DC Floor<br><span class="accent">Robotics</span></h1>
     <p>Two autonomous robots built for the data center floor. An escort bot that shadows vendors through aisles and a robotic arm for precision rack operations.</p>
     <div class="hero-stats">
-      <div class="hero-stat"><span class="hero-stat-val">48</span><span class="hero-stat-label">Interactive Pages</span></div>
+      <div class="hero-stat"><span class="hero-stat-val">46</span><span class="hero-stat-label">Interactive Pages</span></div>
       <div class="hero-stat"><span class="hero-stat-val">15</span><span class="hero-stat-label">Assembly Steps</span></div>
       <div class="hero-stat"><span class="hero-stat-val">2</span><span class="hero-stat-label">Robots</span></div>
     </div>
@@ -155,19 +158,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 
 <!-- Escort Bot -->
 <section class="section" id="escort-bot">
-  <div class="section-header"><span class="section-title">Escort Bot</span><span class="section-count">11 pages</span></div>
+  <div class="section-header"><span class="section-title">Escort Bot</span><span class="section-count">10 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0s" href="escort-bot/assembly.html"><div class="card-name">Assembly Instructions <span class="arrow">→</span></div><div class="card-desc">15-step interactive 3D build guide with exploded views and progressive cable spawning</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.3s" href="escort-bot/simulation.html"><div class="card-name">DC Floor Simulation <span class="arrow">→</span></div><div class="card-desc">10-rack data center with autonomous escort bot AI and collision detection</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.6s" href="escort-bot/BUILD-GUIDE.html"><div class="card-name">Build Guide <span class="arrow">→</span></div><div class="card-desc">Comprehensive step-by-step with 3D component models</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.2s" href="escort-bot/wiring-guide.html"><div class="card-name">Wiring Guide <span class="arrow">→</span></div><div class="card-desc">Interactive GPIO wiring — L298N motor driver, HC-SR04 ultrasonic</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:5.3s;--float-delay:0.5s" href="escort-bot/hardware-showcase.html"><div class="card-name">Hardware Showcase <span class="arrow">→</span></div><div class="card-desc">Every physical component rendered in interactive 3D</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.8s;--float-delay:0.1s" href="escort-bot/hardware.html"><div class="card-name">Hardware Reference <span class="arrow">→</span></div><div class="card-desc">Specs, pin diagrams, datasheets for each component</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.4s" href="escort-bot/mast-hardware.html"><div class="card-name">Mast Assembly <span class="arrow">→</span></div><div class="card-desc">PVC camera mast, pan-tilt servo mount, positioning</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.7s" href="escort-bot/showcase.html"><div class="card-name">Overview <span class="arrow">→</span></div><div class="card-desc">Escort bot scope, architecture, and capabilities</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.8s" href="escort-bot/controller.html"><div class="card-name">Controller <span class="arrow">→</span></div><div class="card-desc">Remote control interface</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.9s" href="escort-bot/label-guide.html"><div class="card-name">Label Placement Guide <span class="arrow">→</span></div><div class="card-desc">Where to stick all 27 P-touch labels on the bot</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:1.0s" href="escort-bot/wiring-wizard.html"><div class="card-name">Wiring Wizard <span class="arrow">→</span></div><div class="card-desc">Step-by-step interactive wiring walkthrough with visual board diagrams</div><span class="tag tag-css">CSS</span></a>
+    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0s" href="escort-bot/assembly.html"><div class="card-name">Assembly Instructions <span class="arrow">→</span></div><div class="card-desc">15-step interactive 3D build guide with exploded views and progressive cable spawning</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.3s" href="escort-bot/simulation.html"><div class="card-name">DC Floor Simulation <span class="arrow">→</span></div><div class="card-desc">10-rack data center with autonomous escort bot AI and collision detection</div><span class="tag tag-sim">Simulation</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.6s" href="escort-bot/BUILD-GUIDE.html"><div class="card-name">Build Guide <span class="arrow">→</span></div><div class="card-desc">Comprehensive step-by-step with 3D component models</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.2s" href="escort-bot/wiring-guide.html"><div class="card-name">Wiring Guide <span class="arrow">→</span></div><div class="card-desc">Interactive GPIO wiring — L298N, HC-SR04, servos, power. Overview + step-by-step modes</div><span class="tag tag-guide">Step-by-Step</span></a>
+    <a class="card reveal" style="--float-dur:5.3s;--float-delay:0.5s" href="escort-bot/hardware-showcase.html"><div class="card-name">Hardware Showcase <span class="arrow">→</span></div><div class="card-desc">Every physical component rendered in interactive 3D</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.8s;--float-delay:0.1s" href="escort-bot/hardware.html"><div class="card-name">Hardware Reference <span class="arrow">→</span></div><div class="card-desc">Specs, pin diagrams, datasheets for each component</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.4s" href="escort-bot/mast-hardware.html"><div class="card-name">Mast Assembly <span class="arrow">→</span></div><div class="card-desc">PVC camera mast, pan-tilt servo mount, positioning</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.7s" href="escort-bot/showcase.html"><div class="card-name">Overview <span class="arrow">→</span></div><div class="card-desc">Escort bot scope, architecture, and capabilities</div><span class="tag tag-ref">Overview</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.8s" href="escort-bot/controller.html"><div class="card-name">Controller <span class="arrow">→</span></div><div class="card-desc">Remote control interface</div><span class="tag tag-tool">Tool</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.9s" href="escort-bot/label-guide.html"><div class="card-name">Label Placement Guide <span class="arrow">→</span></div><div class="card-desc">Where to stick all 27 P-touch labels on the bot</div><span class="tag tag-ref">Reference</span></a>
   </div>
 </section>
 
@@ -175,11 +177,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <section class="section" id="landing">
   <div class="section-header"><span class="section-title">Landing & Navigation</span><span class="section-count">5 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="robotics-site/index.html"><div class="card-name">Landing Page <span class="arrow">→</span></div><div class="card-desc">Elktron project showcase and team pitch</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="robotics-site/topology.html"><div class="card-name">System Topology <span class="arrow">→</span></div><div class="card-desc">How the arm, bot, and dashboard connect</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.4s" href="robotics-site/so101/showcase.html"><div class="card-name">SO-101 Arm <span class="arrow">→</span></div><div class="card-desc">Robotic arm scope and capabilities</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.4s;--float-delay:0.1s" href="hub.html"><div class="card-name">Hub <span class="arrow">→</span></div><div class="card-desc">Central navigation for all pages</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.3s" href="daily.html"><div class="card-name">Daily Standup <span class="arrow">→</span></div><div class="card-desc">Team sync and coordination</div><span class="tag tag-3d">Three.js</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="robotics-site/index.html"><div class="card-name">Landing Page <span class="arrow">→</span></div><div class="card-desc">Elktron project showcase and team pitch</div><span class="tag tag-ref">Showcase</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="robotics-site/topology.html"><div class="card-name">System Topology <span class="arrow">→</span></div><div class="card-desc">How the arm, bot, and dashboard connect</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.4s" href="robotics-site/so101/showcase.html"><div class="card-name">SO-101 Arm <span class="arrow">→</span></div><div class="card-desc">Robotic arm scope and capabilities</div><span class="tag tag-ref">Overview</span></a>
+    <a class="card reveal" style="--float-dur:5.4s;--float-delay:0.1s" href="hub.html"><div class="card-name">Hub <span class="arrow">→</span></div><div class="card-desc">Central navigation for all pages</div><span class="tag tag-tool">Navigation</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.3s" href="daily.html"><div class="card-name">Daily Standup <span class="arrow">→</span></div><div class="card-desc">Team sync and coordination</div><span class="tag tag-3d">Interactive 3D</span></a>
   </div>
 </section>
 
@@ -187,10 +189,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <section class="section" id="3d-models">
   <div class="section-header"><span class="section-title">3D Reference Models</span><span class="section-count">4 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0s" href="3d-reference/pi5-3d-model.html"><div class="card-name">Raspberry Pi 5 <span class="arrow">→</span></div><div class="card-desc">Interactive 3D board with labeled components</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="3d-reference/chassis_assembly_viewer.html"><div class="card-name">Chassis Assembly Viewer <span class="arrow">→</span></div><div class="card-desc">LK-COKOINO 4WD chassis interactive assembly</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.4s" href="3d-reference/chassis_glb_viewer.html"><div class="card-name">Chassis GLB Viewer <span class="arrow">→</span></div><div class="card-desc">GLB model render of the chassis</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="3d-reference/chassis_side_3d_model.html"><div class="card-name">Chassis Side 3D <span class="arrow">→</span></div><div class="card-desc">Side-view 3D model of the chassis</div><span class="tag tag-3d">Three.js</span></a>
+    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0s" href="3d-reference/pi5-3d-model.html"><div class="card-name">Raspberry Pi 5 <span class="arrow">→</span></div><div class="card-desc">Interactive 3D board with labeled components</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="3d-reference/chassis_assembly_viewer.html"><div class="card-name">Chassis Assembly Viewer <span class="arrow">→</span></div><div class="card-desc">LK-COKOINO 4WD chassis interactive assembly</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.4s" href="3d-reference/chassis_glb_viewer.html"><div class="card-name">Chassis GLB Viewer <span class="arrow">→</span></div><div class="card-desc">GLB model render of the chassis</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="3d-reference/chassis_side_3d_model.html"><div class="card-name">Chassis Side 3D <span class="arrow">→</span></div><div class="card-desc">Side-view 3D model of the chassis</div><span class="tag tag-3d">Interactive 3D</span></a>
   </div>
 </section>
 
@@ -198,14 +200,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <section class="section" id="tools">
   <div class="section-header"><span class="section-title">Dashboard & Tools</span><span class="section-count">8 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="elktron-app/index.html"><div class="card-name">Dashboard <span class="arrow">→</span></div><div class="card-desc">Unified control panel — arm, escort, scans, training</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="elktron-app/guide.html"><div class="card-name">Dashboard Guide <span class="arrow">→</span></div><div class="card-desc">Usage instructions and panel reference</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.1s" href="taskboard/index.html"><div class="card-name">Taskboard <span class="arrow">→</span></div><div class="card-desc">Team progress tracker</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.2s" href="parts-status.html"><div class="card-name">Parts Status <span class="arrow">→</span></div><div class="card-desc">Hardware parts arrival and inventory tracker</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.4s" href="shopping-list.html"><div class="card-name">Shopping List <span class="arrow">→</span></div><div class="card-desc">Components needed and purchase links</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.5s" href="raphael-checklist.html"><div class="card-name">Raphael Checklist <span class="arrow">→</span></div><div class="card-desc">Logistics and task tracking</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.6s" href="romeo-ops.html"><div class="card-name">Romeo Ops <span class="arrow">→</span></div><div class="card-desc">Operational command interface</div><span class="tag tag-app">App</span></a>
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.7s" href="sites/index.html"><div class="card-name">Sites Index <span class="arrow">→</span></div><div class="card-desc">Alternate site listing and navigation</div><span class="tag tag-app">App</span></a>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="elktron-app/index.html"><div class="card-name">Dashboard <span class="arrow">→</span></div><div class="card-desc">Unified control panel — arm, escort, scans, training</div><span class="tag tag-tool">Dashboard</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="elktron-app/guide.html"><div class="card-name">Dashboard Guide <span class="arrow">→</span></div><div class="card-desc">Usage instructions and panel reference</div><span class="tag tag-guide">Guide</span></a>
+    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.1s" href="taskboard/index.html"><div class="card-name">Taskboard <span class="arrow">→</span></div><div class="card-desc">Team progress tracker</div><span class="tag tag-tool">Tool</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.2s" href="parts-status.html"><div class="card-name">Parts Status <span class="arrow">→</span></div><div class="card-desc">Hardware parts arrival and inventory tracker</div><span class="tag tag-tool">Tracker</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.4s" href="shopping-list.html"><div class="card-name">Shopping List <span class="arrow">→</span></div><div class="card-desc">Components needed and purchase links</div><span class="tag tag-tool">Tracker</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.5s" href="raphael-checklist.html"><div class="card-name">Raphael Checklist <span class="arrow">→</span></div><div class="card-desc">Logistics and task tracking</div><span class="tag tag-tool">Tracker</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.6s" href="romeo-ops.html"><div class="card-name">Romeo Ops <span class="arrow">→</span></div><div class="card-desc">Operational command interface</div><span class="tag tag-tool">Tool</span></a>
+    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.7s" href="sites/index.html"><div class="card-name">Sites Index <span class="arrow">→</span></div><div class="card-desc">Alternate site listing and navigation</div><span class="tag tag-tool">Navigation</span></a>
   </div>
 </section>
 
@@ -213,8 +215,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <section class="section reveal" id="pitch">
   <div class="section-header"><span class="section-title">Pitch & Presentation</span><span class="section-count">2 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="pitch-deck.html"><div class="card-name">Pitch Deck <span class="arrow">→</span></div><div class="card-desc">Hackathon pitch slides and talking points</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="pitch-playbook.html"><div class="card-name">Pitch Playbook <span class="arrow">→</span></div><div class="card-desc">Strategy, narrative arc, and delivery notes</div><span class="tag tag-css">CSS</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="pitch-deck.html"><div class="card-name">Pitch Deck <span class="arrow">→</span></div><div class="card-desc">Hackathon pitch slides and talking points</div><span class="tag tag-present">Presentation</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="pitch-playbook.html"><div class="card-name">Pitch Playbook <span class="arrow">→</span></div><div class="card-desc">Strategy, narrative arc, and delivery notes</div><span class="tag tag-present">Presentation</span></a>
   </div>
 </section>
 
@@ -222,23 +224,22 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <section class="section reveal" id="topologies">
   <div class="section-header"><span class="section-title">System Topologies</span><span class="section-count">3 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0s" href="topology-deep.html"><div class="card-name">Deep Topology <span class="arrow">→</span></div><div class="card-desc">Full system architecture — hardware, software, data flow</div><span class="tag tag-3d">Three.js</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="topology-context.html"><div class="card-name">Context Topology <span class="arrow">→</span></div><div class="card-desc">Context and information flow between components</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.4s" href="topology-folders.html"><div class="card-name">Folder Topology <span class="arrow">→</span></div><div class="card-desc">Repository directory structure visualization</div><span class="tag tag-css">CSS</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0s" href="topology-deep.html"><div class="card-name">Deep Topology <span class="arrow">→</span></div><div class="card-desc">Full system architecture — hardware, software, data flow</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="topology-context.html"><div class="card-name">Context Topology <span class="arrow">→</span></div><div class="card-desc">Context and information flow between components</div><span class="tag tag-ref">Architecture</span></a>
+    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.4s" href="topology-folders.html"><div class="card-name">Folder Topology <span class="arrow">→</span></div><div class="card-desc">Repository directory structure visualization</div><span class="tag tag-ref">Architecture</span></a>
   </div>
 </section>
 
 <!-- Chassis Blueprints -->
 <section class="section reveal" id="blueprints">
-  <div class="section-header"><span class="section-title">Chassis Blueprints</span><span class="section-count">7 pages</span></div>
+  <div class="section-header"><span class="section-title">Chassis Blueprints</span><span class="section-count">6 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="2d_manual_3d/chassis_2d_diagram.html"><div class="card-name">2D Component Diagram <span class="arrow">→</span></div><div class="card-desc">Top-down 2D layout of all chassis components</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.15s" href="2d_manual_3d/chassis_merged_blueprint.html"><div class="card-name">Merged Blueprint <span class="arrow">→</span></div><div class="card-desc">Three views merged — top, side, front</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.3s" href="2d_manual_3d/chassis_side_2d_diagram.html"><div class="card-name">Side View 2D <span class="arrow">→</span></div><div class="card-desc">Chassis side profile with measurements</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.45s" href="2d_manual_3d/chassis_topdown_2d_diagram.html"><div class="card-name">Top-Down Blueprint <span class="arrow">→</span></div><div class="card-desc">Overhead view with component placement</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.6s" href="2d_manual_3d/chassis_ascii3d.html"><div class="card-name">ASCII 3D Preview <span class="arrow">→</span></div><div class="card-desc">Isometric ASCII wireframe of chassis</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.75s" href="2d_manual_3d/chassis_ascii_3d.html"><div class="card-name">ASCII 3D (alt) <span class="arrow">→</span></div><div class="card-desc">Alternate ASCII 3D preview</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.9s" href="2d_manual_3d/chassis_topdown_ascii3d.html"><div class="card-name">Isometric Preview <span class="arrow">→</span></div><div class="card-desc">Top-down isometric 3D wireframe</div><span class="tag tag-css">CSS</span></a>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="2d_manual_3d/chassis_2d_diagram.html"><div class="card-name">2D Component Diagram <span class="arrow">→</span></div><div class="card-desc">Top-down 2D layout of all chassis components</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.15s" href="2d_manual_3d/chassis_merged_blueprint.html"><div class="card-name">Merged Blueprint <span class="arrow">→</span></div><div class="card-desc">Three views merged — top, side, front</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.3s" href="2d_manual_3d/chassis_side_2d_diagram.html"><div class="card-name">Side View 2D <span class="arrow">→</span></div><div class="card-desc">Chassis side profile with measurements</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.45s" href="2d_manual_3d/chassis_topdown_2d_diagram.html"><div class="card-name">Top-Down Blueprint <span class="arrow">→</span></div><div class="card-desc">Overhead view with component placement</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.6s" href="2d_manual_3d/chassis_ascii_3d.html"><div class="card-name">ASCII 3D Preview <span class="arrow">→</span></div><div class="card-desc">Isometric ASCII wireframe with rotation, zoom, wireframe/solid modes</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.9s" href="2d_manual_3d/chassis_topdown_ascii3d.html"><div class="card-name">Isometric Preview <span class="arrow">→</span></div><div class="card-desc">Top-down isometric 3D wireframe</div><span class="tag tag-ref">Blueprint</span></a>
   </div>
 </section>
 
@@ -246,14 +247,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <section class="section reveal" id="frame-analysis">
   <div class="section-header"><span class="section-title">Frame Analysis & Tracing</span><span class="section-count">8 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0s" href="img/2d_drawing/frame_trace.html"><div class="card-name">Part Identification <span class="arrow">→</span></div><div class="card-desc">Interactive tracing tool for chassis part ID</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.15s" href="img/2d_drawing/chassis_blueprint.html"><div class="card-name">All Views Compiled <span class="arrow">→</span></div><div class="card-desc">Complete chassis blueprint from all angles</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.3s" href="img/2d_drawing/chassis_frame_analysis.html"><div class="card-name">Frame Analysis <span class="arrow">→</span></div><div class="card-desc">2D trace from reference photos</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.45s" href="img/2d_drawing/chassis_frame_traced.html"><div class="card-name">Frame Traced <span class="arrow">→</span></div><div class="card-desc">Traced outline analysis of chassis frame</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.6s" href="img/2d_drawing/chassis_front_frame_analysis.html"><div class="card-name">Front Frame <span class="arrow">→</span></div><div class="card-desc">Front-facing frame trace and analysis</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.75s" href="img/2d_drawing/chassis_side_frame_analysis.html"><div class="card-name">Side Frame <span class="arrow">→</span></div><div class="card-desc">Side-view frame trace and analysis</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.9s" href="img/2d_drawing/chassis_topdown_frame_analysis.html"><div class="card-name">Top-Down Frame <span class="arrow">→</span></div><div class="card-desc">Overhead frame analysis</div><span class="tag tag-css">CSS</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:1.05s" href="img/2d_drawing/chassis_unified_3d.html"><div class="card-name">Unified 3D Model <span class="arrow">→</span></div><div class="card-desc">All frame traces merged into unified 3D model</div><span class="tag tag-3d">Three.js</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0s" href="img/2d_drawing/frame_trace.html"><div class="card-name">Part Identification <span class="arrow">→</span></div><div class="card-desc">Interactive tracing tool for chassis part ID</div><span class="tag tag-tool">Tool</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.15s" href="img/2d_drawing/chassis_blueprint.html"><div class="card-name">All Views Compiled <span class="arrow">→</span></div><div class="card-desc">Complete chassis blueprint from all angles</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.3s" href="img/2d_drawing/chassis_frame_analysis.html"><div class="card-name">Frame Analysis <span class="arrow">→</span></div><div class="card-desc">2D trace from reference photos</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.45s" href="img/2d_drawing/chassis_frame_traced.html"><div class="card-name">Frame Traced <span class="arrow">→</span></div><div class="card-desc">Traced outline analysis of chassis frame</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.6s" href="img/2d_drawing/chassis_front_frame_analysis.html"><div class="card-name">Front Frame <span class="arrow">→</span></div><div class="card-desc">Front-facing frame trace and analysis</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.75s" href="img/2d_drawing/chassis_side_frame_analysis.html"><div class="card-name">Side Frame <span class="arrow">→</span></div><div class="card-desc">Side-view frame trace and analysis</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.9s" href="img/2d_drawing/chassis_topdown_frame_analysis.html"><div class="card-name">Top-Down Frame <span class="arrow">→</span></div><div class="card-desc">Overhead frame analysis</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:1.05s" href="img/2d_drawing/chassis_unified_3d.html"><div class="card-name">Unified 3D Model <span class="arrow">→</span></div><div class="card-desc">All frame traces merged into unified 3D model</div><span class="tag tag-3d">Interactive 3D</span></a>
   </div>
 </section>
 
@@ -276,7 +277,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
     </div>
     <div class="card reveal" style="padding:0;overflow:hidden;animation:none;cursor:default">
       <img src="progression/camtest-person-detect-01.jpg" alt="Person detection working" style="width:100%;height:200px;object-fit:cover;display:block">
-      <div style="padding:16px"><div class="card-name">Person Detection</div><div class="card-desc">YOLOv8n detecting persons at 78% confidence on the DC floor</div><span class="tag tag-3d" style="margin-top:6px">Working</span></div>
+      <div style="padding:16px"><div class="card-name">Person Detection</div><div class="card-desc">YOLOv8n detecting persons at 78% confidence on the DC floor</div><span class="tag tag-guide" style="margin-top:6px">Working</span></div>
     </div>
   </div>
 </section>
@@ -312,14 +313,16 @@ renderer.toneMappingExposure = 1.2;
 // ── Post-processing — Bloom ──
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.15, 0.6, 0.85);
+const bloom = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.08, 0.4, 0.9);
 composer.addPass(bloom);
 
 // ── Materials ──
 const blue = 0x2741E7;
-const blueMat = new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.6 });
-const wireBlue = new THREE.LineBasicMaterial({ color: blue, transparent: true, opacity: 0.2 });
-const glowMat = new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.9 });
+const warm = 0xD97706;
+const neutral = 0x6B7280;
+const blueMat = new THREE.MeshBasicMaterial({ color: neutral, transparent: true, opacity: 0.4 });
+const wireBlue = new THREE.LineBasicMaterial({ color: neutral, transparent: true, opacity: 0.15 });
+const glowMat = new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.6 });
 
 // ── Central Icosahedron — wireframe + vertex dots ──
 const icoGeo = new THREE.IcosahedronGeometry(2.2, 1);
@@ -349,9 +352,9 @@ for (let i = 0; i < verts.count; i++) {
 }
 
 // ── Orbital Rings ──
-function makeRing(radius, tilt, speed) {
+function makeRing(radius, tilt, speed, ringColor) {
   const geo = new THREE.TorusGeometry(radius, 0.01, 8, 120);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.1 }));
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: ringColor || neutral, transparent: true, opacity: 0.08 }));
   mesh.rotation.x = tilt;
   scene.add(mesh);
   // Orbiting dot
@@ -360,9 +363,9 @@ function makeRing(radius, tilt, speed) {
   return { mesh, dot, radius, tilt, speed };
 }
 const rings = [
-  makeRing(3.5, Math.PI * 0.4, 0.25),
-  makeRing(4.2, Math.PI * 0.6, -0.18),
-  makeRing(5.0, Math.PI * 0.25, 0.12),
+  makeRing(3.5, Math.PI * 0.4, 0.25, blue),
+  makeRing(4.2, Math.PI * 0.6, -0.18, warm),
+  makeRing(5.0, Math.PI * 0.25, 0.12, neutral),
 ];
 
 // ── Connection Lines — dynamic ──
@@ -370,7 +373,7 @@ const lineCount = 15;
 const lineGeo = new THREE.BufferGeometry();
 const linePositions = new Float32Array(lineCount * 6);
 lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-const connectionLines = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: blue, transparent: true, opacity: 0.06 }));
+const connectionLines = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: neutral, transparent: true, opacity: 0.05 }));
 scene.add(connectionLines);
 
 // ── Floating Particles ──
@@ -386,7 +389,7 @@ for (let i = 0; i < pCount; i++) {
 }
 pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
 const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
-  color: blue, size: 0.04, transparent: true, opacity: 0.35, sizeAttenuation: true
+  color: neutral, size: 0.03, transparent: true, opacity: 0.25, sizeAttenuation: true
 }));
 scene.add(particles);
 
@@ -400,7 +403,7 @@ for (let i = 0; i < streamCount; i++) {
   for (let j = 0; j < 20; j++) pts.push(new THREE.Vector3(x, -12 + j * 1.2, z));
   const curve = new THREE.CatmullRomCurve3(pts);
   const geo = new THREE.TubeGeometry(curve, 40, 0.005, 4, false);
-  const mat = new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.04 });
+  const mat = new THREE.MeshBasicMaterial({ color: neutral, transparent: true, opacity: 0.03 });
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);
   streams.push({ mesh, speed: 0.2 + Math.random() * 0.3, offset: Math.random() * Math.PI * 2 });
@@ -492,7 +495,7 @@ function animate() {
   camera.lookAt(0, -scrollFactor, 0);
 
   // Bloom intensity breathe
-  bloom.strength = 0.12 + Math.sin(t * 0.4) * 0.06;
+  bloom.strength = 0.06 + Math.sin(t * 0.4) * 0.03;
 
   composer.render();
 }

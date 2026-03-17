@@ -57,14 +57,14 @@ HC-SR04          Pi 5
 ────────         ─────
 VCC ──────────── 5V (Pin 2)
 TRIG ─────────── GPIO25 (Pin 22)
-ECHO ──┬── 1kΩ ── GPIO24 (Pin 18)    ← VOLTAGE DIVIDER (5V → 3.3V)
-       └── 2kΩ ── GND                ← Protects Pi GPIO from 5V
+ECHO ──┬── 100Ω ── GPIO24 (Pin 18)   ← VOLTAGE DIVIDER (5V → 3.3V)
+       └── 200Ω ── GND               ← Protects Pi GPIO from 5V
 GND ──────────── GND (Pin 9)
 ```
 
 > **IMPORTANT:** The HC-SR04 ECHO pin outputs 5V. Pi 5 GPIO is 3.3V tolerant.
-> Use the voltage divider (1kΩ + 2kΩ resistors) or you risk frying the GPIO pin.
-> If you don't have resistors, use an HC-SR04P (3.3V version) instead.
+> Use the voltage divider (100Ω + 200Ω resistors) — same 1:2 ratio as 1k+2k, giving 3.33V output.
+> Wire on the breadboard (see `assets/IMG_1130.png`). Without the divider you risk frying the GPIO pin.
 
 ## Camera
 
