@@ -41,25 +41,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* LAYOUT */
 .wizard{display:flex;flex-direction:column;height:calc(100vh - 48px)}
-.header{padding:20px 32px 8px;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0}
+.header{padding:12px 32px 4px;display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0}
 .header-left{display:flex;flex-direction:column;gap:2px}
 .step-label{font-size:.75rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.1em}
 .step-title{font-size:1.75rem;font-weight:800;color:var(--text);line-height:1.15}
 
 /* PROGRESS */
-.progress-wrap{flex-shrink:0;padding:8px 32px 16px}
+.progress-wrap{flex-shrink:0;padding:4px 32px 8px}
 .progress-track{height:4px;background:rgba(26,31,54,.06);border-radius:2px;overflow:hidden;position:relative}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-hover));border-radius:2px;transition:width .6s var(--ease-out-expo)}
 .step-count{font-size:.6875rem;font-weight:700;color:var(--text-light);letter-spacing:.06em;margin-top:6px;text-align:right}
 
 /* DIAGRAM AREA */
-.diagram-area{flex:1;display:flex;align-items:center;justify-content:center;padding:0 32px;overflow:hidden;position:relative;min-height:0}
+.diagram-area{flex:1 1 0;display:flex;align-items:center;justify-content:center;padding:0 24px;overflow:hidden;position:relative;min-height:0}
 .diagram-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(16px);transition:opacity .5s var(--ease-out-quart),transform .5s var(--ease-out-quart)}
 .diagram-wrap.visible{opacity:1;transform:translateY(0)}
-.diagram-wrap svg{width:100%;height:100%;max-width:100%;max-height:100%}
+.diagram-wrap>svg{max-width:100%;max-height:100%;overflow:visible}
 
 /* INFO PANEL */
-.info-panel{flex-shrink:0;padding:8px 32px 8px;max-height:200px;overflow-y:auto}
+.info-panel{flex-shrink:0;padding:8px 32px 4px;max-height:160px;overflow-y:auto}
 .info-box{background:var(--bg-card);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);opacity:0;transform:translateY(12px);transition:opacity .4s var(--ease-out-quart) .15s,transform .4s var(--ease-out-quart) .15s}
 .info-box.visible{opacity:1;transform:translateY(0)}
 .info-text{font-size:.9375rem;line-height:1.7;color:var(--text)}
@@ -80,7 +80,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .test-cmd.copied::after{content:'copied!';color:#a5d6a7}
 
 /* CONTROLS */
-.controls{flex-shrink:0;padding:12px 32px 24px;display:flex;gap:12px;justify-content:space-between;align-items:center}
+.controls{flex-shrink:0;padding:8px 32px 16px;display:flex;gap:12px;justify-content:space-between;align-items:center}
 .btn{padding:14px 32px;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.9375rem;border:none;cursor:pointer;transition:all .2s var(--ease-out-quart)}
 .btn-back{background:transparent;color:var(--text-mid);border:2px solid rgba(26,31,54,.1)}
 .btn-back:hover{border-color:var(--accent);color:var(--accent)}
@@ -605,13 +605,14 @@ function buildDiagram(type){
     let c=pi.svg+l.svg;
     const pairs=[[11,'IN1','GPIO17→IN1 (Left FWD)'],[13,'IN2','GPIO27→IN2 (Left BWD)'],
                  [15,'IN3','GPIO22→IN3 (Right FWD)'],[16,'IN4','GPIO23→IN4 (Right BWD)']];
+    const labelYs=[28,48,68,88]; // stagger labels vertically so they don't overlap
     pairs.forEach(([pin,term,lbl],i)=>{
       const pp=pi.pinPos(pin), tp=l.termPos(term);
       c+=wirePath(pp.x,pp.y,tp.x,tp.y,'var(--wire-blue)',0.3+i*0.25,false);
-      c+=labelTag((pp.x+tp.x)/2,pp.y-8,lbl,'var(--wire-blue)','middle',0.5+i*0.2);
+      c+=labelTag(310,labelYs[i],lbl,'var(--wire-blue)','middle',0.5+i*0.2);
     });
-    c+=`<text x="310" y="310" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="10" fill="var(--text-light)" class="stagger" style="--del:1.5s">Use female-to-female jumper wires</text>`;
-    return mkSvg(620,320,c);
+    c+=`<text x="310" y="300" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="10" fill="var(--text-light)" class="stagger" style="--del:1.5s">Use female-to-female jumper wires</text>`;
+    return mkSvg(620,310,c);
   }
 
   case 'common-gnd': {
@@ -692,30 +693,32 @@ function buildDiagram(type){
 
   case 'pan-servo': {
     const pi=piHeader(30,20,[32,4,9]);
-    const sv=servoConn(400,80,'PAN SERVO',['SIG','VCC','GND']);
+    const sv=servoConn(420,100,'PAN SERVO',['SIG','VCC','GND']);
     let c=pi.svg+sv.svg;
     const pairs=[[32,'SIG','var(--wire-green)',0.3],[4,'VCC','var(--wire-red)',0.6],[9,'GND','var(--wire-black)',0.9]];
     const labels=['Signal (GPIO12)','Power (5V)','Ground'];
+    const labelYs=[40,58,76];
     pairs.forEach(([pin,spin,color,del],i)=>{
       const pp=pi.pinPos(pin), sp=sv.pinPos(spin);
       c+=wirePath(pp.x,pp.y,sp.x,sp.y,color,del,false);
-      c+=labelTag((pp.x+sp.x)/2, sp.y-20-i*2, labels[i], color, 'middle', del+0.2);
+      c+=labelTag(310,labelYs[i],labels[i],color,'middle',del+0.2);
     });
-    return mkSvg(540,310,c);
+    return mkSvg(560,310,c);
   }
 
   case 'tilt-servo': {
     const pi=piHeader(30,20,[33,2,14]);
-    const sv=servoConn(400,80,'TILT SERVO',['SIG','VCC','GND']);
+    const sv=servoConn(420,100,'TILT SERVO',['SIG','VCC','GND']);
     let c=pi.svg+sv.svg;
     const pairs=[[33,'SIG','var(--wire-green)',0.3],[2,'VCC','var(--wire-red)',0.6],[14,'GND','var(--wire-black)',0.9]];
     const labels=['Signal (GPIO13)','Power (5V)','Ground'];
+    const labelYs=[40,58,76];
     pairs.forEach(([pin,spin,color,del],i)=>{
       const pp=pi.pinPos(pin), sp=sv.pinPos(spin);
       c+=wirePath(pp.x,pp.y,sp.x,sp.y,color,del,false);
-      c+=labelTag((pp.x+sp.x)/2, sp.y-20-i*2, labels[i], color, 'middle', del+0.2);
+      c+=labelTag(310,labelYs[i],labels[i],color,'middle',del+0.2);
     });
-    return mkSvg(540,310,c);
+    return mkSvg(560,310,c);
   }
 
   case 'camera-csi': {
