@@ -2513,15 +2513,199 @@ window._recCapture = function() {
 };
 
 function _downloadFrames() {
-  // Download each frame as a PNG
+  _recBanner.textContent = 'Encoding GIF...';
+  const W = 640, H = 400;
+  // Draw each data URL onto a smaller canvas to get pixel data
+  const tmpC = document.createElement('canvas');
+  tmpC.width = W; tmpC.height = H;
+  const tmpCtx = tmpC.getContext('2d', { willReadFrequently: true });
+  const imgDatas = [];
+  let loaded = 0;
+
   _rec.frames.forEach((dataUrl, i) => {
-    const a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = 'frame_' + String(i).padStart(4, '0') + '.png';
-    a.click();
+    const img = new Image();
+    img.onload = () => {
+      tmpCtx.clearRect(0, 0, W, H);
+      tmpCtx.drawImage(img, 0, 0, W, H);
+      imgDatas[i] = tmpCtx.getImageData(0, 0, W, H);
+      loaded++;
+      _recBanner.textContent = 'Encoding ' + loaded + '/' + _rec.frames.length;
+      if (loaded === _rec.frames.length) _buildAndDownloadGif(imgDatas, W, H);
+    };
+    img.src = dataUrl;
   });
+}
+
+// Minimal GIF89a encoder — no external deps
+function _buildAndDownloadGif(frames, W, H) {
+  const delay = 8; // centiseconds per frame (~12.5fps)
+
+  // Quantize: build a 256-color global palette from multiple frames (6-bit per channel)
+  function quantize(allFrames) {
+    const colorCount = {};
+    // Sample from first, middle, and last frames for better coverage
+    const sampleIdx = [0, Math.floor(allFrames.length / 2), allFrames.length - 1];
+    for (const fi of sampleIdx) {
+      const px = allFrames[fi].data;
+      for (let i = 0; i < px.length; i += 12) { // sample every 3rd pixel
+        const r = px[i] >> 2, g = px[i+1] >> 2, b = px[i+2] >> 2; // 6-bit (64 levels)
+        const key = r * 4096 + g * 64 + b;
+        colorCount[key] = (colorCount[key] || 0) + 1;
+      }
+    }
+    const sorted = Object.entries(colorCount).sort((a, b) => b[1] - a[1]);
+    const palette = [];
+    for (let i = 0; i < 256 && i < sorted.length; i++) {
+      const k = parseInt(sorted[i][0]);
+      const r6 = (k >> 12) & 0x3F, g6 = (k >> 6) & 0x3F, b6 = k & 0x3F;
+      palette.push([Math.round(r6 * 255 / 63), Math.round(g6 * 255 / 63), Math.round(b6 * 255 / 63)]);
+    }
+    while (palette.length < 256) palette.push([0, 0, 0]);
+    return palette;
+  }
+
+  function findClosest(palette, r, g, b) {
+    let best = 0, bestD = Infinity;
+    for (let i = 0; i < 256; i++) {
+      const dr = r - palette[i][0], dg = g - palette[i][1], db = b - palette[i][2];
+      const d = dr * dr + dg * dg + db * db;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  const palette = quantize(frames);
+
+  // Build lookup table for speed
+  const colorCache = new Map();
+  function mapPixel(r, g, b) {
+    const key = (r >> 1) * 65536 + (g >> 1) * 256 + (b >> 1);
+    if (colorCache.has(key)) return colorCache.get(key);
+    const idx = findClosest(palette, r, g, b);
+    colorCache.set(key, idx);
+    return idx;
+  }
+
+  // GIF binary writer
+  const buf = [];
+  function w8(v) { buf.push(v & 0xFF); }
+  function w16(v) { buf.push(v & 0xFF); buf.push((v >> 8) & 0xFF); }
+  function wStr(s) { for (let i = 0; i < s.length; i++) buf.push(s.charCodeAt(i)); }
+
+  // Header
+  wStr('GIF89a');
+  w16(W); w16(H);
+  w8(0xF7); // GCT flag, 8-bit color, 256 entries
+  w8(0);    // bg color
+  w8(0);    // pixel aspect
+
+  // Global Color Table (256 * 3 bytes)
+  for (let i = 0; i < 256; i++) { w8(palette[i][0]); w8(palette[i][1]); w8(palette[i][2]); }
+
+  // Netscape looping extension
+  w8(0x21); w8(0xFF); w8(0x0B);
+  wStr('NETSCAPE2.0');
+  w8(0x03); w8(0x01); w16(0); w8(0x00);
+
+  // LZW encode a frame's indexed pixels
+  function lzwEncode(indexed) {
+    const minCode = 8;
+    const clearCode = 256;
+    const eoiCode = 257;
+    let nextCode = 258;
+    let codeSize = minCode + 1;
+    const table = new Map();
+
+    // Sub-block buffer
+    const subBlocks = [];
+    let bitBuf = 0, bitCount = 0;
+
+    function writeBits(code, size) {
+      bitBuf |= (code << bitCount);
+      bitCount += size;
+      while (bitCount >= 8) {
+        subBlocks.push(bitBuf & 0xFF);
+        bitBuf >>= 8;
+        bitCount -= 8;
+      }
+    }
+
+    writeBits(clearCode, codeSize);
+    let cur = indexed[0];
+
+    for (let i = 1; i < indexed.length; i++) {
+      const next = indexed[i];
+      const key = (cur << 12) | next;
+      if (table.has(key)) {
+        cur = table.get(key);
+      } else {
+        writeBits(cur, codeSize);
+        if (nextCode < 4096) {
+          table.set(key, nextCode++);
+          if (nextCode > (1 << codeSize) && codeSize < 12) codeSize++;
+        } else {
+          writeBits(clearCode, codeSize);
+          table.clear();
+          nextCode = 258;
+          codeSize = minCode + 1;
+        }
+        cur = next;
+      }
+    }
+    writeBits(cur, codeSize);
+    writeBits(eoiCode, codeSize);
+    if (bitCount > 0) subBlocks.push(bitBuf & 0xFF);
+
+    return subBlocks;
+  }
+
+  _recBanner.textContent = 'Encoding frames...';
+
+  for (let f = 0; f < frames.length; f++) {
+    // Graphic Control Extension
+    w8(0x21); w8(0xF9); w8(0x04);
+    w8(0x00); // no transparency
+    w16(delay);
+    w8(0x00); // transparent color
+    w8(0x00);
+
+    // Image Descriptor
+    w8(0x2C);
+    w16(0); w16(0); w16(W); w16(H);
+    w8(0x00); // no local color table
+
+    // Index pixels
+    const px = frames[f].data;
+    const indexed = new Uint8Array(W * H);
+    for (let i = 0; i < W * H; i++) {
+      indexed[i] = mapPixel(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]);
+    }
+
+    // LZW
+    const minCodeSize = 8;
+    w8(minCodeSize);
+    const lzw = lzwEncode(indexed);
+    // Write as sub-blocks (max 255 bytes each)
+    for (let i = 0; i < lzw.length; ) {
+      const chunkSize = Math.min(255, lzw.length - i);
+      w8(chunkSize);
+      for (let j = 0; j < chunkSize; j++) w8(lzw[i + j]);
+      i += chunkSize;
+    }
+    w8(0x00); // block terminator
+  }
+
+  w8(0x3B); // GIF trailer
+
+  const blob = new Blob([new Uint8Array(buf)], { type: 'image/gif' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'escort-sim-' + Date.now() + '.gif';
+  a.click();
+  URL.revokeObjectURL(url);
   _rec.frames = [];
-  _recBanner.textContent = 'Saved ' + _rec.max + ' frames!';
+  _recBanner.textContent = 'GIF saved!';
   setTimeout(() => { _recBanner.style.display = 'none'; }, 3000);
 }
 
