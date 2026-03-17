@@ -12,7 +12,7 @@
 | Robot | Code | Hardware | Tested | Demo Ready |
 |-------|------|----------|--------|------------|
 | SO-101 Arm | Done | **Ordered 3/9** — ETA ~3/18 | No | No |
-| Escort Bot | Done | **Hardware arriving 3/11–3/15** — fan tmrw, chassis 3/11, pan-tilt Thu, camera Sat. PVC in HD cart. | No | No |
+| Escort Bot | Done | **Assembled 3/16** — chassis built, L298N wired, camera connected | **YES — person detection working** | In progress |
 
 ## Team (6 active + 1 observer)
 
@@ -29,6 +29,35 @@
 ---
 
 ## What's Been Done
+
+### Session: 2026-03-16
+
+**MAJOR MILESTONE: Escort Bot Hardware Assembled + Person Detection Working on DC Floor**
+
+**Hardware Assembly (at DC — EVI01)**
+- LK-COKOINO 4WD chassis fully assembled — all 4 motors mounted, wheels attached, yellow tape labels (FR, FL, RR, RL)
+- L298N motor driver (WWZMDiB) wired to Pi 5 GPIO — blue control wires for direction, red power wires to motor terminals
+- Arducam IMX708 wide-angle camera connected via CSI ribbon cable ("Standard - Mini 200mm")
+- Pi 5 in red case with official active cooler — running off USB-C power bank
+- All assembly done at the DC workbench (Cisco switches visible in photos)
+
+**Person Detection Test — SUCCESS**
+- Ran `python3 /home/elktron/escort-bot/camtest.py` on Pi 5
+- YOLOv8n model loaded and detecting persons at **0.78 confidence**
+- Camera: libcamera v0.7.0+rpt20260205, IMX708 wide, 640x360 sRGB + 1536x864 RAW
+- 5/5 frames captured, all detecting 1 person with bounding boxes
+- SCP'd test images from Pi (elktron@192.168.3.57) to Mac for review
+
+**Claude Code on Pi**
+- Claude Code installed and running directly on the Pi 5
+- On-device AI development confirmed — can iterate on detection code without leaving the DC
+
+**Build Evidence**
+- 26 photos captured — assembly process, wiring details, detection output
+- All photos in `progression/` folder with descriptive filenames
+- Terminal screenshots showing YOLOv8n output and SCP transfers
+
+---
 
 ### Session: 2026-03-10
 

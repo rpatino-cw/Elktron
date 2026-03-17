@@ -130,6 +130,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
     <li><a href="#landing">Landing</a></li>
     <li><a href="#3d-models">3D Models</a></li>
     <li><a href="#tools">Tools</a></li>
+    <li><a href="#progress">Progress</a></li>
   </ul>
   <a class="nav-cta" href="https://github.com/rpatino-cw/Elktron" target="_blank">GitHub →</a>
 </nav>
@@ -199,6 +200,29 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
   </div>
 </section>
 
+
+<!-- Build Progress -->
+<section class="section" id="progress">
+  <div class="section-header"><span class="section-title">Build Progress — March 16</span><span class="section-count">Hardware + Detection Working</span></div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px">
+    <div class="card reveal" style="padding:0;overflow:hidden;animation:none;cursor:default">
+      <img src="progression/chassis-wiring-overview.jpg" alt="Full escort bot assembly" style="width:100%;height:200px;object-fit:cover;display:block">
+      <div style="padding:16px"><div class="card-name">Full Assembly</div><div class="card-desc">Pi 5 + LK-COKOINO chassis + L298N motor driver — all wired at the DC</div></div>
+    </div>
+    <div class="card reveal" style="padding:0;overflow:hidden;animation:none;cursor:default">
+      <img src="progression/pi5-camera-ribbon.jpg" alt="Pi 5 with camera ribbon" style="width:100%;height:200px;object-fit:cover;display:block">
+      <div style="padding:16px"><div class="card-name">Pi 5 + Camera</div><div class="card-desc">Arducam IMX708 connected via CSI ribbon to Pi 5 with active cooler</div></div>
+    </div>
+    <div class="card reveal" style="padding:0;overflow:hidden;animation:none;cursor:default">
+      <img src="progression/l298n-wiring-closeup.jpg" alt="L298N motor driver wiring" style="width:100%;height:200px;object-fit:cover;display:block">
+      <div style="padding:16px"><div class="card-name">L298N Wiring</div><div class="card-desc">Motor driver GPIO control (blue) + power lines (red) to 4 DC motors</div></div>
+    </div>
+    <div class="card reveal" style="padding:0;overflow:hidden;animation:none;cursor:default">
+      <img src="progression/camtest-person-detect-01.jpg" alt="Person detection working" style="width:100%;height:200px;object-fit:cover;display:block">
+      <div style="padding:16px"><div class="card-name">Person Detection</div><div class="card-desc">YOLOv8n detecting persons at 78% confidence on the DC floor</div><span class="tag tag-3d" style="margin-top:6px">Working</span></div>
+    </div>
+  </div>
+</section>
 
 </main>
 

@@ -14,12 +14,28 @@ Two robots that automate repetitive data center floor tasks:
 
 DCTs spend hours on tasks that are mechanical, repetitive, and physically demanding. Vendor escorts tie up a technician who could be doing real work. Elktron puts robots on those tasks so humans focus on what requires judgment.
 
+## Build Progress (March 16, 2026)
+
+**Escort bot hardware fully assembled and person detection confirmed working on the DC floor.**
+
+| Milestone | Status |
+|-----------|--------|
+| Chassis assembled (LK-COKOINO 4WD) | Done |
+| L298N motor driver wired to Pi 5 GPIO | Done |
+| Arducam IMX708 camera connected via CSI | Done |
+| YOLOv8n person detection (78% confidence) | **Working** |
+| Claude Code running on Pi 5 | Done |
+| Motor control test | Next |
+| Person-following integration | Next |
+
+Build photos: [`progression/`](progression/)
+
 ## Tech Stack
 
 | Component | Stack |
 |-----------|-------|
 | SO-101 Arm | LeRobot (HuggingFace) · ACT policy · Feetech servos · Python |
-| Escort Bot | Raspberry Pi 5 · TFLite MobileNet SSD v2 · gpiozero · 4WD chassis |
+| Escort Bot | Raspberry Pi 5 · YOLOv8n · gpiozero · LK-COKOINO 4WD chassis |
 | Dashboard | FastAPI · WebSocket · Vanilla JS · CSS Grid |
 
 ## Repo Structure
@@ -71,11 +87,14 @@ python deploy.py    # Run autonomous
 
 | Item | Cost | Status |
 |------|------|--------|
-| Freenove 4WD Kit | $65 | Ordered 3/9 |
+| LK-COKOINO 4WD Chassis | $25 | Assembled |
+| L298N Motor Driver | $7 | Wired |
+| Arducam IMX708 Wide | $60 | Connected |
+| Pi 5 Active Cooler | $10 | Installed |
+| HC-SR04 Ultrasonic | $9 | In hand |
 | HiWonder SO-ARM101 | $270 | Ordered 3/9 |
-| Batteries + power bank | $48 | Ordered 3/9 |
-| Webcam | $25 | Ordered 3/9 |
-| **Total** | **$408** | All ordered |
+| Batteries + power bank | $48 | In hand |
+| **Total** | **~$430** | Escort bot assembled |
 
 ## Demo Story (3 minutes)
 
