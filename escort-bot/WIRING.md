@@ -15,7 +15,8 @@
 │  18   │  24 │ Ultrasonic ECHO │ HC-SR04 ECHO │
 │  22   │  25 │ Ultrasonic TRIG │ HC-SR04 TRIG │
 │   2   │  5V │ Sensor Power    │ HC-SR04 VCC  │
-│   6   │ GND │ Common Ground   │ HC-SR04 GND  │
+│   6   │ GND │ Common Ground   │ L298N GND    │
+│   9   │ GND │ Sensor Ground   │ HC-SR04 GND  │
 └─────────────────────────────────────────────┘
 ```
 
@@ -58,7 +59,7 @@ VCC ──────────── 5V (Pin 2)
 TRIG ─────────── GPIO25 (Pin 22)
 ECHO ──┬── 1kΩ ── GPIO24 (Pin 18)    ← VOLTAGE DIVIDER (5V → 3.3V)
        └── 2kΩ ── GND                ← Protects Pi GPIO from 5V
-GND ──────────── GND (Pin 6)
+GND ──────────── GND (Pin 9)
 ```
 
 > **IMPORTANT:** The HC-SR04 ECHO pin outputs 5V. Pi 5 GPIO is 3.3V tolerant.

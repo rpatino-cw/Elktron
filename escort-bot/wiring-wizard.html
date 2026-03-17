@@ -437,7 +437,7 @@ const STEPS=[
  callout:"COMMON GROUND is critical. If motors ignore GPIO commands, check this wire first."},
 
 {title:"HC-SR04 — Power",
- info:`Connect <span class="pin-ref">VCC</span> on the HC-SR04 to <span class="pin-ref">Pin 2</span> (5V) on the Pi. Connect <span class="pin-ref">GND</span> to <span class="pin-ref">Pin 6</span> (GND).`,
+ info:`Connect <span class="pin-ref">VCC</span> on the HC-SR04 to <span class="pin-ref">Pin 2</span> (5V) on the Pi. Connect <span class="pin-ref">GND</span> to <span class="pin-ref">Pin 9</span> (GND). Using Pin 9 instead of Pin 6 — Pin 6 is already taken by the L298N common ground.`,
  why:"The ultrasonic sensor needs 5V to operate.",
  diagram:'hcsr04-power'},
 
@@ -629,15 +629,15 @@ function buildDiagram(type){
   }
 
   case 'hcsr04-power': {
-    const pi=piHeader(30,20,[2,6]);
+    const pi=piHeader(30,20,[2,9]);
     const hc=hcsr04Board(400,60,['VCC','GND']);
     let c=pi.svg+hc.svg;
-    const p5v=pi.pinPos(2), pgnd=pi.pinPos(6);
+    const p5v=pi.pinPos(2), pgnd=pi.pinPos(9);
     const hvcc=hc.pinPos('VCC'), hgnd=hc.pinPos('GND');
     c+=wirePath(p5v.x,p5v.y,hvcc.x,hvcc.y,'var(--wire-red)',0.3,false);
     c+=wirePath(pgnd.x,pgnd.y,hgnd.x,hgnd.y,'var(--wire-black)',0.6,false);
     c+=labelTag(280,55,'5V Power','var(--wire-red)','middle',0.5);
-    c+=labelTag(280,175,'Ground','#666','middle',0.8);
+    c+=labelTag(280,175,'Ground (Pin 9)','#666','middle',0.8);
     return mkSvg(560,200,c);
   }
 
