@@ -14,6 +14,23 @@
 | SO-101 Arm | Done | **Ordered 3/9** — ETA ~3/18 | No | No |
 | Escort Bot | Done | **Assembled 3/16** — chassis built, L298N wired, camera connected | **YES — person detection working** | In progress |
 
+## Slack Checklist — 10 Steps to Demo Day
+
+Tracked in `#the-elks-2026` Slack list.
+
+| Phase | Task | Status | Assignee | Due |
+|-------|------|--------|----------|-----|
+| 1 | Sign up + admin — register team, share repo, confirm availability | **Done** | Josh | 3/12 |
+| 2 | Receive + inventory hardware — open packages, verify, label, organize | **Done** | Alex, Romeo | 3/13 |
+| 3 | Flash Pi + install software — Bookworm Lite, deps, YOLOv8n model | **Done** | Romeo | 3/14 |
+| 4 | Build escort bot — assemble chassis, wire L298N, build mast, mount camera | **~80% done** — chassis + L298N + camera done, mast + HC-SR04 + motor power remaining | Alex, Raphael | 3/16 |
+| 5 | Test escort bot — person detection, floor test, tune steering and speed | **In progress** — detection working, motor test next | Romeo, Raphael | 3/17 |
+| 6 | Build SO-101 arm — assemble, calibrate, install LeRobot | Not started — kit ETA 3/18 | Josh | 3/19 |
+| 7 | Train arm — record 50 demos, train ACT policy | Not started | Josh | 3/21 |
+| 8 | Dashboard integration — live feeds, telemetry, scan log | Not started — backend written, needs Pi connection | Parth, Romeo | 3/21 |
+| 9 | Demo polish — clean wiring, signage, rehearse | Not started | Talha, Raphael | 3/22 |
+| 10 | Record + submit — 2-3 min video, slides, GitHub | Not started | Talha | 3/23 |
+
 ## Team (6 active + 1 observer)
 
 | Person | Role | Owns |
