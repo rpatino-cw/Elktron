@@ -63,17 +63,23 @@ hackathon/
 ├── CLAUDE.md                          # THIS FILE — master project config
 ├── PROGRESS.md                        # Single source of truth — what's done, what's next
 ├── README.md                          # Project overview for GitHub
-├── PARTS-LIST.md                      # Hardware BOM with Amazon links + costs
-├── CHECKLIST-SO101.md                 # 10-phase SO-101 arm build checklist
-├── CHECKLIST-ESCORT-BOT.md            # 11-phase escort bot build checklist
-├── TEAM.md                            # Team roster — Romeo, Alex, Josh + roles
-├── TEAM-CHECKLIST.md                  # Master team task list (700+ lines, 10 phases)
-├── VELOCITY.md                        # Engineering philosophy / pace manifesto
-├── WORKFLOW.md                        # Demo day timeline template
-├── DEMO-SCRIPT.md                     # Full 3-min demo video narration + shot list
-├── ADW-SUMMARY.md                     # CoreWeave IDP Agentic Developer Workflows summary
 ├── design-system.css                  # Shared CSS design tokens (colors, fonts)
 ├── .gitignore                         # Git ignore rules
+│
+├── docs/                              # PROJECT DOCUMENTATION
+│   ├── PARTS-LIST.md                  # Hardware BOM with Amazon links + costs
+│   ├── CHECKLIST-SO101.md             # 10-phase SO-101 arm build checklist
+│   ├── CHECKLIST-ESCORT-BOT.md        # 11-phase escort bot build checklist
+│   ├── TEAM.md                        # Team roster — Romeo, Alex, Josh + roles
+│   ├── TEAM-CHECKLIST.md              # Master team task list (700+ lines, 10 phases)
+│   ├── VELOCITY.md                    # Engineering philosophy / pace manifesto
+│   ├── WORKFLOW.md                    # Demo day timeline template
+│   ├── DEMO-SCRIPT.md                # Full 3-min demo video narration + shot list
+│   ├── DEMO-CREATIVE-BRIEF.md        # Demo creative brief
+│   ├── ADW-SUMMARY.md                # CoreWeave IDP Agentic Developer Workflows summary
+│   ├── hackathon-sites.md             # Site inventory
+│   └── reference/                     # External references
+│       └── slack-evi01-build-dct-2026-03-12.md
 │
 ├── hub.html                           # ★ THREE.JS — Hackathon navigation hub
 ├── daily.html                         # ★ THREE.JS — Daily standup page
@@ -172,10 +178,8 @@ hackathon/
 │       ├── 2d_car_reference.png       # Car reference for tracing
 │       └── rc_chassis_frame_lines.png # Traced frame lines
 │
-├── taskboard/                         # TEAM TASK BOARD
-│   └── index.html                     # ★ THREE.JS — Interactive task board with 3D elements
-│
-└── elktron-sites.zip                # Archive of all sites (for sharing)
+└── taskboard/                         # TEAM TASK BOARD
+    └── index.html                     # ★ THREE.JS — Interactive task board with 3D elements
 ```
 
 ---
@@ -188,15 +192,20 @@ hackathon/
 | **`PROGRESS.md`** | **READ FIRST EVERY SESSION** — hardware status, what's done, what's next | Always |
 | `CLAUDE.md` | This file — master config and topology | Session start |
 | `README.md` | GitHub-facing project overview, tech stack, getting started | Sharing project |
-| `PARTS-LIST.md` | Hardware BOM — Amazon links, costs, arrival tracker | Ordering or receiving parts |
-| `CHECKLIST-SO101.md` | 10-phase arm build checklist (~150 items) | Building the SO-101 arm |
-| `CHECKLIST-ESCORT-BOT.md` | 11-phase bot build checklist (~160 items) | Building the escort bot |
-| `TEAM.md` | Team roster — Romeo (lead), Alex (bot hardware), Josh (arm CV/IK) | Assigning work |
-| `TEAM-CHECKLIST.md` | Master task list with phases 0-10, ~700 lines | Coordinating team work |
-| `VELOCITY.md` | Engineering philosophy — pace, momentum, constraints | Motivation / team alignment |
-| `WORKFLOW.md` | Demo day timeline template (kickoff → present) | Day-of planning |
-| `DEMO-SCRIPT.md` | Full 3-min demo narration, shot list, filming notes | Recording demo video |
-| `ADW-SUMMARY.md` | CoreWeave IDP Agentic Developer Workflows (reference only) | Understanding CW agent platform |
+
+### docs/ (hackathon/docs/)
+| File | Purpose | Read When |
+|------|---------|-----------|
+| `docs/PARTS-LIST.md` | Hardware BOM — Amazon links, costs, arrival tracker | Ordering or receiving parts |
+| `docs/CHECKLIST-SO101.md` | 10-phase arm build checklist (~150 items) | Building the SO-101 arm |
+| `docs/CHECKLIST-ESCORT-BOT.md` | 11-phase bot build checklist (~160 items) | Building the escort bot |
+| `docs/TEAM.md` | Team roster — Romeo (lead), Alex (bot hardware), Josh (arm CV/IK) | Assigning work |
+| `docs/TEAM-CHECKLIST.md` | Master task list with phases 0-10, ~700 lines | Coordinating team work |
+| `docs/VELOCITY.md` | Engineering philosophy — pace, momentum, constraints | Motivation / team alignment |
+| `docs/WORKFLOW.md` | Demo day timeline template (kickoff → present) | Day-of planning |
+| `docs/DEMO-SCRIPT.md` | Full 3-min demo narration, shot list, filming notes | Recording demo video |
+| `docs/DEMO-CREATIVE-BRIEF.md` | Demo creative brief | Pre-production planning |
+| `docs/ADW-SUMMARY.md` | CoreWeave IDP Agentic Developer Workflows (reference only) | Understanding CW agent platform |
 
 ### Subdirectory CLAUDE.md Files
 | File | Purpose |
@@ -308,7 +317,7 @@ Consider standardizing to **v0.170.0** (latest used) for consistency.
 
 1. **`PROGRESS.md`** — Always first. Hardware status, what's done, what's next.
 2. **This file** — Topology, where everything is.
-3. **`TEAM-CHECKLIST.md`** — What needs to happen, who owns what.
+3. **`docs/TEAM-CHECKLIST.md`** — What needs to happen, who owns what.
 4. **Component CLAUDE.md** — Deep context for whichever component you're working on.
 
 ## Judging Tracks
