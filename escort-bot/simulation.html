@@ -250,6 +250,7 @@
   <button id="btn-camera" onclick="toggleCamera()">C &mdash; Camera</button>
   <button id="btn-path" onclick="toggleVendorPath()">P &mdash; Path</button>
   <button id="btn-top" onclick="toggleTopView()">T &mdash; Top</button>
+  <button id="btn-gif" onclick="startGifCapture()" style="background:rgba(220,38,38,0.8)">G &mdash; Record GIF</button>
 </div>
 
 <script type="importmap">
@@ -294,7 +295,7 @@ const PERF = {
 // ═══════════════════════════════════════════════════════════════════
 
 const container = document.getElementById('canvas-container');
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance', preserveDrawingBuffer: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, PERF.pixelRatioCap));
 renderer.shadowMap.enabled = PERF.shadows;
@@ -2332,6 +2333,7 @@ document.addEventListener('keydown', (e) => {
   else if (k === 'c') window.toggleCamera();
   else if (k === 'p') window.toggleVendorPath();
   else if (k === 't') window.toggleTopView();
+  else if (k === 'g') window.startGifCapture();
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -2441,6 +2443,9 @@ function animate() {
   if (composer) composer.render();
   else renderer.render(scene, camera);
 
+  // Frame capture hook (G key)
+  if (window._recCapture) window._recCapture();
+
   // FPS counter
   if (PERF.showFPS) {
     fpsFrames++;
@@ -2470,6 +2475,55 @@ window.addEventListener('resize', () => {
   }, 100);
 });
 
+// ═══════════════════════════════════════════════════════════════════
+// FRAME CAPTURE — Press G to record, downloads PNGs as a batch
+// ═══════════════════════════════════════════════════════════════════
+
+const _rec = { active: false, frames: [], tick: 0, max: 40, every: 4 };
+const _recBanner = document.createElement('div');
+_recBanner.style.cssText = 'position:fixed;top:12px;left:50%;transform:translateX(-50%);background:rgba(220,38,38,0.9);color:#fff;padding:8px 20px;border-radius:8px;font:bold 14px/1 system-ui;z-index:9999;display:none;pointer-events:none;';
+document.body.appendChild(_recBanner);
+
+window.startGifCapture = function() {
+  if (_rec.active) return;
+  _rec.active = true;
+  _rec.frames = [];
+  _rec.tick = 0;
+  _recBanner.style.display = 'block';
+  _recBanner.textContent = 'REC 0/' + _rec.max;
+  console.log('[REC] Started — capturing ' + _rec.max + ' frames');
+};
+
+// Called from inside animate() — added below the render call
+window._recCapture = function() {
+  if (!_rec.active) return;
+  _rec.tick++;
+  if (_rec.tick % _rec.every !== 0) return;
+  const n = _rec.frames.length;
+  if (n >= _rec.max) {
+    _rec.active = false;
+    _recBanner.textContent = 'Downloading ' + _rec.max + ' frames...';
+    console.log('[REC] Done — downloading');
+    _downloadFrames();
+    return;
+  }
+  // Grab canvas as data URL (preserveDrawingBuffer makes this work)
+  _rec.frames.push(renderer.domElement.toDataURL('image/png'));
+  _recBanner.textContent = 'REC ' + (n + 1) + '/' + _rec.max;
+};
+
+function _downloadFrames() {
+  // Download each frame as a PNG
+  _rec.frames.forEach((dataUrl, i) => {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'frame_' + String(i).padStart(4, '0') + '.png';
+    a.click();
+  });
+  _rec.frames = [];
+  _recBanner.textContent = 'Saved ' + _rec.max + ' frames!';
+  setTimeout(() => { _recBanner.style.display = 'none'; }, 3000);
+}
 
 </script>
 </body>

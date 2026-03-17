@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiring Wizard — Escort Bot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f0e8;--bg-card:#fffdf8;--bg-dark:#1a1f36;
+  --text:#1a1f36;--text-mid:#4a5168;--text-light:#8890a6;
+  --accent:#2741E7;--accent-hover:#4260f5;
+  --wire-red:#e53935;--wire-black:#1a1a1a;--wire-blue:#1e88e5;
+  --wire-green:#43a047;--wire-purple:#8e24aa;--wire-orange:#f57c00;
+  --wire-grey:#78909c;
+  --warn-bg:#fff3cd;--warn-border:#ffc107;--warn-text:#856404;
+  --danger-bg:#f8d7da;--danger-border:#dc3545;--danger-text:#721c24;
+  --success-bg:#d4edda;--success-border:#28a745;--success-text:#155724;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 2px 12px rgba(26,31,54,.08);
+  --font:'Plus Jakarta Sans',sans-serif;
+  --mono:'Inconsolata',monospace;
+}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:var(--bg-dark);padding:0 24px;height:48px;display:flex;align-items:center;gap:24px}
+.nav-brand{font-weight:800;font-size:1rem;color:#fff;letter-spacing:.04em}
+.nav a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.8125rem;font-weight:500;transition:color .2s}
+.nav a:hover,.nav a.active{color:#fff}
+
+/* LAYOUT */
+.wizard{display:flex;flex-direction:column;height:calc(100vh - 48px);max-height:calc(100vh - 48px)}
+.header{padding:16px 24px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.step-label{font-size:.875rem;font-weight:600;color:var(--text-mid);text-transform:uppercase;letter-spacing:.06em}
+.step-title{font-size:1.5rem;font-weight:800;color:var(--text);margin-top:4px;line-height:1.2}
+
+/* PROGRESS */
+.progress-wrap{flex-shrink:0;padding:0 24px 12px}
+.progress-bar{height:6px;background:rgba(26,31,54,.08);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* DIAGRAM AREA */
+.diagram-area{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 24px;overflow:hidden;position:relative}
+.diagram-area svg{max-width:100%;max-height:100%;width:auto;height:auto}
+.step-view{display:none;width:100%;height:100%;align-items:center;justify-content:center;flex-direction:column}
+.step-view.active{display:flex}
+
+/* INFO PANEL */
+.info-panel{flex-shrink:0;padding:12px 24px;max-height:220px;overflow-y:auto}
+.info-box{background:var(--bg-card);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.info-text{font-size:.9375rem;line-height:1.6;color:var(--text)}
+.info-text strong{font-weight:700}
+.info-why{margin-top:8px;font-size:.8125rem;color:var(--text-mid);font-style:italic}
+
+/* CALLOUTS */
+.callout{border-radius:var(--radius-sm);padding:12px 16px;margin-top:12px;font-size:.875rem;line-height:1.5;font-weight:500}
+.callout-warn{background:var(--warn-bg);border-left:4px solid var(--warn-border);color:var(--warn-text)}
+.callout-danger{background:var(--danger-bg);border-left:4px solid var(--danger-border);color:var(--danger-text)}
+.callout-success{background:var(--success-bg);border-left:4px solid var(--success-border);color:var(--success-text)}
+
+/* TEST CMD */
+.test-cmd{margin-top:12px;background:var(--bg-dark);border-radius:var(--radius-sm);padding:12px 16px;font-family:var(--mono);font-size:.8125rem;color:#a5d6a7;cursor:pointer;position:relative;transition:background .2s}
+.test-cmd:hover{background:#252b42}
+.test-cmd::after{content:'click to copy';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:var(--font);font-size:.6875rem;color:rgba(255,255,255,.4);font-weight:500}
+.test-cmd.copied::after{content:'copied!';color:#a5d6a7}
+
+/* CONTROLS */
+.controls{flex-shrink:0;padding:12px 24px 20px;display:flex;gap:12px;justify-content:space-between;align-items:center}
+.btn{padding:12px 28px;border-radius:var(--radius-sm);font-family:var(--font);font-weight:700;font-size:.9375rem;border:none;cursor:pointer;transition:all .2s}
+.btn-back{background:transparent;color:var(--text-mid);border:2px solid rgba(26,31,54,.12)}
+.btn-back:hover{border-color:var(--accent);color:var(--accent)}
+.btn-next{background:var(--accent);color:#fff;box-shadow:0 4px 16px rgba(39,65,231,.3)}
+.btn-next:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 6px 20px rgba(39,65,231,.4)}
+.btn-next:active{transform:translateY(0)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important}
+.step-dots{display:flex;gap:6px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(26,31,54,.12);transition:all .3s}
+.dot.done{background:var(--accent)}
+.dot.current{background:var(--accent);width:24px;border-radius:4px}
+
+/* WIRE ANIMATIONS */
+@keyframes drawWire{from{stroke-dashoffset:1000}to{stroke-dashoffset:0}}
+@keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 4px rgba(39,65,231,.3))}50%{filter:drop-shadow(0 0 12px rgba(39,65,231,.6))}}
+
+.wire-animated{stroke-dasharray:1000;stroke-dashoffset:1000;animation:drawWire 1.5s ease forwards}
+.wire-animated-delay{animation-delay:.5s}
+.wire-animated-delay2{animation-delay:1s}
+.fade-in{animation:fadeSlideUp .5s ease forwards}
+.fade-in-d1{animation-delay:.2s;opacity:0}
+.fade-in-d2{animation-delay:.4s;opacity:0}
+.fade-in-d3{animation-delay:.6s;opacity:0}
+.pop-in{animation:popIn .4s cubic-bezier(.34,1.56,.64,1) forwards}
+.glow{animation:glowPulse 2s ease-in-out infinite}
+
+/* COMPONENT STYLES */
+.comp-box{fill:var(--bg-card);stroke:var(--bg-dark);stroke-width:2;rx:8}
+.comp-box-accent{fill:#e8ecff;stroke:var(--accent);stroke-width:2;rx:8}
+.comp-label{font-family:var(--font);font-weight:700;font-size:14px;fill:var(--text)}
+.comp-sublabel{font-family:var(--mono);font-weight:600;font-size:11px;fill:var(--text-mid)}
+.pin-label{font-family:var(--mono);font-weight:700;font-size:10px}
+.pin-dot{r:4}
+.ghost{opacity:.15}
+
+/* INTERSTITIAL */
+.interstitial{position:fixed;inset:0;z-index:200;background:rgba(26,31,54,.92);display:none;align-items:center;justify-content:center;flex-direction:column;gap:24px;padding:32px}
+.interstitial.show{display:flex}
+.interstitial h2{color:#fff;font-size:2rem;font-weight:800;text-align:center}
+.interstitial p{color:rgba(255,255,255,.8);font-size:1.125rem;text-align:center;max-width:500px;line-height:1.6}
+.interstitial .btn-next{font-size:1.125rem;padding:16px 40px}
+.danger-icon{width:80px;height:80px;border-radius:50%;background:var(--danger-border);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;animation:pulse 1.5s ease infinite}
+
+/* CHECKLIST (step 14) */
+.checklist{list-style:none;padding:0}
+.checklist li{padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:6px;font-size:.9375rem;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;background:var(--bg-card);transition:all .2s}
+.checklist li:hover{background:#e8ecff}
+.checklist li.checked{background:var(--success-bg);color:var(--success-text)}
+.checklist li .check-icon{width:20px;height:20px;border-radius:50%;border:2px solid rgba(26,31,54,.2);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;transition:all .2s}
+.checklist li.checked .check-icon{background:var(--success-border);border-color:var(--success-border);color:#fff}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .step-title{font-size:1.125rem}
+  .controls{padding:8px 16px 16px}
+  .info-panel{padding:8px 16px}
+  .header{padding:12px 16px 8px}
+  .progress-wrap{padding:0 16px 8px}
+  .diagram-area{padding:4px 16px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">ELKTRON</div>
+  <a href="../hub.html">Hub</a>
+  <a href="assembly.html">Assembly</a>
+  <a href="wiring-guide.html">Wiring 3D</a>
+  <a href="wiring-wizard.html" class="active">Wiring Wizard</a>
+</nav>
+
+<div class="wizard">
+  <div class="header">
+    <div>
+      <div class="step-label" id="stepLabel">STEP 1 OF 14</div>
+      <div class="step-title" id="stepTitle">Lay Out Your Parts</div>
+    </div>
+    <div class="step-dots" id="dots"></div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <div class="diagram-area" id="diagramArea"></div>
+  <div class="info-panel" id="infoPanel"></div>
+  <div class="controls">
+    <button class="btn btn-back" id="btnBack" disabled>Back</button>
+    <button class="btn btn-next" id="btnNext">Done — Next Step</button>
+  </div>
+</div>
+
+<!-- INTERSTITIAL for step 9 -->
+<div class="interstitial" id="interstitial">
+  <div class="danger-icon">!</div>
+  <h2>STOP — Read This Carefully</h2>
+  <p>The HC-SR04 ECHO pin outputs <strong>5 volts</strong>. Your Raspberry Pi GPIO pins can only handle <strong>3.3 volts</strong>. Without the voltage divider, you <strong>will fry your Pi</strong>.</p>
+  <button class="btn btn-next" onclick="dismissInterstitial()">I Understand — Show Me How</button>
+</div>
+
+<script>
+const STEPS = [
+  // STEP 1 — Parts layout
+  {
+    title: "Lay Out Your Parts",
+    info: `<strong>Before touching a single wire</strong>, lay out every component on your table. Identify each one. This is your inventory check.`,
+    why: "If you're missing a part, better to know now than halfway through wiring.",
+    diagram: 'parts',
+    danger: null,
+    test: null
+  },
+  // STEP 2 — Battery to L298N
+  {
+    title: "Battery Holder → L298N Power",
+    info: `Connect the <strong>red wire (+)</strong> from the 18650 battery holder to the <strong>+12V terminal</strong> on the L298N. Then connect the <strong>black wire (−)</strong> to the <strong>GND terminal</strong>.`,
+    why: "This gives the motors their own 7.4V power supply, separate from the Pi.",
+    diagram: 'battery-l298n',
+    danger: null,
+    test: null
+  },
+  // STEP 3 — Left motors
+  {
+    title: "Left Motors → L298N Channel A",
+    info: `Take the <strong>red wires</strong> from both the Front-Left and Rear-Left motors. <strong>Twist them together</strong>. Push the twisted pair into <strong>OUT1</strong> and tighten the screw. Repeat with <strong>both black wires</strong> into <strong>OUT2</strong>.`,
+    why: "Both left motors run in parallel on Channel A — they always spin the same direction together.",
+    diagram: 'left-motors',
+    danger: null,
+    test: null
+  },
+  // STEP 4 — Right motors
+  {
+    title: "Right Motors → L298N Channel B",
+    info: `Same as the left side. Twist the <strong>red wires</strong> from Front-Right and Rear-Right motors together into <strong>OUT3</strong>. Twist <strong>black wires</strong> into <strong>OUT4</strong>.`,
+    why: "Channel B drives the right pair. Left + Right channels give you tank steering.",
+    diagram: 'right-motors',
+    danger: null,
+    test: null
+  },
+  // STEP 5 — GPIO to L298N control
+  {
+    title: "Pi GPIO → L298N Control Pins",
+    info: `Connect 4 female-to-female jumper wires:<br>
+    <strong>GPIO 17</strong> (Pin 11) → <strong>IN1</strong><br>
+    <strong>GPIO 27</strong> (Pin 13) → <strong>IN2</strong><br>
+    <strong>GPIO 22</strong> (Pin 15) → <strong>IN3</strong><br>
+    <strong>GPIO 23</strong> (Pin 16) → <strong>IN4</strong>`,
+    why: "These 4 signals tell the L298N which direction to spin each motor pair.",
+    diagram: 'gpio-l298n',
+    danger: null,
+    test: null
+  },
+  // STEP 6 — Common ground
+  {
+    title: "Pi GND → L298N GND",
+    info: `Connect a jumper wire from any <strong>Pi GND pin</strong> (Pin 6, 9, 14, 20, 25, 30, 34, or 39) to the <strong>GND terminal</strong> on the L298N — the same GND rail where the battery negative is connected.`,
+    why: "Without a common ground, the Pi's GPIO signals won't register on the L298N. This is the #1 missed step.",
+    diagram: 'common-gnd',
+    danger: 'warn',
+    callout: "COMMON GROUND is critical. If the motors don't respond to GPIO commands, this is almost always the reason.",
+    test: null
+  },
+  // STEP 7 — HC-SR04 power
+  {
+    title: "HC-SR04 Power",
+    info: `Connect <strong>VCC</strong> on the HC-SR04 to <strong>5V</strong> (Pi Pin 2). Connect <strong>GND</strong> to <strong>GND</strong> (Pi Pin 6).`,
+    why: "The ultrasonic sensor needs 5V to operate. It shares the Pi's ground rail.",
+    diagram: 'hcsr04-power',
+    danger: null,
+    test: null
+  },
+  // STEP 8 — HC-SR04 TRIG
+  {
+    title: "HC-SR04 TRIG Pin",
+    info: `Connect the <strong>TRIG</strong> pin on the HC-SR04 to <strong>GPIO 25</strong> (Pi Pin 22) with a jumper wire.`,
+    why: "TRIG sends the ultrasonic pulse. It's a 3.3V output from the Pi — perfectly safe, no resistors needed.",
+    diagram: 'hcsr04-trig',
+    danger: null,
+    test: null
+  },
+  // STEP 9 — Voltage divider (DANGER STEP)
+  {
+    title: "HC-SR04 ECHO + Voltage Divider",
+    info: `On the breadboard:<br>
+    1. ECHO pin → <strong>1kΩ resistor</strong> → row A<br>
+    2. From row A, a wire to <strong>GPIO 24</strong> (Pin 18)<br>
+    3. From row A, <strong>2kΩ resistor</strong> → GND rail<br><br>
+    This creates a voltage divider: 5V × (2k / (1k+2k)) = <strong>3.33V</strong> — safe for the Pi.`,
+    why: "The ECHO pin outputs 5V. Pi GPIO is rated for 3.3V max. Without this divider, you risk permanent damage to your Pi.",
+    diagram: 'voltage-divider',
+    danger: 'danger',
+    callout: "DO NOT skip the voltage divider. 5V on a 3.3V GPIO pin can permanently damage your Raspberry Pi.",
+    interstitial: true,
+    test: `python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"`
+  },
+  // STEP 10 — Pan servo
+  {
+    title: "Pan Servo Wiring",
+    info: `Connect the pan servo (bottom servo on the Arducam pan-tilt platform):<br>
+    <strong>Signal (orange/white)</strong> → <strong>GPIO 12</strong> (Pin 32)<br>
+    <strong>Power (red)</strong> → <strong>5V</strong> (Pin 4)<br>
+    <strong>Ground (brown/black)</strong> → <strong>GND</strong> (Pin 9)`,
+    why: "The pan servo rotates the camera left/right to track the person being escorted.",
+    diagram: 'pan-servo',
+    danger: null,
+    test: null
+  },
+  // STEP 11 — Tilt servo
+  {
+    title: "Tilt Servo Wiring",
+    info: `Connect the tilt servo (top servo on the Arducam platform):<br>
+    <strong>Signal (orange/white)</strong> → <strong>GPIO 13</strong> (Pin 33)<br>
+    <strong>Power (red)</strong> → <strong>5V</strong> (Pin 2 or 4)<br>
+    <strong>Ground (brown/black)</strong> → <strong>GND</strong> (Pin 14)`,
+    why: "The tilt servo angles the camera up/down for rack scanning — sweeping bottom to top across 42U racks.",
+    diagram: 'tilt-servo',
+    danger: null,
+    test: `python3 pan_tilt.py --simulate`
+  },
+  // STEP 12 — Camera CSI
+  {
+    title: "Camera CSI Ribbon Cable",
+    info: `<strong>1.</strong> Gently pull up the black plastic clip on the Pi's <strong>CAM</strong> port.<br>
+    <strong>2.</strong> Slide the ribbon cable in — <strong>blue side facing the USB ports</strong>, contacts facing the HDMI ports.<br>
+    <strong>3.</strong> Push the clip back down firmly until it clicks.`,
+    why: "The CSI connection is fragile. A loose ribbon = 'no camera detected' errors that waste hours to debug.",
+    diagram: 'camera-csi',
+    danger: 'warn',
+    callout: "The clip is fragile — don't force it. Pull straight up gently. If it doesn't slide easily, the cable may be backwards.",
+    test: `libcamera-hello --timeout 5000`
+  },
+  // STEP 13 — Power bank
+  {
+    title: "Power Bank → Pi USB-C",
+    info: `<strong>1.</strong> Plug the <strong>90° USB-C adapter</strong> into the Pi's USB-C port.<br>
+    <strong>2.</strong> Connect the <strong>PiSwitch</strong> inline (if you have one).<br>
+    <strong>3.</strong> Connect the USB-C cable from the <strong>Anker power bank</strong> to the switch/adapter.`,
+    why: "The Pi 5 needs a solid 5V/3A supply. The Anker 10K handles this. The 90° adapter keeps the cable from sticking out.",
+    diagram: 'power-bank',
+    danger: null,
+    test: null
+  },
+  // STEP 14 — Final verification
+  {
+    title: "Final Verification Checklist",
+    info: `<strong>Tap each item</strong> as you verify it. All connections should be secure. No bare wires touching each other.`,
+    why: "One loose wire can mean hours of debugging. Check everything before powering on.",
+    diagram: 'checklist',
+    danger: null,
+    test: `python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"`
+  }
+];
+
+const CHECKLIST_ITEMS = [
+  "Battery holder red → L298N +12V",
+  "Battery holder black → L298N GND",
+  "Left motors (FL+RL) → OUT1/OUT2",
+  "Right motors (FR+RR) → OUT3/OUT4",
+  "GPIO 17 → IN1, GPIO 27 → IN2",
+  "GPIO 22 → IN3, GPIO 23 → IN4",
+  "Pi GND → L298N GND (common ground)",
+  "HC-SR04 VCC → 5V, GND → GND",
+  "HC-SR04 TRIG → GPIO 25",
+  "HC-SR04 ECHO → voltage divider → GPIO 24",
+  "Pan servo → GPIO 12 + 5V + GND",
+  "Tilt servo → GPIO 13 + 5V + GND",
+  "Camera ribbon → CAM port (blue side out)",
+  "Power bank → 90° adapter → PiSwitch → Pi USB-C",
+  "No bare wires touching each other",
+  "ENA/ENB jumpers ON (on L298N)"
+];
+
+let currentStep = parseInt(localStorage.getItem('wiring-wizard-step') || '0');
+const diagramArea = document.getElementById('diagramArea');
+const infoPanel = document.getElementById('infoPanel');
+const btnBack = document.getElementById('btnBack');
+const btnNext = document.getElementById('btnNext');
+const stepLabel = document.getElementById('stepLabel');
+const stepTitle = document.getElementById('stepTitle');
+const progressFill = document.getElementById('progressFill');
+const dotsContainer = document.getElementById('dots');
+
+// Build dots
+for(let i = 0; i < STEPS.length; i++){
+  const d = document.createElement('div');
+  d.className = 'dot';
+  dotsContainer.appendChild(d);
+}
+
+function renderStep(idx){
+  currentStep = idx;
+  localStorage.setItem('wiring-wizard-step', idx);
+  const step = STEPS[idx];
+
+  stepLabel.textContent = `STEP ${idx+1} OF ${STEPS.length}`;
+  stepTitle.textContent = step.title;
+  progressFill.style.width = `${((idx+1)/STEPS.length)*100}%`;
+
+  // Dots
+  const dots = dotsContainer.children;
+  for(let i = 0; i < dots.length; i++){
+    dots[i].className = i < idx ? 'dot done' : i === idx ? 'dot current' : 'dot';
+  }
+
+  // Buttons
+  btnBack.disabled = idx === 0;
+  btnNext.textContent = idx === STEPS.length - 1 ? 'All Done!' : 'Done — Next Step';
+
+  // Show interstitial for step 9
+  if(step.interstitial){
+    document.getElementById('interstitial').classList.add('show');
+  }
+
+  // Diagram
+  diagramArea.innerHTML = '';
+  const svg = buildDiagram(step.diagram);
+  if(svg) diagramArea.appendChild(svg);
+
+  // Info panel
+  let html = `<div class="info-box">
+    <div class="info-text">${step.info}</div>
+    ${step.why ? `<div class="info-why">"${step.why}"</div>` : ''}
+    ${step.callout && step.danger === 'warn' ? `<div class="callout callout-warn">${step.callout}</div>` : ''}
+    ${step.callout && step.danger === 'danger' ? `<div class="callout callout-danger">${step.callout}</div>` : ''}
+    ${step.test ? `<div class="test-cmd" onclick="copyCmd(this)" data-cmd="${step.test.replace(/"/g,'&quot;')}">${step.test}</div>` : ''}
+  </div>`;
+  infoPanel.innerHTML = html;
+}
+
+function dismissInterstitial(){
+  document.getElementById('interstitial').classList.remove('show');
+}
+
+function copyCmd(el){
+  navigator.clipboard.writeText(el.dataset.cmd).then(()=>{
+    el.classList.add('copied');
+    setTimeout(()=>el.classList.remove('copied'),1500);
+  });
+}
+
+btnNext.addEventListener('click',()=>{
+  if(currentStep < STEPS.length-1) renderStep(currentStep+1);
+});
+btnBack.addEventListener('click',()=>{
+  if(currentStep > 0) renderStep(currentStep-1);
+});
+
+// Keyboard nav
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='ArrowRight'&&currentStep<STEPS.length-1) renderStep(currentStep+1);
+  if(e.key==='ArrowLeft'&&currentStep>0) renderStep(currentStep-1);
+});
+
+// ─── SVG DIAGRAM BUILDER ───
+function svg(w,h,content){
+  const el = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  el.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  el.setAttribute('width',w);
+  el.setAttribute('height',h);
+  el.innerHTML = content;
+  return el;
+}
+
+function compRect(x,y,w,h,label,sublabel,accent){
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" class="${accent?'comp-box-accent':'comp-box'}" />
+    <text x="${x+w/2}" y="${y+h/2-6}" text-anchor="middle" class="comp-label">${label}</text>
+    ${sublabel?`<text x="${x+w/2}" y="${y+h/2+10}" text-anchor="middle" class="comp-sublabel">${sublabel}</text>`:''}`;
+}
+
+function pin(x,y,color,label,side){
+  const tx = side==='right' ? x+10 : x-10;
+  const anchor = side==='right' ? 'start' : 'end';
+  return `<circle cx="${x}" cy="${y}" class="pin-dot" fill="${color}" />
+    <text x="${tx}" y="${y+4}" text-anchor="${anchor}" class="pin-label" fill="${color}">${label}</text>`;
+}
+
+function wire(x1,y1,x2,y2,color,cls){
+  const mx = (x1+x2)/2;
+  return `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" class="${cls||'wire-animated'}" />`;
+}
+
+function wireStraight(x1,y1,x2,y2,color,cls){
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" stroke-linecap="round" class="${cls||'wire-animated'}" />`;
+}
+
+function wireL(x1,y1,x2,y2,color,cls){
+  return `<path d="M${x1},${y1} L${x2},${y1} L${x2},${y2}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" class="${cls||'wire-animated'}" />`;
+}
+
+function arrowLabel(x,y,text,color){
+  return `<text x="${x}" y="${y}" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="12" fill="${color||'var(--accent)'}" class="pop-in">${text}</text>`;
+}
+
+function buildDiagram(type){
+  switch(type){
+
+  case 'parts': return svg(700,360,`
+    ${compRect(20,20,130,80,'Pi 5','Raspberry Pi',true)}
+    ${compRect(180,20,130,80,'L298N','Motor Driver',false)}
+    ${compRect(340,20,130,80,'HC-SR04','Ultrasonic',false)}
+    ${compRect(500,20,130,80,'Camera','Arducam IMX708',false)}
+    ${compRect(20,140,130,80,'FL Motor','Front-Left',false)}
+    ${compRect(180,140,130,80,'RL Motor','Rear-Left',false)}
+    ${compRect(340,140,130,80,'FR Motor','Front-Right',false)}
+    ${compRect(500,140,130,80,'RR Motor','Rear-Right',false)}
+    ${compRect(20,260,130,80,'Battery','2×18650 7.4V',false)}
+    ${compRect(180,260,130,80,'Power Bank','Anker 10K',false)}
+    ${compRect(340,260,130,80,'Pan/Tilt','2× MG90S',false)}
+    ${compRect(500,260,130,80,'Breadboard','+ Resistors',false)}
+    <text x="350" y="355" text-anchor="middle" font-family="var(--font)" font-weight="600" font-size="13" fill="var(--text-mid)" class="fade-in">Identify each component before starting</text>
+  `);
+
+  case 'battery-l298n': return svg(600,300,`
+    ${compRect(40,80,160,120,'Battery','2×18650 (7.4V)',false)}
+    ${compRect(380,80,160,120,'L298N','Motor Driver',false)}
+    ${pin(200,110,'var(--wire-red)','+  RED','right')}
+    ${pin(200,170,'var(--wire-black)','−  BLACK','right')}
+    ${pin(380,110,'+12V','','left')}
+    ${pin(380,170,'GND','','left')}
+    ${wire(200,110,380,110,'var(--wire-red)','wire-animated')}
+    ${wire(200,170,380,170,'var(--wire-black)','wire-animated wire-animated-delay')}
+    ${arrowLabel(290,100,'Red (+) → +12V','var(--wire-red)')}
+    ${arrowLabel(290,188,'Black (−) → GND','var(--wire-black)')}
+    <text x="300" y="260" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="11" fill="var(--text-light)" class="fade-in-d2">Tighten screw terminals firmly</text>
+  `);
+
+  case 'left-motors': return svg(700,340,`
+    ${compRect(30,30,140,90,'FL Motor','Front-Left',false)}
+    ${compRect(30,160,140,90,'RL Motor','Rear-Left',false)}
+    ${compRect(440,60,180,160,'L298N','Channel A',true)}
+    ${pin(170,60,'var(--wire-red)','RED','right')}
+    ${pin(170,90,'var(--wire-black)','BLK','right')}
+    ${pin(170,190,'var(--wire-red)','RED','right')}
+    ${pin(170,220,'var(--wire-black)','BLK','right')}
+    ${pin(440,110,'var(--wire-red)','OUT1','left')}
+    ${pin(440,170,'var(--wire-black)','OUT2','left')}
+    <!-- twist point -->
+    <circle cx="300" cy="110" r="14" fill="none" stroke="var(--wire-red)" stroke-width="2" stroke-dasharray="4,3" class="glow"/>
+    <text x="300" y="97" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="10" fill="var(--wire-red)">TWIST</text>
+    <circle cx="300" cy="170" r="14" fill="none" stroke="var(--wire-black)" stroke-width="2" stroke-dasharray="4,3" class="glow"/>
+    <text x="300" y="157" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="10" fill="var(--wire-black)">TWIST</text>
+    <!-- Wires: both reds converge at twist point, then to OUT1 -->
+    ${wire(170,60,300,110,'var(--wire-red)','wire-animated')}
+    ${wire(170,190,300,110,'var(--wire-red)','wire-animated wire-animated-delay')}
+    ${wire(300,110,440,110,'var(--wire-red)','wire-animated wire-animated-delay2')}
+    ${wire(170,90,300,170,'var(--wire-black)','wire-animated')}
+    ${wire(170,220,300,170,'var(--wire-black)','wire-animated wire-animated-delay')}
+    ${wire(300,170,440,170,'var(--wire-black)','wire-animated wire-animated-delay2')}
+    ${arrowLabel(300,290,'Twist both reds together → push into OUT1 screw terminal','var(--text-mid)')}
+    ${arrowLabel(300,310,'Twist both blacks together → push into OUT2 screw terminal','var(--text-mid)')}
+  `);
+
+  case 'right-motors': return svg(700,340,`
+    ${compRect(30,30,140,90,'FR Motor','Front-Right',false)}
+    ${compRect(30,160,140,90,'RR Motor','Rear-Right',false)}
+    ${compRect(440,60,180,160,'L298N','Channel B',true)}
+    ${pin(170,60,'var(--wire-red)','RED','right')}
+    ${pin(170,90,'var(--wire-black)','BLK','right')}
+    ${pin(170,190,'var(--wire-red)','RED','right')}
+    ${pin(170,220,'var(--wire-black)','BLK','right')}
+    ${pin(440,110,'var(--wire-red)','OUT3','left')}
+    ${pin(440,170,'var(--wire-black)','OUT4','left')}
+    <circle cx="300" cy="110" r="14" fill="none" stroke="var(--wire-red)" stroke-width="2" stroke-dasharray="4,3" class="glow"/>
+    <text x="300" y="97" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="10" fill="var(--wire-red)">TWIST</text>
+    <circle cx="300" cy="170" r="14" fill="none" stroke="var(--wire-black)" stroke-width="2" stroke-dasharray="4,3" class="glow"/>
+    <text x="300" y="157" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="10" fill="var(--wire-black)">TWIST</text>
+    ${wire(170,60,300,110,'var(--wire-red)','wire-animated')}
+    ${wire(170,190,300,110,'var(--wire-red)','wire-animated wire-animated-delay')}
+    ${wire(300,110,440,110,'var(--wire-red)','wire-animated wire-animated-delay2')}
+    ${wire(170,90,300,170,'var(--wire-black)','wire-animated')}
+    ${wire(170,220,300,170,'var(--wire-black)','wire-animated wire-animated-delay')}
+    ${wire(300,170,440,170,'var(--wire-black)','wire-animated wire-animated-delay2')}
+    ${arrowLabel(300,290,'Same pattern as left side — twist pairs into OUT3/OUT4','var(--text-mid)')}
+  `);
+
+  case 'gpio-l298n': return svg(700,320,`
+    ${compRect(30,40,200,240,'Raspberry Pi 5','GPIO Header',true)}
+    ${compRect(450,40,200,240,'L298N','Control Pins',false)}
+    <!-- Pi pins -->
+    ${pin(230,80,'var(--wire-blue)','GPIO17 (Pin 11)','right')}
+    ${pin(230,130,'var(--wire-blue)','GPIO27 (Pin 13)','right')}
+    ${pin(230,180,'var(--wire-blue)','GPIO22 (Pin 15)','right')}
+    ${pin(230,230,'var(--wire-blue)','GPIO23 (Pin 16)','right')}
+    <!-- L298N pins -->
+    ${pin(450,80,'var(--wire-blue)','IN1','left')}
+    ${pin(450,130,'var(--wire-blue)','IN2','left')}
+    ${pin(450,180,'var(--wire-blue)','IN3','left')}
+    ${pin(450,230,'var(--wire-blue)','IN4','left')}
+    <!-- Wires -->
+    ${wire(230,80,450,80,'var(--wire-blue)','wire-animated')}
+    ${wire(230,130,450,130,'var(--wire-blue)','wire-animated wire-animated-delay')}
+    ${wire(230,180,450,180,'var(--wire-blue)','wire-animated wire-animated-delay')}
+    ${wire(230,230,450,230,'var(--wire-blue)','wire-animated wire-animated-delay2')}
+    ${arrowLabel(340,70,'Left FWD')}
+    ${arrowLabel(340,120,'Left BWD')}
+    ${arrowLabel(340,170,'Right FWD')}
+    ${arrowLabel(340,220,'Right BWD')}
+    <text x="350" y="305" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="11" fill="var(--text-light)">Use female-to-female jumper wires</text>
+  `);
+
+  case 'common-gnd': return svg(600,280,`
+    ${compRect(40,60,180,140,'Raspberry Pi 5','',true)}
+    ${compRect(370,60,180,140,'L298N','',false)}
+    ${pin(220,130,'var(--wire-black)','GND (Pin 6)','right')}
+    ${pin(370,130,'var(--wire-black)','GND','left')}
+    ${wire(220,130,370,130,'var(--wire-black)','wire-animated')}
+    ${arrowLabel(295,118,'COMMON GROUND','var(--wire-orange)')}
+    <!-- Warning highlight -->
+    <rect x="220" y="110" width="150" height="40" rx="6" fill="none" stroke="var(--wire-orange)" stroke-width="2" stroke-dasharray="6,4" class="glow"/>
+    <text x="300" y="230" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="13" fill="var(--wire-orange)" class="fade-in">#1 most missed connection</text>
+  `);
+
+  case 'hcsr04-power': return svg(600,280,`
+    ${compRect(40,60,180,140,'Raspberry Pi 5','',true)}
+    ${compRect(370,60,180,140,'HC-SR04','Ultrasonic',false)}
+    ${pin(220,100,'var(--wire-red)','5V (Pin 2)','right')}
+    ${pin(220,160,'var(--wire-black)','GND (Pin 6)','right')}
+    ${pin(370,100,'var(--wire-red)','VCC','left')}
+    ${pin(370,160,'var(--wire-black)','GND','left')}
+    ${wire(220,100,370,100,'var(--wire-red)','wire-animated')}
+    ${wire(220,160,370,160,'var(--wire-black)','wire-animated wire-animated-delay')}
+    ${arrowLabel(295,90,'5V Power','var(--wire-red)')}
+    ${arrowLabel(295,178,'Ground','var(--wire-black)')}
+  `);
+
+  case 'hcsr04-trig': return svg(600,250,`
+    ${compRect(40,60,180,120,'Raspberry Pi 5','',true)}
+    ${compRect(370,60,180,120,'HC-SR04','',false)}
+    ${pin(220,120,'var(--wire-purple)','GPIO25 (Pin 22)','right')}
+    ${pin(370,120,'var(--wire-purple)','TRIG','left')}
+    ${wire(220,120,370,120,'var(--wire-purple)','wire-animated')}
+    ${arrowLabel(295,108,'Signal — safe at 3.3V','var(--wire-purple)')}
+  `);
+
+  case 'voltage-divider': return svg(700,400,`
+    <!-- HC-SR04 -->
+    ${compRect(20,40,140,100,'HC-SR04','',false)}
+    ${pin(160,80,'var(--wire-purple)','ECHO','right')}
+    <!-- Breadboard area -->
+    <rect x="220" y="20" width="260" height="360" rx="8" fill="#f0ede4" stroke="#c9c3b3" stroke-width="2"/>
+    <text x="350" y="16" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="11" fill="var(--text-mid)">BREADBOARD</text>
+    <!-- Row A node -->
+    <circle cx="350" cy="120" r="6" fill="var(--accent)" class="glow"/>
+    <text x="350" y="108" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="10" fill="var(--accent)">ROW A</text>
+    <!-- 1kΩ resistor -->
+    <rect x="230" y="72" width="80" height="16" rx="4" fill="#d4a574" stroke="#a07040" stroke-width="1.5"/>
+    <text x="270" y="66" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="11" fill="var(--wire-orange)">1kΩ</text>
+    <!-- Wire: ECHO → 1kΩ -->
+    ${wireStraight(160,80,230,80,'var(--wire-purple)','wire-animated')}
+    <!-- Wire: 1kΩ → Row A -->
+    ${wireStraight(310,80,350,120,'var(--wire-purple)','wire-animated wire-animated-delay')}
+    <!-- 2kΩ resistor (vertical) -->
+    <rect x="342" y="160" width="16" height="80" rx="4" fill="#d4a574" stroke="#a07040" stroke-width="1.5"/>
+    <text x="380" y="200" text-anchor="start" font-family="var(--mono)" font-weight="700" font-size="11" fill="var(--wire-orange)">2kΩ</text>
+    <!-- Wire: Row A → 2kΩ top -->
+    ${wireStraight(350,126,350,160,'var(--wire-black)','wire-animated wire-animated-delay')}
+    <!-- Wire: 2kΩ bottom → GND -->
+    ${wireStraight(350,240,350,310,'var(--wire-black)','wire-animated wire-animated-delay2')}
+    <text x="350" y="330" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="12" fill="var(--wire-black)">→ GND</text>
+    <!-- Pi -->
+    ${compRect(530,40,140,100,'Pi 5','',true)}
+    ${pin(530,80,'var(--wire-purple)','GPIO24 (Pin 18)','left')}
+    <!-- Wire: Row A → GPIO24 -->
+    ${wire(350,120,530,80,'var(--accent)','wire-animated wire-animated-delay2')}
+    <!-- Voltage math -->
+    <rect x="220" y="350" width="260" height="36" rx="6" fill="var(--bg-dark)"/>
+    <text x="350" y="373" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="12" fill="#a5d6a7">5V × (2k ÷ 3k) = 3.33V ✓ Safe</text>
+    <!-- Danger annotation -->
+    <text x="590" y="180" text-anchor="start" font-family="var(--font)" font-weight="800" font-size="14" fill="var(--danger-border)" class="fade-in-d2">WITHOUT divider:</text>
+    <text x="590" y="200" text-anchor="start" font-family="var(--font)" font-weight="600" font-size="12" fill="var(--danger-border)" class="fade-in-d3">5V → GPIO = dead Pi</text>
+  `);
+
+  case 'pan-servo': return svg(600,280,`
+    ${compRect(40,40,180,180,'Raspberry Pi 5','',true)}
+    ${compRect(380,40,180,180,'Pan Servo','MG90S (bottom)',false)}
+    ${pin(220,80,'var(--wire-green)','GPIO12 (Pin 32)','right')}
+    ${pin(220,130,'var(--wire-red)','5V (Pin 4)','right')}
+    ${pin(220,180,'var(--wire-black)','GND (Pin 9)','right')}
+    ${pin(380,80,'var(--wire-green)','Signal','left')}
+    ${pin(380,130,'var(--wire-red)','Power','left')}
+    ${pin(380,180,'var(--wire-black)','Ground','left')}
+    ${wire(220,80,380,80,'var(--wire-green)','wire-animated')}
+    ${wire(220,130,380,130,'var(--wire-red)','wire-animated wire-animated-delay')}
+    ${wire(220,180,380,180,'var(--wire-black)','wire-animated wire-animated-delay2')}
+    ${arrowLabel(300,68,'Signal (orange/white wire)','var(--wire-green)')}
+    ${arrowLabel(300,148,'Power (red wire)','var(--wire-red)')}
+    ${arrowLabel(300,198,'Ground (brown/black wire)','var(--wire-black)')}
+  `);
+
+  case 'tilt-servo': return svg(600,280,`
+    ${compRect(40,40,180,180,'Raspberry Pi 5','',true)}
+    ${compRect(380,40,180,180,'Tilt Servo','MG90S (top)',false)}
+    ${pin(220,80,'var(--wire-green)','GPIO13 (Pin 33)','right')}
+    ${pin(220,130,'var(--wire-red)','5V (Pin 2/4)','right')}
+    ${pin(220,180,'var(--wire-black)','GND (Pin 14)','right')}
+    ${pin(380,80,'var(--wire-green)','Signal','left')}
+    ${pin(380,130,'var(--wire-red)','Power','left')}
+    ${pin(380,180,'var(--wire-black)','Ground','left')}
+    ${wire(220,80,380,80,'var(--wire-green)','wire-animated')}
+    ${wire(220,130,380,130,'var(--wire-red)','wire-animated wire-animated-delay')}
+    ${wire(220,180,380,180,'var(--wire-black)','wire-animated wire-animated-delay2')}
+    ${arrowLabel(300,68,'Signal (orange/white wire)','var(--wire-green)')}
+    ${arrowLabel(300,148,'Power (red wire)','var(--wire-red)')}
+    ${arrowLabel(300,198,'Ground (brown/black wire)','var(--wire-black)')}
+  `);
+
+  case 'camera-csi': return svg(600,300,`
+    ${compRect(60,30,180,220,'Raspberry Pi 5','',true)}
+    <!-- CAM port detail -->
+    <rect x="110" y="180" width="80" height="30" rx="4" fill="var(--bg-dark)" stroke="var(--text)" stroke-width="1.5"/>
+    <text x="150" y="200" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="10" fill="#fff">CAM PORT</text>
+    <!-- Clip animation -->
+    <rect x="115" y="175" width="70" height="6" rx="2" fill="var(--text-mid)" class="pop-in"/>
+    <text x="150" y="170" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="10" fill="var(--accent)" class="fade-in-d1">↑ Pull clip up gently</text>
+    <!-- Ribbon cable -->
+    <rect x="130" y="210" width="40" height="60" rx="2" fill="var(--wire-grey)" opacity=".3"/>
+    <rect x="132" y="212" width="36" height="56" rx="1" fill="#e0e0e0" stroke="var(--wire-grey)" stroke-width="1"/>
+    <text x="150" y="244" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="8" fill="var(--text-mid)">RIBBON</text>
+    <!-- Camera -->
+    ${compRect(380,60,160,140,'Camera','Arducam IMX708',false)}
+    <circle cx="460" cy="130" r="25" fill="none" stroke="var(--text-mid)" stroke-width="2"/>
+    <circle cx="460" cy="130" r="12" fill="var(--bg-dark)"/>
+    <!-- Arrow -->
+    <path d="M170,240 C240,280 340,260 380,130" fill="none" stroke="var(--wire-grey)" stroke-width="3" stroke-dasharray="8,4" class="wire-animated"/>
+    ${arrowLabel(300,280,'Blue side faces USB ports','var(--accent)')}
+    ${arrowLabel(300,296,'Contacts face HDMI ports','var(--text-mid)')}
+  `);
+
+  case 'power-bank': return svg(700,260,`
+    ${compRect(20,60,140,120,'Anker 10K','Power Bank',false)}
+    <!-- USB-C cable -->
+    ${wireStraight(160,120,230,120,'var(--text)','wire-animated')}
+    <!-- PiSwitch -->
+    <rect x="230" y="100" width="100" height="40" rx="6" fill="#e8f5e9" stroke="var(--wire-green)" stroke-width="2"/>
+    <text x="280" y="124" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="10" fill="var(--wire-green)">PiSwitch</text>
+    <text x="280" y="90" text-anchor="middle" font-family="var(--font)" font-weight="600" font-size="9" fill="var(--text-light)" class="fade-in">(optional)</text>
+    ${wireStraight(330,120,400,120,'var(--text)','wire-animated wire-animated-delay')}
+    <!-- 90° adapter -->
+    <rect x="400" y="105" width="60" height="30" rx="4" fill="#fff3e0" stroke="var(--wire-orange)" stroke-width="1.5"/>
+    <text x="430" y="124" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="8" fill="var(--wire-orange)">90° USB-C</text>
+    ${wireStraight(460,120,510,120,'var(--text)','wire-animated wire-animated-delay2')}
+    <!-- Pi -->
+    ${compRect(510,60,140,120,'Pi 5','USB-C Port',true)}
+    ${arrowLabel(350,200,'Power bank → (switch) → 90° adapter → Pi USB-C','var(--text-mid)')}
+    ${arrowLabel(350,220,'Must supply 5V / 3A minimum','var(--wire-orange)')}
+  `);
+
+  case 'checklist':
+    // Build checklist HTML instead of SVG
+    let cl = '<div style="max-width:560px;width:100%;margin:0 auto"><ul class="checklist">';
+    CHECKLIST_ITEMS.forEach((item,i) => {
+      cl += `<li onclick="this.classList.toggle('checked')" data-idx="${i}"><span class="check-icon">✓</span>${item}</li>`;
+    });
+    cl += '</ul></div>';
+    const div = document.createElement('div');
+    div.style.cssText = 'width:100%;height:100%;overflow-y:auto;display:flex;align-items:flex-start;justify-content:center;padding:8px 0';
+    div.innerHTML = cl;
+    return div;
+
+  default: return null;
+  }
+}
+
+// Init
+renderStep(currentStep);
+</script>
+</body>
+</html>
