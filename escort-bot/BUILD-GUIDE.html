@@ -314,7 +314,7 @@
       <span><strong>Parts:</strong> 11 components</span>
       <span><strong>Code:</strong> 6 files</span>
       <span><strong>Build time:</strong> ~3 hours</span>
-      <span><strong>Owner:</strong> Romeo Patino / Alex Murillo</span>
+      <span><strong>Owner:</strong> Romeo Patino / Raphael Rodea</span>
     </div>
   </header>
 
@@ -383,7 +383,7 @@
           <div class="part-section-label">Code</div>
           <span class="code-ref">main.py → init_camera()</span>
           <span class="code-ref">main.py → detect_person()</span>
-          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Uses picamera2 → libcamera stack. Feeds 640x480 RGB frames to TFLite.</p>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:4px">Uses picamera2 → libcamera stack. Feeds 640x360 RGB frames to YOLOv8n.</p>
         </div>
         <div class="part-section">
           <div class="part-section-label">Test</div>
@@ -658,7 +658,7 @@ OS:      Raspberry Pi OS (other)
            > Pi OS Lite (64-bit)
              Debian Bookworm, no desktop
 Storage: Your MicroSD card</div>
-        <div class="cmd-note"><strong>Lite = headless.</strong> No desktop, all RAM for CV + motors. 64-bit required for TFLite performance.</div>
+        <div class="cmd-note"><strong>Lite = headless.</strong> No desktop, all RAM for CV + motors. 64-bit required for YOLOv8n performance.</div>
       </div>
 
       <div class="cmd-card">
@@ -694,8 +694,8 @@ arp -a | grep -i "dc:a6\|b8:27\|d8:3a\|2c:cf"</div>
         <div class="cmd-code"><span class="c"># lgpio missing?</span>
 sudo apt install python3-lgpio
 
-<span class="c"># tflite-runtime won't install?</span>
-pip install --break-system-packages tflite-runtime
+<span class="c"># ultralytics won't install?</span>
+pip install --break-system-packages ultralytics
 
 <span class="c"># GPIO permission denied?</span>
 sudo usermod -aG gpio pi && sudo reboot
@@ -739,7 +739,7 @@ echo performance | sudo tee \
 cd ~/escort-bot
 chmod +x install.sh
 ./install.sh</div>
-        <div class="cmd-note">Installs picamera2, TFLite, gpiozero, lgpio. Downloads MobileNet SSD model. ~15 min.</div>
+        <div class="cmd-note">Installs picamera2, ultralytics, gpiozero, lgpio. Downloads YOLOv8n model. ~15 min.</div>
       </div>
 
       <div class="cmd-card">
@@ -793,7 +793,7 @@ r.forward(0.3); time.sleep(1); r.stop()"</div>
 
 <footer>
   <p>Elktron Escort Bot — CoreWeave Hackathon 2026</p>
-  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; Alex Murillo &middot; Josh Tapia</p>
+  <p style="margin-top:0.5rem">Built by Romeo Patino &middot; Josh Tapia &middot; Raphael Rodea</p>
 </footer>
 
 <script>

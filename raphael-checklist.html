@@ -310,7 +310,7 @@ body {
 <div class="quick-info">
   <div class="info-card">
     <div class="info-label">Partner</div>
-    <div class="info-value">Alex Murillo</div>
+    <div class="info-value">Josh Tapia</div>
   </div>
   <div class="info-card">
     <div class="info-label">Focus</div>
@@ -353,11 +353,11 @@ const PHASES = [
     title: 'Hardware Intake',
     date: 'March 12–14',
     tasks: [
-      { id: 'h1', text: 'Help Alex verify the LK-COKOINO chassis kit contents', note: '4 motors, 4 wheels, chassis plates, screws, standoffs', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 'h1', text: 'Help Josh verify the LK-COKOINO chassis kit contents', note: '4 motors, 4 wheels, chassis plates, screws, standoffs', tag: 'pair', tagLabel: 'WITH JOSH' },
       { id: 'h2', text: 'Verify L298N motor driver boards light up when powered', note: 'Romeo will hand you the 2-pack. Plug 12V, check LED.', tag: 'solo', tagLabel: 'SOLO' },
       { id: 'h3', text: 'Verify HC-SR04 ultrasonic sensors (pick 2 best from 7)', note: 'Simple test: hold in front of wall, check if trigger/echo pins work', tag: 'solo', tagLabel: 'SOLO' },
       { id: 'h4', text: 'Label every part with masking tape (write what it is)', note: 'Prevents mix-ups during assembly. Label everything.', tag: 'solo', tagLabel: 'SOLO' },
-      { id: 'h5', text: 'Set up a "war room" — dedicated table, good lighting, power strips', note: 'Ask Romeo where. Needs space for 2 people + parts.', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 'h5', text: 'Set up a "war room" — dedicated table, good lighting, power strips', note: 'Ask Romeo where. Needs space for 2 people + parts.', tag: 'pair', tagLabel: 'WITH JOSH' },
     ]
   },
   {
@@ -366,12 +366,12 @@ const PHASES = [
     title: 'Chassis Assembly',
     date: 'March 13–15',
     tasks: [
-      { id: 'c1', text: 'Unpack LK-COKOINO kit — lay out ALL parts on table', note: 'Match against the included parts list. Report anything missing.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'c2', text: 'Mount 4 motors onto bottom chassis plate', note: 'Use the screws from the kit. Motors face outward.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'c3', text: 'Attach 4 wheels to motor shafts', note: 'Press-fit. Make sure they\'re snug and spin freely.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'c4', text: 'Assemble chassis layers (bottom + standoffs + top plate)', note: 'Standoffs go between plates. Leave room for L298N + Pi mount.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'c5', text: 'Mount L298N motor driver to chassis', note: 'Use standoffs or velcro. Keep it accessible for wiring.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'c6', text: 'Mount Raspberry Pi 5 on top plate', note: 'Use standoffs. GPIO pins must be accessible. Active cooler attached.', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 'c1', text: 'Unpack LK-COKOINO kit — lay out ALL parts on table', note: 'Match against the included parts list. Report anything missing.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'c2', text: 'Mount 4 motors onto bottom chassis plate', note: 'Use the screws from the kit. Motors face outward.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'c3', text: 'Attach 4 wheels to motor shafts', note: 'Press-fit. Make sure they\'re snug and spin freely.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'c4', text: 'Assemble chassis layers (bottom + standoffs + top plate)', note: 'Standoffs go between plates. Leave room for L298N + Pi mount.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'c5', text: 'Mount L298N motor driver to chassis', note: 'Use standoffs or velcro. Keep it accessible for wiring.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'c6', text: 'Mount Raspberry Pi 5 on top plate', note: 'Use standoffs. GPIO pins must be accessible. Active cooler attached.', tag: 'pair', tagLabel: 'WITH JOSH' },
       { id: 'c7', text: 'Test: chassis rolls freely on flat surface', note: 'Push it by hand — all 4 wheels should spin, no drag.', tag: 'solo', tagLabel: 'SOLO' },
     ]
   },
@@ -382,11 +382,11 @@ const PHASES = [
     date: 'March 14–16',
     tasks: [
       { id: 'w1', text: 'Read WIRING.md completely before touching wires', note: 'In escort-bot/WIRING.md — GPIO pin map, L298N diagram, voltage divider', tag: 'critical', tagLabel: 'READ FIRST' },
-      { id: 'w2', text: 'Wire motors to L298N (4 motors, 2 channels)', note: 'Left motors → OUT1/OUT2, Right motors → OUT3/OUT4. See WIRING.md.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'w3', text: 'Wire L298N control pins to Pi 5 GPIO', note: 'IN1=GPIO17, IN2=GPIO27, IN3=GPIO22, IN4=GPIO23, ENA=GPIO12, ENB=GPIO13', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'w4', text: 'Build HC-SR04 voltage divider on breadboard', note: '1kΩ + 2kΩ divider on ECHO pin (5V → 3.3V). TRIG=GPIO24, ECHO=GPIO25', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'w5', text: 'Wire HC-SR04 ultrasonic sensor', note: 'VCC=5V, TRIG=GPIO24, ECHO through divider to GPIO25, GND=GND', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'w6', text: 'Connect 18650 battery holder to L298N power input', note: '2x 18650 in series = ~7.4V. Red to 12V, Black to GND on L298N.', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 'w2', text: 'Wire motors to L298N (4 motors, 2 channels)', note: 'Left motors → OUT1/OUT2, Right motors → OUT3/OUT4. See WIRING.md.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'w3', text: 'Wire L298N control pins to Pi 5 GPIO', note: 'IN1=GPIO17, IN2=GPIO27, IN3=GPIO22, IN4=GPIO23, ENA=GPIO12, ENB=GPIO13', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'w4', text: 'Build HC-SR04 voltage divider on breadboard', note: '1kΩ + 2kΩ divider on ECHO pin (5V → 3.3V). TRIG=GPIO24, ECHO=GPIO25', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'w5', text: 'Wire HC-SR04 ultrasonic sensor', note: 'VCC=5V, TRIG=GPIO24, ECHO through divider to GPIO25, GND=GND', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'w6', text: 'Connect 18650 battery holder to L298N power input', note: '2x 18650 in series = ~7.4V. Red to 12V, Black to GND on L298N.', tag: 'pair', tagLabel: 'WITH JOSH' },
       { id: 'w7', text: 'Connect USB-C power bank to Pi 5', note: 'Separate power: motors run on 18650, Pi runs on power bank.', tag: 'solo', tagLabel: 'SOLO' },
       { id: 'w8', text: 'Double-check ALL connections against WIRING.md diagram', note: 'Wrong wiring can fry the Pi. Check twice, power once.', tag: 'critical', tagLabel: 'CRITICAL' },
     ]
@@ -398,10 +398,10 @@ const PHASES = [
     date: 'March 15–17',
     tasks: [
       { id: 'm1', text: 'Cut PVC pipe to ~3.5 ft (adjust for rack height visibility)', note: 'Use a hacksaw or pipe cutter. Sand edges smooth.', tag: 'solo', tagLabel: 'SOLO' },
-      { id: 'm2', text: 'Attach T-connector to chassis base', note: 'Drill or velcro the T-connector onto the top chassis plate center.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'm3', text: 'Insert mast pipe into T-connector', note: 'Should be snug. Add tape if loose. Must not wobble.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'm4', text: 'Mount Arducam pan-tilt platform at top of mast', note: 'Velcro or zip-tie. Must support camera weight without sagging.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'm5', text: 'Mount Arducam IMX708 camera onto pan-tilt bracket', note: 'Screw mount. Route CSI cable down the inside of PVC pipe.', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 'm2', text: 'Attach T-connector to chassis base', note: 'Drill or velcro the T-connector onto the top chassis plate center.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'm3', text: 'Insert mast pipe into T-connector', note: 'Should be snug. Add tape if loose. Must not wobble.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'm4', text: 'Mount Arducam pan-tilt platform at top of mast', note: 'Velcro or zip-tie. Must support camera weight without sagging.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'm5', text: 'Mount Arducam IMX708 camera onto pan-tilt bracket', note: 'Screw mount. Route CSI cable down the inside of PVC pipe.', tag: 'pair', tagLabel: 'WITH JOSH' },
       { id: 'm6', text: 'Test: mast stays vertical when bot moves', note: 'Push bot around — mast should not sway more than ~10 degrees.', tag: 'solo', tagLabel: 'SOLO' },
     ]
   },
@@ -411,12 +411,12 @@ const PHASES = [
     title: 'Software Testing',
     date: 'March 16–19',
     tasks: [
-      { id: 't1', text: 'Run test_camera.py — verify person detection works', note: 'SSH into Pi: python3 test_camera.py. Look for "Person detected" in output.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 't2', text: 'Run motors manually — verify all 4 wheels spin correct direction', note: 'python3 -c "from gpiozero import Motor; ..." — see PI-SETUP.md', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 't1', text: 'Run test_camera.py — verify person detection works', note: 'SSH into Pi: python3 test_camera.py. Look for "Person detected" in output.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 't2', text: 'Run motors manually — verify all 4 wheels spin correct direction', note: 'python3 -c "from gpiozero import Motor; ..." — see PI-SETUP.md', tag: 'pair', tagLabel: 'WITH JOSH' },
       { id: 't3', text: 'Run ultrasonic test — verify distance readings', note: 'Should read ~30cm when hand is 30cm away. Accuracy within 2cm.', tag: 'solo', tagLabel: 'SOLO' },
-      { id: 't4', text: 'First integrated test: run main.py with all hardware connected', note: 'Stand 2m in front of bot. It should turn toward you and approach.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 't5', text: 'Tuning: adjust Kp (proportional gain) if steering is jerky', note: 'In main.py — start with Kp=0.5, increase if too sluggish, decrease if oscillating.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 't6', text: 'Tuning: adjust FOLLOW_DIST and speed thresholds', note: 'Default: follow at 1.0m, stop at 0.5m. Adjust for DC aisle width.', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 't4', text: 'First integrated test: run main.py with all hardware connected', note: 'Stand 2m in front of bot. It should turn toward you and approach.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 't5', text: 'Tuning: adjust Kp (proportional gain) if steering is jerky', note: 'In main.py — start with Kp=0.5, increase if too sluggish, decrease if oscillating.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 't6', text: 'Tuning: adjust FOLLOW_DIST and speed thresholds', note: 'Default: follow at 1.0m, stop at 0.5m. Adjust for DC aisle width.', tag: 'pair', tagLabel: 'WITH JOSH' },
     ]
   },
   {
@@ -425,9 +425,9 @@ const PHASES = [
     title: 'DC Floor Testing',
     date: 'March 20–22',
     tasks: [
-      { id: 'f1', text: 'Bring bot to DC floor for real-world test', note: 'Charge all batteries. Bring laptop for SSH.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'f2', text: 'Test person-following in a real aisle', note: 'Walk slowly. Bot should follow at ~1m distance, stop when you stop.', tag: 'pair', tagLabel: 'WITH ALEX' },
-      { id: 'f3', text: 'Test SCAN mode — bot should pan camera up/down rack', note: 'Trigger SCAN mode, verify camera sweeps full 42U height.', tag: 'pair', tagLabel: 'WITH ALEX' },
+      { id: 'f1', text: 'Bring bot to DC floor for real-world test', note: 'Charge all batteries. Bring laptop for SSH.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'f2', text: 'Test person-following in a real aisle', note: 'Walk slowly. Bot should follow at ~1m distance, stop when you stop.', tag: 'pair', tagLabel: 'WITH JOSH' },
+      { id: 'f3', text: 'Test SCAN mode — bot should pan camera up/down rack', note: 'Trigger SCAN mode, verify camera sweeps full 42U height.', tag: 'pair', tagLabel: 'WITH JOSH' },
       { id: 'f4', text: 'Note any issues: lighting, reflections, aisle width, floor surface', note: 'Write them down — these feed back into final tuning.', tag: 'solo', tagLabel: 'SOLO' },
       { id: 'f5', text: 'Help film the escort bot demo footage (2-3 clips)', note: 'Romeo will direct. You operate the bot or walk as the "vendor."', tag: 'pair', tagLabel: 'WITH ROMEO' },
     ]

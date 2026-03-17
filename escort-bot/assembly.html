@@ -1721,17 +1721,17 @@ const BOOT_LINES = [
   { text: 'Setting up i2c-tools (4.3-2+b3) ...', color: 'dim', delay: 20 },
   { text: '', color: 'dim', delay: 10 },
   { text: 'pip3 install --break-system-packages -r requirements.txt', color: 'yellow', delay: 30 },
-  { text: 'Collecting tflite-runtime>=2.14.0', color: 'dim', delay: 20 },
-  { text: '  Downloading tflite_runtime-2.14.0-cp311-cp311-linux_aarch64.whl (2.4 MB)', color: 'dim', delay: 25 },
+  { text: 'Collecting ultralytics>=8.0.0', color: 'dim', delay: 20 },
+  { text: '  Downloading ultralytics-8.1.47-py3-none-any.whl (720 kB)', color: 'dim', delay: 25 },
   { text: 'Collecting gpiozero>=2.0', color: 'dim', delay: 15 },
   { text: 'Collecting lgpio>=0.2.2.0', color: 'dim', delay: 15 },
   { text: 'Collecting numpy>=1.24', color: 'dim', delay: 15 },
   { text: 'Collecting Pillow>=10.0', color: 'dim', delay: 15 },
-  { text: 'Installing collected packages: lgpio, numpy, Pillow, gpiozero, tflite-runtime', color: 'dim', delay: 25 },
-  { text: 'Successfully installed gpiozero-2.0.1 lgpio-0.2.2.0 numpy-1.26.4 Pillow-10.2.0 tflite-runtime-2.14.0', color: 'green', delay: 35 },
+  { text: 'Installing collected packages: lgpio, numpy, Pillow, gpiozero, ultralytics', color: 'dim', delay: 25 },
+  { text: 'Successfully installed gpiozero-2.0.1 lgpio-0.2.2.0 numpy-1.26.4 Pillow-10.2.0 ultralytics-8.1.47', color: 'green', delay: 35 },
   { text: '', color: 'dim', delay: 10 },
-  { text: 'Downloading TFLite model...', color: 'dim', delay: 25 },
-  { text: 'models/ssd_mobilenet_v2.tflite     100%[==================>]   4.3M  11.2MB/s  in 0.4s', color: 'green', delay: 30 },
+  { text: 'Downloading YOLOv8n model...', color: 'dim', delay: 25 },
+  { text: 'models/yolov8n.pt                  100%[==================>]   6.2M  11.2MB/s  in 0.6s', color: 'green', delay: 30 },
   { text: 'Generating COCO labels... done', color: 'dim', delay: 20 },
   { text: '✓ Install complete. Run: python3 main.py', color: 'green', delay: 35 },
   { text: '', color: 'dim', delay: 15 },
@@ -1745,7 +1745,7 @@ const BOOT_LINES = [
   { text: '[boot]    Loading escort-bot.service...', color: 'purple', delay: 40 },
   { text: '[camera]  libcamera v0.3.0 — IMX708 wide-angle 120° FOV', color: 'purple', delay: 30 },
   { text: '[camera]  Picamera2 — 640x480 @30fps (autofocus enabled)', color: 'purple', delay: 30 },
-  { text: '[tflite]  MobileNet SSD v2 quantized — 3.2ms/inference', color: 'purple', delay: 30 },
+  { text: '[yolo]    YOLOv8n — 45ms/inference on Pi 5', color: 'purple', delay: 30 },
   { text: '[gpio]    Pin factory: lgpio (Pi 5 native)', color: 'purple', delay: 25 },
   { text: '[gpio]    L298N motors: GPIO 17,27 (left) / 22,23 (right)', color: 'purple', delay: 25 },
   { text: '[gpio]    HC-SR04 ultrasonic: TRIG=25 ECHO=24 (3.3V divider)', color: 'purple', delay: 25 },
@@ -4472,12 +4472,12 @@ const SETUP_QUEST = [
     match: cmd => (cmd.includes('pip install') || cmd.includes('pip3 install')) && cmd.includes('picamera2'),
   },
   {
-    name: 'Install tflite-runtime',
+    name: 'Install ultralytics',
     section: 'PYTHON',
-    cmd: 'pip install --break-system-packages tflite-runtime>=2.14.0',
-    desc: 'TensorFlow Lite runtime — runs the MobileNet SSD v2 model for person detection at ~20 FPS on Pi 5. Much lighter than full TensorFlow.',
+    cmd: 'pip install --break-system-packages ultralytics>=8.0.0',
+    desc: 'Ultralytics YOLOv8 runtime — runs the YOLOv8n model for person detection at ~12-18 FPS on Pi 5. Better accuracy than MobileNet SSD.',
     simple: 'The AI engine that lets the robot recognize people in camera footage.',
-    match: cmd => (cmd.includes('pip install') || cmd.includes('pip3 install')) && cmd.includes('tflite'),
+    match: cmd => (cmd.includes('pip install') || cmd.includes('pip3 install')) && cmd.includes('ultralytics'),
   },
   {
     name: 'Install gpiozero',
@@ -4499,7 +4499,7 @@ const SETUP_QUEST = [
     name: 'Install numpy',
     section: 'PYTHON',
     cmd: 'pip install --break-system-packages numpy>=1.24.0',
-    desc: 'Numerical computing library. TFLite uses it for tensor operations — input preprocessing (300x300 RGB resize) and output parsing (bounding boxes, confidence scores).',
+    desc: 'Numerical computing library. YOLOv8n uses it for tensor operations — input preprocessing and output parsing (bounding boxes, confidence scores).',
     simple: 'Math library the AI needs to process camera images and find people.',
     match: cmd => (cmd.includes('pip install') || cmd.includes('pip3 install')) && cmd.includes('numpy'),
   },
@@ -4507,7 +4507,7 @@ const SETUP_QUEST = [
     name: 'Install Pillow',
     section: 'PYTHON',
     cmd: 'pip install --break-system-packages Pillow',
-    desc: 'Python Imaging Library fork. Used for image capture, JPEG encoding of rack scan frames, and format conversion between camera output and TFLite input.',
+    desc: 'Python Imaging Library fork. Used for image capture, JPEG encoding of rack scan frames, and format conversion between camera output and YOLOv8n input.',
     simple: 'Handles saving photos from the camera as image files.',
     match: cmd => (cmd.includes('pip install') || cmd.includes('pip3 install')) && cmd.toLowerCase().includes('pillow'),
   },
@@ -4516,33 +4516,33 @@ const SETUP_QUEST = [
     name: 'Create models directory',
     section: 'ML MODEL',
     cmd: 'mkdir -p ~/escort-bot/models',
-    desc: 'Creates the models/ folder where the TFLite model and COCO labels will live. The -p flag means no error if it already exists.',
+    desc: 'Creates the models/ folder where the YOLOv8n model and COCO labels will live. The -p flag means no error if it already exists.',
     simple: 'Makes a folder to store the AI brain file.',
     match: cmd => cmd.includes('mkdir') && cmd.includes('models'),
   },
   {
-    name: 'Download SSD MobileNet model',
+    name: 'Download YOLOv8n model',
     section: 'ML MODEL',
-    cmd: 'wget -q "https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v1_1.0_quant_2018_06_29.zip" -O /tmp/ssd_model.zip',
-    desc: 'Downloads the quantized MobileNet SSD v1 model from Google\'s TFLite model zoo. Quantized = 4.3MB instead of 67MB, runs on Pi without GPU.',
-    simple: 'Downloads the AI model from Google — this is what teaches the robot to see people.',
-    match: cmd => cmd.includes('wget') && cmd.includes('ssd_mobilenet'),
+    cmd: 'wget -q "https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt" -O ~/escort-bot/models/yolov8n.pt',
+    desc: 'Downloads the YOLOv8n model from Ultralytics GitHub releases. Nano variant = 6.2MB, optimized for edge devices like Pi 5.',
+    simple: 'Downloads the AI model from Ultralytics — this is what teaches the robot to see people.',
+    match: cmd => cmd.includes('wget') && (cmd.includes('yolov8n') || cmd.includes('ultralytics')),
   },
   {
-    name: 'Unzip model',
+    name: 'Verify model download',
     section: 'ML MODEL',
-    cmd: 'unzip -o /tmp/ssd_model.zip -d ~/escort-bot/models/',
-    desc: 'Extracts detect.tflite and labelmap.txt from the zip archive into the models/ directory. The -o flag overwrites existing files without prompting.',
-    simple: 'Unpacks the downloaded file — like unzipping a folder on your computer.',
-    match: cmd => cmd.includes('unzip') && (cmd.includes('ssd_model') || cmd.includes('models')),
+    cmd: 'ls -la ~/escort-bot/models/yolov8n.pt',
+    desc: 'Verifies the YOLOv8n model was downloaded correctly. Should show ~6.2MB file size.',
+    simple: 'Checks that the AI model file was downloaded properly.',
+    match: cmd => cmd.includes('ls') && cmd.includes('yolov8n'),
   },
   {
-    name: 'Rename model file',
+    name: 'Generate COCO labels',
     section: 'ML MODEL',
-    cmd: 'mv ~/escort-bot/models/detect.tflite ~/escort-bot/models/ssd_mobilenet_v2.tflite',
-    desc: 'Renames detect.tflite to ssd_mobilenet_v2.tflite so main.py can find it. The "2>/dev/null || true" in the real script suppresses errors if the file doesn\'t exist.',
-    simple: 'Renames the AI file so the robot\'s code knows where to find it.',
-    match: cmd => cmd.includes('mv') && cmd.includes('detect.tflite'),
+    cmd: 'python3 -c "from ultralytics import YOLO; print(\'YOLOv8n ready\')"',
+    desc: 'Quick validation that ultralytics can load and the YOLOv8n model is accessible. First run auto-downloads any missing assets.',
+    simple: 'Quick test that the AI library is working.',
+    match: cmd => cmd.includes('ultralytics') && cmd.includes('YOLO'),
   },
   // ── VERIFY ──
   {
@@ -4557,7 +4557,7 @@ const SETUP_QUEST = [
     name: 'Test person detection',
     section: 'VERIFY',
     cmd: 'python3 test_camera.py',
-    desc: 'Runs the TFLite MobileNet SSD model on live camera frames. Prints bounding boxes and confidence scores for detected persons. Ctrl+C to stop.',
+    desc: 'Runs the YOLOv8n model on live camera frames. Prints bounding boxes and confidence scores for detected persons. Ctrl+C to stop.',
     simple: 'Points the camera and checks if the AI can spot a person. Stand in front of it!',
     match: cmd => cmd.includes('test_camera'),
   },
@@ -4940,9 +4940,9 @@ const VIRT_FS = {
   '/home/pi': ['escort-bot','.bashrc','.profile','.local','.bash_history','.ssh'],
   '/home/pi/.ssh': ['authorized_keys'],
   '/home/pi/.local': ['bin','lib'],
-  '/home/pi/.local/bin': ['tflite_runtime'],
+  '/home/pi/.local/bin': ['ultralytics'],
   '/home/pi/escort-bot': ['main.py','pan_tilt.py','test_camera.py','install.sh','requirements.txt','WIRING.md','PI-SETUP.md','CLAUDE.md','models/','scans/','__pycache__/','logs/'],
-  '/home/pi/escort-bot/models': ['ssd_mobilenet_v2.tflite','coco_labels.txt'],
+  '/home/pi/escort-bot/models': ['yolov8n.pt','coco_labels.txt'],
   '/home/pi/escort-bot/scans': ['20260312_143022/','20260312_150815/'],
   '/home/pi/escort-bot/scans/20260312_143022': ['frame_01.jpg','frame_02.jpg','frame_03.jpg','frame_04.jpg','frame_05.jpg','frame_06.jpg','frame_07.jpg','frame_08.jpg','frame_09.jpg','frame_10.jpg','frame_11.jpg','frame_12.jpg','frame_13.jpg','frame_14.jpg','frame_15.jpg','frame_16.jpg','frame_17.jpg','frame_18.jpg','frame_19.jpg','frame_20.jpg','frame_21.jpg','frame_22.jpg','frame_23.jpg','frame_24.jpg','frame_25.jpg'],
   '/home/pi/escort-bot/scans/20260312_150815': ['frame_01.jpg','frame_02.jpg','frame_03.jpg','frame_04.jpg','frame_05.jpg','frame_06.jpg','frame_07.jpg','frame_08.jpg','frame_09.jpg','frame_10.jpg','frame_11.jpg','frame_12.jpg','frame_13.jpg','frame_14.jpg','frame_15.jpg','frame_16.jpg','frame_17.jpg','frame_18.jpg'],
@@ -4975,18 +4975,18 @@ const VIRT_FILES = {
     { text: '', color: '#a0b0a0' },
     { text: 'import time, numpy as np', color: '#bb88ff' },
     { text: 'from picamera2 import Picamera2', color: '#bb88ff' },
-    { text: 'from tflite_runtime.interpreter import Interpreter', color: '#bb88ff' },
+    { text: 'from ultralytics import YOLO', color: '#bb88ff' },
     { text: 'from gpiozero import Motor, DistanceSensor', color: '#bb88ff' },
     { text: 'from pan_tilt import PanTilt', color: '#bb88ff' },
     { text: '', color: '#a0b0a0' },
     { text: 'KP = 1.0              # Proportional steering gain', color: '#a0b0a0' },
     { text: 'BASE_SPEED = 0.5      # Forward speed (0.0-1.0)', color: '#a0b0a0' },
     { text: 'STOP_DISTANCE = 0.30  # Ultrasonic cutoff (meters)', color: '#a0b0a0' },
-    { text: 'CONFIDENCE = 0.5      # Min TFLite detection score', color: '#a0b0a0' },
+    { text: 'CONFIDENCE = 0.5      # Min YOLOv8n detection score', color: '#a0b0a0' },
     { text: '', color: '#a0b0a0' },
     { text: '# ... (327 lines total — truncated)', color: '#6a7a6a' },
     { text: '# Modes: IDLE → FOLLOW → SCAN', color: '#6a7a6a' },
-    { text: '# TFLite MobileNet SSD v2 person detection @ ~20fps', color: '#6a7a6a' },
+    { text: '# YOLOv8n person detection @ ~15fps', color: '#6a7a6a' },
   ],
   '/home/pi/escort-bot/pan_tilt.py': [
     { text: '#!/usr/bin/env python3', color: '#6a7a6a' },
@@ -5012,7 +5012,7 @@ const VIRT_FILES = {
   ],
   '/home/pi/escort-bot/requirements.txt': [
     { text: 'picamera2>=0.3.12', color: '#a0b0a0' },
-    { text: 'tflite-runtime>=2.14.0', color: '#a0b0a0' },
+    { text: 'ultralytics>=8.0.0', color: '#a0b0a0' },
     { text: 'gpiozero>=2.0', color: '#a0b0a0' },
     { text: 'lgpio>=0.2.2.0', color: '#a0b0a0' },
     { text: 'numpy>=1.24', color: '#a0b0a0' },
@@ -5053,10 +5053,10 @@ const VIRT_FILES = {
     { text: 'sudo apt update && sudo apt install -y python3-pip python3-picamera2 python3-libcamera python3-lgpio', color: '#a0b0a0' },
     { text: 'pip3 install --break-system-packages -r requirements.txt', color: '#a0b0a0' },
     { text: '', color: '#a0b0a0' },
-    { text: 'echo "Downloading TFLite model..."', color: '#a0b0a0' },
+    { text: 'echo "Downloading YOLOv8n model..."', color: '#a0b0a0' },
     { text: 'mkdir -p models', color: '#a0b0a0' },
-    { text: 'wget -q -O models/ssd_mobilenet_v2.tflite \\', color: '#a0b0a0' },
-    { text: '  "https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v2_quantized.tflite"', color: '#6a7a6a' },
+    { text: 'wget -q -O models/yolov8n.pt \\', color: '#a0b0a0' },
+    { text: '  "https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt"', color: '#6a7a6a' },
     { text: 'echo "Done! Run: python3 main.py"', color: '#44dd66' },
   ],
   '/home/pi/.bashrc': [
@@ -5162,7 +5162,7 @@ const VIRT_FILES = {
     { text: 'console=serial0,115200 console=tty1 root=PARTUUID=xxxxxx-02 rootfstype=ext4 fsck.repair=yes rootwait quiet splash', color: '#a0b0a0' },
   ],
   '/home/pi/escort-bot/logs/escort-bot.log': [
-    { text: '2026-03-12 14:22:02 [INFO] TFLite model loaded: ssd_mobilenet_v2.tflite', color: '#a0b0a0' },
+    { text: '2026-03-12 14:22:02 [INFO] YOLOv8n model loaded: yolov8n.pt', color: '#a0b0a0' },
     { text: '2026-03-12 14:22:03 [INFO] Picamera2 initialized: IMX708 640x480@30', color: '#a0b0a0' },
     { text: '2026-03-12 14:22:03 [INFO] GPIO: lgpio pin factory, 6 pins configured', color: '#a0b0a0' },
     { text: '2026-03-12 14:22:03 [INFO] Mode: IDLE — awaiting person', color: '#ffcc44' },
@@ -5336,8 +5336,8 @@ const TERMINAL_COMMANDS = {
     return lines;
   },
   'python3 main.py': () => [
-    { text: '[init]    Loading TFLite model... ', color: '#bb88ff', delay: 200 },
-    { text: '[init]    MobileNet SSD v2 quantized — 3.2ms inference', color: '#44dd66', delay: 300 },
+    { text: '[init]    Loading YOLOv8n model... ', color: '#bb88ff', delay: 200 },
+    { text: '[init]    YOLOv8n — 45ms inference on Pi 5', color: '#44dd66', delay: 300 },
     { text: '[camera]  Picamera2 — IMX708 640x480 @30fps', color: '#bb88ff', delay: 200 },
     { text: '[gpio]    Motors: L298N on pins 17,27,22,23', color: '#bb88ff', delay: 100 },
     { text: '[gpio]    Ultrasonic: HC-SR04 on pins 24,25', color: '#bb88ff', delay: 100 },
@@ -5366,14 +5366,14 @@ const TERMINAL_COMMANDS = {
   ],
   'python3 main.py --simulate': () => [
     { text: '[init]    --simulate mode: servos will be emulated', color: '#ffcc44' },
-    { text: '[init]    Loading TFLite model... done (3.2ms)', color: '#44dd66' },
+    { text: '[init]    Loading YOLOv8n model... done (45ms)', color: '#44dd66' },
     { text: '[camera]  Picamera2 — IMX708 640x480 @30fps', color: '#bb88ff' },
     { text: '[system]  All subsystems nominal (simulated servos)', color: '#44dd66' },
     { text: '[system]  All subsystems nominal (simulated servos)', color: '#44dd66' },
     { text: '[mode]    IDLE — waiting for person detection', color: '#ffcc44' },
   ],
   'python3 main.py --scan-only': () => [
-    { text: '[init]    Loading TFLite model... done', color: '#44dd66', delay: 200 },
+    { text: '[init]    Loading YOLOv8n model... done', color: '#44dd66', delay: 200 },
     { text: '[pantilt] Centering...', color: '#bb88ff', delay: 200 },
     { text: '[scan]    Starting single rack scan...', color: '#ffcc44', delay: 300 },
     { text: '[scan]    Tilt -60° → frame 01', color: '#bb88ff', delay: 100 },
@@ -5413,8 +5413,8 @@ const TERMINAL_COMMANDS = {
   'journalctl -u escort-bot': () => [
     { text: '-- Journal begins at Wed 2026-03-12 12:08:01 CST --', color: '#6a7a6a' },
     { text: 'Mar 12 14:22:01 escortbot systemd[1]: Started Elktron Escort Bot Daemon.', color: '#a0b0a0' },
-    { text: 'Mar 12 14:22:02 escortbot python3[1847]: [init] Loading TFLite model...', color: '#a0b0a0' },
-    { text: 'Mar 12 14:22:02 escortbot python3[1847]: [init] MobileNet SSD v2 — 3.2ms', color: '#44dd66' },
+    { text: 'Mar 12 14:22:02 escortbot python3[1847]: [init] Loading YOLOv8n model...', color: '#a0b0a0' },
+    { text: 'Mar 12 14:22:02 escortbot python3[1847]: [init] YOLOv8n — 45ms on Pi 5', color: '#44dd66' },
     { text: 'Mar 12 14:22:03 escortbot python3[1847]: [camera] Picamera2 ready', color: '#a0b0a0' },
     { text: 'Mar 12 14:22:03 escortbot python3[1847]: [gpio] Motors + ultrasonic ready', color: '#a0b0a0' },
     { text: 'Mar 12 14:22:03 escortbot python3[1847]: [mode] IDLE — waiting for person', color: '#ffcc44' },
@@ -5550,7 +5550,7 @@ const TERMINAL_COMMANDS = {
     { text: 'numpy               1.26.4', color: '#a0b0a0' },
     { text: 'picamera2           0.3.19', color: '#a0b0a0' },
     { text: 'Pillow              10.2.0', color: '#a0b0a0' },
-    { text: 'tflite-runtime      2.14.0', color: '#a0b0a0' },
+    { text: 'ultralytics         8.1.47', color: '#a0b0a0' },
     { text: 'pip                 23.0.1', color: '#6a7a6a' },
     { text: 'setuptools          66.1.1', color: '#6a7a6a' },
   ],
@@ -5709,8 +5709,8 @@ const TERMINAL_COMMANDS = {
     { text: '', color: '#a0b0a0', delay: 30 },
     { text: '+ pip3 install --break-system-packages -r requirements.txt', color: '#ffcc44', delay: 80 },
     { text: 'Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple', color: '#a0b0a0', delay: 60 },
-    { text: 'Collecting tflite-runtime>=2.14.0', color: '#a0b0a0', delay: 80 },
-    { text: '  Downloading tflite_runtime-2.14.0-cp311-cp311-linux_aarch64.whl (2.4 MB)', color: '#a0b0a0', delay: 80 },
+    { text: 'Collecting ultralytics>=8.0.0', color: '#a0b0a0', delay: 80 },
+    { text: '  Downloading ultralytics-8.1.47-py3-none-any.whl (720 kB)', color: '#a0b0a0', delay: 80 },
     { text: '     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 11.2 MB/s eta 0:00:00', color: '#44dd66', delay: 100 },
     { text: 'Collecting gpiozero>=2.0', color: '#a0b0a0', delay: 60 },
     { text: '  Using cached gpiozero-2.0.1-py3-none-any.whl (150 kB)', color: '#a0b0a0', delay: 40 },
@@ -5718,24 +5718,22 @@ const TERMINAL_COMMANDS = {
     { text: '  Downloading lgpio-0.2.0.0-cp311-cp311-linux_aarch64.whl (78 kB)', color: '#a0b0a0', delay: 60 },
     { text: 'Requirement already satisfied: numpy>=1.24 in /usr/lib/python3/dist-packages (1.24.2)', color: '#44dd66', delay: 40 },
     { text: 'Requirement already satisfied: Pillow>=9.0 in /usr/lib/python3/dist-packages (9.4.0)', color: '#44dd66', delay: 40 },
-    { text: 'Installing collected packages: lgpio, gpiozero, tflite-runtime', color: '#a0b0a0', delay: 80 },
-    { text: 'Successfully installed gpiozero-2.0.1 lgpio-0.2.0.0 tflite-runtime-2.14.0', color: '#44dd66', delay: 80 },
+    { text: 'Installing collected packages: lgpio, gpiozero, ultralytics', color: '#a0b0a0', delay: 80 },
+    { text: 'Successfully installed gpiozero-2.0.1 lgpio-0.2.0.0 ultralytics-8.1.47', color: '#44dd66', delay: 80 },
     { text: '', color: '#a0b0a0', delay: 30 },
     { text: '══════════════════════════════════════════════', color: '#ffcc44', delay: 60 },
-    { text: '  STEP 2/4: Downloading TFLite model', color: '#ffcc44', delay: 60 },
+    { text: '  STEP 2/4: Downloading YOLOv8n model', color: '#ffcc44', delay: 60 },
     { text: '══════════════════════════════════════════════', color: '#ffcc44', delay: 60 },
     { text: '', color: '#a0b0a0', delay: 30 },
     { text: '+ mkdir -p models', color: '#ffcc44', delay: 40 },
-    { text: '+ wget -q https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v2_quantized.zip', color: '#ffcc44', delay: 80 },
+    { text: '+ wget -q https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt', color: '#ffcc44', delay: 80 },
     { text: '  Resolving storage.googleapis.com... 142.250.80.128', color: '#a0b0a0', delay: 60 },
     { text: '  Connecting to storage.googleapis.com... connected.', color: '#a0b0a0', delay: 60 },
     { text: '  HTTP request sent, awaiting response... 200 OK', color: '#a0b0a0', delay: 80 },
     { text: '  Length: 4,521,984 (4.3M) [application/zip]', color: '#a0b0a0', delay: 40 },
-    { text: '  coco_ssd_mobilenet_v2  100%[===================>]  4.31M  11.2MB/s    in 0.4s', color: '#44dd66', delay: 120 },
-    { text: '+ unzip -o -d models/ coco_ssd_mobilenet_v2_quantized.zip', color: '#ffcc44', delay: 60 },
-    { text: '  inflating: models/detect.tflite', color: '#a0b0a0', delay: 40 },
-    { text: '  inflating: models/labelmap.txt', color: '#a0b0a0', delay: 40 },
-    { text: '+ mv models/detect.tflite models/ssd_mobilenet_v2.tflite', color: '#ffcc44', delay: 40 },
+    { text: '  yolov8n.pt             100%[===================>]  6.23M  11.2MB/s    in 0.6s', color: '#44dd66', delay: 120 },
+    { text: '+ mv yolov8n.pt models/yolov8n.pt', color: '#ffcc44', delay: 60 },
+    { text: '  models/yolov8n.pt: 6.2 MB', color: '#a0b0a0', delay: 40 },
     { text: '', color: '#a0b0a0', delay: 30 },
     { text: '══════════════════════════════════════════════', color: '#ffcc44', delay: 60 },
     { text: '  STEP 3/4: Generating COCO labels', color: '#ffcc44', delay: 60 },
@@ -5753,12 +5751,12 @@ const TERMINAL_COMMANDS = {
     { text: '  \u2713 python3-picamera2  0.3.19', color: '#44dd66', delay: 40 },
     { text: '  \u2713 python3-libcamera  0.3.0', color: '#44dd66', delay: 40 },
     { text: '  \u2713 python3-lgpio      0.2.0', color: '#44dd66', delay: 40 },
-    { text: '  \u2713 tflite-runtime     2.14.0', color: '#44dd66', delay: 40 },
+    { text: '  \u2713 ultralytics        8.1.47', color: '#44dd66', delay: 40 },
     { text: '  \u2713 gpiozero           2.0.1', color: '#44dd66', delay: 40 },
     { text: '  \u2713 lgpio              0.2.0', color: '#44dd66', delay: 40 },
     { text: '  \u2713 numpy              1.24.2', color: '#44dd66', delay: 40 },
     { text: '  \u2713 Pillow             9.4.0', color: '#44dd66', delay: 40 },
-    { text: '  \u2713 models/ssd_mobilenet_v2.tflite (4.3 MB)', color: '#44dd66', delay: 40 },
+    { text: '  \u2713 models/yolov8n.pt (6.2 MB)', color: '#44dd66', delay: 40 },
     { text: '  \u2713 models/coco_labels.txt (91 classes)', color: '#44dd66', delay: 40 },
     { text: '', color: '#a0b0a0', delay: 20 },
     { text: '═══════════════════════════════════════════════════════════', color: '#44dd66', delay: 60 },
@@ -6001,7 +5999,7 @@ function fsExecuteCommand(cmd) {
   if (trimmed.startsWith('file ')) {
     const file = trimmed.slice(5).trim();
     const ext = file.split('.').pop();
-    const types = { py: 'Python script, UTF-8 text', txt: 'ASCII text', md: 'UTF-8 Unicode text', sh: 'Bourne-Again shell script, ASCII text executable', tflite: 'data', jpg: 'JPEG image data' };
+    const types = { py: 'Python script, UTF-8 text', txt: 'ASCII text', md: 'UTF-8 Unicode text', sh: 'Bourne-Again shell script, ASCII text executable', tflite: 'data', pt: 'data', jpg: 'JPEG image data' };
     fsLines.push({ text: `${file}: ${types[ext] || 'ASCII text'}`, color: '#a0b0a0' });
     return;
   }
@@ -6146,18 +6144,18 @@ function fsExecuteCommand(cmd) {
 
   // ── wget: model download or generic ──
   if (trimmed.startsWith('wget ')) {
-    if (trimmed.includes('ssd_mobilenet') || trimmed.includes('tensorflow.org')) {
+    if (trimmed.includes('yolov8n') || trimmed.includes('ultralytics')) {
       fsDelayedOutput([
-        { text: '--2026-03-13 16:42:18--  https://storage.googleapis.com/download.tensorflow.org/models/tflite/...', color: '#a0b0a0', delay: 120 },
-        { text: 'Resolving storage.googleapis.com (storage.googleapis.com)... 142.250.80.128', color: '#a0b0a0', delay: 200 },
-        { text: 'Connecting to storage.googleapis.com... connected.', color: '#a0b0a0', delay: 180 },
+        { text: '--2026-03-13 16:42:18--  https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt', color: '#a0b0a0', delay: 120 },
+        { text: 'Resolving github.com (github.com)... 140.82.121.4', color: '#a0b0a0', delay: 200 },
+        { text: 'Connecting to github.com... connected.', color: '#a0b0a0', delay: 180 },
         { text: 'HTTP request sent, awaiting response... 200 OK', color: '#44dd66', delay: 250 },
-        { text: 'Length: 4,521,984 (4.3M) [application/zip]', color: '#a0b0a0', delay: 100 },
-        { text: 'Saving to: \'/tmp/ssd_model.zip\'', color: '#a0b0a0', delay: 80 },
+        { text: 'Length: 6,534,880 (6.2M) [application/octet-stream]', color: '#a0b0a0', delay: 100 },
+        { text: 'Saving to: \'models/yolov8n.pt\'', color: '#a0b0a0', delay: 80 },
         { text: '', color: '#a0b0a0', delay: 60 },
-        { text: '/tmp/ssd_model.zip   100%[===================>]   4.31M  11.2MB/s    in 0.4s', color: '#44dd66', delay: 300 },
+        { text: 'models/yolov8n.pt    100%[===================>]   6.23M  11.2MB/s    in 0.6s', color: '#44dd66', delay: 300 },
         { text: '', color: '#a0b0a0', delay: 40 },
-        { text: '2026-03-13 16:42:19 (11.2 MB/s) - \'/tmp/ssd_model.zip\' saved [4521984/4521984]', color: '#44dd66', delay: 100 },
+        { text: '2026-03-13 16:42:19 (11.2 MB/s) - \'models/yolov8n.pt\' saved [6534880/6534880]', color: '#44dd66', delay: 100 },
       ]);
     } else {
       fsLines.push({ text: 'wget: unable to resolve host — no network in simulation', color: '#ff5555' });
@@ -6167,11 +6165,11 @@ function fsExecuteCommand(cmd) {
 
   // ── unzip ──
   if (trimmed.startsWith('unzip ')) {
-    if (trimmed.includes('ssd_model') || trimmed.includes('models')) {
+    if (trimmed.includes('yolov8') || trimmed.includes('models')) {
       fsDelayedOutput([
-        { text: 'Archive:  /tmp/ssd_model.zip', color: '#a0b0a0', delay: 100 },
-        { text: '  inflating: /home/pi/escort-bot/models/detect.tflite', color: '#a0b0a0', delay: 150 },
-        { text: '  inflating: /home/pi/escort-bot/models/labelmap.txt', color: '#a0b0a0', delay: 120 },
+        { text: 'Archive:  /tmp/yolov8n_model.zip', color: '#a0b0a0', delay: 100 },
+        { text: '  inflating: /home/pi/escort-bot/models/yolov8n.pt', color: '#a0b0a0', delay: 150 },
+        { text: '  inflating: /home/pi/escort-bot/models/coco_labels.txt', color: '#a0b0a0', delay: 120 },
       ]);
     } else {
       fsLines.push({ text: `unzip: cannot find or open ${trimmed.split(' ').pop()}`, color: '#ff5555' });
@@ -6298,7 +6296,7 @@ function fsExecuteCommand(cmd) {
     const args = trimmed.replace(/^pip3?\s+install\s+/, '').replace('--break-system-packages', '').trim();
     const pkgs = args.split(/\s+/).filter(p => p && !p.startsWith('-'));
     const hasPicamera = pkgs.some(p => p.includes('picamera2'));
-    const hasTflite = pkgs.some(p => p.includes('tflite'));
+    const hasTflite = pkgs.some(p => p.includes('tflite') || p.includes('ultralytics'));
     const hasGpiozero = pkgs.some(p => p.includes('gpiozero'));
     const hasLgpio = pkgs.some(p => p.includes('lgpio'));
     const hasNumpy = pkgs.some(p => p.includes('numpy'));
@@ -6316,9 +6314,9 @@ function fsExecuteCommand(cmd) {
     }
     if (hasTflite) {
       lines.push(
-        { text: 'Collecting tflite-runtime>=2.14.0', color: '#a0b0a0', delay: 150 },
-        { text: '  Downloading tflite_runtime-2.14.0-cp311-cp311-linux_aarch64.whl (2.4 MB)', color: '#a0b0a0', delay: 200 },
-        { text: '     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 11.2 MB/s eta 0:00:00', color: '#44dd66', delay: 250 },
+        { text: 'Collecting ultralytics>=8.0.0', color: '#a0b0a0', delay: 150 },
+        { text: '  Downloading ultralytics-8.1.47-py3-none-any.whl (720 kB)', color: '#a0b0a0', delay: 200 },
+        { text: '     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 720/720 kB 11.2 MB/s eta 0:00:00', color: '#44dd66', delay: 250 },
       );
     }
     if (hasGpiozero) {
@@ -6340,7 +6338,7 @@ function fsExecuteCommand(cmd) {
     }
     const installed = [];
     if (hasPicamera) installed.push('picamera2-0.3.19');
-    if (hasTflite) installed.push('tflite-runtime-2.14.0');
+    if (hasTflite) installed.push('ultralytics-8.1.47');
     if (hasGpiozero) installed.push('gpiozero-2.0.1');
     if (hasLgpio) installed.push('lgpio-0.2.2.0');
     if (installed.length) {

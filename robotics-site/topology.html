@@ -1019,7 +1019,7 @@
       <div class="node-desc">Autonomous person-following robot for vendor escort on DC floor. Real-time detection + proportional steering + obstacle avoidance.</div>
       <div class="spec-grid">
         <div class="spec-item"><span class="spec-label">Compute</span><span class="spec-val">Pi 5 (8GB)</span></div>
-        <div class="spec-item"><span class="spec-label">Model</span><span class="spec-val">MobileNet SSD v2</span></div>
+        <div class="spec-item"><span class="spec-label">Model</span><span class="spec-val">YOLOv8n</span></div>
         <div class="spec-item"><span class="spec-label">Chassis</span><span class="spec-val">Freenove 4WD</span></div>
         <div class="spec-item"><span class="spec-label">Control</span><span class="spec-val">Proportional</span></div>
         <div class="spec-item"><span class="spec-label">Loop Rate</span><span class="spec-val">~30 Hz</span></div>
@@ -1031,7 +1031,7 @@
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step">Resize 300x300</span>
         <span class="flow-arrow">&rarr;</span>
-        <span class="flow-step highlight">TFLite Infer</span>
+        <span class="flow-step highlight">YOLOv8n Infer</span>
         <span class="flow-arrow">&rarr;</span>
         <span class="flow-step">NMS Filter</span>
         <span class="flow-arrow">&rarr;</span>
@@ -1098,7 +1098,7 @@
         <div class="node-badge badge-escort">Escort</div>
       </div>
       <div class="node-title">Detection Pipeline</div>
-      <div class="node-desc">Pi Camera V3 via CSI ribbon. TFLite MobileNet SSD v2 (INT8 quantized) runs inference at ~15ms/frame on Pi 5 CPU.</div>
+      <div class="node-desc">Arducam IMX708 wide via CSI ribbon. YOLOv8n (Ultralytics) runs inference at ~45ms/frame on Pi 5 CPU.</div>
       <div class="spec-grid">
         <div class="spec-item"><span class="spec-label">Capture</span><span class="spec-val">640x480 @30fps</span></div>
         <div class="spec-item"><span class="spec-label">Input tensor</span><span class="spec-val">300x300x3 uint8</span></div>
@@ -1717,7 +1717,7 @@ positions = bus.<span class="fn">sync_read</span>(<span class="num">"Present_Pos
 bus.<span class="fn">sync_write</span>(<span class="num">"Goal_Position"</span>, targets)   <span class="cmt"># [6] int32</span></div>`
     },
     'node-escort-sys': {
-      detail: `The escort bot runs a tight control loop at ~30Hz: capture frame → resize → TFLite inference → NMS filter → extract person bbox → compute steering error → set motor PWM. MobileNet SSD v2 was chosen for its balance of accuracy (~22% mAP on COCO) and speed (~15ms on Pi 5 CPU). The person class (COCO ID 0) is the only detection target. The state machine manages transitions between IDLE, SEARCHING, TRACKING, and E_STOP states based on detection confidence and ultrasonic distance.
+      detail: `The escort bot runs a tight control loop at ~30Hz: capture frame → resize → YOLOv8n inference → NMS filter → extract person bbox → compute steering error → set motor PWM. YOLOv8n was chosen for its balance of accuracy and speed (~45ms on Pi 5 CPU, 0.78 confidence on person detection). The person class (COCO ID 0) is the only detection target. The state machine manages transitions between IDLE, SEARCHING, TRACKING, and E_STOP states based on detection confidence and ultrasonic distance.
 <div class="code-block"><span class="cmt"># Core loop (simplified)</span>
 <span class="kw">while</span> running:
     frame = camera.<span class="fn">capture_array</span>()
@@ -1731,7 +1731,7 @@ bus.<span class="fn">sync_write</span>(<span class="num">"Goal_Position"</span>,
       detail: `STS3215 servos use a half-duplex UART protocol (SCS). All 6 share one data line, each addressed by ID. <strong>sync_write()</strong> sends position targets to all joints in a single packet (~2ms total), reducing latency vs individual writes. Feedback is read via <strong>sync_read()</strong> which returns position (4096 steps/rev = 0.088° resolution), temperature (°C), and load (% of max torque). The USB-to-TTL adapter (CH340) bridges host USB to SCS bus at 1Mbps. Servo IDs must be pre-configured — each shipped as ID 1 and needs reprogramming.`
     },
     'node-detection': {
-      detail: `Pi Camera V3 connects via CSI ribbon cable. Frames captured with <strong>picamera2</strong> at 640×480, then resized to 300×300 for model input. The TFLite interpreter runs quantized INT8 inference — model is 4.3MB (vs 17MB float32). Output tensors: <strong>boxes[10,4]</strong> (normalized coords), <strong>classes[10]</strong> (COCO IDs), <strong>scores[10]</strong> (confidence 0-1), <strong>count[1]</strong>. Non-maximum suppression filters overlapping boxes. Only class 0 (person) with score &gt; 0.5 passes. The center_x of the largest qualifying bbox drives the steering error signal.`
+      detail: `Pi Camera V3 connects via CSI ribbon cable. Frames captured with <strong>picamera2</strong> at 640×360, fed directly to YOLOv8n (Ultralytics). The model runs FP16 inference — 6.3MB weights. Output: bounding boxes with class IDs, confidence scores, and NMS built-in. Only class 0 (person) with score &gt; 0.5 passes. Achieving 0.78 confidence in real-world testing. The center_x of the largest qualifying bbox drives the steering error signal.`
     },
     'node-steering': {
       detail: `Proportional control: <code>error = (bbox_center_x / frame_width) - 0.5</code>. Left motor = base_speed + Kp × error. Right motor = base_speed - Kp × error. A ±15% dead zone around center prevents oscillation when person is roughly centered. PWM clamped between 0.3 (minimum to overcome static friction) and 0.8 (safety). Forward speed modulates with bbox height — as person gets closer (larger bbox), base speed decreases from 0.45 to 0.25 to prevent collision. Kp=0.8 for turning, Kp=0.6 for approach depth control.`

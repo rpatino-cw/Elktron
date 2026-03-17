@@ -503,7 +503,7 @@ body {
 
 <!-- ── Three.js CDN ── -->
 <script type="importmap">
-{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js" } }
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
 </script>
 
 <script type="module">
@@ -790,7 +790,7 @@ var CHECKLIST = [
   ]},
   { group: 'This Week (March 10\u201315)', badge: 'SPRINT', bc: 'badge-yellow', items: [
     {t: 'Sign up for hackathon (deadline: March 12) \u2014 <a href="https://coreweave.slack.com/archives/more-better-faster-2026" target="_blank">channel</a>'},
-    {t: 'Alex: LK-COKOINO chassis arrives, start assembly'},
+    {t: 'Raphael: LK-COKOINO chassis arrives, start assembly'},
     {t: 'Romeo: Flash Pi 5, run camera test \u2014 <a href="#">PI-SETUP.md</a>'},
     {t: 'Romeo: Order Arducam + pan/tilt + PVC mast \u2014 <a href="#">parts list</a>'},
     {t: 'Josh: Review <a href="https://github.com/huggingface/lerobot" target="_blank">LeRobot</a> SO-101 docs, plan end effector'},
@@ -827,7 +827,7 @@ function rr(repos, id) {
 }
 rr([
   { name: 'elktron-app', url: 'elktron-app/index.html', desc: 'Unified dashboard \u2014 arm status, escort tracking, camera feeds', lang: 'Python', lc: 'lang-py', extra: 'FastAPI + vanilla JS' },
-  { name: 'escort-bot', url: 'escort-bot/showcase.html', desc: 'Person-following vendor escort. Pi 5 + TFLite MobileNet SSD', lang: 'Python', lc: 'lang-py', extra: 'gpiozero + picamera2' },
+  { name: 'escort-bot', url: 'escort-bot/showcase.html', desc: 'Person-following vendor escort. Pi 5 + YOLOv8n (Ultralytics)', lang: 'Python', lc: 'lang-py', extra: 'gpiozero + picamera2' },
   { name: 'so101-arm', url: 'robotics-site/so101/showcase.html', desc: 'Imitation learning for DC tasks \u2014 optic seating, rack inspection', lang: 'Python', lc: 'lang-py', extra: 'LeRobot + ACT policy' },
   { name: 'robotics-site', url: 'robotics-site/index.html', desc: 'Elktron landing page + showcase pages', lang: 'HTML', lc: 'lang-html', extra: 'Static site' }
 ], 'ourRepos');
@@ -850,14 +850,14 @@ pt([
   { n: 'Raspberry Pi 5 (8GB)', p: '\u2014', s: 'OWNED', sc: 'status-owned', e: '\u2014', w: 'Romeo' }
 ], 'partsArm');
 pt([
-  { n: 'LK-COKOINO 4WD Chassis Kit', p: '~$25', s: 'ALEX', sc: 'status-alex', e: '3/11', w: 'Alex' },
+  { n: 'LK-COKOINO 4WD Chassis Kit', p: '~$25', s: 'RAPHAEL', sc: 'status-raphael', e: '3/11', w: 'Raphael' },
   { n: 'Arducam 120\u00b0 Wide Camera', p: '~$30', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
   { n: 'Arducam Pan Tilt Platform', p: '~$25', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
   { n: 'PVC Pipe + T-connector', p: '~$7', s: 'NEEDED', sc: 'status-needed', e: 'pickup', w: 'Romeo' },
   { n: 'Velcro strips + foam tape', p: '~$10', s: 'NEEDED', sc: 'status-needed', e: 'pickup', w: 'Romeo' },
   { n: 'USB-C Power Bank 20000mAh', p: '~$25', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
   { n: 'MicroSD Card 32\u201364GB', p: '~$10', s: 'NEEDED', sc: 'status-needed', e: '\u2014', w: 'Romeo' },
-  { n: "Raspberry Pi (Alex's)", p: '\u2014', s: 'OWNED', sc: 'status-owned', e: '\u2014', w: 'Alex' },
+  { n: "Raspberry Pi (Raphael's)", p: '\u2014', s: 'OWNED', sc: 'status-owned', e: '\u2014', w: 'Raphael' },
   { n: 'Freenove 4WD Kit (backup)', p: '~$65', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' },
   { n: '18650 Batteries + Charger', p: '~$18', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' },
   { n: 'MakerFocus Pi Battery Pack', p: '~$30', s: 'ORDERED', sc: 'status-ordered', e: '3/11', w: 'Romeo' }
@@ -873,11 +873,10 @@ document.getElementById('partsSummary').innerHTML = '<div class="parts-summary-i
 // ── Team ──
 var TEAM = [
   { name: 'Romeo Patino', title: 'Project Management (PM)', obj: 'Own the system architecture, LeRobot integration, and demo narrative. All three components connect into one coherent story.', scope: ['Overall architecture and technical decisions', 'LeRobot framework integration for SO-101', 'Escort bot software (main.py, test_camera.py)', 'Elktron dashboard (elktron-app)', 'Pi 5 setup and configuration', 'Demo script, video, and presentation', 'PROGRESS.md \u2014 single source of truth', 'Hardware ordering'], hw: 'Pi 4, Pi 5, Pico, MacBook' },
-  { name: 'Alex Murillo', title: 'Escort Bot Hardware', obj: 'Own the physical escort bot build \u2014 chassis assembly, wiring, motor tuning, and field testing.', scope: ['LK-COKOINO chassis assembly + wiring', 'PVC mast construction + camera mounting', 'Motor + ultrasonic sensor integration', 'DC floor field testing', 'Power system \u2014 battery charging, cable routing'], hw: 'Her Pi, LK-COKOINO chassis' },
+  { name: 'Raphael Rodea', title: 'Logistics & Hardware', obj: 'Own all physical assembly, parts inventory, battery management, and demo day logistics.', scope: ['LK-COKOINO chassis assembly + wiring', 'PVC mast construction + camera mounting', 'Parts inventory + labeling', 'Battery management + hot-swap', 'Demo day packing checklist'], hw: 'His Pi, LK-COKOINO chassis' },
   { name: 'Josh Tapia', title: 'Robot Arm CV/IK', obj: "Own the SO-101 arm's task execution \u2014 CV to IK to end effector. Make the optic seating demo work.", scope: ['Computer vision for optic detection', 'Inverse kinematics + motion planning', 'End effector design \u2014 gripper for optics', 'LeRobot ACT policy training + eval', 'Record 50 optic seating demos', 'Arm calibration + servo tuning'], hw: "Romeo's laptop for training, arm kit ~3/18" },
   { name: 'Parth Patel', title: 'Backend Lead', obj: 'Own the dashboard backend \u2014 FastAPI server, Jira/NetBox data integration, WebSocket pipeline.', scope: ['FastAPI server improvements (server.py)', 'Jira/NetBox data integration', 'WebSocket data pipeline to frontend', 'Scan report JSON generation', 'Wire arm.py and escort.py telemetry'], hw: 'Laptop' },
   { name: 'Andrew Westberg', title: 'Observer', obj: 'Watch and learn. Available to help if needed.', scope: ['Observing the build process', 'Learning robotics, Pi setup, hackathon workflow'], hw: 'None' },
-  { name: 'Raphael Rodea', title: 'Build Crew + Logistics', obj: 'Own all physical assembly, parts inventory, battery management, and demo day logistics.', scope: ['Chassis assembly with Alex', 'PVC mast build', 'Wiring verification against WIRING.md', 'Cable management', 'Parts inventory + labeling', 'Battery management + hot-swap', 'Demo day packing checklist'], hw: "Works with Alex's hardware" },
   { name: 'Talha Shakil', title: 'Media & Presentations', obj: 'Own all final deliverables \u2014 demo video, pitch deck, team logo, and presentation materials.', scope: ['Team logo design', 'Demo video production', 'Pitch deck / slides (5-7 slides)', 'Screen recordings of dashboard', 'Final video export and upload', 'B-roll footage'], hw: 'Phone/camera, laptop for editing' }
 ];
 document.getElementById('teamCards').innerHTML = TEAM.map(function(m) {
