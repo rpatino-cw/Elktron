@@ -1,36 +1,39 @@
 # Escort Bot — Full Build Checklist
 
 > Elktron Hackathon | CoreWeave March 2026
-> Platform: Raspberry Pi 5 + 4WD Chassis | CV: TFLite MobileNet SSD v2
+> Platform: Raspberry Pi 5 + 4WD Chassis | CV: YOLOv8n (switched from OpenCV DNN MobileNet SSD v2)
 
 ---
 
 ## Phase 1: Procurement & Inventory
 
 ### Parts Sourcing
-- [ ] Order Freenove 4WD Smart Car Kit for Raspberry Pi (~$70–90) — https://www.freenove.com or Amazon
-  - Includes: 4WD chassis, 4x DC motors, L298N motor driver, battery holder, wires
-  - If Freenove unavailable: any 4WD robot chassis + L298N driver board works
-- [ ] Order HC-SR04 ultrasonic sensor (~$3–5) — for obstacle detection
-- [ ] Order Pi Camera Module 3 (CSI) or USB webcam — for person detection
-- [ ] Order 7.4V LiPo battery pack (2S, 2000mAh+) or 6xAA battery holder — motor power
-- [ ] Order USB-C power bank (5V/3A minimum, 10000mAh+) — Pi 5 power
-- [ ] Order jumper wires: 20x male-to-female, 10x male-to-male
+- [x] ~~Order 4WD chassis~~ — **LK-COKOINO 4WD kit — Alex has it**
+- [x] ~~Order HC-SR04 ultrasonic sensor~~ — **DIYables 2-pack DELIVERED 3/12 + ELEGOO 5-pack arriving 3/13**
+- [x] ~~Order Pi Camera Module 3 (CSI)~~ — **Arducam IMX708 Wide arriving Sat 3/15**
+- [x] ~~Order motor driver~~ — **L298N 2-pack DELIVERED 3/12**
+- [x] ~~Order battery holders~~ — **QTEATAK 8-pack DELIVERED 3/12**
+- [x] ~~Order 18650 batteries~~ — **QOJH 4-pack arriving Sat 3/15**
+- [x] ~~Order USB-C power bank~~ — **Anker PowerCore 10K arriving 3/13**
+- [x] ~~Order pan/tilt platform~~ — **Arducam Pan Tilt DELIVERED 3/12**
+- [x] ~~Order CanaKit Pi PSU~~ — **DELIVERED 3/12 (bench testing only)**
+- [x] ~~Order USB-C right-angle adapter~~ — **Silkland 2-pack DELIVERED 3/12**
+- [ ] Order jumper wires: 20x male-to-female, 10x male-to-male (ELEGOO 5-pack comes with 20 dupont cables — may suffice)
 - [ ] Order breadboard (half-size) — for prototyping sensor connections
 - [ ] Order 1kΩ and 2kΩ resistors (2 each) — voltage divider for HC-SR04 ECHO pin
 - [ ] Optional: LED strip or indicator LEDs — visual status feedback
 - [ ] Optional: small speaker/buzzer — audio alerts
 
 ### Inventory Check (before assembly day)
-- [ ] Raspberry Pi 5 — working, tested recently
-- [ ] MicroSD card (32GB+) with Raspberry Pi OS (Bookworm) — or blank to flash
-- [ ] USB-C power supply for Pi 5 (5V/5A official PSU for bench testing)
-- [ ] USB-C power bank for mobile operation
-- [ ] 4WD chassis kit — all parts present (chassis plates, 4 motors, 4 wheels, standoffs, screws)
-- [ ] L298N motor driver board
-- [ ] HC-SR04 ultrasonic sensor
-- [ ] Camera (Pi Camera Module CSI or USB webcam)
-- [ ] 7.4V LiPo or 6xAA battery holder + batteries
+- [x] Raspberry Pi 5 — Alex has it, confirmed working
+- [x] MicroSD card (32GB+) — Romeo has one, needs flashing with Bookworm Lite 64-bit
+- [x] USB-C power supply for Pi 5 — CanaKit 3.5A DELIVERED 3/12 (bench testing)
+- [ ] USB-C power bank for mobile operation — Anker arriving 3/13
+- [x] 4WD chassis kit — Alex has it (LK-COKOINO)
+- [x] L298N motor driver board — DELIVERED 3/12 (2-pack, have spare)
+- [x] HC-SR04 ultrasonic sensor — DIYables 2-pack DELIVERED 3/12
+- [x] ~~Camera (Arducam IMX708 Wide)~~ — **DELIVERED + WORKING 3/16**
+- [ ] 18650 batteries — arriving Sat 3/15
 - [ ] Jumper wires (male-to-female, male-to-male)
 - [ ] Breadboard
 - [ ] Resistors (1kΩ, 2kΩ) for voltage divider
@@ -55,6 +58,11 @@
 - [ ] Run system update: `sudo apt update && sudo apt upgrade -y`
 - [ ] Verify Python 3.11+: `python3 --version`
 
+### Claude Code (AI Dev on Pi)
+- [x] Install Claude Code CLI on Pi 5 — **DONE 2026-03-15**
+- [ ] Verify: `ssh pi@escort-bot.local` → `cd ~/escort-bot` → `claude` launches successfully
+- [ ] Test: ask Claude to read a sensor value or run `test_camera.py` from within the CLI
+
 ### Enable Interfaces
 - [ ] Enable Camera (CSI): `sudo raspi-config` → Interface Options → Camera → Enable
 - [ ] Enable I2C (if using I2C sensors): `sudo raspi-config` → Interface Options → I2C → Enable
@@ -62,12 +70,12 @@
 - [ ] Reboot after interface changes: `sudo reboot`
 
 ### Camera Test
-- [ ] Pi Camera Module: `libcamera-hello --timeout 5000` — should show live preview
+- [x] ~~Pi Camera Module: `libcamera-hello --timeout 5000`~~ — **WORKING, libcamera v0.7.0**
 - [ ] USB webcam: `ls /dev/video*` — should show device
 - [ ] Python test: `python3 -c "import cv2; cap=cv2.VideoCapture(0); ret,f=cap.read(); print(ret, f.shape); cap.release()"`
-- [ ] Verify resolution: at least 640x480
-- [ ] Verify FPS: at least 15 FPS (20+ preferred)
-- [ ] If using picamera2: `python3 -c "from picamera2 import Picamera2; cam=Picamera2(); cam.start(); print('OK'); cam.stop()"`
+- [x] ~~Verify resolution: at least 640x480~~ — **CONFIRMED**
+- [x] ~~Verify FPS: at least 15 FPS (20+ preferred)~~ — **CONFIRMED**
+- [x] ~~If using picamera2: `python3 -c "from picamera2 import Picamera2; cam=Picamera2(); cam.start(); print('OK'); cam.stop()"`~~ — **WORKING**
 
 ### GPIO Test
 - [ ] Install gpiozero: `pip3 install gpiozero lgpio`
@@ -81,10 +89,10 @@
 
 ### Base Chassis
 - [ ] Identify top and bottom chassis plates
-- [ ] Mount 4 DC motors to bottom plate using brackets + screws
-- [ ] Verify motor shafts face outward (toward wheels)
-- [ ] Attach 4 wheels to motor shafts — press fit, should be snug
-- [ ] Spin each wheel by hand — motors should spin freely, no grinding
+- [x] Mount 4 DC motors to bottom plate using brackets + screws
+- [x] Verify motor shafts face outward (toward wheels)
+- [x] Attach 4 wheels to motor shafts — press fit, should be snug
+- [x] Spin each wheel by hand — motors should spin freely, no grinding
 - [ ] Label motors: FL (front-left), FR (front-right), RL (rear-left), RR (rear-right)
 - [ ] Mount standoffs between bottom and top plates (4–6 standoffs typical)
 - [ ] Attach top plate — leave enough clearance for wires between plates
@@ -92,9 +100,9 @@
 ### Motor Wiring
 - [ ] Solder or connect motor leads (2 wires per motor, 8 total)
 - [ ] Route motor wires to center of chassis where L298N will mount
-- [ ] Left motors (FL + RL): wire in parallel — red to red, black to black
-- [ ] Right motors (FR + RR): wire in parallel — red to red, black to black
-- [ ] Result: 2 wire pairs — LEFT pair and RIGHT pair
+- [x] Left motors (FL + RL): wire in parallel — red to red, black to black
+- [x] Right motors (FR + RR): wire in parallel — red to red, black to black
+- [x] Result: 2 wire pairs — LEFT pair and RIGHT pair
 - [ ] Verify polarity: when positive voltage applied, wheels spin FORWARD (test with battery briefly)
 - [ ] If wheels spin backward: swap the two wires for that motor pair
 
@@ -103,8 +111,8 @@
 - [ ] Connect LEFT motor pair to L298N OUT1 + OUT2 terminals
 - [ ] Connect RIGHT motor pair to L298N OUT3 + OUT4 terminals
 - [ ] Tighten screw terminals firmly — loose connections = intermittent motor failure
-- [ ] Connect battery pack positive to L298N +12V (VCC) terminal
-- [ ] Connect battery pack negative to L298N GND terminal
+- [x] Connect battery pack positive to L298N +12V (VCC) terminal
+- [x] Connect battery pack negative to L298N GND terminal
 - [ ] Verify 5V jumper on L298N:
   - If jumper IN: L298N regulates 5V from motor battery (can power Pi — risky, noisy)
   - If jumper OUT: L298N only gets motor power, Pi needs separate power (RECOMMENDED)
@@ -203,7 +211,7 @@ while True:
 - [ ] Secure camera with bracket, velcro, or double-sided tape
 - [ ] Verify camera has clear FOV — no chassis parts blocking view
 - [ ] Camera cable routed cleanly — not near motor wires (EMI interference)
-- [ ] Test camera still works after mounting: `libcamera-hello` or OpenCV test
+- [x] ~~Test camera still works after mounting: `libcamera-hello` or OpenCV test~~ — **CONFIRMED via camtest.py**
 
 ---
 
@@ -218,41 +226,45 @@ while True:
 - [ ] Create venv: `python3 -m venv ~/escort-env`
 - [ ] Activate: `source ~/escort-env/bin/activate`
 - [ ] Install deps from `requirements.txt`: `pip install -r ~/hackathon/escort-bot/requirements.txt`
-- [ ] Expected packages: `numpy`, `opencv-python`, `gpiozero`, `lgpio`, `picamera2`, `tflite-runtime`
-- [ ] If `tflite-runtime` fails on Pi 5: try `pip install tflite-runtime` from piwheels
-- [ ] Alternative: use `pip install tensorflow-lite` or full TensorFlow (heavier)
+- [ ] Expected packages: `numpy`, `opencv-python` (or `python3-opencv`), `gpiozero`, `lgpio`, `picamera2`
+- [ ] If `opencv-python` fails on Pi 5: use system package instead: `sudo apt install python3-opencv`
 
-### TFLite Model Setup
-- [ ] Download MobileNet SSD v2 (COCO):
+### Model Setup
+- [ ] Download MobileNet SSD v2 (COCO) for OpenCV DNN:
 ```bash
 mkdir -p ~/models
-wget -O ~/models/detect.tflite https://storage.googleapis.com/download.tensorflow.org/models/tflite/coco_ssd_mobilenet_v1_1.0_quant_2018_06_29.zip
-# OR use the specific model from escort-bot/install.sh
+wget -O ~/models/frozen_inference_graph.pb http://download.tensorflow.org/models/object_detection/ssd_mobilenet_v2_coco_2018_03_29.tar.gz
+# Extract the .pb from the tarball, or use escort-bot/install.sh
+wget -O ~/models/ssd_mobilenet_v2_coco.pbtxt https://raw.githubusercontent.com/opencv/opencv_extra/master/testdata/dnn/ssd_mobilenet_v2_coco_2018_03_29.pbtxt
 ```
 - [ ] Run `escort-bot/install.sh` — it downloads model + COCO labels
-- [ ] Verify model file exists: `ls -la ~/models/detect.tflite`
+- [ ] Verify model files exist: `ls -la ~/models/frozen_inference_graph.pb ~/models/ssd_mobilenet_v2_coco.pbtxt`
 - [ ] Download COCO labels file: `~/models/coco_labels.txt`
-- [ ] Verify "person" is class 0 in labels file
+- [ ] Verify "person" is class 1 in labels file (COCO class IDs)
 
 ### Model Test (no motors)
 - [ ] Run detection test:
 ```python
 import cv2
 import numpy as np
-import tflite_runtime.interpreter as tflite
 
-interpreter = tflite.Interpreter(model_path="models/detect.tflite")
-interpreter.allocate_tensors()
+net = cv2.dnn.readNetFromTensorflow(
+    "models/frozen_inference_graph.pb",
+    "models/ssd_mobilenet_v2_coco.pbtxt"
+)
 
 cap = cv2.VideoCapture(0)
 ret, frame = cap.read()
-# ... resize, run inference, check if person detected
+blob = cv2.dnn.blobFromImage(frame, size=(300, 300), swapRB=True)
+net.setInput(blob)
+detections = net.forward()
+# ... check detections for person class (class_id == 1) with confidence > 0.5
 print("Person detected!" if person_found else "No person")
 cap.release()
 ```
-- [ ] Stand in front of camera (~1–2m away)
-- [ ] Verify: "person" class detected with confidence >0.5
-- [ ] Check inference time: should be <100ms per frame on Pi 5
+- [x] ~~Stand in front of camera (~1-2m away)~~ — **DONE**
+- [x] ~~Verify: "person" class detected with confidence >0.5~~ — **YOLOv8n, 0.78 confidence at DC floor conditions**
+- [x] ~~Check inference time: should be <100ms per frame on Pi 5~~ — **CONFIRMED <100ms**
 - [ ] If too slow: ensure using quantized (uint8) model, not float32
 
 ---
@@ -263,7 +275,7 @@ cap.release()
 ```
 Loop:
   1. Capture frame from camera
-  2. Run TFLite inference → detect persons
+  2. Run OpenCV DNN inference → detect persons
   3. Find largest person bounding box (closest person)
   4. Calculate error_x = (bbox_center_x - frame_center_x) / frame_width
   5. Calculate area_ratio = bbox_area / frame_area
@@ -441,7 +453,7 @@ Loop:
 - [ ] 0:20–0:40 — Bot follows vendor through demo aisle (20 seconds of following)
 - [ ] 0:40–0:50 — Vendor stops at "rack," bot stops at target distance
 - [ ] 0:50–0:55 — Dashboard shows: escort status, camera feed, vendor position
-- [ ] 0:55–1:00 — "Person detection using TFLite on Raspberry Pi 5, <100ms inference"
+- [ ] 0:55–1:00 — "Person detection using OpenCV DNN on Raspberry Pi 5, <100ms inference"
 
 ### Video Recording
 - [ ] Record from a third-person angle — shows both vendor and bot moving

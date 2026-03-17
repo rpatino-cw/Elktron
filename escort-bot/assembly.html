@@ -10,15 +10,15 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #f0ece6;
-    --grid: #d8d2c8;
-    --line: #c5bfb4;
-    --text: #2a2520;
-    --text-dim: #7a7268;
+    --bg: #fcf7f1;
+    --grid: #e8e2da;
+    --line: #ddd6cc;
+    --text: #1a1714;
+    --text-dim: #8a8580;
     --accent: #c45a20;
-    --accent-dim: rgba(196, 90, 32, 0.12);
+    --accent-dim: rgba(196, 90, 32, 0.10);
     --blue: #2a6cb8;
-    --blue-dim: rgba(42, 108, 184, 0.1);
+    --blue-dim: rgba(42, 108, 184, 0.08);
     --green: #2a8a4a;
     --metal: #5a6670;
   }
@@ -76,7 +76,7 @@
     font-size: 22px;
     font-weight: 600;
     letter-spacing: -0.3px;
-    color: #1a1510;
+    color: var(--text);
     line-height: 1.2;
   }
 
@@ -190,7 +190,7 @@
   .part-info .part-name {
     font-size: 14px;
     font-weight: 600;
-    color: #1a1510;
+    color: var(--text);
     margin-bottom: 2px;
   }
 
@@ -396,7 +396,7 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: #f0ece6;
+    background: var(--bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1066,7 +1066,7 @@
   <div id="start-hint" class="start-hint">Click Next Part to begin <span class="arrow">&rarr;</span></div>
   <div class="controls">
     <button id="btn-next" class="primary">Next Part</button>
-    <button id="btn-explode">Explode</button>
+    <button id="btn-explode" style="display:none">Explode</button>
     <button id="btn-edit">Edit</button>
     <button id="btn-edit-save" style="display:none">Save Positions</button>
     <button id="btn-wire" style="display:none">Wire</button>
@@ -1095,7 +1095,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 // @LOCKED:scene-setup
 // ─── Scene Setup ───────────────────────────────────────────
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf0ece6);
+scene.background = new THREE.Color(0xfcf7f1);
 
 const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(6, 5, 8);
@@ -1181,14 +1181,14 @@ rimLight.position.set(0, 2, -5);
 scene.add(rimLight);
 
 // Hemisphere for natural sky/ground bounce
-const hemiLight = new THREE.HemisphereLight(0xf0f0ff, 0xd0c8b8, 1.0);
+const hemiLight = new THREE.HemisphereLight(0xf8f6ff, 0xe8e2da, 1.0);
 scene.add(hemiLight);
 
 // ─── Ground ────────────────────────────────────────────────
 // Grid floor
 const gridSize = 20;
 const gridDiv = 40;
-const gridHelper = new THREE.GridHelper(gridSize, gridDiv, 0xc5bfb4, 0xd8d2c8);
+const gridHelper = new THREE.GridHelper(gridSize, gridDiv, 0xddd6cc, 0xe8e2da);
 gridHelper.material.opacity = 0.6;
 gridHelper.material.transparent = true;
 scene.add(gridHelper);
@@ -3846,10 +3846,90 @@ const assemblySteps = [
     yOffset: 2.5,
     cameraTarget: { x: -0.5, y: 1.1, z: 0.5 },
   },
-  // ── Phase 3: Monitor ───────────────────────────────────────
+  // ── Phase 3: Electronics ──────────────────────────────────
+  {
+    name: 'HC-SR04 Ultrasonic',
+    number: '08',
+    desc: 'Distance sensor for obstacle avoidance. Triggers motor stop when objects are within 30cm. Requires voltage divider on ECHO pin (5V to 3.3V).',
+    simple: 'The robot\'s "eyes" for seeing walls and obstacles. It sends out a sound wave (like a bat) and measures how long it takes to bounce back. If something is too close, the robot stops.',
+    specs: [
+      { label: 'Range', value: '2cm — 4m' },
+      { label: 'Trigger', value: 'GPIO 25' },
+      { label: 'Echo', value: 'GPIO 24' },
+      { label: 'Divider', value: '1k + 2k ohm' },
+    ],
+    create: createHCSR04,
+    yOffset: 2,
+    cameraTarget: { x: 0, y: 0.5, z: 0.6 },
+  },
+  {
+    name: '18650 Battery Pack',
+    number: '09',
+    desc: 'Motor power supply. 2x 18650 Li-ion cells in series = 7.4V. Powers the L298N and motors only. Never connect to Pi.',
+    simple: 'Two rechargeable batteries that power the wheels. These are separate from the phone charger that powers the computer — the motors need their own power source so they don\'t drain the brain.',
+    specs: [
+      { label: 'Cells', value: '2x 18650' },
+      { label: 'Voltage', value: '7.4V nominal' },
+      { label: 'Powers', value: 'Motors only' },
+      { label: 'Swap', value: '2 spare cells' },
+    ],
+    create: createBatteryPack,
+    yOffset: 2,
+    cameraTarget: { x: -0.3, y: 0.5, z: 0 },
+  },
+  // ── Phase 4: Mast + Vision ───────────────────────────────
+  {
+    name: 'PVC Camera Mast',
+    number: '10',
+    desc: '3-4 ft Schedule 40 PVC pipe. Raises the camera to mid-rack height (~21U). T-connector attaches to upper plate. Zip ties secure wiring.',
+    simple: 'A tall plastic pipe that holds the camera up high — like a selfie stick for the robot. Without it, the camera would only see people\'s feet. The pipe gets it up to chest height.',
+    specs: [
+      { label: 'Height', value: '3-4 ft' },
+      { label: 'Diameter', value: '1 inch' },
+      { label: 'Material', value: 'PVC Sch 40' },
+      { label: 'Mount', value: 'T-connector' },
+    ],
+    create: createPVCMast,
+    yOffset: 4,
+    cameraTarget: { x: 0, y: 2.5, z: 0 },
+  },
+  {
+    name: 'Pan-Tilt + Camera',
+    number: '11',
+    desc: 'Arducam pan-tilt platform with 2 MG90S servos + IMX708 120-deg wide-angle autofocus camera. Pan on GPIO 12, tilt on GPIO 13. CSI ribbon to Pi.',
+    simple: 'The camera sits on a motorized mount that can look left/right and up/down — like a security camera. This is how the robot finds and follows people. It can also tilt up to scan tall server racks.',
+    specs: [
+      { label: 'Camera', value: 'IMX708 120 deg' },
+      { label: 'Pan Servo', value: 'GPIO 12' },
+      { label: 'Tilt Servo', value: 'GPIO 13' },
+      { label: 'Tilt Range', value: '-60 to +60 deg' },
+    ],
+    create: createPanTiltCamera,
+    yOffset: 3.5,
+    cameraTarget: { x: 0, y: 3.5, z: 0.5 },
+  },
+  // ── Phase 5: Wiring ───────────────────────────────────────
+  {
+    name: 'Wiring Harness',
+    number: '12',
+    desc: 'Full wiring. GPIO 17,27,22,23 → L298N motor inputs. GPIO 24,25 → HC-SR04 (echo through voltage divider!). GPIO 12,13 → pan/tilt servos up the mast. CSI ribbon to camera. Battery → L298N 12V. Common GND between Pi and L298N.',
+    simple: 'Connect all the parts together with wires. The Pi\'s brain sends signals through these wires to control the motors, read the distance sensor, and move the camera. Follow the wiring guide exactly — wrong connections can fry parts.',
+    specs: [
+      { label: 'Motors', value: 'GPIO 17,27 (L) 22,23 (R)' },
+      { label: 'Ultrasonic', value: 'GPIO 24 echo, 25 trig' },
+      { label: 'Servos', value: 'GPIO 12 pan, 13 tilt' },
+      { label: 'Power', value: '7.4V batt → L298N' },
+      { label: 'Camera', value: 'CSI ribbon → mast' },
+      { label: 'GND', value: 'Common Pi ↔ L298N' },
+    ],
+    create: createWiringHarness,
+    yOffset: 2,
+    cameraTarget: { x: 0, y: 1, z: 0 },
+  },
+  // ── Phase 6: Boot + Terminal ────────────────────────────────
   {
     name: 'HDMI Monitor',
-    number: '08',
+    number: '13',
     desc: 'Monitor descends and connects via micro-HDMI cable to Pi HDMI0 port. Displays terminal output for setup and diagnostics.',
     simple: 'Plug in a screen so you can see what the robot\'s computer is doing. You\'ll use this to type setup commands. Once the robot is ready, you can unplug it — the robot runs on its own.',
     specs: [
@@ -3878,10 +3958,9 @@ const assemblySteps = [
       });
     },
   },
-  // ── Phase 3: Power On ─────────────────────────────────────
   {
     name: 'Power On',
-    number: '09',
+    number: '14',
     desc: 'Flip the PiSwitch to power on the system. Battery LEDs light up, PiSwitch glows red, Pi boots — power LED steady, activity LED blinks, then terminal starts typing on the monitor.',
     simple: 'Flip the switch! You\'ll see lights turn on one by one — first the battery, then the switch glows red, then the Pi\'s lights start blinking. After a few seconds, text appears on the screen. That means it\'s alive.',
     specs: [
@@ -4009,10 +4088,9 @@ const assemblySteps = [
       });
     },
   },
-  // ── Phase 3b: Pi Setup Guide ──────────────────────────────
   {
     name: 'Pi Setup Quest',
-    number: '10',
+    number: '15',
     desc: 'Interactive setup — type each command in the terminal to configure the Pi. The guide tracks your progress.',
     simple: 'Now you\'ll install the robot\'s software by typing commands into the screen. Don\'t worry — the guide on the left tells you exactly what to type, step by step. Just copy each line and press Enter.',
     specs: [
@@ -4047,86 +4125,6 @@ const assemblySteps = [
       });
     },
   },
-  // ── Phase 4: Electronics ──────────────────────────────────
-  {
-    name: 'HC-SR04 Ultrasonic',
-    number: '11',
-    desc: 'Distance sensor for obstacle avoidance. Triggers motor stop when objects are within 30cm. Requires voltage divider on ECHO pin (5V to 3.3V).',
-    simple: 'The robot\'s "eyes" for seeing walls and obstacles. It sends out a sound wave (like a bat) and measures how long it takes to bounce back. If something is too close, the robot stops.',
-    specs: [
-      { label: 'Range', value: '2cm — 4m' },
-      { label: 'Trigger', value: 'GPIO 25' },
-      { label: 'Echo', value: 'GPIO 24' },
-      { label: 'Divider', value: '1k + 2k ohm' },
-    ],
-    create: createHCSR04,
-    yOffset: 2,
-    cameraTarget: { x: 0, y: 0.5, z: 0.6 },
-  },
-  {
-    name: '18650 Battery Pack',
-    number: '12',
-    desc: 'Motor power supply. 2x 18650 Li-ion cells in series = 7.4V. Powers the L298N and motors only. Never connect to Pi.',
-    simple: 'Two rechargeable batteries that power the wheels. These are separate from the phone charger that powers the computer — the motors need their own power source so they don\'t drain the brain.',
-    specs: [
-      { label: 'Cells', value: '2x 18650' },
-      { label: 'Voltage', value: '7.4V nominal' },
-      { label: 'Powers', value: 'Motors only' },
-      { label: 'Swap', value: '2 spare cells' },
-    ],
-    create: createBatteryPack,
-    yOffset: 2,
-    cameraTarget: { x: -0.3, y: 0.5, z: 0 },
-  },
-  // ── Phase 4: Mast + Vision ───────────────────────────────
-  {
-    name: 'PVC Camera Mast',
-    number: '13',
-    desc: '3-4 ft Schedule 40 PVC pipe. Raises the camera to mid-rack height (~21U). T-connector attaches to upper plate. Zip ties secure wiring.',
-    simple: 'A tall plastic pipe that holds the camera up high — like a selfie stick for the robot. Without it, the camera would only see people\'s feet. The pipe gets it up to chest height.',
-    specs: [
-      { label: 'Height', value: '3-4 ft' },
-      { label: 'Diameter', value: '1 inch' },
-      { label: 'Material', value: 'PVC Sch 40' },
-      { label: 'Mount', value: 'T-connector' },
-    ],
-    create: createPVCMast,
-    yOffset: 4,
-    cameraTarget: { x: 0, y: 2.5, z: 0 },
-  },
-  {
-    name: 'Pan-Tilt + Camera',
-    number: '14',
-    desc: 'Arducam pan-tilt platform with 2 MG90S servos + IMX708 120-deg wide-angle autofocus camera. Pan on GPIO 12, tilt on GPIO 13. CSI ribbon to Pi.',
-    simple: 'The camera sits on a motorized mount that can look left/right and up/down — like a security camera. This is how the robot finds and follows people. It can also tilt up to scan tall server racks.',
-    specs: [
-      { label: 'Camera', value: 'IMX708 120 deg' },
-      { label: 'Pan Servo', value: 'GPIO 12' },
-      { label: 'Tilt Servo', value: 'GPIO 13' },
-      { label: 'Tilt Range', value: '-60 to +60 deg' },
-    ],
-    create: createPanTiltCamera,
-    yOffset: 3.5,
-    cameraTarget: { x: 0, y: 3.5, z: 0.5 },
-  },
-  // ── Phase 5: Wiring ───────────────────────────────────────
-  {
-    name: 'Wiring Harness',
-    number: '15',
-    desc: 'Full wiring. GPIO 17,27,22,23 → L298N motor inputs. GPIO 24,25 → HC-SR04 (echo through voltage divider!). GPIO 12,13 → pan/tilt servos up the mast. CSI ribbon to camera. Battery → L298N 12V. Common GND between Pi and L298N.',
-    simple: 'Connect all the parts together with wires. The Pi\'s brain sends signals through these wires to control the motors, read the distance sensor, and move the camera. Follow the wiring guide exactly — wrong connections can fry parts.',
-    specs: [
-      { label: 'Motors', value: 'GPIO 17,27 (L) 22,23 (R)' },
-      { label: 'Ultrasonic', value: 'GPIO 24 echo, 25 trig' },
-      { label: 'Servos', value: 'GPIO 12 pan, 13 tilt' },
-      { label: 'Power', value: '7.4V batt → L298N' },
-      { label: 'Camera', value: 'CSI ribbon → mast' },
-      { label: 'GND', value: 'Common Pi ↔ L298N' },
-    ],
-    create: createWiringHarness,
-    yOffset: 2,
-    cameraTarget: { x: 0, y: 1, z: 0 },
-  },
 ];
 // @END-LOCKED:assembly-steps
 
@@ -4148,7 +4146,8 @@ const assemblySteps = [
       }
       const saved = SAVED_POSITIONS[part.name];
       if (!saved || (saved.pos[0] === 0 && saved.pos[1] === 0 && saved.pos[2] === 0)) {
-        return origAnimateIn ? origAnimateIn.call(this, part) : null;
+        if (origAnimateIn) return origAnimateIn.call(this, part);
+        return animatePartIn(part, this.yOffset || 2);
       }
       const [tx, ty, tz] = saved.pos;
       return new Promise(resolve => {
@@ -7154,19 +7153,27 @@ const SAVED_POSITIONS = {
     "rot": [0, 0.004, 0]
   },
   "l298n-driver": {
-    "pos": [-1.5791, 0.4558, 0.0033],
+    "pos": [-0.0815, 1.2887, 0.0033],
     "rot": [0, 0, 0]
   },
   "pi-switch": {
-    "pos": [0.5865, 1.3293, 0.0207],
+    "pos": [0.4433, 1.3253, 0.0222],
     "rot": [3.1416, -1.5555, 3.1416]
   },
   "hc-sr04": {
-    "pos": [0, 0, 0],
-    "rot": [0, 0, 0]
+    "pos": [-1.7205, 0.4168, 0.0175],
+    "rot": [3.1416, -1.5356, 3.1416]
   },
   "battery-pack": {
-    "pos": [0, 0, 0],
+    "pos": [1.9837, 0.7969, -0.0076],
+    "rot": [1.5788, -0.0023, 1.5667]
+  },
+  "pvc-mast": {
+    "pos": [-0.8812, 0.7733, 0],
+    "rot": [0, 0, 0]
+  },
+  "pan-tilt-camera": {
+    "pos": [-0.9306, 4.7745, 0],
     "rot": [0, 0, 0]
   }
 };
@@ -8082,6 +8089,472 @@ setTimeout(() => {
 
 animate();
 // @END-LOCKED:animate-and-init
+
+// ─── Pre-load Pan-Tilt Camera GLB ────────────────────────────
+// Replaces the procedural createPanTiltCamera with a Meshy AI GLB model.
+let panTiltGLB = null;
+let panTiltReady = false;
+
+gltfLoader.load('../glb/Meshy_AI_ArduCam_180_Degree_Pa_0317142235_generate.glb', (gltf) => {
+  panTiltGLB = gltf.scene;
+
+  // Auto-center and scale to match the procedural model's footprint (~0.3 units wide)
+  const box = new THREE.Box3().setFromObject(panTiltGLB);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const targetSize = 0.6; // Slightly larger than procedural version for detail
+  const scale = targetSize / maxDim;
+  panTiltGLB.scale.setScalar(scale);
+
+  // Center horizontally, sit on bottom
+  panTiltGLB.position.set(
+    -center.x * scale,
+    -box.min.y * scale,
+    -center.z * scale
+  );
+
+  panTiltGLB.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  panTiltGLB.name = 'pan-tilt-camera';
+
+  // Wrap in a group so we can position it at mast top
+  const wrapper = new THREE.Group();
+  wrapper.name = 'pan-tilt-camera';
+  wrapper.add(panTiltGLB);
+  wrapper.position.set(-1.2, 4.1, 0); // Same as procedural version — top of mast
+  panTiltGLB = wrapper;
+  panTiltReady = true;
+
+  console.log(`Pan-tilt GLB ready — size: (${size.x.toFixed(2)}, ${size.y.toFixed(2)}, ${size.z.toFixed(2)}), scale: ${scale.toFixed(3)}`);
+}, undefined, (error) => {
+  console.warn('Pan-tilt GLB failed to load:', error.message);
+});
+
+// Patch the Pan-Tilt + Camera assembly step to use the GLB
+(function patchPanTiltStep() {
+  const step = assemblySteps.find(s => s.name === 'Pan-Tilt + Camera');
+  if (!step) return;
+  step.create = async function() {
+    if (!panTiltGLB) {
+      await new Promise((resolve, reject) => {
+        const start = Date.now();
+        const check = () => {
+          if (panTiltGLB) return resolve();
+          if (Date.now() - start > 15000) return reject(new Error('Pan-tilt GLB load timeout'));
+          requestAnimationFrame(check);
+        };
+        check();
+      });
+    }
+    return panTiltGLB;
+  };
+})();
+
+// ─── Pre-load HC-SR04 GLB ────────────────────────────────────
+let hcsr04GLB = null;
+let hcsr04Ready = false;
+
+gltfLoader.load('../glb/Meshy_AI_HC_SR04_0317143003_generate.glb', (gltf) => {
+  hcsr04GLB = gltf.scene;
+
+  const box = new THREE.Box3().setFromObject(hcsr04GLB);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const targetSize = 0.5; // Match procedural HC-SR04 footprint
+  const scale = targetSize / maxDim;
+  hcsr04GLB.scale.setScalar(scale);
+
+  hcsr04GLB.position.set(
+    -center.x * scale,
+    -box.min.y * scale,
+    -center.z * scale
+  );
+
+  // Find the largest mesh (the PCB board) and tint it blue
+  let largestMesh = null;
+  let largestArea = 0;
+  hcsr04GLB.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      const b = new THREE.Box3().setFromObject(child);
+      const s = b.getSize(new THREE.Vector3());
+      const area = s.x * s.z;
+      if (area > largestArea) { largestArea = area; largestMesh = child; }
+    }
+  });
+  if (largestMesh) {
+    largestMesh.material = largestMesh.material.clone();
+    largestMesh.material.color.setHex(0x1177aa);
+  }
+
+  hcsr04GLB.name = 'hc-sr04';
+
+  const wrapper = new THREE.Group();
+  wrapper.name = 'hc-sr04';
+  wrapper.add(hcsr04GLB);
+  wrapper.position.set(1.5, 0.12, 0);
+  wrapper.rotation.y = Math.PI / 2;
+  hcsr04GLB = wrapper;
+  hcsr04Ready = true;
+
+  console.log(`HC-SR04 GLB ready — size: (${size.x.toFixed(2)}, ${size.y.toFixed(2)}, ${size.z.toFixed(2)}), scale: ${scale.toFixed(3)}`);
+}, undefined, (error) => {
+  console.warn('HC-SR04 GLB failed to load:', error.message);
+});
+
+// Patch HC-SR04 assembly step to use GLB
+(function patchHCSR04Step() {
+  const step = assemblySteps.find(s => s.name === 'HC-SR04 Ultrasonic');
+  if (!step) return;
+  step.create = async function() {
+    if (!hcsr04GLB) {
+      await new Promise((resolve, reject) => {
+        const start = Date.now();
+        const check = () => {
+          if (hcsr04GLB) return resolve();
+          if (Date.now() - start > 15000) return reject(new Error('HC-SR04 GLB load timeout'));
+          requestAnimationFrame(check);
+        };
+        check();
+      });
+    }
+    return hcsr04GLB;
+  };
+})();
+
+// ─── Insert Mounting & Fastening step (before Wiring Harness) ─────
+(function insertMountingStep() {
+  const insertIndex = assemblySteps.findIndex(s => s.name === 'Wiring Harness');
+  if (insertIndex === -1) return;
+
+  assemblySteps.splice(insertIndex, 0, {
+    name: 'Mounting & Fastening',
+    number: String(insertIndex + 1).padStart(2, '0'),
+    desc: 'Secure every component to the chassis with proper fasteners. Pi 5 on M2.5 brass standoffs, L298N and HC-SR04 on M3/M2 screws through chassis mounting holes, 18650 battery holder bolted to frame, PVC mast clamped with hose clamps through plate holes. Power bank held with velcro straps for easy swap.',
+    simple: 'Now we bolt and strap everything down tight so nothing rattles loose when the robot drives. Each part has its own kind of fastener — brass standoffs for the computer, steel screws for the motor driver and sensors, and straps for the battery pack.',
+    specs: [
+      { label: 'Pi 5', value: '4× M2.5 brass standoffs + screws' },
+      { label: 'L298N', value: 'M3 standoffs into chassis holes' },
+      { label: 'HC-SR04', value: 'M2 screws through board holes' },
+      { label: '18650 Pack', value: 'M3 screws into frame holes' },
+      { label: 'Power Bank', value: 'Velcro straps (hot-swap ready)' },
+      { label: 'PVC Mast', value: 'Hose clamps + bolts through plate' },
+    ],
+    create: async function() {
+      const group = new THREE.Group();
+      group.name = 'mounting-fastening';
+
+      // Ghost chassis plate — semi-transparent to show mounting context
+      const plateGeo = new THREE.BoxGeometry(3.2, 0.08, 2.4);
+      const ghostMat = new THREE.MeshStandardMaterial({
+        color: 0x2a2e38, roughness: 0.55, metalness: 0.7,
+        transparent: true, opacity: 0.25,
+      });
+      const plate = new THREE.Mesh(plateGeo, ghostMat);
+      plate.receiveShadow = true;
+      group.add(plate);
+
+      // Materials
+      const brassM = new THREE.MeshStandardMaterial({ color: 0xc0a050, roughness: 0.3, metalness: 0.85 });
+      const steelM = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.9 });
+      const clampM = new THREE.MeshStandardMaterial({ color: 0x6a6a6a, roughness: 0.4, metalness: 0.8 });
+      const velcroM = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.95, metalness: 0.0 });
+      const glowM = new THREE.MeshStandardMaterial({
+        color: 0xff6600, roughness: 0.5, metalness: 0.2,
+        emissive: 0xff3300, emissiveIntensity: 0.3,
+      });
+
+      // Mount points: [x, y, z, type]
+      const mounts = [
+        // Pi 5 — M2.5 standoffs (upper right area)
+        [0.4, 0.05, -0.4, 'standoff'], [0.4, 0.05, 0.0, 'standoff'],
+        [0.9, 0.05, -0.4, 'standoff'], [0.9, 0.05, 0.0, 'standoff'],
+        // L298N — M3 screws (rear center)
+        [-0.8, 0.05, -0.5, 'screw'], [-0.8, 0.05, 0.5, 'screw'],
+        // 18650 holder — M3 screws (frame)
+        [1.2, -0.05, -0.8, 'screw'], [1.2, -0.05, 0.8, 'screw'],
+        // HC-SR04 — M2 screws (front)
+        [-1.4, 0.05, -0.2, 'screw'], [-1.4, 0.05, 0.2, 'screw'],
+      ];
+
+      // Orange highlight rings at each mount point
+      const ringGeo = new THREE.TorusGeometry(0.06, 0.015, 8, 16);
+      mounts.forEach(m => {
+        const ring = new THREE.Mesh(ringGeo, glowM);
+        ring.position.set(m[0], m[1], m[2]);
+        ring.rotation.x = Math.PI / 2;
+        group.add(ring);
+      });
+
+      // M2.5 brass standoffs (Pi 5)
+      const soGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.12, 8);
+      const shGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.02, 8);
+      mounts.filter(m => m[3] === 'standoff').forEach(m => {
+        const so = new THREE.Mesh(soGeo, brassM);
+        so.position.set(m[0], m[1] + 0.06, m[2]);
+        so.castShadow = true;
+        group.add(so);
+        const hd = new THREE.Mesh(shGeo, steelM);
+        hd.position.set(m[0], m[1] + 0.13, m[2]);
+        group.add(hd);
+      });
+
+      // M3/M2 screws (L298N, 18650, HC-SR04)
+      const scGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.08, 8);
+      const hxGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.02, 6);
+      mounts.filter(m => m[3] === 'screw').forEach(m => {
+        const sc = new THREE.Mesh(scGeo, steelM);
+        sc.position.set(m[0], m[1] + 0.04, m[2]);
+        sc.castShadow = true;
+        group.add(sc);
+        const hx = new THREE.Mesh(hxGeo, steelM);
+        hx.position.set(m[0], m[1] + 0.09, m[2]);
+        group.add(hx);
+      });
+
+      // Velcro straps for power bank
+      const strapGeo = new THREE.BoxGeometry(0.8, 0.02, 0.12);
+      [-0.3, 0.3].forEach(z => {
+        const strap = new THREE.Mesh(strapGeo, velcroM);
+        strap.position.set(-0.1, 0.06, z);
+        group.add(strap);
+      });
+
+      // Hose clamp rings for PVC mast
+      const clGeo = new THREE.TorusGeometry(0.08, 0.015, 8, 24);
+      [0.15, 0.05].forEach(y => {
+        const cl = new THREE.Mesh(clGeo, clampM);
+        cl.position.set(-1.2, y, 0);
+        cl.rotation.x = Math.PI / 2;
+        group.add(cl);
+      });
+
+      return group;
+    },
+    yOffset: 2.5,
+    cameraTarget: { x: 0, y: 0.5, z: 0 },
+  });
+
+  // Remove Wiring Harness step (no longer needed)
+  const wiringIdx = assemblySteps.findIndex(s => s.name === 'Wiring Harness');
+  if (wiringIdx !== -1) assemblySteps.splice(wiringIdx, 1);
+
+  // Renumber all steps from insertion point
+  for (let i = insertIndex; i < assemblySteps.length; i++) {
+    assemblySteps[i].number = String(i + 1).padStart(2, '0');
+  }
+
+  // Net step count: +1 mounting, -1 wiring = same 15 dots as original
+  console.log('Mounting step inserted, Wiring Harness removed. Total:', assemblySteps.length);
+})();
+
+// ─── Patch Pi Setup Quest → Software Showcase (auto-play) ────────
+(function patchSoftwareShowcase() {
+  const step = assemblySteps.find(s => s.name === 'Pi Setup Quest');
+  if (!step) return;
+
+  step.name = 'Software Showcase';
+  step.desc = 'The software powering the escort bot. YOLOv8n for person detection, picamera2 for the IMX708 camera, gpiozero + lgpio for motor and servo control, and a PID steering loop — all running on Python 3.11 on the Pi 5.';
+  step.simple = 'This is the robot\'s brain! It uses AI to see people, Python to think, and special libraries to control the motors and camera. Watch the screen to see everything that makes the robot work.';
+  step.specs = [
+    { label: 'Detection', value: 'YOLOv8n (Ultralytics)' },
+    { label: 'Camera', value: 'picamera2 + IMX708 120°' },
+    { label: 'GPIO', value: 'gpiozero + lgpio (Pi 5)' },
+    { label: 'Steering', value: 'PID controller (P+I+D+FF)' },
+    { label: 'Language', value: 'Python 3.11 (Bookworm)' },
+    { label: 'Scan', value: 'JPEG sweep, 5° tilt steps' },
+  ];
+
+  // Showcase lines — auto-typed on the small monitor terminal
+  const SHOWCASE_LINES = [
+    { text: 'pi@escortbot:~ $ cat /etc/escort-bot/stack.yml', color: 'white', delay: 60 },
+    { text: '', color: 'white', delay: 100 },
+    { text: '─── ESCORT BOT v1.0 ── Software Stack ───', color: '#ffcc44', delay: 80 },
+    { text: '', color: 'white', delay: 60 },
+    { text: 'BRAIN:', color: '#44ccdd', delay: 50 },
+    { text: '  python:     3.11 (Bookworm aarch64)', color: '#44dd66', delay: 35 },
+    { text: '  main.py:    327 lines — FOLLOW / SCAN / IDLE', color: '#44dd66', delay: 35 },
+    { text: '', color: 'white', delay: 40 },
+    { text: 'VISION:', color: '#44ccdd', delay: 50 },
+    { text: '  yolov8n:    Ultralytics — person detection', color: '#44dd66', delay: 35 },
+    { text: '  picamera2:  IMX708 wide-angle 120° autofocus', color: '#44dd66', delay: 35 },
+    { text: '  opencv:     frame processing + bounding boxes', color: '#44dd66', delay: 35 },
+    { text: '', color: 'white', delay: 40 },
+    { text: 'MOTION:', color: '#44ccdd', delay: 50 },
+    { text: '  gpiozero:   Motor, Servo, DistanceSensor', color: '#44dd66', delay: 35 },
+    { text: '  lgpio:      Pi 5 native GPIO (replaces RPi.GPIO)', color: '#44dd66', delay: 35 },
+    { text: '  PID:        lateral + distance — proportional steering', color: '#44dd66', delay: 35 },
+    { text: '', color: 'white', delay: 40 },
+    { text: 'SENSORS:', color: '#44ccdd', delay: 50 },
+    { text: '  ultrasonic: HC-SR04 — obstacle avoidance < 30cm', color: '#44dd66', delay: 35 },
+    { text: '  pan-tilt:   MG90S servos — rack scan sweep', color: '#44dd66', delay: 35 },
+    { text: '', color: 'white', delay: 40 },
+    { text: 'SCAN:', color: '#44ccdd', delay: 50 },
+    { text: '  mode:       bottom-to-top tilt sweep, 5° steps', color: '#44dd66', delay: 35 },
+    { text: '  output:     JPEG frames → scans/{timestamp}/', color: '#44dd66', delay: 35 },
+    { text: '', color: 'white', delay: 80 },
+    { text: 'pi@escortbot:~ $ systemctl status escort-bot', color: 'white', delay: 60 },
+    { text: '● escort-bot.service — active (running)', color: '#44dd66', delay: 50 },
+    { text: '  Main PID: 1847 (python3 main.py)', color: '#a0b0a0', delay: 30 },
+    { text: '  Memory: 412M | CPU: 23.1%', color: '#a0b0a0', delay: 30 },
+    { text: '', color: 'white', delay: 60 },
+    { text: 'pi@escortbot:~ $ █', color: 'white', delay: 0 },
+  ];
+
+  // Override create — just return an empty group (no interactive terminal)
+  step.create = () => {
+    const g = new THREE.Group();
+    g.name = 'software-showcase-step';
+    return g;
+  };
+
+  // Override animateIn — zoom to monitor, then auto-play showcase on small terminal
+  step.animateIn = (part) => {
+    return new Promise(resolve => {
+      scene.add(part);
+      isAnimating = true;
+
+      // Zoom camera to monitor
+      animateCameraTarget({ x: 0.2, y: 2.55, z: -0.45 });
+
+      _pendingTimeouts.push(setTimeout(() => {
+        // Clear small terminal and inject showcase lines
+        if (typeof terminalLines !== 'undefined') {
+          terminalLines.length = 0;
+          terminalLines.push({ text: '', color: 'white' });
+        }
+        if (typeof BOOT_LINES !== 'undefined') {
+          SHOWCASE_LINES.forEach(line => BOOT_LINES.push(line));
+          if (typeof terminalLineIndex !== 'undefined') {
+            terminalLineIndex = BOOT_LINES.length - SHOWCASE_LINES.length;
+            terminalCharIndex = 0;
+            bootTickAccum = 0;
+          }
+        }
+        isAnimating = false;
+        resolve();
+      }, 1200));
+    });
+  };
+
+  console.log('Pi Setup Quest patched → Software Showcase (auto-play)');
+})();
+
+// ─── Auto-start: cinematic first step on page load ───────────
+// Waits for chassis GLB to load, then triggers step 01 automatically
+// with a slower, more dramatic entrance.
+(function autoStartFirstStep() {
+  const LOAD_DELAY = 1500;   // ms after GLB ready before starting
+  const SLOW_DURATION = 2400; // ms for the cinematic drop (2x normal)
+
+  function triggerFirstStep() {
+    // Hide the start hint with a fade
+    const hint = document.getElementById('start-hint');
+    if (hint) {
+      hint.style.transition = 'opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+      hint.style.opacity = '0';
+      setTimeout(() => hint.classList.add('hidden'), 600);
+    }
+
+    // Temporarily patch step 01's animateIn for a slower entrance
+    const step = assemblySteps[0];
+    const originalAnimateIn = step.animateIn;
+    step.animateIn = function(part) {
+      return new Promise(resolve => {
+        isAnimating = true;
+        const saved = (typeof SAVED_POSITIONS !== 'undefined') && SAVED_POSITIONS[part.name];
+        const tx = saved ? saved.pos[0] : part.position.x;
+        const ty = saved ? saved.pos[1] : part.position.y;
+        const tz = saved ? saved.pos[2] : part.position.z;
+        const startY = ty + (step.yOffset || 3);
+        part.position.set(tx, startY, tz);
+        if (saved && saved.rot) part.rotation.set(saved.rot[0], saved.rot[1], saved.rot[2]);
+
+        // Start with opacity 0 for a fade-in
+        part.traverse(child => {
+          if (child.isMesh) {
+            child.material = child.material.clone();
+            child.material.transparent = true;
+            child.material.opacity = 0;
+          }
+        });
+
+        scene.add(part);
+
+        // Stop auto-rotate during entrance, resume after
+        controls.autoRotate = false;
+
+        const startTime = performance.now();
+        function tick(now) {
+          const t = Math.min((now - startTime) / SLOW_DURATION, 1);
+          // Smooth deceleration curve
+          const eased = 1 - Math.pow(1 - t, 4);
+          part.position.y = startY + (ty - startY) * eased;
+
+          // Fade in during first 60%
+          const fadeT = Math.min(t / 0.6, 1);
+          const fadeEased = 1 - Math.pow(1 - fadeT, 3);
+          part.traverse(child => {
+            if (child.isMesh) {
+              child.material.opacity = fadeEased;
+            }
+          });
+
+          if (t < 1) {
+            requestAnimationFrame(tick);
+          } else {
+            part.position.y = ty;
+            part.traverse(child => {
+              if (child.isMesh) {
+                child.material.opacity = 1;
+                child.material.transparent = false;
+              }
+            });
+            isAnimating = false;
+            controls.autoRotate = true;
+            // Restore original animateIn for step-back/redo
+            step.animateIn = originalAnimateIn;
+            resolve();
+          }
+        }
+        requestAnimationFrame(tick);
+      });
+    };
+
+    nextStep();
+  }
+
+  // Poll for chassis GLB readiness, then delay before entrance
+  function waitAndStart() {
+    if (chassisReady) {
+      setTimeout(triggerFirstStep, LOAD_DELAY);
+    } else {
+      requestAnimationFrame(waitAndStart);
+    }
+  }
+  waitAndStart();
+})();
+
+// ─── Show Explode button only on the final step ──────────────
+(function showExplodeOnLastStep() {
+  const btnExplode = document.getElementById('btn-explode');
+  let _lastCheckedStep = -1;
+  setInterval(() => {
+    if (typeof currentStep === 'undefined') return;
+    if (currentStep === _lastCheckedStep) return;
+    _lastCheckedStep = currentStep;
+    const isLastStep = currentStep >= assemblySteps.length - 1;
+    btnExplode.style.display = isLastStep ? '' : 'none';
+  }, 300);
+})();
 </script>
 </body>
 </html>

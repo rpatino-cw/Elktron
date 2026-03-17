@@ -25,7 +25,7 @@ escort-bot/
 ├── CLAUDE.md              # THIS FILE — full project context
 ├── main.py                # Robot brain — 327 lines, complete
 │                            Three modes: FOLLOW, SCAN, IDLE
-│                            OpenCV DNN MobileNet SSD v2 for person detection
+│                            YOLOv8n (Ultralytics) for person detection
 │                            Proportional steering with obstacle override
 │                            Triggers rack scan when person is stationary 3s
 ├── pan_tilt.py            # Pan/tilt servo controller — 226 lines, complete
@@ -35,15 +35,14 @@ escort-bot/
 ├── test_camera.py         # Camera-only test — runs detection without motors
 │                            Two modes: headless (terminal) and --display (live video)
 │                            Use this to validate detection before assembling the chassis
+├── camtest.py             # YOLOv8n camera test — confirmed working on Pi 5 (2026-03-16)
 ├── install.sh             # One-command Pi 5 setup — apt, pip, model download
 ├── requirements.txt       # picamera2, opencv-python, gpiozero, numpy, lgpio, Pillow
 ├── WIRING.md              # GPIO pin map, L298N wiring, HC-SR04 voltage divider, test commands
 ├── PI-SETUP.md            # Complete Pi 5 OS flashing + first boot + troubleshooting guide
 ├── scans/                 # Output dir — one subfolder per rack scan with JPEG frames
-├── models/                # MobileNet SSD model files (created by install.sh)
-│   ├── ssd_mobilenet_v2.pb
-│   ├── ssd_mobilenet_v2.pbtxt
-│   └── coco_labels.txt
+├── models/                # Detection model files (YOLOv8n — switched from MobileNet SSD)
+│   └── yolov8n.pt         # YOLOv8n weights (auto-downloaded by ultralytics)
 ├── showcase.html          # Project scope page (presentation)
 ├── simulation.html        # 3D escort bot simulation (Three.js)
 ├── assembly.html          # Assembly instructions page
@@ -65,7 +64,13 @@ escort-bot/
 
 ## Detection Pipeline
 
-MobileNet SSD v2 via OpenCV DNN runs at ~20 FPS on Pi 5. Input: 300x300 RGB. Output: bounding boxes, class IDs, confidence scores. Only class 0 (person) is used. The largest detected person is tracked (handles multiple people in frame by following the closest/biggest one).
+**YOLOv8n** (Ultralytics) runs person detection on the Pi 5. Switched from OpenCV DNN MobileNet SSD v2 to YOLOv8n for better accuracy and native Python integration. Input: camera frames via picamera2. Output: bounding boxes, class IDs, confidence scores. Only class 0 (person) is used. The largest detected person is tracked (handles multiple people in frame by following the closest/biggest one).
+
+**Confirmed working (2026-03-16):**
+- Camera: Arducam IMX708 wide-angle, libcamera v0.7.0
+- Detection confidence: 0.78 at DC floor conditions
+- Test script: `camtest.py`
+- Inference speed: <100ms per frame on Pi 5
 
 ## Simulation Rules
 
@@ -159,7 +164,7 @@ Access: `ssh pi@escort-bot.local` → run `claude` in the escort-bot directory.
 
 - Hardware assembly (chassis arrives 3/11, camera 3/14)
 - Flash Pi 5 SD card
-- Camera-only detection test on real Pi
+- ~~Camera-only detection test on real Pi~~ DONE 2026-03-16 (YOLOv8n, 0.78 confidence)
 - First motor test with L298N
 - Mast construction (PVC from Home Depot)
 - Pan/tilt mount on mast

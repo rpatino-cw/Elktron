@@ -149,7 +149,7 @@ Tracked in `#the-elks-2026` Slack list.
 **Escort Bot — Scaffolded**
 - `hackathon/escort-bot/main.py` — Full person-following logic (~150 lines). TFLite MobileNet SSD + gpiozero + HC-SR04 ultrasonic. Proportional steering with distance control.
 - `hackathon/escort-bot/install.sh` — One-command Pi 5 setup (apt + pip + model download)
-- `hackathon/escort-bot/requirements.txt` — picamera2, tflite-runtime, gpiozero, numpy, lgpio
+- `hackathon/escort-bot/requirements.txt` — picamera2, opencv-python, gpiozero, numpy, lgpio
 - `hackathon/escort-bot/WIRING.md` — GPIO pin map, L298N wiring, HC-SR04 voltage divider, test commands
 - `hackathon/escort-bot/showcase.html` — Project scope page (white/navy theme, animations, 3D)
 
@@ -198,37 +198,39 @@ Tracked in `#the-elks-2026` Slack list.
 | MicroSD Card 32-64GB | ~$10 | [Best Buy](https://www.bestbuy.com/site/shop/raspberry-pi-micro-sd) |
 
 **Already Owned**
-- Raspberry Pi 4 and 5 (Romeo)
-- Raspberry Pi (Alex)
+- Raspberry Pi 5 (Alex — bringing to build sessions)
+- Raspberry Pi 4 (Romeo, backup)
 - Pico (Romeo, backup)
+- MicroSD card (Romeo)
 - SIM card (Romeo)
 - Velcro strips (Romeo)
 
 **Arrival Tracker (updated 3/12)**
 | Item | Ordered | ETA | Status |
 |------|---------|-----|--------|
-| Pi Active Fan | 3/10 | 3/10 | **Arrived** — confirm in hand |
-| LK-COKOINO 4WD Chassis (Alex) | 3/10 | 3/11 | **Arrived** — confirm with Alex |
-| 18650 batteries + charger | 3/9 | 3/11 | **Arrived** — confirm in hand |
-| MakerFocus Pi battery pack | 3/9 | 3/11 | **Arrived** — confirm in hand |
-| WWZMDiB L298N 2-Pack | 3/10 | 3/11 | **Arrived** — confirm in hand |
-| ELEGOO HC-SR04 5-Pack | 3/10 | 3/11 | **Arrived** — confirm in hand |
-| DIYables HC-SR04 2-Pack | 3/10 | 3/11 | **Arrived** — confirm in hand |
-| QTEATAK 18650 holders 8-Pack | 3/10 | 3/11 | **Arrived** — confirm in hand |
-| Arducam Pan Tilt Platform | 3/10 | 3/12 | **Arriving today** |
-| Arducam Camera Module 3 Wide (IMX708) | 3/10 | 3/14 | In transit (Saturday) |
-| PVC Pipe 1" x 10ft + Tee fitting | — | **Pickup ready** | In HD cart ($8.09) — pick up today |
-| Raspberry Pi + SIM + Velcro | — | **Have** | Gather from home |
+| Pi Active Fan | 3/10 | 3/11 | **DELIVERED** — Romeo has it |
+| LK-COKOINO 4WD Chassis (Alex) | 3/10 | 3/11 | **DELIVERED** — Alex has it |
+| WWZMDiB L298N 2-Pack | 3/10 | 3/12 | **DELIVERED** — Romeo has it |
+| DIYables HC-SR04 2-Pack | 3/10 | 3/12 | **DELIVERED** — Romeo has it |
+| QTEATAK 18650 holders 8-Pack | 3/10 | 3/12 | **DELIVERED** — Romeo has it |
+| Arducam Pan Tilt Platform | 3/10 | 3/12 | **DELIVERED** — Romeo has it |
+| CanaKit 3.5A Pi PSU + PiSwitch | 3/11 | 3/12 | **DELIVERED** — Romeo has it |
+| USB-C Right-Angle Adapter 2-Pack | 3/11 | 3/12 | **DELIVERED** — Romeo has it |
+| Anker PowerCore 10K Power Bank | 3/11 | 3/13 | In transit — arriving tomorrow |
+| ELEGOO HC-SR04 5-Pack | 3/10 | 3/13 | In transit — arriving tomorrow |
+| 18650 batteries (4-pack) + charger | 3/11 | 3/15 | In transit — arriving Saturday |
+| Arducam Camera Module 3 Wide (IMX708) | 3/10 | 3/15 | In transit — arriving Saturday |
+| PVC Pipe 1" x 10ft + Tee fitting | — | **Pickup ready** | In HD cart ($8.09) — still needs pickup |
 
 **Backup / Alternatives**
 - [ ] ALAMSCN L293D Motor Driver + TT Motor Kit — [Amazon](https://www.amazon.com/ALAMSCN-Controller-Control-Expansion-Arduino/dp/B08Y24QBX3) — L293D shield (600mA/ch, lower than L298N's 2A). Backup if L298N doesn't work out.
 
 **Still Needed**
-- [x] ~~Motor driver board~~ — **Ordered 3/10** (WWZMDiB L298N 2-pack)
-- [x] ~~Ultrasonic sensor~~ — **Ordered 3/10** (ELEGOO 5-pack + DIYables 2-pack)
-- [x] ~~Battery holders~~ — **Ordered 3/10** (QTEATAK 8-pack)
-- [x] ~~Power bank for Pi~~ — MakerFocus ordered 3/9
-- [ ] **MicroSD card 32-64GB** — Check if Romeo has one. If not: [Samsung EVO Select 64GB ~$8](https://www.amazon.com/Samsung-microSDXC-Memory-Adapter-MB-ME64KA/dp/B0CWPPMD8K)
+- [x] ~~Motor driver board~~ — **DELIVERED 3/12** (WWZMDiB L298N 2-pack)
+- [x] ~~Ultrasonic sensor~~ — **DIYables DELIVERED 3/12**, ELEGOO arriving 3/13
+- [x] ~~Battery holders~~ — **DELIVERED 3/12** (QTEATAK 8-pack)
+- [x] ~~Power bank for Pi~~ — Anker PowerCore 10K arriving 3/13
+- [x] ~~MicroSD card~~ — **Romeo has one**
 
 **Escort Bot Total: ~$103** (Romeo: ~$88 Amazon + ~$8 Home Depot. Alex covers chassis.)
 
@@ -256,7 +258,7 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 | Decision | Chose | Over | Why |
 |----------|-------|------|-----|
 | Escort platform | Pi 5 + Freenove chassis | iRobot Create 3 | Already own Pi, $65 vs $300 |
-| Detection model | MobileNet SSD v2 (TFLite) | YOLO, HOG | 20 FPS on Pi 5, no training needed |
+| Detection model | YOLOv8n (Ultralytics) | MobileNet SSD, OpenCV DNN, HOG | Best accuracy on Pi 5, 0.78 confidence at DC floor, <100ms inference |
 | Motor framework | gpiozero | ROS 2 | One file, zero setup overhead |
 | Arm kit | HiWonder SO-ARM101 | Seeed Studio + 3D print | Faster, all parts included |
 | Training policy | ACT (Action Chunking) | Diffusion, RL | LeRobot default, works with 50 demos |
@@ -266,7 +268,35 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 
 ## What's Next
 
-### Immediate (before March 12)
+### Critical Path — Bot Must Move (March 16-17)
+1. [ ] Wire L298N control pins → Pi GPIO (IN1→17, IN2→27, IN3→22, IN4→23, GND→GND)
+2. [ ] Remove L298N 5V jumper (Pi powered separately)
+3. [ ] Bench test motors: `python3 motor_test.py` (wheels off ground)
+4. [ ] Wire HC-SR04: VCC→5V, GND, TRIG→GPIO25, ECHO→voltage divider→GPIO24
+5. [ ] Test sonar: `python3 sonar_test.py`
+6. [ ] First follow test: `python3 main.py` with motors + sonar integrated
+7. [ ] Record phone video of bot following person
+
+### Bonus (March 18-22)
+8. [ ] PVC mast + camera elevation
+9. [ ] Scope violation detection (hardcode rack IDs, flag unauthorized stops)
+10. [ ] Dashboard live telemetry (WebSocket from Pi)
+11. [ ] PID tuning for smoother following
+
+### SO-101 Arm (March 16-19)
+17. [ ] Assemble SO-101 arms when kit arrives (~2-3 hrs)
+18. [ ] Install LeRobot, calibrate servos (~1 hr)
+19. [ ] First autonomous test — keyboard teleop if leader arm not working
+
+### Final Polish (March 20-22)
+20. [ ] Tune escort bot on DC floor (Kp, speed, thresholds) (~2-4 hrs)
+21. [ ] Record 50 optic seating demonstrations (~1-2 hrs)
+22. [ ] Train ACT policy (~2-4 hrs, runs unattended)
+23. [ ] Evaluate + retrain if needed (~2 hrs)
+24. [ ] Demo polish — clean wiring, signage, camera feeds
+25. [ ] Record 2-3 min demo video
+
+### Completed
 1. [x] Order Freenove kit + batteries + power bank — **Done 3/9**
 2. [x] Order SO-ARM101 DIY kit + webcam — **Done 3/9**
 3. [x] Create detailed parts list with Amazon links — **Done 3/9** (`PARTS-LIST.md`)
@@ -274,31 +304,11 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 5. [x] Create Pi 5 setup guide — **Done 3/9** (`escort-bot/PI-SETUP.md`)
 6. [x] **Sign up for hackathon** — **Done 3/12** via `#more-better-faster-2026`
 7. [x] Order Pi 5 Active Cooler (~$10) — **Ordered 3/10, ETA 3/11**
-7b. [x] Order Arducam Camera + Pan-Tilt — **Ordered 3/10, ETA 3/12-3/14**
-8. [ ] Flash Pi 5 SD card (Bookworm Lite 64-bit) — see `PI-SETUP.md`
-9. [ ] Camera-only detection test on Pi 5 (`python3 test_camera.py`)
-
-### Week of March 11-15 (Escort Bot assembly)
-10. [ ] Assemble Freenove chassis + connect motors/sensors (~2 hrs, kit has instructions)
-11. [ ] Run escort-bot `install.sh` on Pi 5 (~45 min)
-12. [ ] First escort bot test — person detection + motor control
-13. [x] Write `elktron-app/api/arm.py` — LeRobot serial interface — **Done 3/10**
-14. [x] Write `elktron-app/api/escort.py` — escort telemetry — **Done 3/10**
-15. [x] Write `elktron-app/api/models.py` — Pydantic schemas — **Done 3/10**
-16. [x] Build dashboard panels in `elktron-app/index.html` — **Already complete** (all 5 panels + JS + WebSocket)
-
-### Week of March 16-19 (SO-101 Arm assembly)
-17. [ ] Assemble SO-101 arms when kit arrives (~2-3 hrs)
-18. [ ] Install LeRobot, calibrate servos (~1 hr)
-19. [ ] First autonomous test — keyboard teleop if leader arm not working
-
-### Week of March 20-22
-9. [ ] Tune escort bot on DC floor (Kp, speed, thresholds) (~2-4 hrs)
-10. [ ] Record 50 optic seating demonstrations (~1-2 hrs)
-11. [ ] Train ACT policy (~2-4 hrs, runs unattended)
-12. [ ] Evaluate + retrain if needed (~2 hrs)
-13. [ ] Demo polish — clean wiring, signage, camera feeds
-14. [ ] Record 2-3 min demo video
+8. [x] Order Arducam Camera + Pan-Tilt — **Ordered 3/10, ETA 3/12-3/14**
+9. [x] Write `elktron-app/api/arm.py` — LeRobot serial interface — **Done 3/10**
+10. [x] Write `elktron-app/api/escort.py` — escort telemetry — **Done 3/10**
+11. [x] Write `elktron-app/api/models.py` — Pydantic schemas — **Done 3/10**
+12. [x] Build dashboard panels in `elktron-app/index.html` — **Already complete** (all 5 panels + JS + WebSocket)
 
 ### March 23 — Demo Day
 
