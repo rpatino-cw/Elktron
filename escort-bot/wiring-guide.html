@@ -1298,81 +1298,66 @@ function buildDiagram(type){
     h+='</ul>';div.innerHTML=h;return div;
   }
   case 'full-pinmap': {
-    const allPins=[2,3,4,5,6,9,11,13,14,15,16,18,20,22];
-    const pi=piHeader(290,16,allPins,false);
-    let c=pi.svg;
-    // Component cards: left side
-    const leftCards=[
-      {name:'I2C LCD',sub:'0x27',color:'#3498db',y:8,pins:[
-        {pin:3,label:'SDA',c:'#3498db'},{pin:5,label:'SCL',c:'#2ecc71'},
-        {pin:4,label:'5V',c:'#dc2626'},{pin:14,label:'GND',c:'#4a5168'}
-      ]},
-      {name:'PTZ Board',sub:'0x40',color:'#2ecc71',y:82,pins:[
-        {pin:3,label:'SDA',c:'#3498db'},{pin:5,label:'SCL',c:'#2ecc71'},
-        {pin:2,label:'5V',c:'#dc2626'},{pin:20,label:'GND',c:'#4a5168'}
-      ]},
-      {name:'L298N',sub:'Motor Driver',color:'#4260f5',y:156,pins:[
-        {pin:11,label:'IN1',c:'#2741E7'},{pin:13,label:'IN2',c:'#4260f5'},
-        {pin:15,label:'IN3',c:'#e67e22'},{pin:16,label:'IN4',c:'#f1c40f'},
-        {pin:6,label:'GND',c:'#4a5168'}
-      ]},
-    ];
-    // Component cards: right side
-    const rightCards=[
-      {name:'Anker 10K',sub:'USB-C 5V/3A',color:'#78909c',y:8,pins:[]},
-      {name:'Battery',sub:'2\u00d718650 7.4V',color:'#dc2626',y:58,pins:[]},
-      {name:'HC-SR04',sub:'Ultrasonic',color:'#8e44ad',y:108,pins:[
-        {pin:22,label:'TRIG',c:'#8e44ad'},{pin:37,label:'ECHO',c:'#a855f7'},
-        {pin:2,label:'5V',c:'#dc2626'},{pin:9,label:'GND',c:'#4a5168'}
-      ]},
-      {name:'Camera',sub:'CSI Ribbon',color:'#9b59b6',y:196,pins:[]},
-    ];
-    const cw=120,lx=4,rx=560;
-    function drawCard(card,x,del){
-      const pinH=card.pins.length>0?card.pins.length*11+4:0;
-      const ch=36+pinH;
-      let s=`<rect x="${x}" y="${card.y}" width="${cw}" height="${ch}" rx="6" fill="rgba(10,14,26,.4)" stroke="${card.color}" stroke-width="1.5" opacity=".9" class="stagger" style="--del:${del}s"/>`;
-      s+=`<text x="${x+cw/2}" y="${card.y+14}" text-anchor="middle" font-family="var(--font)" font-weight="800" font-size="9" fill="${card.color}" class="stagger" style="--del:${del+0.05}s">${card.name}</text>`;
-      s+=`<text x="${x+cw/2}" y="${card.y+26}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="rgba(255,255,255,.3)" class="stagger" style="--del:${del+0.08}s">${card.sub}</text>`;
-      if(card.pins.length>0){
-        s+=`<line x1="${x+8}" y1="${card.y+31}" x2="${x+cw-8}" y2="${card.y+31}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
-        card.pins.forEach((p,j)=>{
-          const py=card.y+38+j*11;
-          s+=`<circle cx="${x+12}" cy="${py}" r="3" fill="${p.c}" opacity=".7" class="stagger" style="--del:${del+0.1+j*0.03}s"/>`;
-          s+=`<text x="${x+20}" y="${py+3}" font-family="var(--mono)" font-size="7.5" font-weight="600" fill="rgba(255,255,255,.55)" class="stagger" style="--del:${del+0.12+j*0.03}s">Pin ${p.pin}</text>`;
-          s+=`<text x="${x+cw-10}" y="${py+3}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="${p.c}" class="stagger" style="--del:${del+0.14+j*0.03}s">${p.label}</text>`;
-        });
-      } else {
-        s+=`<text x="${x+cw/2}" y="${card.y+34}" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="rgba(255,255,255,.2)">No GPIO</text>`;
-      }
-      return s;
+    const usedPins=[2,3,4,5,6,9,11,14,15,16,18,20,22,37];
+    // Custom Pi header: show ALL 40 pin labels, highlight used ones
+    const ox=280,oy=16,bw=130,bh=280,pinR=5,pinGap=13,colGap=18,padX=20,padTop=22;
+    let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="8" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
+    c+=`<text x="${ox+bw/2}" y="${oy+14}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="9" fill="rgba(255,255,255,.5)" letter-spacing=".08em">RASPBERRY PI 5</text>`;
+    // Pin assignment map for labeling
+    const pinUse={
+      2:{label:'5V',comp:'HC-SR04+PTZ',c:'#dc2626',bb:true},
+      3:{label:'SDA',comp:'LCD+PTZ',c:'#3498db',bb:true},
+      4:{label:'5V',comp:'LCD',c:'#dc2626'},
+      5:{label:'SCL',comp:'LCD+PTZ',c:'#2ecc71',bb:true},
+      6:{label:'GND',comp:'L298N',c:'#4a5168'},
+      9:{label:'GND',comp:'HC-SR04',c:'#4a5168'},
+      11:{label:'IN1',comp:'L298N',c:'#2741E7'},
+      14:{label:'GND',comp:'LCD',c:'#4a5168'},
+      15:{label:'IN3',comp:'L298N',c:'#e67e22'},
+      16:{label:'IN4',comp:'L298N',c:'#f1c40f'},
+      18:{label:'IN2',comp:'L298N',c:'#4260f5'},
+      20:{label:'GND',comp:'PTZ',c:'#4a5168'},
+      22:{label:'TRIG',comp:'HC-SR04',c:'#8e44ad'},
+      37:{label:'ECHO',comp:'HC-SR04',c:'#a855f7'},
+    };
+    function pinPos(physPin){
+      const idx=PI_PINS.findIndex(p=>p[0]===physPin);
+      const row=Math.floor(idx/2);const isRight=idx%2===1;
+      return {x:ox+(isRight?padX+colGap:padX), y:oy+padTop+row*pinGap};
     }
-    // Draw left cards + wire paths
-    leftCards.forEach((card,i)=>{
-      c+=drawCard(card,lx,i*0.2);
-      card.pins.forEach((p,j)=>{
-        const pp=pi.pinPos(p.pin);
-        const fromX=lx+cw;
-        const fromY=card.y+38+j*11;
-        c+=wirePath(fromX,fromY,pp.x-6,pp.y,p.c,0.4+i*0.15+j*0.05,false);
-      });
-    });
-    // Draw right cards + wire paths
-    rightCards.forEach((card,i)=>{
-      c+=drawCard(card,rx,0.6+i*0.2);
-      card.pins.forEach((p,j)=>{
-        const pp=pi.pinPos(p.pin);
-        const fromX=rx;
-        const fromY=card.y+38+j*11;
-        c+=wirePath(pp.x+6,pp.y,fromX,fromY,p.c,0.7+i*0.15+j*0.05,false);
-      });
-    });
-    // I2C shared bus callout
-    c+=`<rect x="150" y="296" width="400" height="22" rx="4" fill="rgba(52,152,219,.08)" stroke="rgba(52,152,219,.2)" stroke-width="1" class="stagger" style="--del:1.4s"/>`;
-    c+=`<text x="350" y="311" text-anchor="middle" font-family="var(--mono)" font-size="7.5" font-weight="700" fill="rgba(52,152,219,.6)" class="stagger" style="--del:1.5s">BREADBOARD SPLITS: Pin 2 (5V) \u2192 HC-SR04 + PTZ \u2022 Pin 3 (SDA) + Pin 5 (SCL) \u2192 LCD + PTZ</text>`;
-    // Stats
-    c+=`<text x="350" y="334" text-anchor="middle" font-family="var(--mono)" font-size="7" font-weight="600" fill="rgba(255,255,255,.2)" class="stagger" style="--del:1.6s">14 of 40 PINS USED \u2022 5 COMPONENTS \u2022 26 PINS AVAILABLE</text>`;
-    return mkSvg(690,345,c);
+    // Render all 40 pins with full GPIO labels
+    for(let i=0;i<PI_PINS.length;i+=2){
+      const row=i/2;
+      const lp=PI_PINS[i],rp=PI_PINS[i+1];
+      const cy=oy+padTop+row*pinGap;
+      const lx_=ox+padX, rx_=ox+padX+colGap;
+      const lUsed=usedPins.includes(lp[0]),rUsed=usedPins.includes(rp[0]);
+      const lInfo=pinUse[lp[0]],rInfo=pinUse[rp[0]];
+      // Pin circles
+      c+=`<circle cx="${lx_}" cy="${cy}" r="${pinR}" fill="${lUsed?PIN_COLORS[lp[2]]:'var(--pin-inactive)'}" ${lUsed?'class="pin-active" style="--glow-color:'+PIN_COLORS[lp[2]]+'"':'opacity=".3"'}/>`;
+      c+=`<circle cx="${rx_}" cy="${cy}" r="${pinR}" fill="${rUsed?PIN_COLORS[rp[2]]:'var(--pin-inactive)'}" ${rUsed?'class="pin-active" style="--glow-color:'+PIN_COLORS[rp[2]]+'"':'opacity=".3"'}/>`;
+      // Pin numbers (always visible)
+      c+=`<text x="${lx_-pinR-3}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="6.5" font-weight="600" fill="${lUsed?'#fff':'rgba(255,255,255,.2)'}">${lp[0]}</text>`;
+      c+=`<text x="${rx_+pinR+3}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="6.5" font-weight="600" fill="${rUsed?'#fff':'rgba(255,255,255,.2)'}">${rp[0]}</text>`;
+      // GPIO function labels — ALL pins, used ones bold + colored, unused dim
+      if(lUsed&&lInfo){
+        c+=`<text x="${ox-6}" y="${cy-2}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="${lInfo.c}">${lInfo.label}${lInfo.bb?' \u25CB':''}</text>`;
+        c+=`<text x="${ox-6}" y="${cy+8}" text-anchor="end" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.35)">${lInfo.comp}</text>`;
+      } else {
+        c+=`<text x="${ox-6}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.15)">${lp[1]}</text>`;
+      }
+      if(rUsed&&rInfo){
+        c+=`<text x="${ox+bw+6}" y="${cy-2}" text-anchor="start" font-family="var(--mono)" font-size="7" font-weight="700" fill="${rInfo.c}">${rInfo.label}${rInfo.bb?' \u25CB':''}</text>`;
+        c+=`<text x="${ox+bw+6}" y="${cy+8}" text-anchor="start" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.35)">${rInfo.comp}</text>`;
+      } else {
+        c+=`<text x="${ox+bw+6}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.15)">${rp[1]}</text>`;
+      }
+    }
+    // Legend
+    c+=`<rect x="80" y="300" width="540" height="36" rx="6" fill="rgba(10,14,26,.3)" stroke="rgba(255,255,255,.06)" stroke-width="1" class="stagger" style="--del:1s"/>`;
+    c+=`<text x="100" y="315" font-family="var(--mono)" font-size="7" font-weight="700" fill="rgba(255,255,255,.4)" class="stagger" style="--del:1.1s">\u25CB = BREADBOARD SPLIT (2 devices share 1 pin via breadboard row)</text>`;
+    c+=`<text x="100" y="328" font-family="var(--mono)" font-size="6.5" fill="rgba(255,255,255,.25)" class="stagger" style="--del:1.2s">Pin 2 (5V): HC-SR04 + PTZ \u2022 Pin 3 (SDA): LCD + PTZ \u2022 Pin 5 (SCL): LCD + PTZ \u2022 14/40 pins used</text>`;
+    return mkSvg(700,345,c);
   }
   default: return null;
   }
