@@ -104,18 +104,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 /* ── Grid lines overlay ── */
 .grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.02;background-image:linear-gradient(rgba(39,65,231,1) 1px,transparent 1px),linear-gradient(90deg,rgba(39,65,231,1) 1px,transparent 1px);background-size:60px 60px}
 
-/* ── DC Floor Map ── */
+/* ── DC Floor Map 3D ── */
 .floormap{position:relative;padding:0 clamp(16px,4vw,40px);margin:0 auto;max-width:1280px}
 .floormap-label{font-size:0.6875rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2741E7;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(39,65,231,0.08)}
-.floormap-svg{width:100%;height:auto;display:block;border-radius:8px;background:rgba(255,255,255,0.6);border:1px solid rgba(39,65,231,0.06);padding:12px}
-.floormap-svg a{cursor:pointer}
-.floormap-svg a:focus-visible{outline:2px solid #2741E7;outline-offset:2px}
-.floormap-svg .rack-hit{cursor:pointer;transition:opacity 0.15s ease}
-.floormap-svg .rack-hit:hover{opacity:0.25 !important}
-.floormap-svg .robot-link:hover text{text-decoration:underline}
-.map-tooltip{position:absolute;background:#0a0e1a;color:#fafbfe;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:4px;pointer-events:none;opacity:0;transition:opacity 0.15s ease;white-space:nowrap;z-index:10}
-.map-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:#0a0e1a}
+.floormap-canvas-wrap{position:relative;width:100%;height:clamp(280px,30vw,400px);border-radius:12px;overflow:hidden;background:#080a14;cursor:grab}
+.floormap-canvas-wrap:active{cursor:grabbing}
+#floorCanvas{width:100%;height:100%;display:block}
+.map-tooltip{position:absolute;background:rgba(10,14,26,0.92);color:#e8eaf0;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;pointer-events:none;opacity:0;transition:opacity 0.2s ease;white-space:nowrap;z-index:10;backdrop-filter:blur(8px);border:1px solid rgba(39,65,231,0.2);box-shadow:0 4px 20px rgba(0,0,0,0.4)}
 .map-tooltip.visible{opacity:1}
+.floormap-legend{display:flex;gap:20px;justify-content:center;margin-top:10px;font-size:0.6875rem;color:#5a6380;font-weight:600;letter-spacing:0.04em}
+.floormap-legend span{display:flex;align-items:center;gap:6px}
+.floormap-legend .dot-blue{width:8px;height:8px;border-radius:50%;background:#2741E7;box-shadow:0 0 8px rgba(39,65,231,0.6)}
+.floormap-legend .dot-amber{width:8px;height:8px;border-radius:50%;background:#d97706;box-shadow:0 0 8px rgba(217,119,6,0.6)}
 
 /* ── Responsive ── */
 @media(max-width:768px){
@@ -167,102 +167,18 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
   </div>
 </section>
 
-<!-- DC Floor Map -->
+<!-- DC Floor Map — 3D -->
 <section class="floormap" style="padding-top:clamp(32px,5vw,64px)">
   <div class="floormap-label">DC Floor Layout — EVI01, Elk Grove IL</div>
-  <svg class="floormap-svg" viewBox="0 0 960 230" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Top-down diagram of a data center aisle with 10 server racks in two rows and two robot positions marked">
-    <g stroke="#b5b3ae" stroke-width="0.5" opacity="0.5">
-      <line x1="12" y1="6" x2="12" y2="16"/><line x1="7" y1="11" x2="17" y2="11"/>
-      <line x1="948" y1="6" x2="948" y2="16"/><line x1="943" y1="11" x2="953" y2="11"/>
-      <line x1="12" y1="214" x2="12" y2="224"/><line x1="7" y1="219" x2="17" y2="219"/>
-      <line x1="948" y1="214" x2="948" y2="224"/><line x1="943" y1="219" x2="953" y2="219"/>
-    </g>
-    <rect x="0" y="0" width="960" height="22" fill="rgba(50,120,220,0.025)" rx="0"/>
-    <text x="68" y="15" font-family="Space Grotesk, sans-serif" font-size="7" fill="#9c9b95" letter-spacing="0.18em" font-weight="500">COLD AISLE</text>
-    <text x="56" y="48" font-family="Space Grotesk, sans-serif" font-size="9" fill="#8890a6" font-weight="600" text-anchor="end">ROW A</text>
-    <g id="row-a">
-      <rect x="150" y="22" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="150" y1="33" x2="255" y2="33" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="150" y1="43" x2="255" y2="43" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="150" y1="53" x2="255" y2="53" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="202" y="47" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">A1</text>
-      <rect x="275" y="22" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="275" y1="33" x2="380" y2="33" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="275" y1="43" x2="380" y2="43" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="275" y1="53" x2="380" y2="53" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="327" y="47" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">A2</text>
-      <rect x="400" y="22" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="400" y1="33" x2="505" y2="33" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="400" y1="43" x2="505" y2="43" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="400" y1="53" x2="505" y2="53" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="452" y="47" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">A3</text>
-      <rect x="525" y="22" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="525" y1="33" x2="630" y2="33" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="525" y1="43" x2="630" y2="43" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="525" y1="53" x2="630" y2="53" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="577" y="47" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">A4</text>
-      <rect x="650" y="22" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="650" y1="33" x2="755" y2="33" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="650" y1="43" x2="755" y2="43" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="650" y1="53" x2="755" y2="53" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="702" y="47" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">A5</text>
-    </g>
-    <rect x="0" y="64" width="960" height="102" fill="rgba(200,70,40,0.018)"/>
-    <text x="480" y="120" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="8" fill="#b5b3ae" letter-spacing="0.25em" font-weight="400" opacity="0.6">HOT AISLE</text>
-    <text x="56" y="180" font-family="Space Grotesk, sans-serif" font-size="9" fill="#8890a6" font-weight="600" text-anchor="end">ROW B</text>
-    <g id="row-b">
-      <rect x="150" y="166" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="150" y1="177" x2="255" y2="177" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="150" y1="187" x2="255" y2="187" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="150" y1="197" x2="255" y2="197" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="202" y="191" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">B1</text>
-      <rect x="275" y="166" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="275" y1="177" x2="380" y2="177" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="275" y1="187" x2="380" y2="187" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="275" y1="197" x2="380" y2="197" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="327" y="191" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">B2</text>
-      <rect x="400" y="166" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="400" y1="177" x2="505" y2="177" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="400" y1="187" x2="505" y2="187" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="400" y1="197" x2="505" y2="197" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="452" y="191" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">B3</text>
-      <rect x="525" y="166" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="525" y1="177" x2="630" y2="177" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="525" y1="187" x2="630" y2="187" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="525" y1="197" x2="630" y2="197" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="577" y="191" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">B4</text>
-      <rect x="650" y="166" width="105" height="42" rx="1.5" fill="#0a0e1a" opacity="0.10" stroke="#0a0e1a" stroke-opacity="0.15" stroke-width="0.5"/>
-      <line x1="650" y1="177" x2="755" y2="177" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="650" y1="187" x2="755" y2="187" stroke="#0a0e1a" stroke-opacity="0.04"/><line x1="650" y1="197" x2="755" y2="197" stroke="#0a0e1a" stroke-opacity="0.04"/>
-      <text x="702" y="191" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="7" fill="#b5b3ae" font-weight="400">B5</text>
-    </g>
-    <rect x="0" y="208" width="960" height="22" fill="rgba(50,120,220,0.025)" rx="0"/>
-    <text x="68" y="222" font-family="Space Grotesk, sans-serif" font-size="7" fill="#9c9b95" letter-spacing="0.18em" font-weight="500">COLD AISLE</text>
-    <path d="M 120 115 L 840 115" stroke="#b06d15" stroke-width="0.8" stroke-dasharray="8 6" opacity="0.2"/>
-    <circle class="escort-patrol" r="2.5" fill="#b06d15" opacity="0.6">
-      <animateMotion dur="14s" repeatCount="indefinite" path="M 120 115 L 840 115 L 120 115"/>
-    </circle>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="A1"><rect class="rack-hit" x="150" y="22" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="A2"><rect class="rack-hit" x="275" y="22" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="A3"><rect class="rack-hit" x="400" y="22" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="A4"><rect class="rack-hit" x="525" y="22" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="A5"><rect class="rack-hit" x="650" y="22" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="B1"><rect class="rack-hit" x="150" y="166" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="B2"><rect class="rack-hit" x="275" y="166" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="B3"><rect class="rack-hit" x="400" y="166" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="B4"><rect class="rack-hit" x="525" y="166" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="elktron-app/index.html#scan-log" class="rack-link" data-rack="B5"><rect class="rack-hit" x="650" y="166" width="105" height="42" fill="#0a0e1a" opacity="0" rx="1.5"/></a>
-    <a href="robotics-site/so101/showcase.html" class="robot-link" id="marker-arm">
-      <circle class="pulse-ring" cx="452" cy="76" r="8" fill="none" stroke="#2741E7" stroke-width="0.6" opacity="0.3">
-        <animate attributeName="r" values="8;18;8" dur="3.5s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0.3;0;0.3" dur="3.5s" repeatCount="indefinite"/>
-      </circle>
-      <rect x="446" y="63" width="12" height="5" rx="1" fill="#2741E7" opacity="0.15" stroke="#2741E7" stroke-width="0.6"/>
-      <circle cx="452" cy="72" r="3.5" fill="#2741E7" opacity="0.12" stroke="#2741E7" stroke-width="0.7"/>
-      <line x1="452" y1="72" x2="460" y2="82" stroke="#2741E7" stroke-width="2.2" stroke-linecap="round"/>
-      <circle cx="460" cy="82" r="2" fill="#ffffff" stroke="#2741E7" stroke-width="0.8"/>
-      <line x1="460" y1="82" x2="452" y2="92" stroke="#2741E7" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="452" cy="92" r="1.5" fill="#ffffff" stroke="#2741E7" stroke-width="0.7"/>
-      <line x1="452" y1="92" x2="449" y2="96" stroke="#2741E7" stroke-width="1.4" stroke-linecap="round"/>
-      <line x1="452" y1="92" x2="455" y2="96" stroke="#2741E7" stroke-width="1.4" stroke-linecap="round"/>
-      <circle cx="452" cy="72" r="2" fill="#2741E7"/>
-      <text x="470" y="80" font-family="Plus Jakarta Sans, sans-serif" font-size="7.5" fill="#2741E7" font-weight="700">SO-101</text>
-    </a>
-    <a href="escort-bot/simulation.html" class="robot-link" id="marker-escort">
-      <circle cx="600" cy="115" r="5" fill="#b06d15"/>
-      <circle class="pulse-ring" cx="600" cy="115" r="5" fill="none" stroke="#b06d15" stroke-width="0.8" opacity="0.4">
-        <animate attributeName="r" values="5;14;5" dur="3s" repeatCount="indefinite" begin="0.6s"/>
-        <animate attributeName="opacity" values="0.4;0;0.4" dur="3s" repeatCount="indefinite" begin="0.6s"/>
-      </circle>
-      <text x="600" y="133" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="8" fill="#b06d15" font-weight="700">ESCORT</text>
-    </a>
-    <line x1="810" y1="222" x2="880" y2="222" stroke="#b5b3ae" stroke-width="0.5"/>
-    <line x1="810" y1="219" x2="810" y2="225" stroke="#b5b3ae" stroke-width="0.5"/>
-    <line x1="880" y1="219" x2="880" y2="225" stroke="#b5b3ae" stroke-width="0.5"/>
-    <text x="845" y="219" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="6" fill="#b5b3ae">~8 ft</text>
-  </svg>
-  <div class="map-tooltip" id="map-tooltip"></div>
+  <div class="floormap-canvas-wrap">
+    <canvas id="floorCanvas"></canvas>
+    <div class="map-tooltip" id="map-tooltip"></div>
+  </div>
+  <div class="floormap-legend">
+    <span><span class="dot-amber"></span> Escort Bot Patrol</span>
+    <span><span class="dot-blue"></span> SO-101 Arm Station</span>
+    <span>Click rack to view scan log</span>
+  </div>
 </section>
 
 <main class="main container">
@@ -639,27 +555,368 @@ window.addEventListener('scroll', () => {
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
 });
 
-// ── Rack tooltips ──
+
+</script>
+
+<!-- DC Floor 3D Scene -->
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+const wrap = document.querySelector('.floormap-canvas-wrap');
+const canvas = document.getElementById('floorCanvas');
 const tip = document.getElementById('map-tooltip');
-if (tip) {
-  const rackInfo = {
-    A1:'Rack A1 — Cold aisle', A2:'Rack A2 — Cold aisle', A3:'Rack A3 — SO-101 stationed',
-    A4:'Rack A4 — Cold aisle', A5:'Rack A5 — Cold aisle',
-    B1:'Rack B1 — Cold aisle', B2:'Rack B2 — Cold aisle', B3:'Rack B3 — Last scanned',
-    B4:'Rack B4 — Cold aisle', B5:'Rack B5 — Cold aisle'
-  };
-  document.querySelectorAll('.rack-link').forEach(link => {
-    const rack = link.dataset.rack;
-    link.addEventListener('mouseenter', () => {
-      tip.textContent = rackInfo[rack] || rack;
-      tip.classList.add('visible');
-      const rect = link.querySelector('rect').getBoundingClientRect();
-      tip.style.left = (rect.left + rect.width/2 - tip.offsetWidth/2) + 'px';
-      tip.style.top = (rect.top - tip.offsetHeight - 8) + 'px';
-    });
-    link.addEventListener('mouseleave', () => { tip.classList.remove('visible'); });
+if (!wrap || !canvas) throw new Error('Floor canvas not found');
+
+const W = () => wrap.clientWidth;
+const H = () => wrap.clientHeight;
+
+// ── Scene ──
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x080a14);
+scene.fog = new THREE.FogExp2(0x080a14, 0.018);
+
+const camera = new THREE.PerspectiveCamera(32, W() / H(), 0.1, 200);
+camera.position.set(-18, 2.8, 0);
+camera.lookAt(0, 1.5, 0);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setSize(W(), H());
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// ── Post-processing ──
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.6, 0.4, 0.85);
+composer.addPass(bloomPass);
+
+// ── Lights ──
+const ambient = new THREE.AmbientLight(0x1a1e3a, 0.3);
+scene.add(ambient);
+
+const ceiling = new THREE.DirectionalLight(0xc8d0e8, 0.15);
+ceiling.position.set(0, 12, 0);
+scene.add(ceiling);
+
+// Cold aisle blue strips (top/bottom ceiling edges)
+const coldA = new THREE.PointLight(0x3060ff, 0.6, 20);
+coldA.position.set(0, 5, -5);
+scene.add(coldA);
+const coldB = new THREE.PointLight(0x3060ff, 0.6, 20);
+coldB.position.set(0, 5, 5);
+scene.add(coldB);
+
+// Hot aisle warm ambient
+const hotLight = new THREE.PointLight(0xd97706, 0.15, 15);
+hotLight.position.set(0, 3, 0);
+scene.add(hotLight);
+
+// ── Floor ──
+const floorGeo = new THREE.PlaneGeometry(50, 16);
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x0c0e18, roughness: 0.7, metalness: 0.2
+});
+const floor = new THREE.Mesh(floorGeo, floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+// Grid lines on floor
+const gridHelper = new THREE.GridHelper(50, 100, 0x151830, 0x151830);
+gridHelper.position.y = 0.005;
+gridHelper.material.opacity = 0.15;
+gridHelper.material.transparent = true;
+scene.add(gridHelper);
+
+// Hot aisle floor tint
+const hotGeo = new THREE.PlaneGeometry(50, 3.5);
+const hotMat = new THREE.MeshStandardMaterial({
+  color: 0xd97706, transparent: true, opacity: 0.015, roughness: 1
+});
+const hotFloor = new THREE.Mesh(hotGeo, hotMat);
+hotFloor.rotation.x = -Math.PI / 2;
+hotFloor.position.y = 0.01;
+scene.add(hotFloor);
+
+// ── Rack builder ──
+const RACK_W = 1.6, RACK_H = 3.2, RACK_D = 0.8;
+const RACK_GAP = 2.8;
+const ROW_Z = { A: -2.4, B: 2.4 };
+const rackData = [];
+const rackMeshes = [];
+
+function createRack(label, x, z, row) {
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+
+  // Main body
+  const bodyGeo = new THREE.BoxGeometry(RACK_W, RACK_H, RACK_D);
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: 0x12162a, roughness: 0.4, metalness: 0.6
   });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.position.y = RACK_H / 2;
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  // Front face (facing hot aisle)
+  const faceZ = row === 'A' ? RACK_D / 2 : -RACK_D / 2;
+  const faceGeo = new THREE.PlaneGeometry(RACK_W - 0.1, RACK_H - 0.2);
+  const faceMat = new THREE.MeshStandardMaterial({
+    color: 0x0a0e1a, roughness: 0.3, metalness: 0.7
+  });
+  const face = new THREE.Mesh(faceGeo, faceMat);
+  face.position.set(0, RACK_H / 2, faceZ + (row === 'A' ? 0.01 : -0.01));
+  if (row === 'B') face.rotation.y = Math.PI;
+  group.add(face);
+
+  // LED strips (green activity lights)
+  const ledCount = 8;
+  for (let i = 0; i < ledCount; i++) {
+    const ledGeo = new THREE.BoxGeometry(0.04, 0.04, 0.02);
+    const ledMat = new THREE.MeshBasicMaterial({ color: 0x00ff44 });
+    const led = new THREE.Mesh(ledGeo, ledMat);
+    const ly = 0.5 + i * (RACK_H - 1) / ledCount;
+    const lx = RACK_W / 2 - 0.15;
+    led.position.set(lx, ly, faceZ + (row === 'A' ? 0.02 : -0.02));
+    group.add(led);
+    led.userData = { baseIntensity: Math.random(), phase: Math.random() * Math.PI * 2 };
+  }
+
+  // Rack label (U-count style lines on front face)
+  for (let u = 0; u < 6; u++) {
+    const lineGeo = new THREE.PlaneGeometry(RACK_W - 0.3, 0.01);
+    const lineMat = new THREE.MeshBasicMaterial({ color: 0x1a2040, transparent: true, opacity: 0.5 });
+    const line = new THREE.Mesh(lineGeo, lineMat);
+    line.position.set(0, 0.6 + u * 0.45, faceZ + (row === 'A' ? 0.015 : -0.015));
+    if (row === 'B') line.rotation.y = Math.PI;
+    group.add(line);
+  }
+
+  scene.add(group);
+
+  const entry = { label, group, body, x, z, row, href: 'elktron-app/index.html#scan-log' };
+  rackData.push(entry);
+  rackMeshes.push(body);
+  body.userData = { rackEntry: entry };
+
+  return group;
 }
+
+// Create 10 racks
+const labels = ['A1','A2','A3','A4','A5','B1','B2','B3','B4','B5'];
+for (let i = 0; i < 5; i++) {
+  const x = -5.6 + i * RACK_GAP;
+  createRack(`A${i+1}`, x, ROW_Z.A, 'A');
+  createRack(`B${i+1}`, x, ROW_Z.B, 'B');
+}
+
+// ── SO-101 Arm marker at A3 ──
+const armGroup = new THREE.Group();
+const armBaseGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.1, 16);
+const armBaseMat = new THREE.MeshStandardMaterial({ color: 0x2741E7, emissive: 0x2741E7, emissiveIntensity: 0.5, metalness: 0.8, roughness: 0.2 });
+const armBase = new THREE.Mesh(armBaseGeo, armBaseMat);
+armBase.position.set(rackData[2].x, RACK_H + 0.1, ROW_Z.A);
+armGroup.add(armBase);
+
+// Arm segments
+const seg1Geo = new THREE.CylinderGeometry(0.04, 0.05, 0.6, 8);
+const seg1Mat = new THREE.MeshStandardMaterial({ color: 0x2741E7, emissive: 0x1530a0, emissiveIntensity: 0.3, metalness: 0.9, roughness: 0.1 });
+const seg1 = new THREE.Mesh(seg1Geo, seg1Mat);
+seg1.position.y = 0.35;
+armBase.add(seg1);
+const seg2 = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.03, 0.04, 0.45, 8), seg1Mat.clone()
+);
+seg2.position.y = 0.5;
+seg2.rotation.z = 0.3;
+seg1.add(seg2);
+
+// Pulsing ring
+const ringGeo = new THREE.RingGeometry(0.4, 0.45, 32);
+const ringMat = new THREE.MeshBasicMaterial({ color: 0x2741E7, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = -Math.PI / 2;
+ring.position.set(rackData[2].x, RACK_H + 0.05, ROW_Z.A);
+armGroup.add(ring);
+scene.add(armGroup);
+armBase.userData = { rackEntry: { label: 'SO-101', href: 'robotics-site/so101/showcase.html' } };
+rackMeshes.push(armBase);
+
+// ── Escort Bot ──
+const botGroup = new THREE.Group();
+const botBodyGeo = new THREE.SphereGeometry(0.2, 16, 12);
+const botMat = new THREE.MeshStandardMaterial({ color: 0xd97706, emissive: 0xd97706, emissiveIntensity: 0.8, metalness: 0.5, roughness: 0.3 });
+const botBody = new THREE.Mesh(botBodyGeo, botMat);
+botBody.position.y = 0.25;
+botGroup.add(botBody);
+
+// Bot spotlight cone
+const spotGeo = new THREE.ConeGeometry(0.6, 1.5, 16, 1, true);
+const spotMat = new THREE.MeshBasicMaterial({ color: 0xd97706, transparent: true, opacity: 0.04, side: THREE.DoubleSide });
+const spotCone = new THREE.Mesh(spotGeo, spotMat);
+spotCone.position.y = 0.9;
+botGroup.add(spotCone);
+
+// Bot ground glow
+const glowGeo = new THREE.CircleGeometry(0.5, 24);
+const glowMat = new THREE.MeshBasicMaterial({ color: 0xd97706, transparent: true, opacity: 0.1 });
+const glow = new THREE.Mesh(glowGeo, glowMat);
+glow.rotation.x = -Math.PI / 2;
+glow.position.y = 0.01;
+botGroup.add(glow);
+
+botGroup.position.set(-5.6, 0, 0);
+scene.add(botGroup);
+botBody.userData = { rackEntry: { label: 'ESCORT BOT', href: 'escort-bot/simulation.html' } };
+rackMeshes.push(botBody);
+
+// ── Patrol path (dashed line on floor) ──
+const dashGeo = new THREE.BufferGeometry();
+const dashPts = [];
+for (let i = 0; i < 40; i++) {
+  const x = -8 + i * 0.45;
+  dashPts.push(x, 0.02, 0);
+}
+dashGeo.setAttribute('position', new THREE.Float32BufferAttribute(dashPts, 3));
+const dashMat = new THREE.PointsMaterial({ color: 0xd97706, size: 0.03, transparent: true, opacity: 0.25 });
+const dashLine = new THREE.Points(dashGeo, dashMat);
+scene.add(dashLine);
+
+// ── Ceiling structure ──
+const ceilGeo = new THREE.PlaneGeometry(50, 16);
+const ceilMat = new THREE.MeshStandardMaterial({ color: 0x0e1020, roughness: 1, metalness: 0, side: THREE.BackSide });
+const ceiling2 = new THREE.Mesh(ceilGeo, ceilMat);
+ceiling2.rotation.x = Math.PI / 2;
+ceiling2.position.y = 5;
+scene.add(ceiling2);
+
+// Ceiling light tubes
+for (let i = -3; i <= 3; i++) {
+  const tubeGeo = new THREE.BoxGeometry(12, 0.05, 0.15);
+  const tubeMat = new THREE.MeshBasicMaterial({ color: 0xc8d0e8, transparent: true, opacity: 0.08 });
+  const tube = new THREE.Mesh(tubeGeo, tubeMat);
+  tube.position.set(0, 4.95, i * 2);
+  scene.add(tube);
+}
+
+// ── Raycaster for interaction ──
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredRack = null;
+
+wrap.addEventListener('mousemove', (e) => {
+  const rect = wrap.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(rackMeshes);
+
+  if (hits.length > 0) {
+    const entry = hits[0].object.userData.rackEntry;
+    if (entry) {
+      if (hoveredRack !== entry) {
+        hoveredRack = entry;
+        tip.textContent = entry.label === 'SO-101' ? 'SO-101 Arm — Rack A3' :
+                         entry.label === 'ESCORT BOT' ? 'Escort Bot — Live Patrol' :
+                         `Rack ${entry.label} — Click for scan log`;
+        tip.classList.add('visible');
+        wrap.style.cursor = 'pointer';
+      }
+      tip.style.left = (e.clientX - rect.left - tip.offsetWidth / 2) + 'px';
+      tip.style.top = (e.clientY - rect.top - tip.offsetHeight - 12) + 'px';
+    }
+  } else {
+    if (hoveredRack) {
+      hoveredRack = null;
+      tip.classList.remove('visible');
+      wrap.style.cursor = 'grab';
+    }
+  }
+});
+
+wrap.addEventListener('click', () => {
+  if (hoveredRack) {
+    window.location.href = hoveredRack.href;
+  }
+});
+
+wrap.addEventListener('mouseleave', () => {
+  hoveredRack = null;
+  tip.classList.remove('visible');
+});
+
+// ── Mouse parallax ──
+let mx = 0, my = 0, tmx = 0, tmy = 0;
+wrap.addEventListener('mousemove', (e) => {
+  const rect = wrap.getBoundingClientRect();
+  tmx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+  tmy = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+});
+
+// ── Animate ──
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // Smooth mouse parallax
+  mx += (tmx - mx) * 0.03;
+  my += (tmy - my) * 0.03;
+
+  // Camera — low flythrough with parallax
+  camera.position.set(-18 + mx * 1.5, 2.8 - my * 0.5, mx * 2);
+  camera.lookAt(2 + mx * 3, 1.2, my * 1.5);
+
+  // Escort bot patrol
+  const patrolX = Math.sin(t * 0.3) * 6;
+  botGroup.position.x = patrolX;
+  botBody.material.emissiveIntensity = 0.6 + Math.sin(t * 3) * 0.3;
+  glow.material.opacity = 0.08 + Math.sin(t * 3) * 0.04;
+  spotCone.material.opacity = 0.03 + Math.sin(t * 2) * 0.015;
+
+  // SO-101 arm animation
+  seg1.rotation.z = Math.sin(t * 0.8) * 0.15;
+  seg2.rotation.z = 0.3 + Math.sin(t * 1.2 + 0.5) * 0.2;
+  ring.scale.setScalar(1 + Math.sin(t * 2) * 0.3);
+  ring.material.opacity = 0.3 + Math.sin(t * 2) * 0.2;
+
+  // LED blink
+  scene.traverse(obj => {
+    if (obj.isMesh && obj.userData.phase !== undefined) {
+      const intensity = 0.3 + Math.sin(t * 4 + obj.userData.phase) * 0.7;
+      obj.material.color.setRGB(0, intensity * 0.4, 0);
+    }
+  });
+
+  // Hot aisle shimmer
+  hotFloor.material.opacity = 0.012 + Math.sin(t * 0.5) * 0.005;
+  hotLight.intensity = 0.12 + Math.sin(t * 0.7) * 0.05;
+
+  // Bloom breathe
+  bloomPass.strength = 0.5 + Math.sin(t * 0.4) * 0.15;
+
+  composer.render();
+}
+animate();
+
+// ── Resize ──
+const ro = new ResizeObserver(() => {
+  camera.aspect = W() / H();
+  camera.updateProjectionMatrix();
+  renderer.setSize(W(), H());
+  composer.setSize(W(), H());
+});
+ro.observe(wrap);
 </script>
 </body>
 </html>
