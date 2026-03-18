@@ -15,16 +15,24 @@ sudo apt-get update && sudo apt-get upgrade -y
 echo "[2/5] Installing camera dependencies..."
 sudo apt-get install -y python3-picamera2 python3-libcamera
 
-# 3. Install OpenCV (inference engine — replaces tflite-runtime)
-echo "[3/5] Installing OpenCV..."
-sudo apt-get install -y python3-opencv
+# 3. Install OpenCV + I2C tools + Flask
+echo "[3/7] Installing OpenCV, I2C tools, Flask..."
+sudo apt-get install -y python3-opencv python3-smbus i2c-tools python3-flask python3-gpiozero python3-lgpio
 
-# 4. Install Python deps
-echo "[4/5] Installing Python dependencies..."
+# 4. Enable I2C bus (for LCD screen)
+echo "[4/7] Enabling I2C..."
+sudo raspi-config nonint do_i2c 0
+
+# 5. Install Python deps
+echo "[5/7] Installing Python dependencies..."
 pip install --break-system-packages -r requirements.txt
 
-# 5. Download MobileNet SSD v2 model (frozen graph + config for OpenCV DNN)
-echo "[5/5] Downloading MobileNet SSD model for OpenCV DNN..."
+# 6. Install RPLCD for LCD screen
+echo "[6/7] Installing LCD library..."
+pip install --break-system-packages RPLCD
+
+# 7. Download MobileNet SSD v2 model (frozen graph + config for OpenCV DNN)
+echo "[7/7] Downloading MobileNet SSD model for OpenCV DNN..."
 mkdir -p models
 MODEL_URL="https://raw.githubusercontent.com/opencv/opencv_extra/master/testdata/dnn/ssd_mobilenet_v2_coco_2018_03_29.pb"
 CONFIG_URL="https://raw.githubusercontent.com/opencv/opencv_extra/master/testdata/dnn/ssd_mobilenet_v2_coco_2018_03_29.pbtxt"
@@ -118,5 +126,7 @@ LABELS
 echo ""
 echo "=== Setup complete! ==="
 echo "Test camera:  libcamera-hello --timeout 5000"
+echo "Test LCD:     sudo i2cdetect -y 1"
 echo "Run bot:      python3 main.py"
+echo "Run API:      python3 api_server.py"
 echo ""
