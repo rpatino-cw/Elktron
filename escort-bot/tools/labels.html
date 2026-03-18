@@ -489,166 +489,255 @@
 
   <div class="diagram-views">
 
-    <!-- ── TOP-DOWN VIEW ── -->
+    <!-- ── TOP-DOWN VIEW WITH WIRING ── -->
     <div class="diagram-view">
-      <h2>Top-Down View</h2>
-      <svg viewBox="0 0 340 420" xmlns="http://www.w3.org/2000/svg" style="background:#fafafa; border:1px solid #e6e8ed; border-radius:4px;">
+      <h2>Top-Down View — Wiring &amp; Pin Map</h2>
+      <svg viewBox="0 0 420 480" xmlns="http://www.w3.org/2000/svg" style="background:#fafafa; border:1px solid #e6e8ed; border-radius:4px;">
         <defs>
-          <marker id="ah" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#888"/></marker>
-          <marker id="ah-g" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#1e8449"/></marker>
-          <marker id="ah-b" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#2471a3"/></marker>
-          <marker id="ah-r" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#c0392b"/></marker>
-          <marker id="ah-p" markerWidth="6" markerHeight="4" refX="6" refY="2" orient="auto"><polygon points="0 0, 6 2, 0 4" fill="#7d3c98"/></marker>
+          <marker id="ah" markerWidth="5" markerHeight="4" refX="5" refY="2" orient="auto"><polygon points="0 0, 5 2, 0 4" fill="#888"/></marker>
+          <marker id="ah-g" markerWidth="5" markerHeight="4" refX="5" refY="2" orient="auto"><polygon points="0 0, 5 2, 0 4" fill="#1e8449"/></marker>
+          <marker id="ah-b" markerWidth="5" markerHeight="4" refX="5" refY="2" orient="auto"><polygon points="0 0, 5 2, 0 4" fill="#2471a3"/></marker>
+          <marker id="ah-r" markerWidth="5" markerHeight="4" refX="5" refY="2" orient="auto"><polygon points="0 0, 5 2, 0 4" fill="#c0392b"/></marker>
+          <marker id="ah-p" markerWidth="5" markerHeight="4" refX="5" refY="2" orient="auto"><polygon points="0 0, 5 2, 0 4" fill="#7d3c98"/></marker>
         </defs>
 
         <!-- Direction indicator -->
-        <text x="170" y="16" text-anchor="middle" font-size="8" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700" letter-spacing="0.15em">FRONT</text>
-        <polygon points="170,20 166,27 174,27" fill="#ccc"/>
+        <text x="210" y="14" text-anchor="middle" font-size="7" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700" letter-spacing="0.15em">FRONT</text>
+        <polygon points="210,17 207,23 213,23" fill="#ccc"/>
 
         <!-- Chassis outline -->
-        <rect x="80" y="35" width="180" height="280" rx="8" fill="#f0f0ec" stroke="#bbb" stroke-width="1.5"/>
+        <rect x="110" y="30" width="200" height="300" rx="8" fill="#f0f0ec" stroke="#bbb" stroke-width="1.5"/>
 
-        <!-- Wheels (4) -->
-        <rect x="62" y="55" width="22" height="50" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
-        <rect x="256" y="55" width="22" height="50" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
-        <rect x="62" y="245" width="22" height="50" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
-        <rect x="256" y="245" width="22" height="50" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
+        <!-- Wheels (4) — FL, FR, RL, RR -->
+        <rect x="90" y="50" width="24" height="52" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
+        <text x="102" y="80" text-anchor="middle" font-size="4" fill="#fff" font-family="IBM Plex Mono,monospace" font-weight="700">FL</text>
+        <rect x="306" y="50" width="24" height="52" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
+        <text x="318" y="80" text-anchor="middle" font-size="4" fill="#fff" font-family="IBM Plex Mono,monospace" font-weight="700">FR</text>
+        <rect x="90" y="258" width="24" height="52" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
+        <text x="102" y="288" text-anchor="middle" font-size="4" fill="#fff" font-family="IBM Plex Mono,monospace" font-weight="700">RL</text>
+        <rect x="306" y="258" width="24" height="52" rx="4" fill="#555" stroke="#333" stroke-width="1"/>
+        <text x="318" y="288" text-anchor="middle" font-size="4" fill="#fff" font-family="IBM Plex Mono,monospace" font-weight="700">RR</text>
 
-        <!-- HC-SR04 at front -->
-        <rect x="140" y="38" width="60" height="18" rx="2" fill="#2471a3" fill-opacity="0.15" stroke="#2471a3" stroke-width="1.2"/>
-        <circle cx="155" cy="47" r="5" fill="none" stroke="#2471a3" stroke-width="0.8"/>
-        <circle cx="185" cy="47" r="5" fill="none" stroke="#2471a3" stroke-width="0.8"/>
-        <text x="170" y="50" text-anchor="middle" font-size="5.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="700">HC-SR04</text>
+        <!-- Orientation labels on edges -->
+        <text x="210" y="28" text-anchor="middle" font-size="5.5" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800">FRONT</text>
+        <text x="210" y="340" text-anchor="middle" font-size="5.5" fill="#999" font-family="Inter,sans-serif" font-weight="800">REAR</text>
+        <text x="82" y="180" text-anchor="middle" font-size="5.5" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800" transform="rotate(-90,82,180)">LEFT</text>
+        <text x="338" y="180" text-anchor="middle" font-size="5.5" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800" transform="rotate(90,338,180)">RIGHT</text>
 
-        <!-- Voltage divider breadboard -->
-        <rect x="210" y="60" width="38" height="16" rx="2" fill="#fff3e0" stroke="#d4a017" stroke-width="1"/>
-        <text x="229" y="71" text-anchor="middle" font-size="5" fill="#9e7700" font-family="IBM Plex Mono,monospace" font-weight="600">V.DIV</text>
+        <!-- ═══ HC-SR04 at front ═══ -->
+        <rect x="175" y="34" width="70" height="22" rx="2" fill="#2471a3" fill-opacity="0.12" stroke="#2471a3" stroke-width="1.2"/>
+        <circle cx="192" cy="45" r="5.5" fill="none" stroke="#2471a3" stroke-width="0.8"/>
+        <circle cx="228" cy="45" r="5.5" fill="none" stroke="#2471a3" stroke-width="0.8"/>
+        <text x="210" y="49" text-anchor="middle" font-size="5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="700">HC-SR04</text>
+        <!-- HC-SR04 pin labels -->
+        <text x="176" y="32" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">VCC</text>
+        <text x="194" y="32" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">TRIG</text>
+        <text x="215" y="32" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">ECHO</text>
+        <text x="236" y="32" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">GND</text>
 
-        <!-- L298N motor driver -->
-        <rect x="90" y="90" width="70" height="55" rx="3" fill="#c0392b" fill-opacity="0.1" stroke="#c0392b" stroke-width="1.2"/>
-        <text x="125" y="113" text-anchor="middle" font-size="7" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="700">L298N</text>
-        <text x="125" y="122" text-anchor="middle" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace">MOTOR DRIVER</text>
-        <!-- screw terminals -->
-        <rect x="90" y="90" width="70" height="6" rx="1" fill="#c0392b" fill-opacity="0.25"/>
-        <rect x="90" y="139" width="70" height="6" rx="1" fill="#c0392b" fill-opacity="0.25"/>
+        <!-- ═══ Voltage divider mini breadboard ═══ -->
+        <rect x="254" y="60" width="46" height="20" rx="2" fill="#fff3e0" stroke="#d4a017" stroke-width="1"/>
+        <text x="277" y="72" text-anchor="middle" font-size="5" fill="#9e7700" font-family="IBM Plex Mono,monospace" font-weight="700">V.DIVIDER</text>
+        <text x="277" y="78" text-anchor="middle" font-size="3.5" fill="#9e7700" font-family="IBM Plex Mono,monospace">1k+2k &bull; 5V&rarr;3.3V</text>
 
-        <!-- 18650 battery pack -->
-        <rect x="90" y="155" width="60" height="35" rx="3" fill="#c0392b" fill-opacity="0.08" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
-        <text x="120" y="173" text-anchor="middle" font-size="6" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="700">18650</text>
-        <text x="120" y="181" text-anchor="middle" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace">7.4V</text>
+        <!-- ═══ L298N motor driver ═══ -->
+        <rect x="120" y="95" width="80" height="65" rx="3" fill="#c0392b" fill-opacity="0.08" stroke="#c0392b" stroke-width="1.2"/>
+        <!-- Screw terminal rows -->
+        <rect x="120" y="95" width="80" height="7" rx="1" fill="#c0392b" fill-opacity="0.2"/>
+        <rect x="120" y="153" width="80" height="7" rx="1" fill="#c0392b" fill-opacity="0.2"/>
+        <text x="160" y="125" text-anchor="middle" font-size="8" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="700">L298N</text>
+        <!-- L298N pin labels on input side -->
+        <text x="125" y="150" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">IN1</text>
+        <text x="140" y="150" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">IN2</text>
+        <text x="155" y="150" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">IN3</text>
+        <text x="170" y="150" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">IN4</text>
+        <text x="186" y="150" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">GND</text>
+        <!-- L298N output labels on motor side -->
+        <text x="122" y="103" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">OUT1/2</text>
+        <text x="162" y="103" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">OUT3/4</text>
+        <!-- Power input -->
+        <text x="122" y="93" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace">+12V</text>
+        <text x="180" y="93" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace">GND</text>
 
-        <!-- Raspberry Pi 5 -->
-        <rect x="170" y="90" width="80" height="55" rx="3" fill="#1B1E37" fill-opacity="0.08" stroke="#1B1E37" stroke-width="1.2"/>
-        <text x="210" y="113" text-anchor="middle" font-size="7" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="700">PI 5</text>
-        <text x="210" y="122" text-anchor="middle" font-size="5" fill="#1B1E37" font-family="IBM Plex Mono,monospace">GPIO HEADER</text>
-        <!-- GPIO pins row -->
-        <line x1="170" y1="137" x2="250" y2="137" stroke="#1B1E37" stroke-width="0.5" stroke-opacity="0.3"/>
-        <g fill="#1B1E37" fill-opacity="0.4">
-          <circle cx="175" cy="140" r="1.2"/><circle cx="180" cy="140" r="1.2"/><circle cx="185" cy="140" r="1.2"/>
-          <circle cx="190" cy="140" r="1.2"/><circle cx="195" cy="140" r="1.2"/><circle cx="200" cy="140" r="1.2"/>
-          <circle cx="205" cy="140" r="1.2"/><circle cx="210" cy="140" r="1.2"/><circle cx="215" cy="140" r="1.2"/>
-          <circle cx="220" cy="140" r="1.2"/><circle cx="225" cy="140" r="1.2"/><circle cx="230" cy="140" r="1.2"/>
-        </g>
+        <!-- ═══ 18650 battery pack ═══ -->
+        <rect x="120" y="170" width="70" height="38" rx="3" fill="#c0392b" fill-opacity="0.06" stroke="#c0392b" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="155" y="188" text-anchor="middle" font-size="6" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="700">18650 x2</text>
+        <text x="155" y="197" text-anchor="middle" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace">7.4V MOTOR PWR</text>
 
-        <!-- Power bank -->
-        <rect x="165" y="160" width="85" height="30" rx="6" fill="#2471a3" fill-opacity="0.08" stroke="#2471a3" stroke-width="1" stroke-dasharray="3,2"/>
-        <text x="207" y="177" text-anchor="middle" font-size="6" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="700">POWER BANK</text>
-        <text x="207" y="185" text-anchor="middle" font-size="5" fill="#2471a3" font-family="IBM Plex Mono,monospace">5V USB-C</text>
+        <!-- ═══ Raspberry Pi 5 ═══ -->
+        <rect x="210" y="95" width="90" height="65" rx="3" fill="#1B1E37" fill-opacity="0.06" stroke="#1B1E37" stroke-width="1.2"/>
+        <text x="255" y="115" text-anchor="middle" font-size="8" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="700">RASPBERRY PI 5</text>
+        <!-- GPIO header representation — 2 rows of pins -->
+        <rect x="212" y="128" width="86" height="12" rx="1" fill="#1B1E37" fill-opacity="0.05" stroke="#1B1E37" stroke-width="0.5"/>
+        <text x="255" y="136" text-anchor="middle" font-size="4" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="600">40-PIN GPIO HEADER</text>
+        <!-- Specific pin callouts on the Pi -->
+        <text x="213" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G17</text>
+        <text x="228" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G27</text>
+        <text x="243" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G22</text>
+        <text x="258" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G23</text>
+        <text x="273" y="127" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">G24</text>
+        <text x="288" y="127" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">G25</text>
+        <text x="213" y="145" font-size="3.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">G12</text>
+        <text x="228" y="145" font-size="3.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">G13</text>
+        <text x="247" y="145" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">5V</text>
+        <text x="261" y="145" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">GND</text>
+        <!-- USB-C port -->
+        <rect x="245" y="156" width="20" height="4" rx="2" fill="#1B1E37" fill-opacity="0.2"/>
+        <text x="255" y="153" text-anchor="middle" font-size="3" fill="#1B1E37" font-family="IBM Plex Mono,monospace">USB-C</text>
 
-        <!-- PVC mast base -->
-        <circle cx="170" cy="215" r="14" fill="#7d3c98" fill-opacity="0.08" stroke="#7d3c98" stroke-width="1.2"/>
-        <circle cx="170" cy="215" r="6" fill="#7d3c98" fill-opacity="0.15"/>
-        <text x="170" y="218" text-anchor="middle" font-size="5.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="700">MAST</text>
+        <!-- ═══ Power bank ═══ -->
+        <rect x="205" y="170" width="95" height="35" rx="6" fill="#2471a3" fill-opacity="0.06" stroke="#2471a3" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="252" y="188" text-anchor="middle" font-size="6" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="700">POWER BANK</text>
+        <text x="252" y="197" text-anchor="middle" font-size="5" fill="#2471a3" font-family="IBM Plex Mono,monospace">5V 3A USB-C &rarr; Pi</text>
 
-        <!-- ELKTRON branding zone -->
-        <rect x="110" y="240" width="120" height="24" rx="3" fill="#1a1a1a" fill-opacity="0.06" stroke="#1a1a1a" stroke-width="0.8" stroke-dasharray="4,2"/>
-        <text x="170" y="255" text-anchor="middle" font-size="7" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800" letter-spacing="0.2em">ELKTRON</text>
+        <!-- ═══ PVC mast base ═══ -->
+        <circle cx="210" cy="230" r="14" fill="#7d3c98" fill-opacity="0.06" stroke="#7d3c98" stroke-width="1.2"/>
+        <circle cx="210" cy="230" r="5" fill="#7d3c98" fill-opacity="0.15"/>
+        <text x="210" y="233" text-anchor="middle" font-size="5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="700">MAST</text>
 
-        <!-- Orientation label zones (edges) -->
-        <text x="170" y="33" text-anchor="middle" font-size="6" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800">FRONT</text>
-        <text x="170" y="323" text-anchor="middle" font-size="6" fill="#999" font-family="Inter,sans-serif" font-weight="800">REAR</text>
-        <text x="55" y="175" text-anchor="middle" font-size="6" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800" transform="rotate(-90,55,175)">LEFT</text>
-        <text x="285" y="175" text-anchor="middle" font-size="6" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800" transform="rotate(90,285,175)">RIGHT</text>
+        <!-- ═══ ELKTRON branding ═══ -->
+        <rect x="145" y="255" width="130" height="22" rx="3" fill="#1a1a1a" fill-opacity="0.05" stroke="#1a1a1a" stroke-width="0.8" stroke-dasharray="4,2"/>
+        <text x="210" y="269" text-anchor="middle" font-size="7" fill="#1a1a1a" font-family="Inter,sans-serif" font-weight="800" letter-spacing="0.2em">ELKTRON</text>
 
-        <!-- ═══ CALLOUT LINES ═══ -->
+        <!-- ═══════════════════════════════════════ -->
+        <!-- WIRE TRACES — colored lines with pins   -->
+        <!-- ═══════════════════════════════════════ -->
 
-        <!-- Motor wire labels (green) — at wheels -->
-        <line x1="73" y1="55" x2="73" y2="38" stroke="#1e8449" stroke-width="0.8" marker-end="url(#ah-g)"/>
-        <text x="73" y="36" text-anchor="middle" font-size="5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">L-FWD</text>
-        <text x="73" y="112" font-size="5" text-anchor="middle" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">L-BWD</text>
-        <line x1="73" y1="105" x2="73" y2="104" stroke="#1e8449" stroke-width="0"/>
+        <!-- MOTOR WIRES (green): Pi GPIO → L298N IN → L298N OUT → Wheels -->
 
-        <text x="267" y="36" text-anchor="middle" font-size="5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">R-FWD</text>
-        <line x1="267" y1="55" x2="267" y2="38" stroke="#1e8449" stroke-width="0.8" marker-end="url(#ah-g)"/>
+        <!-- G17 → IN1 (Left FWD) -->
+        <path d="M 215,140 L 215,155 L 127,155 L 127,153" fill="none" stroke="#1e8449" stroke-width="1.2" marker-end="url(#ah-g)"/>
+        <text x="170" y="162" text-anchor="middle" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="700">G17&rarr;IN1</text>
 
-        <!-- L298N output labels (green) -->
-        <text x="30" y="92" font-size="5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">L298N&rarr;LEFT</text>
-        <line x1="68" y1="93" x2="89" y2="93" stroke="#1e8449" stroke-width="0.8" marker-end="url(#ah-g)"/>
+        <!-- G27 → IN2 (Left BWD) -->
+        <path d="M 230,140 L 230,165 L 140,165 L 140,153" fill="none" stroke="#1e8449" stroke-width="1" stroke-dasharray="3,1.5"/>
 
-        <text x="22" y="141" font-size="5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">L298N&rarr;RIGHT</text>
-        <line x1="72" y1="142" x2="89" y2="142" stroke="#1e8449" stroke-width="0.8" marker-end="url(#ah-g)"/>
+        <!-- G22 → IN3 (Right FWD) -->
+        <path d="M 245,140 L 245,168 L 155,168 L 155,153" fill="none" stroke="#1e8449" stroke-width="1" stroke-dasharray="3,1.5"/>
 
-        <!-- HC-SR04 labels (blue) -->
-        <text x="170" y="395" text-anchor="middle" font-size="5.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">ECHO &amp; TRIG wire labels on signal wires near Pi header</text>
+        <!-- G23 → IN4 (Right BWD) -->
+        <path d="M 260,140 L 260,171 L 170,171 L 170,153" fill="none" stroke="#1e8449" stroke-width="1" stroke-dasharray="3,1.5"/>
 
-        <!-- Sensor wire callouts (blue) -->
-        <text x="310" y="50" font-size="5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600" text-anchor="end">HC-SR04</text>
-        <line x1="310" y1="52" x2="310" y2="62" stroke="#2471a3" stroke-width="0.5"/>
-        <text x="310" y="68" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" text-anchor="end">ULTRA ECHO</text>
-        <text x="310" y="75" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" text-anchor="end">ULTRA TRIG</text>
-        <text x="310" y="82" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" text-anchor="end">SENSOR 5V</text>
-        <text x="310" y="89" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" text-anchor="end">SENSOR GND</text>
-        <line x1="262" y1="47" x2="280" y2="47" stroke="#2471a3" stroke-width="0.6"/>
-        <line x1="280" y1="47" x2="280" y2="88" stroke="#2471a3" stroke-width="0.6"/>
+        <!-- OUT1/2 → Left motors -->
+        <path d="M 130,95 L 130,85 L 102,85 L 102,102" fill="none" stroke="#1e8449" stroke-width="1.2" marker-end="url(#ah-g)"/>
+        <path d="M 102,258 L 102,246" fill="none" stroke="#1e8449" stroke-width="1.2"/>
+        <text x="102" y="244" text-anchor="middle" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">LEFT PAIR</text>
 
-        <!-- Voltage divider callout -->
-        <text x="310" y="100" font-size="4.5" fill="#d4a017" font-family="IBM Plex Mono,monospace" font-weight="600" text-anchor="end">V.DIVIDER</text>
-        <line x1="248" y1="68" x2="270" y2="68" stroke="#d4a017" stroke-width="0.6"/>
-        <line x1="270" y1="68" x2="270" y2="98" stroke="#d4a017" stroke-width="0.6"/>
+        <!-- OUT3/4 → Right motors -->
+        <path d="M 175,95 L 175,85 L 250,85 L 250,75 L 318,75 L 318,102" fill="none" stroke="#1e8449" stroke-width="1.2" marker-end="url(#ah-g)"/>
+        <path d="M 318,258 L 318,246" fill="none" stroke="#1e8449" stroke-width="1.2"/>
+        <text x="318" y="244" text-anchor="middle" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">RIGHT PAIR</text>
 
-        <!-- Power labels (red) -->
-        <text x="30" y="160" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">18650</text>
-        <text x="30" y="167" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">7.4V</text>
-        <line x1="48" y1="165" x2="89" y2="172" stroke="#c0392b" stroke-width="0.8" marker-end="url(#ah-r)"/>
+        <!-- SENSOR WIRES (blue): Pi GPIO → HC-SR04 -->
 
-        <text x="310" y="162" font-size="5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600" text-anchor="end">PWR BANK</text>
-        <text x="310" y="169" font-size="5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600" text-anchor="end">5V</text>
-        <line x1="290" y1="170" x2="251" y2="175" stroke="#2471a3" stroke-width="0.8" marker-end="url(#ah-b)"/>
+        <!-- G24 (ECHO) → V.DIVIDER → HC-SR04 ECHO -->
+        <path d="M 278,140 L 278,80 L 277,80" fill="none" stroke="#2471a3" stroke-width="1" marker-end="url(#ah-b)"/>
+        <path d="M 277,60 L 277,55 L 224,55 L 224,56" fill="none" stroke="#2471a3" stroke-width="1" marker-end="url(#ah-b)"/>
+        <text x="250" y="55" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">via V.DIV</text>
 
-        <!-- Common GND (red) -->
-        <text x="30" y="200" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">COMMON</text>
-        <text x="30" y="207" font-size="5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">GND</text>
-        <line x1="55" y1="202" x2="89" y2="142" stroke="#c0392b" stroke-width="0.6" stroke-dasharray="2,2"/>
+        <!-- G25 (TRIG) → HC-SR04 TRIG -->
+        <path d="M 293,140 L 293,88 L 245,88 L 245,56 L 200,56" fill="none" stroke="#2471a3" stroke-width="1"/>
 
-        <!-- Mast / servo labels (purple) -->
-        <text x="310" y="210" font-size="5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600" text-anchor="end">PAN SERVO</text>
-        <text x="310" y="218" font-size="5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600" text-anchor="end">TILT SERVO</text>
-        <line x1="280" y1="215" x2="185" y2="215" stroke="#7d3c98" stroke-width="0.8" marker-end="url(#ah-p)"/>
+        <!-- 5V (Pin 2) → HC-SR04 VCC -->
+        <path d="M 250,145 L 250,148 L 302,148 L 302,65 L 190,65 L 190,56" fill="none" stroke="#c0392b" stroke-width="0.8" stroke-dasharray="2,2"/>
+        <text x="302" y="108" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" transform="rotate(90,302,108)">5V PWR</text>
 
-        <!-- Pi label (dark) -->
-        <text x="310" y="118" font-size="5" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="700" text-anchor="end">PI 5</text>
-        <line x1="290" y1="116" x2="251" y2="110" stroke="#1B1E37" stroke-width="0.8" marker-end="url(#ah)"/>
+        <!-- GND → HC-SR04 GND -->
+        <path d="M 265,145 L 265,148 L 308,148 L 308,62 L 245,62 L 245,56" fill="none" stroke="#555" stroke-width="0.6" stroke-dasharray="1.5,1.5"/>
 
-        <!-- L298N label (dark) -->
-        <text x="30" y="118" font-size="5" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="700">L298N</text>
-        <line x1="50" y1="120" x2="89" y2="115" stroke="#1B1E37" stroke-width="0.8" marker-end="url(#ah)"/>
+        <!-- SERVO WIRES (purple): Pi GPIO → Mast -->
 
-        <!-- Branding callout -->
-        <text x="170" y="280" text-anchor="middle" font-size="4.5" fill="#999" font-family="IBM Plex Mono,monospace">branding label</text>
+        <!-- G12 (PAN) → Mast -->
+        <path d="M 215,145 L 215,220 L 200,220" fill="none" stroke="#7d3c98" stroke-width="1.2" marker-end="url(#ah-p)"/>
+        <text x="215" y="212" font-size="3.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">G12 PAN</text>
 
-        <!-- Motor wire labels at rear wheels -->
-        <text x="73" y="308" text-anchor="middle" font-size="5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">L-BWD</text>
-        <line x1="73" y1="295" x2="73" y2="302" stroke="#1e8449" stroke-width="0.8"/>
-        <text x="267" y="308" text-anchor="middle" font-size="5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">R-BWD</text>
-        <line x1="267" y1="295" x2="267" y2="302" stroke="#1e8449" stroke-width="0.8"/>
+        <!-- G13 (TILT) → Mast -->
+        <path d="M 228,145 L 228,225 L 220,225" fill="none" stroke="#7d3c98" stroke-width="1" stroke-dasharray="3,1.5"/>
+        <text x="236" y="227" font-size="3.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace">G13 TILT</text>
 
-        <!-- Wire routing hint -->
-        <text x="170" y="345" text-anchor="middle" font-size="5" fill="#999" font-family="IBM Plex Mono,monospace">
-          <tspan x="170" dy="0">Wire labels: wrap around wire, fold at FOLD line</tspan>
-          <tspan x="170" dy="8">Board labels: tape flat next to component</tspan>
-          <tspan x="170" dy="8">Power labels: tape on battery/power bank surface</tspan>
-          <tspan x="170" dy="8">Orientation: tape on chassis edge</tspan>
-        </text>
+        <!-- POWER WIRES (red): 18650 → L298N -->
+        <path d="M 145,170 L 145,160 L 140,160 L 140,103 L 130,103 L 130,95" fill="none" stroke="#c0392b" stroke-width="1.5" marker-end="url(#ah-r)"/>
+        <text x="133" y="168" font-size="3.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="700">7.4V+</text>
+
+        <!-- Common GND: Pi GND → L298N GND -->
+        <path d="M 265,140 L 265,148 L 192,148 L 192,153" fill="none" stroke="#555" stroke-width="1.2"/>
+        <text x="228" y="148" font-size="3.5" fill="#555" font-family="IBM Plex Mono,monospace" font-weight="700">COMMON GND</text>
+
+        <!-- Power bank → Pi USB-C -->
+        <path d="M 252,170 L 252,162 L 255,160" fill="none" stroke="#2471a3" stroke-width="1.2" marker-end="url(#ah-b)"/>
+        <text x="270" y="167" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">5V USB-C</text>
+
+        <!-- ═══════════════════════════════ -->
+        <!-- PIN REFERENCE TABLE (below bot) -->
+        <!-- ═══════════════════════════════ -->
+        <rect x="15" y="355" width="390" height="120" rx="4" fill="#fff" stroke="#e6e8ed" stroke-width="1"/>
+        <text x="210" y="370" text-anchor="middle" font-size="6" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="800" letter-spacing="0.1em">GPIO PIN MAP</text>
+
+        <!-- Table header -->
+        <line x1="25" y1="375" x2="395" y2="375" stroke="#e6e8ed" stroke-width="0.5"/>
+        <text x="35" y="384" font-size="4.5" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700">BCM</text>
+        <text x="62" y="384" font-size="4.5" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700">PIN</text>
+        <text x="85" y="384" font-size="4.5" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700">FUNCTION</text>
+        <text x="180" y="384" font-size="4.5" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700">TO</text>
+        <text x="255" y="384" font-size="4.5" fill="#999" font-family="IBM Plex Mono,monospace" font-weight="700">WIRE COLOR</text>
+        <line x1="25" y1="387" x2="395" y2="387" stroke="#e6e8ed" stroke-width="0.5"/>
+
+        <!-- Motor rows (green) -->
+        <text x="35" y="396" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">17</text>
+        <text x="62" y="396" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">11</text>
+        <text x="85" y="396" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">Left FWD</text>
+        <text x="180" y="396" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">L298N IN1</text>
+        <rect x="255" y="391" width="20" height="5" rx="1" fill="#1e8449"/><text x="280" y="396" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
+
+        <text x="35" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">27</text>
+        <text x="62" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">13</text>
+        <text x="85" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">Left BWD</text>
+        <text x="180" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">L298N IN2</text>
+        <rect x="255" y="401" width="20" height="5" rx="1" fill="#1e8449" fill-opacity="0.5"/><text x="280" y="406" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
+
+        <text x="35" y="416" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">22</text>
+        <text x="62" y="416" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">15</text>
+        <text x="85" y="416" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">Right FWD</text>
+        <text x="180" y="416" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">L298N IN3</text>
+        <rect x="255" y="411" width="20" height="5" rx="1" fill="#1e8449"/><text x="280" y="416" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
+
+        <text x="35" y="426" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">23</text>
+        <text x="62" y="426" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">16</text>
+        <text x="85" y="426" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">Right BWD</text>
+        <text x="180" y="426" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">L298N IN4</text>
+        <rect x="255" y="421" width="20" height="5" rx="1" fill="#1e8449" fill-opacity="0.5"/><text x="280" y="426" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
+
+        <!-- Sensor rows (blue) -->
+        <text x="35" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">24</text>
+        <text x="62" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">18</text>
+        <text x="85" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">ECHO</text>
+        <text x="180" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">HC-SR04 (via 1k+2k divider)</text>
+        <rect x="255" y="431" width="20" height="5" rx="1" fill="#2471a3"/><text x="280" y="436" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">blue</text>
+
+        <text x="35" y="446" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">25</text>
+        <text x="62" y="446" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">22</text>
+        <text x="85" y="446" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">TRIG</text>
+        <text x="180" y="446" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">HC-SR04 TRIG</text>
+        <rect x="255" y="441" width="20" height="5" rx="1" fill="#2471a3" fill-opacity="0.5"/><text x="280" y="446" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">blue</text>
+
+        <!-- Servo rows (purple) -->
+        <text x="35" y="456" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">12</text>
+        <text x="62" y="456" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace">32</text>
+        <text x="85" y="456" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">PAN</text>
+        <text x="180" y="456" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace">MG90S pan servo</text>
+        <rect x="255" y="451" width="20" height="5" rx="1" fill="#7d3c98"/><text x="280" y="456" font-size="4" fill="#7d3c98" font-family="IBM Plex Mono,monospace">purple</text>
+
+        <text x="35" y="466" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">13</text>
+        <text x="62" y="466" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace">33</text>
+        <text x="85" y="466" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">TILT</text>
+        <text x="180" y="466" font-size="4.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace">MG90S tilt servo</text>
+        <rect x="255" y="461" width="20" height="5" rx="1" fill="#7d3c98" fill-opacity="0.5"/><text x="280" y="466" font-size="4" fill="#7d3c98" font-family="IBM Plex Mono,monospace">purple</text>
+
+        <!-- Power rows (right column) -->
+        <text x="320" y="396" font-size="4.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">5V  Pin2  &rarr; HC-SR04 VCC</text>
+        <text x="320" y="406" font-size="4.5" fill="#555" font-family="IBM Plex Mono,monospace" font-weight="600">GND Pin6  &rarr; HC-SR04+L298N</text>
+        <text x="320" y="416" font-size="4.5" fill="#c0392b" font-family="IBM Plex Mono,monospace" font-weight="600">7.4V 18650 &rarr; L298N +12V</text>
+        <text x="320" y="426" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">5V  USB-C  &rarr; Pi 5 power</text>
       </svg>
     </div>
 
