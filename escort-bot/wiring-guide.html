@@ -1054,6 +1054,7 @@ const STEPS=[
 {title:"Camera CSI Ribbon Cable",info:`<strong>1.</strong> Pull up the black clip on the Pi's <span class="pin-ref">CAM</span> port gently.<br><strong>2.</strong> Slide ribbon in \u2014 <strong>blue side facing USB ports</strong>, contacts facing HDMI.<br><strong>3.</strong> Push clip back down until it clicks.`,why:"A loose ribbon = 'no camera detected' errors. Hours of debugging.",diagram:'camera-csi',danger:'warn',callout:"The clip is fragile. Pull straight up. If cable doesn't slide easily, it may be backwards.",test:`libcamera-hello --timeout 5000`},
 {title:"Power Bank \u2192 Pi USB-C",info:`<strong>1.</strong> Plug <span class="pin-ref">90\u00b0 USB-C adapter</span> into Pi's USB-C port.<br><strong>2.</strong> Connect <span class="pin-ref">PiSwitch</span> inline (if available).<br><strong>3.</strong> Connect USB-C cable from <span class="pin-ref">Anker 10K</span> to switch/adapter.`,why:"Pi 5 needs solid 5V/3A. Anker 10K handles this. 90\u00b0 keeps cable flush.",diagram:'power-bank'},
 {title:"Final Verification",info:`<strong>Tap each item</strong> as you verify. All connections secure. No bare wires touching.`,why:"One loose wire = hours of debugging. Check everything before power-on.",diagram:'checklist',test:`python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"`},
+{title:"Complete Pin Map",info:`Every Pi 5 GPIO pin and what\u2019s connected to it. <strong>14 of 40 pins used.</strong> Green = available. Color-coded by component.<br><br>I2C bus (SDA/SCL) is shared between LCD and PTZ Board \u2014 different addresses, no conflict.`,why:"Your single reference for the entire wiring layout. Print this or keep it open on your phone while building.",diagram:'full-pinmap'},
 ];
 
 const CHECKLIST_ITEMS=[
@@ -1295,6 +1296,64 @@ function buildDiagram(type){
     let h='<ul class="checklist">';
     CHECKLIST_ITEMS.forEach((item,i)=>{h+=`<li onclick="this.classList.toggle('checked')" style="animation:fadeUp .4s var(--ease-out-quart) ${i*0.04}s both"><span class="ck">\u2713</span>${item}</li>`;});
     h+='</ul>';div.innerHTML=h;return div;
+  }
+  case 'full-pinmap': {
+    const allPins=[2,3,4,5,6,9,11,13,14,15,16,18,20,22];
+    const pi=piHeader(180,10,allPins,true);
+    let c=pi.svg;
+    // Component connection map: [piPin, label, color, side('l'/'r'), component]
+    const conns=[
+      // Left side components
+      [3,'SDA (I2C Bus)','#3498db','l','LCD + PTZ'],
+      [5,'SCL (I2C Bus)','#2ecc71','l','LCD + PTZ'],
+      [11,'IN1 (Left FWD)','#2741E7','l','L298N'],
+      [13,'IN2 (Left BWD)','#4260f5','l','L298N'],
+      [15,'IN3 (Right FWD)','#e67e22','l','L298N'],
+      // Right side components
+      [2,'5V \u2192 HC-SR04 + PTZ','#dc2626','r','Power'],
+      [4,'5V \u2192 LCD','#dc2626','r','Power'],
+      [6,'GND \u2192 L298N','#4a5168','r','GND'],
+      [9,'GND \u2192 HC-SR04','#4a5168','r','GND'],
+      [14,'GND \u2192 LCD','#4a5168','r','GND'],
+      [16,'IN4 (Right BWD)','#f1c40f','r','L298N'],
+      [18,'ECHO (via divider)','#a855f7','r','HC-SR04'],
+      [20,'GND \u2192 PTZ Board','#4a5168','r','GND'],
+      [22,'TRIG','#8e44ad','r','HC-SR04'],
+    ];
+    // Draw connection lines and labels
+    conns.forEach((cn,i)=>{
+      const pp=pi.pinPos(cn[0]);
+      const del=i*0.06;
+      if(cn[3]==='l'){
+        const lx=10,ly=pp.y;
+        c+=`<line x1="${pp.x-6}" y1="${pp.y}" x2="${lx+150}" y2="${ly}" stroke="${cn[2]}" stroke-width="1.5" opacity=".6" class="stagger" style="--del:${del}s"/>`;
+        c+=`<text x="${lx}" y="${ly-4}" font-family="var(--mono)" font-size="7.5" font-weight="700" fill="${cn[2]}" class="stagger" style="--del:${del+0.1}s">${cn[1]}</text>`;
+        c+=`<text x="${lx}" y="${ly+8}" font-family="var(--font)" font-size="6.5" font-weight="600" fill="rgba(255,255,255,.4)" class="stagger" style="--del:${del+0.15}s">${cn[4]}</text>`;
+      } else {
+        const lx=340,ly=pp.y;
+        c+=`<line x1="${pp.x+6}" y1="${pp.y}" x2="${lx}" y2="${ly}" stroke="${cn[2]}" stroke-width="1.5" opacity=".6" class="stagger" style="--del:${del}s"/>`;
+        c+=`<text x="${lx+4}" y="${ly-4}" font-family="var(--mono)" font-size="7.5" font-weight="700" fill="${cn[2]}" class="stagger" style="--del:${del+0.1}s">${cn[1]}</text>`;
+        c+=`<text x="${lx+4}" y="${ly+8}" font-family="var(--font)" font-size="6.5" font-weight="600" fill="rgba(255,255,255,.4)" class="stagger" style="--del:${del+0.15}s">${cn[4]}</text>`;
+      }
+    });
+    // Component boxes at edges
+    const comps=[
+      {name:'L298N',sub:'Motor Driver',x:2,y:145,w:70,h:46,color:'#4260f5'},
+      {name:'HC-SR04',sub:'Ultrasonic',x:500,y:200,w:70,h:46,color:'#8e44ad'},
+      {name:'I2C LCD',sub:'QA-Pass 0x27',x:2,y:30,w:70,h:46,color:'#3498db'},
+      {name:'PTZ Board',sub:'Arducam 0x40',x:2,y:80,w:70,h:46,color:'#2ecc71'},
+      {name:'Camera',sub:'CSI Ribbon',x:500,y:260,w:70,h:34,color:'#9b59b6'},
+      {name:'Battery',sub:'2\u00d718650 7.4V',x:500,y:80,w:70,h:34,color:'#dc2626'},
+      {name:'Anker 10K',sub:'USB-C 5V/3A',x:500,y:30,w:70,h:34,color:'#666'},
+    ];
+    comps.forEach((comp,i)=>{
+      c+=`<rect x="${comp.x}" y="${comp.y}" width="${comp.w}" height="${comp.h}" rx="6" fill="rgba(10,14,26,.3)" stroke="${comp.color}" stroke-width="1.5" class="stagger" style="--del:${0.8+i*0.08}s"/>`;
+      c+=`<text x="${comp.x+comp.w/2}" y="${comp.y+18}" text-anchor="middle" font-family="var(--font)" font-weight="800" font-size="8.5" fill="${comp.color}" class="stagger" style="--del:${0.85+i*0.08}s">${comp.name}</text>`;
+      c+=`<text x="${comp.x+comp.w/2}" y="${comp.y+30}" text-anchor="middle" font-family="var(--mono)" font-size="6.5" fill="rgba(255,255,255,.35)" class="stagger" style="--del:${0.9+i*0.08}s">${comp.sub}</text>`;
+    });
+    // Stats footer
+    c+=`<text x="290" y="298" text-anchor="middle" font-family="var(--mono)" font-size="8" font-weight="700" fill="rgba(255,255,255,.25)" class="stagger" style="--del:1.5s">14/40 PINS USED \u2022 26 AVAILABLE \u2022 5 COMPONENTS \u2022 I2C BUS SHARED</text>`;
+    return mkSvg(580,310,c);
   }
   default: return null;
   }
