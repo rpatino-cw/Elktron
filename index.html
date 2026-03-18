@@ -575,52 +575,60 @@ const H = () => wrap.clientHeight;
 
 // ── Scene ──
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x080a14);
-scene.fog = new THREE.FogExp2(0x080a14, 0.018);
+scene.background = new THREE.Color(0x141830);
+scene.fog = new THREE.FogExp2(0x141830, 0.006);
 
-const camera = new THREE.PerspectiveCamera(32, W() / H(), 0.1, 200);
-camera.position.set(-18, 2.8, 0);
-camera.lookAt(0, 1.5, 0);
+const camera = new THREE.PerspectiveCamera(38, W() / H(), 0.1, 200);
+camera.position.set(-12, 4.5, 3);
+camera.lookAt(2, 1.0, 0);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setSize(W(), H());
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 2.0;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 // ── Post-processing ──
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.6, 0.4, 0.85);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.35, 0.4, 0.9);
 composer.addPass(bloomPass);
 
 // ── Lights ──
-const ambient = new THREE.AmbientLight(0x1a1e3a, 0.3);
+const ambient = new THREE.AmbientLight(0x90a0d0, 1.2);
 scene.add(ambient);
 
-const ceiling = new THREE.DirectionalLight(0xc8d0e8, 0.15);
-ceiling.position.set(0, 12, 0);
+const ceiling = new THREE.DirectionalLight(0xe8eef8, 1.0);
+ceiling.position.set(2, 12, 0);
+ceiling.castShadow = true;
 scene.add(ceiling);
 
+// Key light from end of aisle
+const keyLight = new THREE.SpotLight(0xdde4f0, 1.2, 40, Math.PI / 5, 0.5);
+keyLight.position.set(-14, 6, 0);
+keyLight.target.position.set(4, 0, 0);
+scene.add(keyLight);
+scene.add(keyLight.target);
+
 // Cold aisle blue strips (top/bottom ceiling edges)
-const coldA = new THREE.PointLight(0x3060ff, 0.6, 20);
-coldA.position.set(0, 5, -5);
+const coldA = new THREE.PointLight(0x4070ff, 0.4, 25);
+coldA.position.set(0, 4, -4.5);
 scene.add(coldA);
-const coldB = new THREE.PointLight(0x3060ff, 0.6, 20);
-coldB.position.set(0, 5, 5);
+const coldB = new THREE.PointLight(0x4070ff, 0.4, 25);
+coldB.position.set(0, 4, 4.5);
 scene.add(coldB);
 
-// Hot aisle warm ambient
-const hotLight = new THREE.PointLight(0xd97706, 0.15, 15);
-hotLight.position.set(0, 3, 0);
+// Hot aisle warm accent
+const hotLight = new THREE.PointLight(0xd97706, 0.3, 18);
+hotLight.position.set(0, 2, 0);
 scene.add(hotLight);
 
 // ── Floor ──
 const floorGeo = new THREE.PlaneGeometry(50, 16);
 const floorMat = new THREE.MeshStandardMaterial({
-  color: 0x0c0e18, roughness: 0.7, metalness: 0.2
+  color: 0x222840, roughness: 0.5, metalness: 0.3
 });
 const floor = new THREE.Mesh(floorGeo, floorMat);
 floor.rotation.x = -Math.PI / 2;
@@ -628,9 +636,9 @@ floor.receiveShadow = true;
 scene.add(floor);
 
 // Grid lines on floor
-const gridHelper = new THREE.GridHelper(50, 100, 0x151830, 0x151830);
+const gridHelper = new THREE.GridHelper(50, 80, 0x2a3050, 0x2a3050);
 gridHelper.position.y = 0.005;
-gridHelper.material.opacity = 0.15;
+gridHelper.material.opacity = 0.2;
 gridHelper.material.transparent = true;
 scene.add(gridHelper);
 
@@ -658,7 +666,7 @@ function createRack(label, x, z, row) {
   // Main body
   const bodyGeo = new THREE.BoxGeometry(RACK_W, RACK_H, RACK_D);
   const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x12162a, roughness: 0.4, metalness: 0.6
+    color: 0x2a3260, roughness: 0.3, metalness: 0.7
   });
   const body = new THREE.Mesh(bodyGeo, bodyMat);
   body.position.y = RACK_H / 2;
@@ -670,7 +678,7 @@ function createRack(label, x, z, row) {
   const faceZ = row === 'A' ? RACK_D / 2 : -RACK_D / 2;
   const faceGeo = new THREE.PlaneGeometry(RACK_W - 0.1, RACK_H - 0.2);
   const faceMat = new THREE.MeshStandardMaterial({
-    color: 0x0a0e1a, roughness: 0.3, metalness: 0.7
+    color: 0x1e2445, roughness: 0.3, metalness: 0.8
   });
   const face = new THREE.Mesh(faceGeo, faceMat);
   face.position.set(0, RACK_H / 2, faceZ + (row === 'A' ? 0.01 : -0.01));
@@ -792,7 +800,7 @@ scene.add(dashLine);
 
 // ── Ceiling structure ──
 const ceilGeo = new THREE.PlaneGeometry(50, 16);
-const ceilMat = new THREE.MeshStandardMaterial({ color: 0x0e1020, roughness: 1, metalness: 0, side: THREE.BackSide });
+const ceilMat = new THREE.MeshStandardMaterial({ color: 0x222850, roughness: 0.8, metalness: 0.1, side: THREE.BackSide });
 const ceiling2 = new THREE.Mesh(ceilGeo, ceilMat);
 ceiling2.rotation.x = Math.PI / 2;
 ceiling2.position.y = 5;
@@ -801,7 +809,7 @@ scene.add(ceiling2);
 // Ceiling light tubes
 for (let i = -3; i <= 3; i++) {
   const tubeGeo = new THREE.BoxGeometry(12, 0.05, 0.15);
-  const tubeMat = new THREE.MeshBasicMaterial({ color: 0xc8d0e8, transparent: true, opacity: 0.08 });
+  const tubeMat = new THREE.MeshBasicMaterial({ color: 0xd0d8f0, transparent: true, opacity: 0.2 });
   const tube = new THREE.Mesh(tubeGeo, tubeMat);
   tube.position.set(0, 4.95, i * 2);
   scene.add(tube);
@@ -874,8 +882,8 @@ function animate() {
   my += (tmy - my) * 0.03;
 
   // Camera — low flythrough with parallax
-  camera.position.set(-18 + mx * 1.5, 2.8 - my * 0.5, mx * 2);
-  camera.lookAt(2 + mx * 3, 1.2, my * 1.5);
+  camera.position.set(-12 + mx * 1.5, 4.5 - my * 0.5, 3 + mx * 2);
+  camera.lookAt(2 + mx * 3, 1.0, my * 1.5);
 
   // Escort bot patrol
   const patrolX = Math.sin(t * 0.3) * 6;
@@ -903,7 +911,7 @@ function animate() {
   hotLight.intensity = 0.12 + Math.sin(t * 0.7) * 0.05;
 
   // Bloom breathe
-  bloomPass.strength = 0.5 + Math.sin(t * 0.4) * 0.15;
+  bloomPass.strength = 0.25 + Math.sin(t * 0.4) * 0.08;
 
   composer.render();
 }
