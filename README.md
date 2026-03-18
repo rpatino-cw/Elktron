@@ -1,12 +1,16 @@
 <div align="center">
-  <img src="robotics-site/hero-render.png" width="700" alt="Elktron — Two robots for the data center floor" />
+  <img src="robotics-site/hero-render.png" width="700" alt="Elktron — Robotics for the data center floor" />
   <h1>Elktron</h1>
-  <p><strong>Two robots for the data center floor.</strong></p>
+  <p><strong>A robotics platform for data center operations.</strong></p>
+  <p>Demonstrated through an autonomous escort bot, a robot-arm training pipeline, and a live operations dashboard.</p>
   <p>
     <img src="https://img.shields.io/badge/CoreWeave-Hackathon_2026-0969da?style=flat-square" alt="CoreWeave Hackathon 2026" />
     <img src="https://img.shields.io/badge/Budget-$430-2ea44f?style=flat-square" alt="Budget: $430" />
     <img src="https://img.shields.io/badge/Team-6_engineers-e36209?style=flat-square" alt="Team: 6 engineers" />
     <img src="https://img.shields.io/badge/Track-Build_with_Velocity-8957e5?style=flat-square" alt="Track: Build with Velocity" />
+  </p>
+  <p>
+    <a href="https://rpatino-cw.github.io/Elktron/"><strong>Live Site</strong></a>
   </p>
 </div>
 
@@ -14,51 +18,66 @@
 
 ## The Problem
 
-Data center technicians spend 2+ hours per vendor escort — walking alongside contractors, watching them work, manually logging rack interactions. Optic seating is done one-by-one by hand. These tasks are mechanical, repetitive, and tie up skilled engineers who should be doing real work. Elktron automates both.
+Data center technicians spend hours each shift on repetitive physical work — walking alongside vendors, watching them work, manually logging rack interactions, seating optics one-by-one. These tasks are mechanical and tie up skilled engineers who should be troubleshooting, turning up racks, and solving real problems. Elktron automates the floor work so DCTs can focus on what actually moves the needle.
 
 ---
 
-## The Robots
+## The Live Demo — Escort Bot
 
-<table>
-<tr>
-<td align="center" width="50%">
-<img src="img/escort-bot-render.png" width="360" alt="Escort Bot — fully assembled 3D render with mast and pan-tilt camera" />
-<h3>Escort Bot</h3>
-<code>Raspberry Pi 5 · YOLOv8n · 4WD Chassis</code>
-<br/><br/>
-Autonomously follows vendors through DC aisles using real-time person detection. Stops at racks, sweeps camera bottom-to-top, captures visual state before and after work. Full audit trail — no human escort needed.
-<br/><br/>
+<div align="center">
+<img src="img/escort-bot-render.png" width="500" alt="Escort Bot — fully assembled with mast and pan-tilt camera" />
+</div>
+
+An autonomous 4WD robot that lives in the data hall. When a vendor enters, the bot detects them using real-time person detection, follows them through the aisles at a safe distance, and stops when they stop. If the vendor pauses at a rack, the bot runs an automated camera scan — sweeping bottom to top, capturing the state of every node before and after work is done.
+
+No ROS. No cloud. A Raspberry Pi 5, a camera, and Python.
+
+The tech checks in the vendor, assigns the bot, and goes back to real work.
+
+<code>Raspberry Pi 5 · YOLOv8n · 4WD Chassis · PID Steering · Ultrasonic Obstacle Avoidance</code>
+
 <a href="https://rpatino-cw.github.io/Elktron/escort-bot/assembly.html">
-<img src="https://img.shields.io/badge/3D_Assembly-Live_Demo-0969da?style=for-the-badge" alt="3D Assembly Demo" />
+<img src="https://img.shields.io/badge/3D_Assembly-Interactive_Guide-0969da?style=for-the-badge" alt="3D Assembly Guide" />
 </a>
-</td>
-<td align="center" width="50%">
-<img src="robotics-site/so101-real.png" width="360" alt="SO-101 Robot Arm" />
-<h3>SO-101 Arm</h3>
-<code>LeRobot · ACT Policy · 6-DOF Feetech Servos</code>
-<br/><br/>
-Learns DC tasks through imitation — demonstrate once, it repeats autonomously. Primary use case: SFP/QSFP optic seating into switch ports. Trained via leader-follower teleoperation using HuggingFace's LeRobot framework.
-<br/><br/>
-<a href="https://rpatino-cw.github.io/Elktron/robotics-site/so101/showcase.html">
-<img src="https://img.shields.io/badge/SO--101_Showcase-Live_Demo-0969da?style=for-the-badge" alt="SO-101 Showcase" />
+&nbsp;
+<a href="https://rpatino-cw.github.io/Elktron/escort-bot/simulation.html">
+<img src="https://img.shields.io/badge/DC_Floor-Simulation-0969da?style=for-the-badge" alt="DC Floor Simulation" />
 </a>
-</td>
-</tr>
-</table>
 
 ---
 
-## Interactive Demos
+## The Platform Extends — SO-101 Robot Arm
 
-Every component has an interactive 3D visualization built with Three.js — explore them live:
+A robotic arm trained by demonstration to seat optics into switch ports. A technician shows the arm the task — pick up a transceiver, align it, insert it — and the arm learns to repeat the motion autonomously. No manual programming. You teach by showing.
 
-| Demo | Description |
-|------|-------------|
-| [**3D Assembly Guide**](https://rpatino-cw.github.io/Elktron/escort-bot/assembly.html) | Step-by-step escort bot build with animated 3D models, GLB imports, and a software showcase terminal |
-| [**DC Floor Simulation**](https://rpatino-cw.github.io/Elktron/escort-bot/simulation.html) | 10-rack hot/cold aisle layout with autonomous bot AI, collision detection, and person-following |
-| [**Interactive Wiring**](https://rpatino-cw.github.io/Elktron/escort-bot/wiring-guide.html) | 3D GPIO wiring — L298N, HC-SR04 voltage divider, pan-tilt servos, power distribution |
-| [**System Topology**](https://rpatino-cw.github.io/Elktron/robotics-site/topology.html) | How the arm, bot, and dashboard connect — full system architecture in 3D |
+Built on the HiWonder SO-ARM101 platform using Hugging Face's LeRobot framework. After ~50 demonstrations, the arm trains an ACT policy and runs on its own — same motion, same precision, no fatigue.
+
+<code>SO-ARM101 · LeRobot · ACT Policy · 6-DOF Feetech Servos</code>
+
+<a href="https://rpatino-cw.github.io/Elktron/robotics-site/so101/showcase.html">
+<img src="https://img.shields.io/badge/SO--101-Showcase-8957e5?style=for-the-badge" alt="SO-101 Showcase" />
+</a>
+
+---
+
+## Unified Dashboard
+
+Both robots feed into a single control panel — escort bot position, camera feeds, arm task progress, scan history. A tech sees at a glance what's running, what's done, and what needs attention without walking the floor.
+
+<code>FastAPI · WebSocket · Vanilla JS</code>
+
+---
+
+## Why It's Reproducible
+
+Every component comes with interactive 3D documentation — assembly instructions, wiring diagrams, a full DC floor simulation. The system is packaged not just as a demo, but as something another CoreWeave site could understand and build.
+
+| Demo | What It Shows |
+|------|---------------|
+| [**3D Assembly Guide**](https://rpatino-cw.github.io/Elktron/escort-bot/assembly.html) | 15-step escort bot build with animated 3D models |
+| [**Interactive Wiring**](https://rpatino-cw.github.io/Elktron/escort-bot/wiring-guide.html) | GPIO pin map — every connection between Pi, motor driver, sensors, and power |
+| [**DC Floor Simulation**](https://rpatino-cw.github.io/Elktron/escort-bot/simulation.html) | 10-rack data hall with autonomous bot AI and collision detection |
+| [**System Topology**](https://rpatino-cw.github.io/Elktron/robotics-site/topology.html) | How the escort bot, arm, and dashboard connect |
 
 ---
 
@@ -147,7 +166,7 @@ python deploy.py     # Deploy autonomous
 ```
 hackathon/
 ├── escort-bot/              # Escort bot — brain, wiring, setup, 3D pages
-│   ├── main.py              # Robot brain (327 lines — FOLLOW / SCAN / IDLE)
+│   ├── main.py              # Robot brain (373 lines — FOLLOW / SCAN / IDLE)
 │   ├── pan_tilt.py           # Pan-tilt servo controller
 │   ├── pid.py                # PID controller for steering
 │   ├── assembly.html         # 3D assembly guide (Three.js)
@@ -168,12 +187,13 @@ hackathon/
 </details>
 
 <details>
-<summary><strong>Demo Story (3 minutes)</strong></summary>
+<summary><strong>Demo Story (2:30)</strong></summary>
 <br/>
 
-1. **Arm** (60s) — SO-101 picks optic from tray, seats it into switch port. Dashboard shows live joint angles.
-2. **Escort** (60s) — Bot follows "vendor" through aisle, stops at rack, monitors work. Dashboard shows tracking.
-3. **Review** (30s) — Scan log shows vendor visits, flagged events, clean/flagged status.
+1. **The Problem** (25s) — DC floor, repetitive tasks, skilled techs on autopilot
+2. **Escort Bot** (75s) — Bot follows vendor through aisle, stops at rack, scans. Dashboard shows live tracking. "No ROS. No cloud. A Pi, a camera, and Python."
+3. **Robot Arm** (35s) — Platform extends to optic seating. Trained by demonstration, runs autonomously. "You teach by showing."
+4. **Close** (15s) — Dashboard unifies both systems. "Elktron — the data hall assistant. More. Better. Faster."
 
 </details>
 

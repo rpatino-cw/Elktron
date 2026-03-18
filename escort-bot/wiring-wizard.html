@@ -499,6 +499,15 @@ const STEPS=[
  why:"One loose wire = hours of debugging. Check everything before power-on.",
  diagram:'checklist',
  test:`python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"`},
+
+{title:"Run Motor Test Script",
+ info:`<strong>Wheels off the ground!</strong> Run the full motor test to verify all 4 directions.<br><br>
+ The script tests <span class="pin-ref">FORWARD</span>, <span class="pin-ref">BACKWARD</span>, <span class="pin-ref">LEFT</span>, and <span class="pin-ref">RIGHT</span> at 30% speed, 1.5s each.<br><br>
+ <strong>If a direction is wrong:</strong> swap the IN1/IN2 or IN3/IN4 wires for that side.<br><br>
+ <strong>Script location:</strong> <code>escort-bot/tests/motor_test.py</code>`,
+ why:"The inline one-liner only tests forward. This script validates all 4 directions so you catch reversed wiring before floor testing.",
+ diagram:'power-bank',
+ test:`python3 tests/motor_test.py`},
 ];
 
 const CHECKLIST_ITEMS=[

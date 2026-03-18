@@ -81,6 +81,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 }
 .filter-btn:hover{border-color:var(--accent);color:var(--accent)}
 .filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 12px var(--accent-glow)}
+.filter-btn[data-role="toggle"]{border-color:#d4a017;color:#9a7d0a}
+.filter-btn[data-role="toggle"]:hover{border-color:#b8860b;color:#7a6508}
+.filter-btn[data-role="toggle"].active{background:#d4a017;color:#fff;border-color:#d4a017;box-shadow:0 2px 12px rgba(212,160,23,.25)}
 
 /* Canvas Layout */
 .canvas-wrap{position:relative;z-index:10;width:100%;max-width:1400px;margin:24px auto 0;padding:0 24px}
@@ -341,7 +344,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="filter-btn" data-group="sensor">Sensors</button>
     <button class="filter-btn" data-group="servo">Servos</button>
     <button class="filter-btn" data-group="power">Power</button>
-    <button class="filter-btn" id="basics-toggle-btn" style="border-color:#d4a017;color:#9a7d0a" onclick="toggleMotorBasics()">Motor Basics</button>
+    <button class="filter-btn" id="basics-toggle-btn" data-role="toggle" onclick="toggleMotorBasics()">Motor Basics</button>
   </div>
 </header>
 
@@ -357,7 +360,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="node" id="n-l298n" data-group="motor" style="left:12%;top:46%">
+    <div class="node" id="n-l298n" data-group="motor" style="left:14%;top:42%">
       <div class="node-body">
         <div class="node-icon" style="background:rgba(184,50,48,.08);color:#b83230">
           <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="3" width="16" height="14" rx="2" fill="currentColor" opacity=".2"/><rect x="4" y="6" width="12" height="8" rx="1" fill="currentColor"/><rect x="0" y="7" width="3" height="2" rx=".5" fill="currentColor"/><rect x="0" y="11" width="3" height="2" rx=".5" fill="currentColor"/><rect x="17" y="7" width="3" height="2" rx=".5" fill="currentColor"/><rect x="17" y="11" width="3" height="2" rx=".5" fill="currentColor"/></svg>
@@ -366,7 +369,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="node" id="n-motors-l" data-group="motor" style="left:1%;top:28%">
+    <div class="node" id="n-motors-l" data-group="motor" style="left:1%;top:18%">
       <div class="node-body">
         <div class="node-icon" style="background:rgba(212,172,13,.1);color:#9a7d0a">
           <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="3" fill="currentColor" opacity=".3"/><rect x="3" y="5" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="15" y="8" width="4" height="4" rx="1" fill="currentColor"/></svg>
@@ -375,7 +378,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="node" id="n-motors-r" data-group="motor" style="left:12%;top:72%">
+    <div class="node" id="n-motors-r" data-group="motor" style="left:14%;top:68%">
       <div class="node-body">
         <div class="node-icon" style="background:rgba(212,172,13,.1);color:#9a7d0a">
           <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="10" rx="3" fill="currentColor" opacity=".3"/><rect x="3" y="5" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="15" y="8" width="4" height="4" rx="1" fill="currentColor"/></svg>
@@ -429,7 +432,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="node" id="n-battery" data-group="power" style="left:10%;top:82%">
+    <div class="node" id="n-battery" data-group="power" style="left:8%;top:88%">
       <div class="node-body">
         <div class="node-icon" style="background:rgba(220,38,38,.06);color:#dc2626">
           <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="5" width="7" height="10" rx="2" fill="currentColor" opacity=".3"/><rect x="11" y="5" width="7" height="10" rx="2" fill="currentColor" opacity=".3"/><line x1="9" y1="10" x2="11" y2="10" stroke="currentColor" stroke-width="1.5"/></svg>
@@ -804,6 +807,7 @@ function initOverview() {
   }
 
   document.querySelectorAll('.filter-btn').forEach(b => {
+    if(!b.dataset.group) return; // skip Motor Basics — it's a panel toggle, not a filter
     b.addEventListener('click', () => setFilter(b.dataset.group));
   });
   document.querySelectorAll('.legend-item').forEach(li => {

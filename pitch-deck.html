@@ -484,30 +484,30 @@
 <!-- SLIDE 2: THE SOLUTION -->
 <section id="slide-2" class="slide slide-solution">
   <div class="slide-label">The Solution</div>
-  <h2>Two robots. One dashboard. Zero idle techs.</h2>
+  <h2>The data hall assistant.</h2>
   <div class="robot-cards">
-    <div class="robot-card">
-      <div class="robot-card-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-primary)"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      </div>
-      <h3>SO-101 Arm</h3>
-      <p>Autonomous optic seating via imitation learning. A tech demonstrates the task, the arm learns the motion, then runs on its own.</p>
-      <span class="tech-tag">LeRobot + ACT Policy</span>
-    </div>
     <div class="robot-card">
       <div class="robot-card-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-primary)"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
       </div>
       <h3>Escort Bot</h3>
-      <p>Person-following vendor escort. Locks onto the vendor, maintains safe distance, frees up the tech for real work.</p>
-      <span class="tech-tag">Pi 5 + OpenCV DNN + gpiozero</span>
+      <p>Detects vendors, follows them through the data hall, scans racks when they stop. Full audit trail, no human escort needed.</p>
+      <span class="tech-tag">Pi 5 + YOLOv8n + PID Steering</span>
+    </div>
+    <div class="robot-card">
+      <div class="robot-card-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-primary)"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3>SO-101 Arm</h3>
+      <p>A robotic arm trained by demonstration to seat optics. You show it the task, it learns to repeat autonomously.</p>
+      <span class="tech-tag">LeRobot + ACT Policy</span>
     </div>
     <div class="robot-card">
       <div class="robot-card-icon">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-primary)"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
       </div>
       <h3>Dashboard</h3>
-      <p>Unified control panel — arm status, escort position, camera feeds, scan logs. One screen for the whole robotic crew.</p>
+      <p>Unified control panel — escort tracking, camera feeds, arm status, scan logs. One screen for the whole operation.</p>
       <span class="tech-tag">FastAPI + WebSocket</span>
     </div>
   </div>
@@ -527,27 +527,27 @@
     </div>
     <div class="demo-step">
       <div class="demo-step-num">02</div>
-      <h4>Bot follows</h4>
-      <p>Escort bot locks on, maintains distance, stops when they stop, resumes when they walk.</p>
-      <div class="demo-time">0:25 — 1:10</div>
+      <h4>Bot follows + scans</h4>
+      <p>Escort bot locks on, follows through the aisle. Vendor stops at a rack — bot scans every node, logs the state.</p>
+      <div class="demo-time">0:25 — 1:40</div>
     </div>
     <div class="demo-step">
       <div class="demo-step-num">03</div>
-      <h4>Arm seats optic</h4>
-      <p>SO-101 picks transceiver from tray, aligns, inserts into switch port. Autonomous after training.</p>
-      <div class="demo-time">1:10 — 1:55</div>
+      <h4>Platform extends</h4>
+      <p>SO-101 arm seats optics by demonstration. Trained by showing, runs autonomously.</p>
+      <div class="demo-time">1:40 — 2:05</div>
     </div>
     <div class="demo-step">
       <div class="demo-step-num">04</div>
-      <h4>Dashboard tracks all</h4>
-      <p>Both robots feed live telemetry. Arm progress, bot position, camera feeds — one screen.</p>
-      <div class="demo-time">1:55 — 2:15</div>
+      <h4>Dashboard unifies</h4>
+      <p>Both systems feed one screen — escort tracking, camera feeds, arm status, scan history.</p>
+      <div class="demo-time">2:05 — 2:20</div>
     </div>
     <div class="demo-step">
       <div class="demo-step-num">05</div>
       <h4>Tech does real work</h4>
-      <p>The technician is now free. Robots handle the floor. That's the pitch.</p>
-      <div class="demo-time">2:15 — 2:30</div>
+      <p>The technician is free. The data hall assistant handles the floor.</p>
+      <div class="demo-time">2:20 — 2:30</div>
     </div>
   </div>
   <span class="slide-counter">03 / 05</span>
