@@ -52,8 +52,6 @@ Two robots for the DC floor. One project, three core components + supporting inf
 | **Escort Bot** | `escort-bot/` | Person-following vendor escort. Pi 5 + OpenCV DNN MobileNet SSD + LK-COKOINO 4WD chassis. **Claude Code installed on Pi** — on-device AI dev. |
 | **Dashboard** | `elktron-app/` | Unified control panel — arm status, escort tracking, camera feeds, scan logs. FastAPI + vanilla JS. |
 | **Landing Page** | `robotics-site/index.html` | Elktron pitch/showcase site |
-| **Hub** | `hub.html` | Central navigation for all hackathon pages |
-
 ---
 
 ## Complete Directory Topology
@@ -80,9 +78,6 @@ hackathon/
 │   ├── hackathon-sites.md             # Site inventory
 │   └── reference/                     # External references
 │       └── slack-evi01-build-dct-2026-03-12.md
-│
-├── hub.html                           # ★ THREE.JS — Hackathon navigation hub
-├── daily.html                         # ★ THREE.JS — Daily standup page
 │
 ├── robotics-site/                     # SO-101 ARM + LANDING PAGE
 │   ├── CLAUDE.md                      # Robotics site config — arm overview, status, resources
@@ -119,7 +114,6 @@ hackathon/
 │   ├── assembly.html                  # ★ THREE.JS — Assembly instructions with 3D models
 │   ├── BUILD-GUIDE.html               # ★ THREE.JS — Step-by-step build guide with 3D
 │   ├── hardware-showcase.html         # ★ THREE.JS — Hardware showcase with 3D components
-│   ├── hardware.html                  # ★ THREE.JS — Hardware reference with 3D models
 │   ├── mast-hardware.html             # ★ THREE.JS — Mast assembly details with 3D
 │   └── wiring-guide.html             # ★ THREE.JS — Interactive 3D wiring guide (GPIO, L298N, HC-SR04, servos, power)
 │
@@ -159,7 +153,6 @@ hackathon/
 │   ├── escort-bot-render.png          # 3D render of escort bot (used in README.md)
 │   └── 2d_drawing/                    # 2D BLUEPRINT WORKSPACE
 │       ├── CLAUDE.md                  # Strict workflow: trace → draft → approval → 3D
-│       ├── frame_trace.html           # Frame tracing tool (canvas-based, no Three.js)
 │       ├── 2d_car_reference.png       # Car reference for tracing
 │       └── rc_chassis_frame_lines.png # Traced frame lines
 │
@@ -228,24 +221,17 @@ hackathon/
 
 ## Three.js / 3D Websites — Complete Map
 
-**12 HTML files use Three.js** (via CDN importmap). Here is every one:
+**8 HTML files use Three.js** (via CDN importmap). Here is every one:
 
-### Escort Bot — 3D Pages (7 files)
+### Escort Bot — 3D Pages (6 files)
 | File | Three.js Ver | What It Renders |
 |------|-------------|-----------------|
 | `escort-bot/simulation.html` | v0.162.0 | **DC floor simulation** — 10 racks (2 rows of 5), hot/cold aisle, escort bot AI with collision detection. Uses `Soldier.glb` model. Interactive: bot follows person through aisles. |
 | `escort-bot/assembly.html` | v0.162.0 | **Assembly instructions** — 3D exploded view of chassis, step-by-step build with interactive 3D models |
 | `escort-bot/BUILD-GUIDE.html` | v0.170.0 | **Build guide** — Comprehensive step-by-step with 3D models of each component, interactive assembly sequence |
 | `escort-bot/hardware-showcase.html` | v0.162.0 | **Hardware showcase** — All escort bot components rendered in 3D: chassis, Pi 5, L298N, HC-SR04, camera, mast |
-| `escort-bot/hardware.html` | v0.162.0 | **Hardware reference** — Interactive 3D models of individual components with specs and pin diagrams |
 | `escort-bot/mast-hardware.html` | v0.162.0 | **Mast assembly** — 3D model of PVC mast, T-connector, pan-tilt mount, camera placement |
 | `escort-bot/wiring-guide.html` | v0.170.0 | **Wiring guide** — Interactive 3D wiring: GPIO connections, L298N, HC-SR04 voltage divider, servos, power distribution |
-
-### Navigation & Overview (2 files)
-| File | Three.js Ver | What It Renders |
-|------|-------------|-----------------|
-| `hub.html` | v0.170.0 | **Hackathon hub** — Central navigation with 3D background/hero element. Links to all pages. |
-| `daily.html` | v0.163.0 | **Daily standup** — Team sync page with 3D visual elements |
 
 ### System Architecture (1 file)
 | File | Three.js Ver | What It Renders |
@@ -262,7 +248,7 @@ hackathon/
 |------|-------------|-----------------|
 | `taskboard/index.html` | varies | **Task board** — Interactive team task tracker with 3D visual elements |
 
-### NON-Three.js HTML Pages (6 files)
+### NON-Three.js HTML Pages (5 files)
 | File | What It Is |
 |------|-----------|
 | `robotics-site/index.html` | Elktron landing page — dark luxury-tech CSS, no Three.js |
@@ -270,7 +256,6 @@ hackathon/
 | `escort-bot/showcase.html` | Escort bot scope page — CSS animations, no Three.js |
 | `elktron-app/index.html` | Dashboard app — vanilla JS + WebSocket, no Three.js |
 | `elktron-app/guide.html` | Dashboard usage guide, no Three.js |
-| `img/2d_drawing/frame_trace.html` | Canvas-based frame tracing tool, no Three.js |
 
 ---
 
@@ -291,8 +276,7 @@ hackathon/
 
 The project uses **mixed Three.js versions** across files:
 - v0.162.0 — Most escort-bot pages + 3d-reference
-- v0.163.0 — daily.html
-- v0.170.0 — hub.html, BUILD-GUIDE.html
+- v0.170.0 — BUILD-GUIDE.html, wiring-guide.html
 
 Consider standardizing to **v0.170.0** (latest used) for consistency.
 
@@ -371,16 +355,13 @@ robotics-site/so101/*.py (arm code)
 ## URLs — Open in Incognito
 
 ```bash
-# Hub (start here)
-open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/hub.html"
-
 # Three.js Sites
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/simulation.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/BUILD-GUIDE.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/hardware-showcase.html"
-open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/hardware.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/assembly.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/mast-hardware.html"
+open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/escort-bot/wiring-guide.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/3d-reference/pi5-3d-model.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/robotics-site/topology.html"
 open -a "Google Chrome" --args --incognito "file:///Users/rpatino/hackathon/taskboard/"

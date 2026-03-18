@@ -17,7 +17,7 @@ This folder contains **only images that are actively referenced** by HTML pages 
 ## Subdirectory
 
 ### `2d_drawing/`
-Blueprint workspace with its own `CLAUDE.md`. Contains `frame_trace.html` (canvas tool) and traced reference images. Do not move — `frame_trace.html` uses relative paths to images in this folder.
+Blueprint workspace with its own `CLAUDE.md`. Contains traced reference images (`2d_car_reference.png`, `rc_chassis_frame_lines.png`).
 
 ## Rules
 

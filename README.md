@@ -215,5 +215,5 @@ hackathon/
 <div align="center">
 <sub>Built in 7 days with $430 for CoreWeave "More. Better. Faster." 2026</sub>
 <br/>
-<sub><a href="docs/">Full documentation</a> · <a href="PROGRESS.md">Build progress</a> · <a href="https://rpatino-cw.github.io/Elktron/hub.html">Project Hub</a></sub>
+<sub><a href="docs/">Full documentation</a> · <a href="PROGRESS.md">Build progress</a> · <a href="https://rpatino-cw.github.io/Elktron/">Project Hub</a></sub>
 </div>

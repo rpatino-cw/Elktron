@@ -35,9 +35,7 @@ Each stage has a **user approval gate** before advancing.
 - **Input:** JSON line data from Stage 1 + original reference photo, **one per view**
 - **Output:** Annotated 2D canvas — lines remapped to a clean canvas with labels, measurements, region classification. **One HTML file per view.**
 - **What Claude builds:** A DPR-scaled canvas with grid, toggle controls, sidebar panels (Measurements, Regions, Line Data), dimension lines with arrows, and region hover highlighting
-- **Reference implementations:**
-  - `chassis_topdown_frame_analysis.html` (top-down — 51 lines, 10 regions)
-  - `chassis_side_frame_analysis.html` (side view — 14 lines, 6 regions)
+- **Reference implementations:** (archived — original analysis files deleted during site cleanup)
 - **Required style:** Space Grotesk + JetBrains Mono, `#0a0a0c` bg, amber `#c9943a` accents, grid layout (canvas + 380px sidebar), `.panel` cards with `.stat-row` measurements, `.region-item` hover highlight, `.ctrl-btn` toggles, dimension arrows with dashed extension lines
 - **Required panels:** Geometry Measurements, Identified Regions (with color dots + hover), Orientation/Context notes, Line Data summary
 - **Required toggles:** Grid, Numbers, Regions, Dimensions, Zones (minimum)
@@ -180,9 +178,5 @@ Each stage has a **user approval gate** before advancing.
 | File | Stage | What |
 |------|-------|------|
 | `CLAUDE.md` | — | This file — canonical pipeline reference |
-| `frame_trace.html` | 2 | Frame tracing tool (canvas-based) |
-| `chassis_topdown_frame_analysis.html` | 2 | Top-down view analysis (51 lines, 10 regions) |
-| `chassis_side_frame_analysis.html` | 2 | Side view analysis (14 lines, 6 regions) |
-| `chassis_frame_traced.html` | 2 | Original top-down analysis (22 lines, superseded) |
 | `2d_car_reference.png` | 1 | Car reference image for tracing |
 | `rc_chassis_frame_lines.png` | 1 | Traced frame lines output |
