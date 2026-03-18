@@ -92,6 +92,100 @@
   }
   .print-btn:hover { background: #333; }
 
+  /* ── PLACEMENT GUIDE (screen only) ── */
+  .placement-guide {
+    max-width: 680px;
+    margin: 0 auto 2rem;
+    background: var(--paper);
+    border: 1px solid #d9d9e1;
+    border-radius: 6px;
+    padding: 1.5rem 2rem;
+    font-family: 'Source Sans 3', 'Inter', sans-serif;
+  }
+
+  .placement-guide h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1B1E37;
+    margin-bottom: 0.25rem;
+  }
+
+  .placement-intro {
+    font-size: 0.8rem;
+    color: #64636d;
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .placement-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .placement-zone {
+    border: 1px solid #eef0f4;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .zone-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #eef0f4;
+  }
+
+  .zone-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .zone-header h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #1B1E37;
+    letter-spacing: 0.01em;
+  }
+
+  .zone-body {
+    padding: 0;
+  }
+
+  .placement-row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .placement-row:last-child {
+    border-bottom: none;
+  }
+
+  .placement-label-name {
+    flex-shrink: 0;
+    width: 140px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #1B1E37;
+  }
+
+  .placement-location {
+    color: #64636d;
+  }
+
+  @media print {
+    .placement-guide { display: none; }
+  }
+
   /* ── LABEL SHEETS ── */
   .sheet {
     width: 8in;
@@ -398,6 +492,148 @@
   </div>
 
   <button class="print-btn" onclick="window.print()">Print Labels</button>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- LABEL PLACEMENT GUIDE (screen only)           -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="placement-guide">
+  <h1>Label Placement Guide</h1>
+  <p class="placement-intro">Where each label goes on the physical robot. Print the labels first, then use this as reference during assembly.</p>
+
+  <div class="placement-grid">
+
+    <div class="placement-zone">
+      <div class="zone-header">
+        <span class="zone-dot" style="background:var(--green);"></span>
+        <h3>Chassis — Motor Wires</h3>
+      </div>
+      <div class="zone-body">
+        <div class="placement-row">
+          <span class="placement-label-name">LEFT FWD / LEFT BWD</span>
+          <span class="placement-location">Wrap on jumper wires from Pi GPIO 17, 27 to L298N IN1, IN2. Place near the Pi header end.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">RIGHT FWD / RIGHT BWD</span>
+          <span class="placement-location">Wrap on jumper wires from Pi GPIO 22, 23 to L298N IN3, IN4. Place near the Pi header end.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">L298N → LEFT / RIGHT</span>
+          <span class="placement-location">Wrap on motor output wires at the L298N screw terminals (OUT1/2 and OUT3/4).</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="placement-zone">
+      <div class="zone-header">
+        <span class="zone-dot" style="background:var(--blue);"></span>
+        <h3>Front Bumper — Sensor Wires</h3>
+      </div>
+      <div class="zone-body">
+        <div class="placement-row">
+          <span class="placement-label-name">ULTRA ECHO / ULTRA TRIG</span>
+          <span class="placement-location">Wrap on signal wires between Pi GPIO 24/25 and HC-SR04 pins. Echo wire must pass through voltage divider first.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">SENSOR 5V / SENSOR GND</span>
+          <span class="placement-location">Wrap on power wires running from Pi Pin 2 (5V) and Pin 6 (GND) to HC-SR04 VCC/GND.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="placement-zone">
+      <div class="zone-header">
+        <span class="zone-dot" style="background:#7d3c98;"></span>
+        <h3>Mast Top — Servo Wires</h3>
+      </div>
+      <div class="zone-body">
+        <div class="placement-row">
+          <span class="placement-label-name">PAN SERVO</span>
+          <span class="placement-location">Wrap on signal wire from GPIO 12 to MG90S pan servo. Label at the Pi header end where wires enter the mast.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">TILT SERVO</span>
+          <span class="placement-location">Wrap on signal wire from GPIO 13 to MG90S tilt servo. Label at the Pi header end.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="placement-zone">
+      <div class="zone-header">
+        <span class="zone-dot" style="background:var(--red);"></span>
+        <h3>Power System</h3>
+      </div>
+      <div class="zone-body">
+        <div class="placement-row">
+          <span class="placement-label-name">18650 → L298N</span>
+          <span class="placement-location">Wrap on the 7.4V battery leads where they connect to L298N +12V/GND screw terminals.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">COMMON GND</span>
+          <span class="placement-location">Wrap on the shared ground wire between Pi GND and L298N GND. Critical — mark clearly.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">18650 PACK — 7.4V</span>
+          <span class="placement-location">Stick directly on the 18650 battery holder. Visible from outside the chassis.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">POWER BANK — 5V</span>
+          <span class="placement-location">Stick on the USB-C power bank surface. Visible so nobody accidentally swaps power sources.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="placement-zone">
+      <div class="zone-header">
+        <span class="zone-dot" style="background:#555;"></span>
+        <h3>Boards &amp; Modules</h3>
+      </div>
+      <div class="zone-body">
+        <div class="placement-row">
+          <span class="placement-label-name">RASPBERRY PI 5</span>
+          <span class="placement-location">Stick on the chassis surface next to (not on) the Pi. Flat against the acrylic near the board edge.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">L298N MOTOR DRIVER</span>
+          <span class="placement-location">Stick on the chassis surface next to the L298N module. Helps identify which board is which.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">HC-SR04 ULTRASONIC</span>
+          <span class="placement-location">Stick behind/below the sensor on the front bumper mount.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">VOLTAGE DIVIDER</span>
+          <span class="placement-location">Stick on or near the mini breadboard holding the 1k + 2k resistors.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">ARDUCAM IMX708</span>
+          <span class="placement-location">Stick on the mast near the camera mount, not on the camera itself.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">PAN/TILT PLATFORM</span>
+          <span class="placement-location">Stick on the mast just below the pan/tilt bracket.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="placement-zone">
+      <div class="zone-header">
+        <span class="zone-dot" style="background:var(--ink);"></span>
+        <h3>Chassis Surface</h3>
+      </div>
+      <div class="zone-body">
+        <div class="placement-row">
+          <span class="placement-label-name">FRONT / LEFT / RIGHT / CAM UP</span>
+          <span class="placement-location">Stick orientation labels on the top acrylic plate edges. FRONT at the HC-SR04 end. LEFT/RIGHT match motor pairs.</span>
+        </div>
+        <div class="placement-row">
+          <span class="placement-label-name">ELKTRON (branding)</span>
+          <span class="placement-location">Center on the top plate of the chassis, between the Pi and the mast base.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════ -->
