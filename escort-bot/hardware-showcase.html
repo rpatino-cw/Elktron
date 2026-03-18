@@ -477,7 +477,7 @@
     </div>
     <div class="spec-card" data-reveal data-delay="80">
       <div class="spec-value">8<span class="unit"> GB</span></div>
-      <div class="spec-label">Raspberry Pi 5 — OpenCV DNN MobileNet SSD inference</div>
+      <div class="spec-label">Raspberry Pi 5 — YOLOv8n person detection</div>
     </div>
     <div class="spec-card" data-reveal data-delay="160">
       <div class="spec-value">30<span class="unit"> fps</span></div>
@@ -507,9 +507,9 @@
     <div class="arch-row" data-reveal data-delay="60">
       <div class="arch-label">Vision</div>
       <div class="arch-content">
-        <span class="arch-chip primary">Pi Camera (CSI)</span>
+        <span class="arch-chip primary">Arducam IMX708 (CSI)</span>
         <span class="arch-arrow">&#8594;</span>
-        <span class="arch-chip">OpenCV DNN MobileNet SSD</span>
+        <span class="arch-chip">YOLOv8n (Ultralytics)</span>
         <span class="arch-arrow">&#8594;</span>
         <span class="arch-chip accent">Person bbox + centroid</span>
       </div>
@@ -517,35 +517,32 @@
     <div class="arch-row" data-reveal data-delay="120">
       <div class="arch-label">Motion</div>
       <div class="arch-content">
-        <span class="arch-chip primary">Freenove Smart Car Board</span>
-        <span class="arch-chip">4x DC Geared Motors</span>
-        <span class="arch-chip">4WD Tank Drive</span>
+        <span class="arch-chip primary">L298N Dual H-Bridge</span>
+        <span class="arch-chip">4x TT DC Motors (2 parallel pairs)</span>
+        <span class="arch-chip">Differential Tank Drive</span>
       </div>
     </div>
     <div class="arch-row" data-reveal data-delay="180">
       <div class="arch-label">Sensors</div>
       <div class="arch-content">
-        <span class="arch-chip">HC-SR04 Ultrasonic</span>
-        <span class="arch-chip">IR Line Tracker</span>
-        <span class="arch-chip">2x Photoresistors</span>
+        <span class="arch-chip">HC-SR04 Ultrasonic (obstacle avoidance)</span>
       </div>
     </div>
     <div class="arch-row" data-reveal data-delay="240">
       <div class="arch-label">Actuation</div>
       <div class="arch-content">
-        <span class="arch-chip">Pan-Tilt Servos (x2)</span>
-        <span class="arch-chip">LEDs</span>
-        <span class="arch-chip">Buzzer</span>
+        <span class="arch-chip">Pan-Tilt Servos (x2 MG90S)</span>
+        <span class="arch-chip">Pan GPIO 12 / Tilt GPIO 13</span>
       </div>
     </div>
     <div class="arch-row" data-reveal data-delay="300">
       <div class="arch-label">Interface</div>
       <div class="arch-content">
-        <span class="arch-chip">GPIO (Connection Board)</span>
+        <span class="arch-chip">Pi 5 GPIO (40-pin header)</span>
         <span class="arch-arrow">&#8594;</span>
-        <span class="arch-chip">Smart Car Board</span>
+        <span class="arch-chip">L298N IN1-IN4</span>
         <span class="arch-arrow">&#8594;</span>
-        <span class="arch-chip accent">Motor PWM</span>
+        <span class="arch-chip accent">Motor Direction Control</span>
       </div>
     </div>
   </div>
@@ -581,7 +578,7 @@
         <td>$8</td>
       </tr>
       <tr data-reveal data-delay="120">
-        <td><span class="bom-status needed"></span>Freenove 4WD Smart Car Kit</td>
+        <td><span class="bom-status needed"></span>LK-COKOINO 4WD Chassis Kit (CKK0011)</td>
         <td>Amazon</td>
         <td>$65</td>
       </tr>
@@ -628,17 +625,17 @@
     <div class="power-row" data-reveal data-delay="80">
       <div class="power-source">18650 x2 (series)</div>
       <div class="power-arrow"></div>
-      <div class="power-dest">Smart Car Board &rarr; 4x Motors</div>
+      <div class="power-dest">L298N Driver &rarr; 4x Motors</div>
       <div class="power-voltage v7">7.4V</div>
     </div>
     <div class="power-row" data-reveal data-delay="160">
       <div class="power-source">Pi 5V Rail</div>
       <div class="power-arrow"></div>
-      <div class="power-dest">Sensors via Connection Board</div>
+      <div class="power-dest">HC-SR04 + Servos via GPIO</div>
       <div class="power-voltage v5">5V</div>
     </div>
     <div class="power-note" data-reveal data-delay="240">
-      Common GND between Pi and Smart Car Board is critical. Separate power rails prevent motor noise on the Pi.
+      Common GND between Pi and L298N is critical. Separate power rails prevent motor noise on the Pi.
     </div>
   </div>
 </section>
@@ -646,7 +643,7 @@
 <!-- GPIO Wiring -->
 <section class="wiring-section" id="wiring">
   <h2 data-reveal>GPIO Wiring</h2>
-  <p class="wiring-subtitle" data-reveal>BCM pin numbering. All signals through Freenove Connection Board to Smart Car Board.</p>
+  <p class="wiring-subtitle" data-reveal>BCM pin numbering. Pi 5 GPIO header direct to L298N motor driver and sensors.</p>
 
   <!-- Interactive GPIO Header Diagram -->
   <div class="gpio-header-wrap">
