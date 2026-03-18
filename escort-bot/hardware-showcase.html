@@ -854,6 +854,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const container = document.getElementById('canvas-wrap');
 const scene = new THREE.Scene();
@@ -926,102 +927,60 @@ const coolMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, roughness: 0.2
 
 const bot = new THREE.Group();
 
-// --- Chassis (LK-COKOINO 4WD — two acrylic plates) ---
-const chassisAccentMat = new THREE.MeshStandardMaterial({ color: 0x4a9eff, roughness: 0.4, metalness: 0.2, emissive: 0x4a9eff, emissiveIntensity: 0.15 });
-const tireMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.9, metalness: 0.0 });
-const motorBodyMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.35, metalness: 0.6 });
-const motorCapMat = new THREE.MeshStandardMaterial({ color: 0xc0c830, roughness: 0.4, metalness: 0.5 });
-const hubMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.3, metalness: 0.7 });
+// --- Chassis GLB (Meshy AI LK-COKOINO 4WD) ---
+let chassisTopY = 2.1; // default, updated after GLB loads
+const gltfLoader = new GLTFLoader();
+gltfLoader.load('../glb/Meshy_AI_Modular_robot_car_0315155200_generate.glb', (gltf) => {
+  const chassis = gltf.scene;
+  const box = new THREE.Box3().setFromObject(chassis);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const targetSize = 4.0;
+  const scale = targetSize / maxDim;
+  chassis.scale.setScalar(scale);
+  chassis.position.set(
+    -center.x * scale,
+    -box.min.y * scale,
+    -center.z * scale
+  );
+  chassis.traverse(child => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+  chassis.name = 'chassis-glb';
+  bot.add(chassis);
 
-// Bottom plate
-const plateLower = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.12, 4.8), chassisMat);
-plateLower.position.y = 0.7; plateLower.castShadow = true; plateLower.receiveShadow = true;
-bot.add(plateLower);
+  // Recalculate top of chassis for upper-plate components
+  const loadedBox = new THREE.Box3().setFromObject(chassis);
+  chassisTopY = loadedBox.max.y + 0.05;
 
-// Top plate (second deck)
-const plateUpper = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.1, 4.4), chassisMat);
-plateUpper.position.y = 2.1; plateUpper.castShadow = true;
-bot.add(plateUpper);
-
-// Standoffs between plates (hex pillars)
-const standoffGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.2, 6);
-[[-1.2, 1.4, -1.8], [1.2, 1.4, -1.8], [-1.2, 1.4, 1.8], [1.2, 1.4, 1.8], [-1.2, 1.4, 0], [1.2, 1.4, 0]].forEach(pos => {
-  const s = new THREE.Mesh(standoffGeo, metalMat);
-  s.position.set(...pos); s.castShadow = true;
-  bot.add(s);
+  // Reposition upper-plate components relative to chassis top
+  if (piBoard) piBoard.position.y = chassisTopY + 0.05;
+  if (piSoC) piSoC.position.y = chassisTopY + 0.08;
+  if (coolerBase) coolerBase.position.y = chassisTopY + 0.11;
+  if (connBoard) connBoard.position.y = chassisTopY + 0.04;
+  if (powerBank) powerBank.position.y = chassisTopY + 0.13;
+  if (ankerLabel) ankerLabel.position.y = chassisTopY + 0.225;
+  if (mastBase) mastBase.position.y = chassisTopY + 0.17;
+  if (panServo) panServo.position.y = chassisTopY + 0.36;
+  if (tiltBracket) tiltBracket.position.y = chassisTopY + 0.47;
+  if (camBody) camBody.position.y = chassisTopY + 0.58;
+  if (lens) lens.position.y = chassisTopY + 0.58;
+  if (usBody) usBody.position.y = chassisTopY + 0.28;
+  if (usSensor1) usSensor1.position.y = chassisTopY + 0.28;
+  if (usSensor2) usSensor2.position.y = chassisTopY + 0.28;
+  if (ledStrip) ledStrip.position.y = chassisTopY + 0.02;
+  // Cooler fins
+  coolerFins.forEach((fin, i) => { fin.position.y = chassisTopY + 0.21; });
+  if (fanHousing) fanHousing.position.y = chassisTopY + 0.3;
+  if (fanBlades) fanBlades.position.y = chassisTopY + 0.3;
+  if (usbc) usbc.position.y = chassisTopY + 0.06;
 });
 
-// Side rails (accent stripes)
-[-1, 1].forEach(side => {
-  const rail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.18, 4.8), chassisAccentMat);
-  rail.position.set(side * 1.6, 0.72, 0); rail.castShadow = true;
-  bot.add(rail);
-});
-
-// Front bumper
-const bumper = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.25, 0.1), chassisAccentMat);
-bumper.position.set(0, 0.75, -2.45); bumper.castShadow = true;
-bot.add(bumper);
-
-// --- 4WD Wheels + TT Motors ---
-const wheelGeos = {
-  motorBody: new THREE.CylinderGeometry(0.28, 0.28, 0.9, 12),
-  motorCap: new THREE.CylinderGeometry(0.18, 0.28, 0.15, 12),
-  tire: new THREE.CylinderGeometry(0.55, 0.55, 0.35, 24),
-  tread: new THREE.TorusGeometry(0.55, 0.04, 6, 24),
-  hub: new THREE.CylinderGeometry(0.2, 0.2, 0.37, 12),
-};
-
-function createWheelAssembly(x, z) {
-  const group = new THREE.Group();
-  const mb = new THREE.Mesh(wheelGeos.motorBody, motorBodyMat);
-  mb.rotation.z = Math.PI / 2; mb.position.set(x * 0.85, 0.5, z); mb.castShadow = true;
-  group.add(mb);
-  const mc = new THREE.Mesh(wheelGeos.motorCap, motorCapMat);
-  mc.rotation.z = Math.PI / 2; mc.position.set(x * 1.3, 0.5, z);
-  group.add(mc);
-  const tire = new THREE.Mesh(wheelGeos.tire, tireMat);
-  tire.rotation.z = Math.PI / 2; tire.position.set(x * 1.72, 0.55, z); tire.castShadow = true;
-  group.add(tire);
-  const tread = new THREE.Mesh(wheelGeos.tread, wheelMat);
-  tread.rotation.y = Math.PI / 2; tread.rotation.z = Math.PI / 2; tread.position.copy(tire.position);
-  group.add(tread);
-  const hub = new THREE.Mesh(wheelGeos.hub, hubMat);
-  hub.rotation.z = Math.PI / 2; hub.position.copy(tire.position);
-  group.add(hub);
-  return group;
-}
-
-const wheelPositions = [[-1, -1.6], [1, -1.6], [-1, 1.6], [1, 1.6]];
-const wheels = [];
-wheelPositions.forEach(([x, z]) => {
-  const w = createWheelAssembly(x, z);
-  bot.add(w);
-  wheels.push(w);
-});
-
-// --- Smart Car Board (PCB on lower plate) ---
-const smartBoard = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.0), pcbMat);
-smartBoard.position.set(0, 0.78, 0.2);
-bot.add(smartBoard);
-
-// Chip on smart board
-const chip = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.3), darkMat);
-chip.position.set(0, 0.82, 0.2);
-bot.add(chip);
-
-// --- Battery holder (on lower plate, rear) ---
-const battHolder = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.28, 0.6), darkMat);
-battHolder.position.set(0, 0.88, -0.8);
-bot.add(battHolder);
-// Batteries visible
-const battGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.65, 10);
-const b1 = new THREE.Mesh(battGeo, batteryMat);
-b1.rotation.z = Math.PI / 2; b1.position.set(-0.12, 0.94, -0.8);
-bot.add(b1);
-const b2 = new THREE.Mesh(battGeo, batteryMat);
-b2.rotation.z = Math.PI / 2; b2.position.set(0.12, 0.94, -0.8);
-bot.add(b2);
+// (Smart car board + batteries are part of the GLB chassis model)
 
 // --- Raspberry Pi 5 (on upper plate) ---
 const piBoard = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.04, 0.56), piMat);
@@ -1041,10 +1000,12 @@ coolerBase.castShadow = true;
 bot.add(coolerBase);
 
 // Cooler fins
+const coolerFins = [];
 for (let i = 0; i < 6; i++) {
   const fin = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.14, 0.42), coolMat);
   fin.position.set(-0.3 - 0.18 + i * 0.072, 2.31, 0.4);
   bot.add(fin);
+  coolerFins.push(fin);
 }
 
 // Fan on cooler
@@ -1143,9 +1104,6 @@ function animate() {
 
   // Fan spins
   fanBlades.rotation.y += 12 * delta;
-
-  // Subtle wheel idle spin
-  wheels.forEach(w => { if (w.children[2]) w.children[2].rotation.x += 0.3 * delta; });
 
   controls.update();
   renderer.render(scene, camera);
