@@ -156,7 +156,7 @@ def cover_page(styles):
     ], [
         Spacer(1, 24),
     ], [
-        Paragraph("Team Elktron  |  March 17, 2026  |  Hackathon Demo: March 23", styles["CoverSub"]),
+        Paragraph("Team Elktron  |  March 17, 2026  |  Hackathon: March 23–25 · Demo Day: March 26", styles["CoverSub"]),
     ]]
     banner = Table(banner_data, colWidths=[6.5 * inch])
     banner.setStyle(TableStyle([
@@ -685,7 +685,7 @@ def recommendation(styles):
         elements.append(Paragraph(item, styles["Body"]))
     elements.append(Spacer(1, 12))
 
-    elements.append(Paragraph("Timeline to Demo (March 23)", styles["SubHead"]))
+    elements.append(Paragraph("Timeline to Demo Day (March 26)", styles["SubHead"]))
     timeline = [
         ["Day", "Date", "Path A", "Path B"],
         ["Tue", "Mar 18", "Order resistors", "Flash Pico + wire sensor"],

@@ -1,7 +1,7 @@
 # Escort Bot — Person-Following Vendor Escort + Rack Scanner
 
 ## What This Is
-The Escort Bot is one of two robots in the Elktron hackathon project (CoreWeave, March 23 2026). It is a mobile robot that autonomously follows vendors on the data center floor during maintenance visits. While escorting, it performs rack scans — sweeping its camera bottom-to-top across 42U racks to capture visual state before, during, and after vendor work. The goal is to create an audit trail of rack condition tied to each vendor visit, replacing the current manual process where DCTs walk alongside vendors and eyeball things.
+The Escort Bot is one of two robots in the Elktron hackathon project (CoreWeave, March 23–25 2026 · Demo Day: March 26). It is a mobile robot that autonomously follows vendors on the data center floor during maintenance visits. While escorting, it performs rack scans — sweeping its camera bottom-to-top across 42U racks to capture visual state before, during, and after vendor work. The goal is to create an audit trail of rack condition tied to each vendor visit, replacing the current manual process where DCTs walk alongside vendors and eyeball things.
 
 The other robot is the SO-101 Arm (see `../robotics-site/`). The dashboard that connects both is in `../elktron-app/`.
 
@@ -160,14 +160,28 @@ This folder has the most Three.js pages in the project (6 of 11 total):
 
 Access: `ssh pi@escort-bot.local` → run `claude` in the escort-bot directory.
 
+**Tailscale VPN (as of 2026-03-17):** Pi reachable remotely at `100.85.225.68`. Ask Romeo for access.
+
+**Python venv confirmed (2026-03-17):** torch, YOLOv8, picamera2, pillow all working.
+
+## Known Issues
+
+- **Motors not spinning (found 2026-03-17):** GPIO signals verified (`test_motors.py` → signal active: YES), but L298N +5V logic pin was not connected → outputs stuck at 0V. **Fix:** connect Pi 5V → L298N +5V (remove regulator jumper first).
+- **HC-SR04 voltage divider required:** ECHO pin outputs 5V, Pi GPIO is 3.3V tolerant only. Need 100Ω + 200Ω resistors on a breadboard mounted on the chassis.
+- **Pi 5 needs airflow underneath** — ensure chassis mounting allows ventilation under the board.
+- **3ft camera ribbon cable ordered 3/17** — current ribbon too short for mast mounting.
+
 ## What's NOT Done Yet
 
-- Hardware assembly (chassis arrives 3/11, camera 3/14)
-- Flash Pi 5 SD card
-- ~~Camera-only detection test on real Pi~~ DONE 2026-03-16 (YOLOv8n, 0.78 confidence)
-- First motor test with L298N
-- Mast construction (PVC from Home Depot)
-- Pan/tilt mount on mast
-- Full integration test (follow + scan)
-- Tuning on real DC floor (KP, speed, thresholds)
-- Demo recording
+- ~~Hardware assembly~~ — **DONE 3/16** (chassis built, L298N wired, camera connected)
+- ~~Flash Pi 5 SD card~~ — **DONE**
+- ~~Camera-only detection test on real Pi~~ — **DONE 2026-03-16** (YOLOv8n, 0.78 confidence)
+- ~~Pi desktop env + Tailscale~~ — **DONE 2026-03-17**
+- [ ] **Fix L298N 5V logic pin** → verify wheel movement (CRITICAL — 3/18)
+- [ ] Wire HC-SR04 with voltage divider
+- [ ] Mast construction (PVC from Home Depot)
+- [ ] Pan/tilt mount on mast
+- [ ] Full integration test (follow + scan)
+- [ ] Tuning on real DC floor (KP, speed, thresholds)
+- [ ] Pi API server for dashboard integration (Parth — assigned 3/18)
+- [ ] Demo recording

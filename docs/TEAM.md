@@ -54,16 +54,20 @@
 
 ### Parth Patel — Backend Lead
 **Title:** Data Center Technician
-**Objective:** Own the dashboard backend — improve the FastAPI server, wire in mock/real data from Jira and NetBox, build out API endpoints.
+**Objective:** Own the dashboard backend and Pi-side API server — build the bridge between robot hardware and the dashboard UI.
 
 **Scope:**
+- **Pi API server** (`escort-bot/api_server.py`) — Flask or FastAPI running on Pi 5, exposes bot state + MJPEG camera stream (CRITICAL — #1 priority)
+- **MJPEG camera pipeline** — stream Pi camera frames with YOLOv8 detection overlays to dashboard
 - FastAPI server improvements (`elktron-app/api/server.py`)
-- Jira/NetBox data integration (mock data first, real data stretch)
-- WebSocket data pipeline to frontend
-- Scan report JSON generation
-- Wire `arm.py` and `escort.py` to receive real telemetry
+- Wire `escort.py` to poll real Pi data (code exists, needs Pi server to connect to)
+- Scan report upload endpoint (`POST /api/scans`)
+- Coordinate with Josh on arm endpoints/data for `arm.py`
+- Jira/NetBox data integration (stretch goal — mock data is fine for demo)
 
-**Hardware:** Laptop
+**Confirmed:** 2026-03-18 — agreed in `#the-elks-2026`
+
+**Hardware:** Laptop + remote access to Pi 5 via Tailscale (`100.85.225.68`)
 
 ---
 
@@ -85,7 +89,7 @@
 
 ### Raphael Rodea — Build Crew + Logistics Lead
 **Title:** Data Center Technician
-**Objective:** Own all physical assembly, parts inventory, battery management, and demo day logistics. The reason the robots are built clean, charged, and present on March 23.
+**Objective:** Own all physical assembly, parts inventory, battery management, and demo day logistics. The reason the robots are built clean, charged, and present on Demo Day (March 26).
 
 **Scope:**
 - Chassis assembly — mount motors, attach wheels, screw standoffs (pairs with Alex)

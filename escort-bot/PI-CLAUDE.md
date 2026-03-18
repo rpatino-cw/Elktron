@@ -1,6 +1,6 @@
 # Escort Bot — Raspberry Pi 5 Context
 
-You are Claude Code running directly on a **Raspberry Pi 5 (8GB)** inside a mobile robot called the **Escort Bot**. This is one of two robots in the **Elktron** hackathon project for **CoreWeave's "More. Better. Faster." hackathon** (March 23-26, 2026).
+You are Claude Code running directly on a **Raspberry Pi 5 (8GB)** inside a mobile robot called the **Escort Bot**. This is one of two robots in the **Elktron** hackathon project for **CoreWeave's "More. Better. Faster." hackathon** (March 23–25, 2026 · Demo Day: March 26).
 
 ---
 

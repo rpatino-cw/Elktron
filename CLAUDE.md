@@ -1,8 +1,9 @@
 # Elktron — Hackathon Project Config
 
 ## Key Info
-- **Event:** March 23-25, 2026
-- **Demo Day:** March 26 (2-5pm ET)
+- **Submissions closed:** March 12, 2026
+- **Hackathon days:** March 23–25, 2026
+- **Demo Day:** March 26 (11am–2pm PT / 2pm–5pm ET)
 - **Team:** Elktron — signed up March 12 via `#more-faster-better-2026`
 - **Deliverable:** 2-3 min pre-recorded demo + optional slides + GitHub repo
 - **Track:** Build with Velocity
@@ -290,7 +291,17 @@ Consider standardizing to **v0.170.0** (latest used) for consistency.
 | `/elktron-robotics-debugger` | Hardware bring-up, sensor/motor/camera issues, training failures |
 | `/elktron-pitch-writer` | Pitch, demo narration, slides, README, submission copy |
 | `/frontend-design` | Before writing any frontend code |
+| `/coreweave-frontend` | Any UI that should match CoreWeave cloud console design system (dashboards, admin UIs, internal tools) |
 | `threejs-*` (all 10) | Before any Three.js work — load all 10 skills |
+
+## Design System — CoreWeave Console Alignment
+
+All Elktron pages use `design-system.css` implementing the CW cloud console visual language:
+- **Primary:** `#4264ff` | **Font:** Source Sans 3 | **Density:** Compact (text-sm, tight padding)
+- **Light mode:** `#fcfcfe` bg | **Dark mode:** `html.dark` class
+- Invoke `/coreweave-frontend` before ANY frontend work — colors, typography, components must match CW console.
+- All new pages MUST link `design-system.css` and use token names, not hardcoded hex.
+- When editing `elktron-app/` files, ALWAYS load `/coreweave-frontend` skill first.
 
 ## Key Docs — Read Order
 

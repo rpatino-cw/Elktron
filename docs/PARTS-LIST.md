@@ -2,7 +2,7 @@
 
 > **Last updated:** 2026-03-12
 > **Budget estimate:** ~$430–$455 total (before owned items)
-> **Hackathon date:** March 23, 2026
+> **Hackathon:** March 23–25, 2026 · **Demo Day:** March 26
 
 Legend: ✅ = Owned | 🛒 = Need to buy | ⏳ = Ordered, waiting
 

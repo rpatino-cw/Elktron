@@ -1,6 +1,6 @@
 # Elktron — Master Team Checklist
 
-> **Hackathon:** March 23, 2026 | **Sign-up deadline:** March 12
+> **Submissions closed:** March 12, 2026 | **Hackathon:** March 23–25 | **Demo Day:** March 26 (11am–2pm PT / 2pm–5pm ET)
 > **Deliverable:** 2–3 min pre-recorded demo + optional slides + GitHub repo
 > **Track:** Build with Velocity
 > **Last updated:** 2026-03-11
@@ -690,7 +690,8 @@ March 19          ─── Arm assembly + calibration
 March 20          ─── Arm data collection + training, dashboard polish
 March 21          ─── Integration testing, demo script finalized
 March 22          ─── Rehearsal, video recording, final polish
-March 23          ─── DEMO DAY
+March 23–25       ─── HACKATHON DAYS
+March 26          ─── DEMO DAY (11am–2pm PT / 2pm–5pm ET)
 ```
 
 ---
@@ -704,7 +705,7 @@ March 23          ─── DEMO DAY
 | Pi 5 overheats under CV load | Medium | Low | Active cooler ordered. If still hot: reduce resolution | Romeo |
 | WiFi fails at venue | Medium | Medium | Phone hotspot backup, dashboard runs locally | Romeo |
 | Battery dies mid-demo | Medium | Low | Spare charged packs on standby | Alex |
-| Team member unavailable March 23 | Medium | Low | Cross-train: each robot has 2 people who can operate it | All |
+| Team member unavailable March 23–26 | Medium | Low | Cross-train: each robot has 2 people who can operate it | All |
 | Camera arrives late (ETA 3/14) | Low | Low | Use USB webcam until Arducam arrives | Romeo |
 | Training doesn't converge | Medium | Medium | More data (100+ episodes) or simpler task subset | Josh |
 

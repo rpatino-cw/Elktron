@@ -1,6 +1,6 @@
 # Hackathon Day Workflow
 
-## Timeline — March 23
+## Timeline — March 23–25 (Hackathon) · March 26 (Demo Day)
 | Time | Activity |
 |------|----------|
 | Kickoff | Team sync, finalize idea |

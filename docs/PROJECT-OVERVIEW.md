@@ -93,5 +93,5 @@ Total: **~$430** for both robots, all parts, off-the-shelf. No custom fabricatio
 
 ---
 
-*CoreWeave "More. Better. Faster." Hackathon — March 23, 2026*
+*CoreWeave "More. Better. Faster." Hackathon — March 23–25, 2026 · Demo Day: March 26*
 *Track: Build with Velocity*

@@ -1,7 +1,7 @@
 # Elktron — Progress Log
 
 ## Project Overview
-**Two robots for the CoreWeave Hackathon (March 23, 2026)**
+**Two robots for the CoreWeave Hackathon (March 23–25, 2026 · Demo Day: March 26)**
 1. **SO-101 Arm** — Imitation learning for DC tasks (optic seating)
 2. **Escort Bot** — Person-following vendor escort on the DC floor
 
@@ -24,12 +24,12 @@ Tracked in `#the-elks-2026` Slack list.
 | 2 | Receive + inventory hardware — open packages, verify, label, organize | **Done** | Alex, Romeo | 3/13 |
 | 3 | Flash Pi + install software — Bookworm Lite, deps, YOLOv8n model | **Done** | Romeo | 3/14 |
 | 4 | Build escort bot — assemble chassis, wire L298N, build mast, mount camera | **~80% done** — chassis + L298N + camera done, mast + HC-SR04 + motor power remaining | Alex, Raphael | 3/16 |
-| 5 | Test escort bot — person detection, floor test, tune steering and speed | **In progress** — detection working, motor test next | Romeo, Raphael | 3/17 |
+| 5 | Test escort bot — person detection, floor test, tune steering and speed | **In progress** — detection working, motors blocked (L298N 5V fix needed) | Romeo, Alex | 3/18 |
 | 6 | Build SO-101 arm — assemble, calibrate, install LeRobot | Not started — kit ETA 3/18 | Josh | 3/19 |
 | 7 | Train arm — record 50 demos, train ACT policy | Not started | Josh | 3/21 |
-| 8 | Dashboard integration — live feeds, telemetry, scan log | Not started — backend written, needs Pi connection | Parth, Romeo | 3/21 |
+| 8 | Dashboard integration — live feeds, telemetry, scan log | **Parth confirmed 3/18** — building Pi API server + camera stream | Parth, Romeo | 3/21 |
 | 9 | Demo polish — clean wiring, signage, rehearse | Not started | Talha, Raphael | 3/22 |
-| 10 | Record + submit — 2-3 min video, slides, GitHub | Not started | Talha | 3/23 |
+| 10 | Record + submit — 2-3 min video, slides, GitHub | Not started | Talha | 3/25 |
 
 ## Team (6 active + 1 observer)
 
@@ -46,6 +46,46 @@ Tracked in `#the-elks-2026` Slack list.
 ---
 
 ## What's Been Done
+
+### Session: 2026-03-18
+
+**Parth Assigned to Dashboard Backend**
+- Parth confirmed in `#the-elks-2026` — taking on the camera system / dashboard backend for both bots
+- Dashboard frontend is done (5 panels, mock data). Backend skeleton exists (FastAPI + WebSocket + Pydantic models)
+- Critical gaps identified: Pi has no API server, no camera stream pipeline
+- Parth needs to build `escort-bot/api_server.py` (Flask or FastAPI on Pi) + MJPEG camera stream
+- Needs to coordinate with Josh on arm endpoints/data
+
+**Site Audit & Cleanup**
+- Deleted 25 broken/redundant HTML pages (43 → 18 live pages)
+- Rebuilt `index.html` hub from 10 phases/37 cards → 5 phases/15 cards
+- Fixed broken links in `robotics-site/index.html` and `mast-hardware.html`
+- Updated `docs/hackathon-sites.md`, all CLAUDE.md files, Slack channel refs across 8 files
+- Two commits pushed: `d677902` (cleanup) and `2b585cd` (audit)
+
+### Session: 2026-03-17
+
+**Pi 5 Environment Setup — Desktop + Remote Access**
+- Desktop environment + CLI tools + GUI apps installed on Pi 5
+- Python venv confirmed: torch, YOLOv8, picamera2, pillow all working
+- Tailscale VPN up — Pi reachable remotely at `100.85.225.68` (ask Romeo for access)
+- Wiring guide completed through Step 6
+
+**Motor Blocker Identified**
+- GPIO signals verified (`test_motors.py` → signal active: YES)
+- **Root cause:** L298N +5V logic pin not connected → outputs stuck at 0V
+- **Fix:** Connect Pi 5V → L298N +5V (remove regulator jumper first)
+- L298N wiring diagram identified — specific pin connection was missed during assembly
+
+**Hardware Updates**
+- Bought 3ft ribbon cable for camera (longer reach for mast mounting)
+- HC-SR04 voltage divider requirement confirmed: ECHO outputs 5V, Pi GPIO is 3.3V only — need 100Ω + 200Ω resistors on breadboard (must fit somewhere on chassis)
+- Pi 5 needs airflow underneath — thermal management note for chassis design
+
+**GitHub Repo Cleanup**
+- Removed junk files, tightened structure, fixed README links
+
+---
 
 ### Session: 2026-03-16
 
@@ -221,6 +261,7 @@ Tracked in `#the-elks-2026` Slack list.
 | 18650 batteries (4-pack) + charger | 3/11 | 3/15 | In transit — arriving Saturday |
 | Arducam Camera Module 3 Wide (IMX708) | 3/10 | 3/15 | In transit — arriving Saturday |
 | Arducam Ribbon Flex Extension Cable Set (7pc) | 3/17 | 3/18 | In transit — arriving tomorrow |
+| 3ft Camera Ribbon Cable | 3/17 | 3/18 | In transit — for mast camera mounting |
 | PVC Pipe 1" x 10ft + Tee fitting | — | **Pickup ready** | In HD cart ($8.09) — still needs pickup |
 
 **Backup / Alternatives**
@@ -269,20 +310,26 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 
 ## What's Next
 
-### Critical Path — Bot Must Move (March 16-17)
-1. [ ] Wire L298N control pins → Pi GPIO (IN1→17, IN2→27, IN3→22, IN4→23, GND→GND)
-2. [ ] Remove L298N 5V jumper (Pi powered separately)
+### Critical Path — Bot Must Move (March 18)
+1. [x] Wire L298N control pins → Pi GPIO — **Done 3/16** (signals verified)
+2. [ ] **FIX: Connect Pi 5V → L298N +5V logic pin** (remove regulator jumper first) — ROOT CAUSE of motors not spinning
 3. [ ] Bench test motors: `python3 motor_test.py` (wheels off ground)
-4. [ ] Wire HC-SR04: VCC→5V, GND, TRIG→GPIO25, ECHO→voltage divider→GPIO24
+4. [ ] Wire HC-SR04: VCC→5V, GND, TRIG→GPIO25, ECHO→voltage divider (100Ω + 200Ω)→GPIO24
 5. [ ] Test sonar: `python3 sonar_test.py`
 6. [ ] First follow test: `python3 main.py` with motors + sonar integrated
 7. [ ] Record phone video of bot following person
 
-### Bonus (March 18-22)
-8. [ ] PVC mast + camera elevation
-9. [ ] Scope violation detection (hardcode rack IDs, flag unauthorized stops)
-10. [ ] Dashboard live telemetry (WebSocket from Pi)
-11. [ ] PID tuning for smoother following
+### Dashboard Integration (March 18-21) — Parth
+8. [ ] Build Pi API server (`escort-bot/api_server.py`) — Flask or FastAPI, exposes bot state + camera MJPEG
+9. [ ] Wire dashboard `escort.py` to poll real Pi data
+10. [ ] Add scan upload endpoint (`POST /api/scans`)
+11. [ ] Test arm serial connection (depends on Josh having hardware)
+
+### Hardware (March 18-22)
+12. [ ] PVC mast + camera elevation
+13. [ ] Mount HC-SR04 voltage divider breadboard on chassis
+14. [ ] Ensure Pi 5 airflow underneath
+15. [ ] PID tuning for smoother following
 
 ### SO-101 Arm (March 16-19)
 17. [ ] Assemble SO-101 arms when kit arrives (~2-3 hrs)
@@ -298,6 +345,14 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 25. [ ] Record 2-3 min demo video
 
 ### Completed
+0. [x] Pi 5 desktop env + CLI tools + GUI apps — **Done 3/17**
+0. [x] Tailscale VPN up on Pi — reachable at `100.85.225.68` — **Done 3/17**
+0. [x] Python venv confirmed (torch, YOLOv8, picamera2, pillow) — **Done 3/17**
+0. [x] Wiring guide completed through Step 6 — **Done 3/17**
+0. [x] Motor blocker root cause found (L298N 5V logic pin) — **Found 3/17**
+0. [x] 3ft camera ribbon cable ordered — **Ordered 3/17, ETA 3/18**
+0. [x] Site audit: 25 pages deleted, hub rebuilt (5 phases/15 cards) — **Done 3/18**
+0. [x] Parth confirmed for dashboard backend — **Agreed 3/18**
 1. [x] Order Freenove kit + batteries + power bank — **Done 3/9**
 2. [x] Order SO-ARM101 DIY kit + webcam — **Done 3/9**
 3. [x] Create detailed parts list with Amazon links — **Done 3/9** (`PARTS-LIST.md`)
@@ -311,7 +366,7 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 11. [x] Write `elktron-app/api/models.py` — Pydantic schemas — **Done 3/10**
 12. [x] Build dashboard panels in `elktron-app/index.html` — **Already complete** (all 5 panels + JS + WebSocket)
 
-### March 23 — Demo Day
+### March 26 — Demo Day (11am–2pm PT / 2pm–5pm ET)
 
 ---
 

@@ -4,19 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Elktron — Mission Control</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inconsolata:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&family=Inconsolata:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../design-system.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #f8f9fc;
-      --bg-white: #ffffff;
-      --bg-tint: #f3f4fa;
-      --bg-hover: #eef0f7;
+      /* Taskboard-specific aliases (map to design-system tokens) */
+      --bg: var(--bg-primary);
+      --bg-white: var(--bg-surface);
+      --bg-tint: var(--bg-elevated);
       --bg-active: #e8ebf5;
-      --text: #1a1d2e;
-      --text-2: #525874;
-      --text-3: #9098b1;
+      --text: var(--text-primary);
+      --text-2: var(--text-secondary);
+      --text-3: var(--text-tertiary);
       --text-4: #b8bdd4;
       --accent: #2741E7;
       --accent-h: #4260f5;
@@ -36,19 +37,15 @@
       --blue: #579bfc;
       --blue-soft: rgba(87,155,252,0.10);
       --teal: #0891b2;
-      --border: #e6e9f0;
-      --border-2: #d4d8e8;
-      --shadow-sm: 0 1px 2px rgba(26,29,46,0.04);
-      --shadow-md: 0 4px 12px rgba(26,29,46,0.06);
-      --shadow-lg: 0 8px 24px rgba(26,29,46,0.08);
-      --shadow-xl: 0 12px 40px rgba(26,29,46,0.10);
+      --border: var(--border-default);
+      --border-2: var(--border-strong);
       --shadow-drag: 0 20px 60px rgba(39,65,231,0.18);
-      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
-      --mono: 'Inconsolata', monospace;
-      --ease: cubic-bezier(0.16, 1, 0.3, 1);
-      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-      --radius: 8px;
-      --radius-lg: 12px;
+      --font: var(--font-sans);
+      --mono: var(--font-mono);
+      --ease: var(--ease-out);
+      --ease-out-quart: var(--ease-in-out);
+      --radius: var(--radius-sm);
+      --radius-lg: var(--radius-md);
     }
 
     html { -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
@@ -805,11 +802,118 @@
       }
     }
 
+    /* ─── BRIEFING VIEW ─── */
+    .briefing-view { padding: 28px; max-width: 960px; }
+    .briefing-member-strip {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .briefing-member-card {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px; border-radius: var(--radius-lg);
+      background: var(--bg-white); border: 2px solid var(--border);
+      cursor: pointer; transition: all 0.15s var(--ease);
+      min-width: 160px;
+    }
+    .briefing-member-card:hover { border-color: var(--border-2); box-shadow: var(--shadow-sm); }
+    .briefing-member-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+    .briefing-member-card .member-dot { width: 32px; height: 32px; font-size: 11px; }
+    .briefing-member-info { display: flex; flex-direction: column; }
+    .briefing-member-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .briefing-member-role { font-size: 11px; color: var(--text-3); font-weight: 500; }
+    .briefing-member-stat {
+      margin-left: auto; font-family: var(--mono); font-size: 11px;
+      font-weight: 700; color: var(--text-3);
+    }
+
+    .briefing-panel { animation: cardIn 0.3s var(--ease) both; }
+    .briefing-empty {
+      text-align: center; padding: 80px 20px; color: var(--text-3);
+      font-size: 14px; font-weight: 500;
+    }
+    .briefing-section {
+      background: var(--bg-white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+    .briefing-section-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .briefing-section-title svg { width: 16px; height: 16px; }
+    .briefing-section-icon {
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .briefing-task-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--bg-tint);
+      font-size: 13px;
+    }
+    .briefing-task-row:last-child { border-bottom: none; }
+    .briefing-task-row.is-done { opacity: 0.45; text-decoration: line-through; }
+    .briefing-task-id { font-family: var(--mono); font-size: 11px; color: var(--text-3); min-width: 52px; }
+    .briefing-task-text { flex: 1; font-weight: 500; }
+    .briefing-task-due {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 4px; background: var(--bg-tint); color: var(--text-2);
+    }
+    .briefing-task-due.overdue { background: var(--red-soft); color: var(--red); }
+    .briefing-task-due.soon { background: var(--yellow-soft); color: var(--orange); }
+
+    .briefing-timeline-date {
+      font-size: 12px; font-weight: 700; color: var(--text-2);
+      padding: 12px 0 6px; border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .briefing-timeline-date:first-child { padding-top: 0; }
+
+    .briefing-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 12px; border-radius: 6px;
+      font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      transition: background 0.12s;
+    }
+    .briefing-link:hover { background: var(--accent-soft); }
+    .briefing-link-cat {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 2px 6px; border-radius: 4px;
+      background: var(--bg-tint); color: var(--text-3);
+    }
+
+    .briefing-tip {
+      display: flex; gap: 10px; padding: 10px 0;
+      border-bottom: 1px solid var(--bg-tint); font-size: 13px; line-height: 1.5;
+    }
+    .briefing-tip:last-child { border-bottom: none; }
+    .briefing-tip-num {
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      color: var(--accent); min-width: 20px; padding-top: 1px;
+    }
+
+    .briefing-question {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--bg-tint); font-size: 13px;
+    }
+    .briefing-question:last-child { border-bottom: none; }
+    .briefing-q-check {
+      width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border-2);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px; transition: all 0.15s;
+    }
+    .briefing-q-check:hover { border-color: var(--accent); }
+    .briefing-q-check.checked { background: var(--green); border-color: var(--green); }
+    .briefing-q-check.checked svg { opacity: 1; }
+    .briefing-q-check svg { width: 12px; height: 12px; color: white; opacity: 0; }
+
     /* ─── RESPONSIVE ─── */
     @media (max-width: 900px) {
       .sidebar { display: none; }
       .topbar { padding: 0 12px; }
-      .progress-header, .toolbar, .queue, .kanban { padding-left: 12px; padding-right: 12px; }
+      .progress-header, .toolbar, .queue, .kanban, .briefing-view { padding-left: 12px; padding-right: 12px; }
+      .briefing-member-card { min-width: 140px; padding: 8px 12px; }
     }
   </style>
 </head>
@@ -821,6 +925,7 @@
   <div class="topbar-sep"></div>
   <button class="topbar-tab active" data-view="queue" onclick="setView('queue')">Queue</button>
   <button class="topbar-tab" data-view="kanban" onclick="setView('kanban')">Board</button>
+  <button class="topbar-tab" data-view="briefing" onclick="setView('briefing')">Briefing</button>
   <div class="topbar-right">
     <span class="topbar-countdown" id="countdown"></span>
   </div>
@@ -879,6 +984,9 @@
 
     <!-- KANBAN VIEW -->
     <div class="kanban" id="kanban-view" style="display:none"></div>
+
+    <!-- BRIEFING VIEW -->
+    <div class="briefing-view" id="briefing-view" style="display:none"></div>
   </div>
 </div>
 
@@ -892,9 +1000,10 @@ const TEAM = [
   { id: 'romeo', name: 'Romeo Patino', role: 'Lead', color: '#2741E7', short: 'RP' },
   { id: 'raphael', name: 'Raphael Rodea', role: 'Logistics', color: '#7c3aed', short: 'RR' },
   { id: 'josh', name: 'Josh Tapia', role: 'Arm Lead', color: '#0891b2', short: 'JT' },
-  { id: 'parth', name: 'Parth Patel', role: 'Dashboard', color: '#c2410c', short: 'PP' },
+  { id: 'parth', name: 'Parth Patel', role: 'Backend Lead', color: '#c2410c', short: 'PP' },
   { id: 'andrew', name: 'Andrew Westberg', role: 'Observer', color: '#15803d', short: 'AW' },
   { id: 'talha', name: 'Talha Shakil', role: 'Media', color: '#a16207', short: 'TS' },
+  { id: 'alex', name: 'Alex Murillo', role: 'Hardware Lead', color: '#dc2626', short: 'AM' },
 ];
 
 const PHASES = [
@@ -908,7 +1017,7 @@ const PHASES = [
   { id: 7, name: 'Demo Video', color: '#ff642e', due: '3/22', desc: 'Write 3-minute narration script, film escort bot following vendor + arm seating optic + dashboard panels, record B-roll, edit to final cut with title cards and overlays, export 1080p.' },
   { id: 8, name: 'Pitch Deck', color: '#fdab3d', due: '3/22', desc: 'Create 5-7 slide deck: problem (unmonitored vendors, manual optic seating), solution (two robots + one dashboard), architecture diagrams, demo screenshots, impact metrics, and roadmap.' },
   { id: 9, name: 'Integration', color: '#579bfc', due: '3/22', desc: 'Run both robots simultaneously with live telemetry flowing to the dashboard, verify camera feeds stream, scan reports generate, rehearse full demo 3x back-to-back, prepare failsafe plans.' },
-  { id: 10, name: 'Demo Day', color: '#e2445c', due: '3/23', desc: 'Charge all batteries night before, pack labeled boxes (robots, cables, PSUs, props, spare parts), arrive early to set up, connect venue WiFi, do dry run, execute demo with assigned roles, submit to judges.' },
+  { id: 10, name: 'Demo Day', color: '#e2445c', due: '3/26', desc: 'Demo Day: 11am–2pm PT / 2pm–5pm ET. Charge all batteries night before, pack labeled boxes (robots, cables, PSUs, props, spare parts), arrive early to set up, connect venue WiFi, do dry run, execute demo with assigned roles, submit to judges.' },
 ];
 
 const STATUSES = [
@@ -930,15 +1039,9 @@ const PRIORITIES = [
 const TASKS = [
   // Phase 0 — Admin
   { id: 'FC-001', phase: 0, text: 'Sign up team in #more-faster-better-2026', owner: null, priority: 'critical', due: '3/12', status: 'done' },
-  { id: 'FC-002', phase: 0, text: 'Confirm all members have Slack access to hackathon channel', owner: null, priority: 'high', due: '3/12', status: 'done' },
   { id: 'FC-003', phase: 0, text: 'Create shared GitHub repo — add all collaborators', owner: 'romeo', priority: 'high', due: '3/12', status: 'done' },
-  { id: 'FC-004', phase: 0, text: 'Share TEAM-CHECKLIST.md with everyone', owner: 'romeo', priority: 'medium', due: '3/12', status: 'done' },
-  { id: 'FC-005', phase: 0, text: 'Everyone reads VELOCITY.md', owner: null, priority: 'medium', due: '3/12', status: 'done' },
-  { id: 'FC-006', phase: 0, text: 'Confirm availability March 20-23', owner: null, priority: 'high', due: '3/12', status: 'done' },
-  { id: 'FC-007', phase: 0, text: 'Identify who can pick up Home Depot items', owner: null, priority: 'low', due: '3/13' },
-  { id: 'FC-008', phase: 0, text: 'Pick up PVC pipe 1" + T-connector from Home Depot', owner: null, priority: 'medium', due: '3/14' },
-  { id: 'FC-009', phase: 0, text: 'Create team Slack group chat for quick coordination', owner: 'romeo', priority: 'medium', due: '3/12', status: 'done' },
-  { id: 'FC-010', phase: 0, text: 'Share Pi SSH credentials with team', owner: null, priority: 'medium', due: '3/13' },
+  { id: 'FC-007', phase: 0, text: 'Identify who can pick up Home Depot items', owner: null, priority: 'low', due: '3/13', status: 'done' },
+  { id: 'FC-008', phase: 0, text: 'Pick up PVC pipe 1" + T-connector from Home Depot', owner: null, priority: 'medium', due: '3/14', status: 'done' },
 
   // Phase 1 — Hardware
   { id: 'FC-011', phase: 1, text: 'Receive & verify Pi 5 Active Cooler', owner: 'romeo', priority: 'medium', due: '3/11', status: 'done' },
@@ -953,63 +1056,54 @@ const TASKS = [
   { id: 'FC-020', phase: 1, text: 'Receive Arducam 120° Wide Camera IMX708', owner: 'romeo', priority: 'high', due: '3/14', status: 'done' },
   { id: 'FC-021', phase: 1, text: 'Receive Freenove 4WD Smart Car Kit (backup/parts)', owner: null, priority: 'low', due: '3/11', status: 'done' },
   { id: 'FC-022', phase: 1, text: 'Receive NexiGo N60 1080P Webcam (for arm)', owner: 'romeo', priority: 'medium', due: '3/11', status: 'done' },
-  { id: 'FC-023', phase: 1, text: 'SO-101 HiWonder arm kit arrives (ships from China)', owner: 'romeo', priority: 'critical', due: '3/18' },
+  { id: 'FC-023', phase: 1, text: 'SO-101 HiWonder arm kit arrives (ships from China)', owner: 'romeo', priority: 'critical', due: '3/18', status: 'progress' },
   { id: 'FC-024', phase: 1, text: 'Gather owned hardware: Pi 4, Pi 5, Pico, SIM, velcro', owner: 'romeo', priority: 'medium', due: '3/12', status: 'done' },
   { id: 'FC-025', phase: 1, text: 'Find or buy MicroSD 32-64GB for Pi 5', owner: null, priority: 'high', due: '3/12', status: 'done' },
-  { id: 'FC-026', phase: 1, text: 'Find USB-C data cables x3 — test each one', owner: null, priority: 'medium', due: '3/13' },
-  { id: 'FC-027', phase: 1, text: 'Find Phillips screwdriver set', owner: null, priority: 'low', due: '3/13' },
-  { id: 'FC-028', phase: 1, text: 'Find wire strippers or scissors', owner: null, priority: 'low', due: '3/13' },
-  { id: 'FC-029', phase: 1, text: 'Collect jumper wires: 20x M-F, 10x M-M', owner: 'romeo', priority: 'medium', due: '3/13' },
+  { id: 'FC-026', phase: 1, text: 'Find USB-C data cables x3 — test each one', owner: null, priority: 'medium', due: '3/13', status: 'done' },
+  { id: 'FC-029', phase: 1, text: 'Collect jumper wires: 20x M-F, 10x M-M', owner: 'romeo', priority: 'medium', due: '3/13', status: 'done' },
   { id: 'FC-030', phase: 1, text: 'Get breadboard (half-size) for voltage divider', owner: null, priority: 'medium', due: '3/13' },
   { id: 'FC-031', phase: 1, text: 'Get resistors: 1kΩ x2 and 2kΩ x2', owner: null, priority: 'medium', due: '3/13' },
-  { id: 'FC-032', phase: 1, text: 'Label all parts with masking tape', owner: null, priority: 'low', due: '3/13' },
-  { id: 'FC-033', phase: 1, text: 'Set up assembly war room — table, lighting, power strips', owner: null, priority: 'medium', due: '3/13' },
-  { id: 'FC-034', phase: 1, text: 'Inventory photo — all parts laid out, post in Slack', owner: null, priority: 'low', due: '3/13' },
+  { id: 'FC-033', phase: 1, text: 'Set up assembly war room — table, lighting, power strips', owner: null, priority: 'medium', due: '3/13', status: 'done' },
 
   // Phase 2 — Pi Setup
-  { id: 'FC-035', phase: 2, text: 'Download Raspberry Pi Imager on Mac', owner: null, priority: 'medium', due: '3/12', status: 'done' },
   { id: 'FC-036', phase: 2, text: 'Flash MicroSD: Pi OS Lite 64-bit Bookworm', owner: null, priority: 'high', due: '3/12', status: 'done' },
   { id: 'FC-037', phase: 2, text: 'Pre-config: hostname elktron-escort, WiFi, SSH', owner: null, priority: 'high', due: '3/12', status: 'done' },
   { id: 'FC-038', phase: 2, text: 'Boot Pi 5 — verify green LED + SSH access', owner: null, priority: 'high', due: '3/12', status: 'done' },
-  { id: 'FC-039', phase: 2, text: 'Run apt update && apt upgrade', owner: null, priority: 'medium', due: '3/12', status: 'done' },
-  { id: 'FC-040', phase: 2, text: 'Verify Python 3.11+', owner: null, priority: 'medium', due: '3/12', status: 'done' },
   { id: 'FC-041', phase: 2, text: 'Install Active Cooler physically on Pi 5', owner: null, priority: 'high', due: '3/12', status: 'done' },
   { id: 'FC-042', phase: 2, text: 'Stress test cooler — temp stays <70°C', owner: null, priority: 'medium', due: '3/12', status: 'done' },
-  { id: 'FC-043', phase: 2, text: 'Enable Camera interface in raspi-config', owner: null, priority: 'high', due: '3/12', status: 'done' },
-  { id: 'FC-044', phase: 2, text: 'Enable I2C for pan-tilt servo controller', owner: null, priority: 'medium', due: '3/12', status: 'done' },
-  { id: 'FC-045', phase: 2, text: 'Install system deps: opencv, libcamera, libatlas', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-046', phase: 2, text: 'Create Python venv ~/escort-env', owner: null, priority: 'medium', due: '3/13', status: 'done' },
-  { id: 'FC-047', phase: 2, text: 'pip install requirements.txt', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-048', phase: 2, text: 'Switch to YOLOv8n (Ultralytics) for person detection', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-049', phase: 2, text: 'Download YOLOv8n model via install.sh', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-050', phase: 2, text: 'Test all Python imports work (cv2, numpy, gpiozero)', owner: null, priority: 'medium', due: '3/13', status: 'done' },
+  { id: 'FC-043', phase: 2, text: 'Enable Camera + I2C interfaces in raspi-config', owner: null, priority: 'high', due: '3/12', status: 'done' },
+  { id: 'FC-045', phase: 2, text: 'Install system deps + Python venv + YOLOv8n', owner: null, priority: 'high', due: '3/13', status: 'done' },
   { id: 'FC-051', phase: 2, text: 'Set Pi auto-connect to phone hotspot (backup WiFi)', owner: null, priority: 'low', due: '3/13' },
   { id: 'FC-052', phase: 2, text: 'Repeat full Pi setup on Raphael\'s Raspberry Pi', owner: null, priority: 'high', due: '3/14' },
+  { id: 'FC-243', phase: 2, text: 'Install Tailscale VPN on Pi 5 — reachable at 100.85.225.68', owner: 'romeo', priority: 'high', due: '3/17', status: 'done' },
+  { id: 'FC-244', phase: 2, text: 'Install Pi desktop environment (Wayfire) for remote dev', owner: 'romeo', priority: 'medium', due: '3/17', status: 'done' },
+  { id: 'FC-245', phase: 2, text: 'Install Claude Code CLI on Pi 5 for on-device AI dev', owner: 'romeo', priority: 'medium', due: '3/17', status: 'done' },
+  { id: 'FC-246', phase: 2, text: 'Verify Python venv — torch, YOLOv8, picamera2, pillow all working', owner: 'romeo', priority: 'high', due: '3/17', status: 'done' },
 
   // Phase 3 — Escort Bot Build
-  { id: 'FC-053', phase: 3, text: 'Unbox chassis kit — verify all parts present', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-054', phase: 3, text: 'Mount 4 DC motors to bottom plate (shafts outward)', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-055', phase: 3, text: 'Attach 4 wheels — spin test each, no grinding', owner: null, priority: 'high', due: '3/13', status: 'done' },
-  { id: 'FC-056', phase: 3, text: 'Label motors: FL, FR, RL, RR with tape', owner: null, priority: 'medium', due: '3/13', status: 'progress' },
-  { id: 'FC-057', phase: 3, text: 'Mount standoffs + top plate (leave loose for wiring)', owner: null, priority: 'medium', due: '3/13', status: 'progress' },
+  { id: 'FC-053', phase: 3, text: 'Unbox chassis kit — verify all parts present', owner: 'alex', priority: 'high', due: '3/13', status: 'done' },
+  { id: 'FC-054', phase: 3, text: 'Mount 4 DC motors to bottom plate (shafts outward)', owner: 'alex', priority: 'high', due: '3/13', status: 'done' },
+  { id: 'FC-055', phase: 3, text: 'Attach 4 wheels — spin test each, no grinding', owner: 'alex', priority: 'high', due: '3/13', status: 'done' },
+  { id: 'FC-057', phase: 3, text: 'Mount standoffs + top plate (leave loose for wiring)', owner: null, priority: 'medium', due: '3/13', status: 'done' },
   { id: 'FC-058', phase: 3, text: 'Wire LEFT motors in parallel (FL + RL)', owner: null, priority: 'high', due: '3/14', status: 'done' },
   { id: 'FC-059', phase: 3, text: 'Wire RIGHT motors in parallel (FR + RR)', owner: null, priority: 'high', due: '3/14', status: 'done' },
-  { id: 'FC-060', phase: 3, text: 'Quick polarity test both pairs (battery touch)', owner: null, priority: 'high', due: '3/14', status: 'progress' },
-  { id: 'FC-061', phase: 3, text: 'Mount L298N motor driver on top plate', owner: null, priority: 'medium', due: '3/14', status: 'progress' },
-  { id: 'FC-062', phase: 3, text: 'Connect motor pairs to L298N screw terminals', owner: null, priority: 'high', due: '3/14', status: 'progress' },
+  { id: 'FC-060', phase: 3, text: 'Quick polarity test both pairs (battery touch)', owner: null, priority: 'high', due: '3/14', status: 'done' },
+  { id: 'FC-061', phase: 3, text: 'Mount L298N motor driver on top plate', owner: null, priority: 'medium', due: '3/14', status: 'done' },
+  { id: 'FC-062', phase: 3, text: 'Connect motor pairs to L298N screw terminals', owner: null, priority: 'high', due: '3/14', status: 'done' },
   { id: 'FC-063', phase: 3, text: 'Connect battery holder to L298N VCC + GND', owner: null, priority: 'high', due: '3/14', status: 'done' },
-  { id: 'FC-064', phase: 3, text: 'Remove L298N 5V jumper (Pi gets separate power)', owner: null, priority: 'critical', due: '3/14', status: 'progress' },
-  { id: 'FC-065', phase: 3, text: 'Wire L298N IN1→GPIO17, IN2→GPIO27', owner: null, priority: 'high', due: '3/14', status: 'progress' },
-  { id: 'FC-066', phase: 3, text: 'Wire L298N IN3→GPIO22, IN4→GPIO23', owner: null, priority: 'high', due: '3/14', status: 'progress' },
-  { id: 'FC-067', phase: 3, text: 'CRITICAL: Connect L298N GND → Pi GND (common ground)', owner: null, priority: 'critical', due: '3/14', status: 'progress' },
-  { id: 'FC-068', phase: 3, text: 'Double-check ALL wiring with second person', owner: null, priority: 'high', due: '3/14', status: 'progress' },
-  { id: 'FC-069', phase: 3, text: 'Photo completed wiring for documentation', owner: null, priority: 'low', due: '3/14', status: 'progress' },
-  { id: 'FC-070', phase: 3, text: 'Run motor_test.py — verify all 4 directions', owner: null, priority: 'high', due: '3/14', status: 'progress' },
+  { id: 'FC-064', phase: 3, text: 'Remove L298N 5V jumper (Pi gets separate power)', owner: null, priority: 'critical', due: '3/14', status: 'done' },
+  { id: 'FC-065', phase: 3, text: 'Wire L298N IN1→GPIO17, IN2→GPIO27', owner: null, priority: 'high', due: '3/14', status: 'done' },
+  { id: 'FC-066', phase: 3, text: 'Wire L298N IN3→GPIO22, IN4→GPIO23', owner: null, priority: 'high', due: '3/14', status: 'done' },
+  { id: 'FC-067', phase: 3, text: 'CRITICAL: Connect L298N GND → Pi GND (common ground)', owner: null, priority: 'critical', due: '3/14', status: 'done' },
+  { id: 'FC-068', phase: 3, text: 'Double-check ALL wiring with second person', owner: null, priority: 'high', due: '3/14', status: 'done' },
+  { id: 'FC-070', phase: 3, text: 'Run motor_test.py — GPIO signals verified but wheels not spinning', owner: null, priority: 'high', due: '3/14', status: 'blocked' },
+  { id: 'FC-247', phase: 3, text: 'BLOCKER: Connect Pi 5V → L298N +5V logic pin (root cause of motor failure)', owner: 'alex', priority: 'critical', due: '3/18', status: 'todo' },
+  { id: 'FC-248', phase: 3, text: 'Order 3ft camera CSI ribbon cable for mast mounting', owner: 'romeo', priority: 'high', due: '3/17', status: 'done' },
   { id: 'FC-071', phase: 3, text: 'Build voltage divider: ECHO→1kΩ→junction→2kΩ→GND', owner: null, priority: 'high', due: '3/14' },
   { id: 'FC-072', phase: 3, text: 'Wire HC-SR04: VCC→5V, GND, TRIG→GPIO25, divider→GPIO24', owner: null, priority: 'high', due: '3/15' },
   { id: 'FC-073', phase: 3, text: 'Mount HC-SR04 on front of chassis', owner: null, priority: 'medium', due: '3/15' },
   { id: 'FC-074', phase: 3, text: 'Run sonar_test.py — verify 30cm and 100cm readings', owner: null, priority: 'high', due: '3/15' },
-  { id: 'FC-075', phase: 3, text: 'Assemble Arducam pan-tilt platform (2 servos)', owner: null, priority: 'high', due: '3/14' },
+  { id: 'FC-075', phase: 3, text: 'Assemble Arducam pan-tilt platform (2 servos)', owner: null, priority: 'high', due: '3/14', status: 'done' },
   { id: 'FC-076', phase: 3, text: 'Mount pan-tilt on chassis + connect servo controller', owner: null, priority: 'high', due: '3/15' },
   { id: 'FC-077', phase: 3, text: 'Connect Arducam IMX708 via CSI ribbon cable', owner: null, priority: 'high', due: '3/15', status: 'done' },
   { id: 'FC-078', phase: 3, text: 'Test camera: libcamera-hello + pan-tilt sweep', owner: null, priority: 'high', due: '3/15', status: 'done' },
@@ -1017,34 +1111,26 @@ const TASKS = [
   { id: 'FC-080', phase: 3, text: 'Attach T-connector + secure mast to chassis', owner: null, priority: 'medium', due: '3/15' },
   { id: 'FC-081', phase: 3, text: 'Mount camera at top of mast + route CSI cable', owner: null, priority: 'high', due: '3/15' },
   { id: 'FC-082', phase: 3, text: 'Stability test — mast sways <1cm', owner: null, priority: 'medium', due: '3/15' },
-  { id: 'FC-083', phase: 3, text: 'Connect USB-C power bank to Pi on chassis', owner: null, priority: 'medium', due: '3/15' },
+  { id: 'FC-083', phase: 3, text: 'Connect USB-C power bank to Pi on chassis', owner: null, priority: 'medium', due: '3/15', status: 'done' },
   { id: 'FC-084', phase: 3, text: 'Verify Pi boots + motors work on battery power', owner: null, priority: 'high', due: '3/16' },
   { id: 'FC-085', phase: 3, text: 'Run full system 5 min — check for brown-outs', owner: null, priority: 'high', due: '3/16' },
   { id: 'FC-086', phase: 3, text: 'Measure battery life (target: 30+ min)', owner: null, priority: 'medium', due: '3/16' },
-  { id: 'FC-087', phase: 3, text: 'Label all power connections for quick swap', owner: null, priority: 'low', due: '3/16' },
 
   // Phase 4 — Escort Software
-  { id: 'FC-088', phase: 4, text: 'Copy test_camera.py to Pi via SCP', owner: null, priority: 'high', due: '3/16', status: 'done' },
   { id: 'FC-089', phase: 4, text: 'Run test_camera.py — verify person detection at 1m, 3m', owner: null, priority: 'high', due: '3/16', status: 'done' },
   { id: 'FC-090', phase: 4, text: 'Walk side-to-side — verify bounding box tracks', owner: null, priority: 'high', due: '3/16', status: 'done' },
-  { id: 'FC-091', phase: 4, text: 'Test 2 people — should track closest (largest bbox)', owner: null, priority: 'medium', due: '3/16' },
   { id: 'FC-092', phase: 4, text: 'Verify inference speed <100ms per frame', owner: null, priority: 'high', due: '3/16', status: 'done' },
-  { id: 'FC-093', phase: 4, text: 'Test detection in fluorescent lighting (DC-like)', owner: null, priority: 'medium', due: '3/16' },
-  { id: 'FC-094', phase: 4, text: 'Test detection with dark clothing + box carrying', owner: null, priority: 'medium', due: '3/16' },
-  { id: 'FC-095', phase: 4, text: 'Copy main.py + pan_tilt.py to Pi', owner: 'romeo', priority: 'high', due: '3/16', status: 'done' },
-  { id: 'FC-096', phase: 4, text: 'Verify GPIO pins in main.py match actual wiring', owner: null, priority: 'critical', due: '3/16' },
+  { id: 'FC-095', phase: 4, text: 'Deploy main.py + pan_tilt.py to Pi', owner: 'romeo', priority: 'high', due: '3/16', status: 'done' },
+  { id: 'FC-096', phase: 4, text: 'Verify GPIO pins in main.py match actual wiring', owner: null, priority: 'critical', due: '3/16', status: 'done' },
   { id: 'FC-097', phase: 4, text: 'Bench test (wheels up): person→forward, left→track, sonar→stop', owner: null, priority: 'high', due: '3/17' },
   { id: 'FC-098', phase: 4, text: 'Test scan mode: stand still 3s → pan-tilt sweeps', owner: null, priority: 'high', due: '3/17' },
-  { id: 'FC-099', phase: 4, text: 'Find open indoor space for floor testing', owner: null, priority: 'medium', due: '3/17' },
   { id: 'FC-100', phase: 4, text: 'FIRST FLOOR TEST: bot follows person at BASE_SPEED=0.2', owner: null, priority: 'critical', due: '3/17' },
   { id: 'FC-101', phase: 4, text: 'Follow person continuously for 30+ seconds', owner: null, priority: 'high', due: '3/17' },
-  { id: 'FC-102', phase: 4, text: 'Record phone video of floor test (demo B-roll)', owner: null, priority: 'medium', due: '3/17' },
   { id: 'FC-103', phase: 4, text: 'Tune KP (steering gain) — reduce if oscillating', owner: null, priority: 'high', due: '3/17' },
   { id: 'FC-104', phase: 4, text: 'Tune TARGET_AREA_RATIO (follow distance)', owner: null, priority: 'high', due: '3/17' },
   { id: 'FC-105', phase: 4, text: 'Tune CONFIDENCE_THRESHOLD (detection sensitivity)', owner: null, priority: 'medium', due: '3/17' },
   { id: 'FC-106', phase: 4, text: 'Gradually increase BASE_SPEED (0.2→0.3→0.4→0.5)', owner: null, priority: 'medium', due: '3/18' },
   { id: 'FC-107', phase: 4, text: 'Record final golden config parameter values', owner: null, priority: 'high', due: '3/18' },
-  { id: 'FC-108', phase: 4, text: 'Test 2-person following (should track closest)', owner: null, priority: 'low', due: '3/18' },
   { id: 'FC-109', phase: 4, text: 'Test obstacle avoidance — place box in path', owner: null, priority: 'medium', due: '3/18' },
   { id: 'FC-110', phase: 4, text: 'Write pan_tilt.py servo control module', owner: 'romeo', priority: 'high', due: '3/16', status: 'done' },
   { id: 'FC-111', phase: 4, text: 'Add WebSocket telemetry output to main.py', owner: 'romeo', priority: 'medium', due: '3/18' },
@@ -1114,8 +1200,14 @@ const TASKS = [
   { id: 'FC-166', phase: 6, text: 'Responsive layout: laptop (1440px) + projector (1080p)', owner: null, priority: 'medium', due: '3/19' },
   { id: 'FC-167', phase: 6, text: 'Pull sample Jira tickets via MCP tool', owner: null, priority: 'medium', due: '3/17' },
   { id: 'FC-168', phase: 6, text: 'Pull sample NetBox rack data via MCP tool', owner: null, priority: 'medium', due: '3/17' },
-  { id: 'FC-169', phase: 6, text: 'Wire arm.py to receive real telemetry when HW ready', owner: null, priority: 'high', due: '3/20' },
-  { id: 'FC-170', phase: 6, text: 'Wire escort.py to receive real telemetry when bot ready', owner: null, priority: 'high', due: '3/20' },
+  { id: 'FC-169', phase: 6, text: 'Wire arm.py to receive real telemetry when HW ready', owner: 'josh', priority: 'high', due: '3/20' },
+  { id: 'FC-170', phase: 6, text: 'Wire escort.py to receive real telemetry when bot ready', owner: 'parth', priority: 'high', due: '3/20' },
+  { id: 'FC-249', phase: 6, text: 'Build Pi 5 API server (Flask/FastAPI on Pi, port 5000) — CRITICAL blocker', owner: 'parth', priority: 'critical', due: '3/19' },
+  { id: 'FC-250', phase: 6, text: 'Add MJPEG camera stream endpoint (GET /video) on Pi API server', owner: 'parth', priority: 'critical', due: '3/19' },
+  { id: 'FC-251', phase: 6, text: 'Add GET /state endpoint — expose bot mode, bbox, scan progress, battery', owner: 'parth', priority: 'high', due: '3/19' },
+  { id: 'FC-252', phase: 6, text: 'Add POST /stop, POST /dispatch, POST /recall endpoints on Pi', owner: 'parth', priority: 'high', due: '3/20' },
+  { id: 'FC-253', phase: 6, text: 'Test dashboard ↔ Pi connectivity via Tailscale (100.85.225.68)', owner: 'parth', priority: 'high', due: '3/20' },
+  { id: 'FC-254', phase: 6, text: 'Add scan upload endpoint (POST /api/scans) on dashboard server', owner: 'parth', priority: 'medium', due: '3/20' },
 
   // Phase 7 — Demo Video
   { id: 'FC-171', phase: 7, text: 'Write full 3-minute demo narration script', owner: null, priority: 'high', due: '3/20' },
@@ -1135,7 +1227,7 @@ const TASKS = [
   { id: 'FC-185', phase: 7, text: 'Add narration + title card + text overlays', owner: null, priority: 'high', due: '3/22' },
   { id: 'FC-186', phase: 7, text: 'Export 1080p <100MB', owner: null, priority: 'high', due: '3/22' },
   { id: 'FC-187', phase: 7, text: 'Full team watches final cut — approve', owner: null, priority: 'high', due: '3/22' },
-  { id: 'FC-188', phase: 7, text: 'Upload final video to submission platform', owner: null, priority: 'critical', due: '3/23' },
+  { id: 'FC-188', phase: 7, text: 'Upload final video to submission platform', owner: null, priority: 'critical', due: '3/25' },
 
   // Phase 8 — Pitch
   { id: 'FC-189', phase: 8, text: 'Create slide deck (5-7 slides max)', owner: null, priority: 'high', due: '3/21' },
@@ -1171,21 +1263,21 @@ const TASKS = [
   { id: 'FC-215', phase: 10, text: 'Packing: optic tray + sample optics (demo props)', owner: null, priority: 'high', due: '3/22' },
   { id: 'FC-216', phase: 10, text: 'Packing: screwdriver, velcro, zip ties (emergency repair)', owner: null, priority: 'medium', due: '3/22' },
   { id: 'FC-217', phase: 10, text: 'Packing: phone tripod, Elktron printed sign', owner: null, priority: 'medium', due: '3/22' },
-  { id: 'FC-218', phase: 10, text: 'Arrive early — 30 min before kickoff', owner: null, priority: 'high', due: '3/23' },
-  { id: 'FC-219', phase: 10, text: 'Set up table + test everything at venue', owner: null, priority: 'critical', due: '3/23' },
-  { id: 'FC-220', phase: 10, text: 'Connect venue WiFi — test SSH + dashboard', owner: null, priority: 'high', due: '3/23' },
-  { id: 'FC-221', phase: 10, text: 'If WiFi unreliable: set up phone hotspot', owner: null, priority: 'medium', due: '3/23' },
-  { id: 'FC-222', phase: 10, text: 'Full dry run at venue before judges arrive', owner: null, priority: 'critical', due: '3/23' },
-  { id: 'FC-223', phase: 10, text: 'Romeo: narrate + present', owner: null, priority: 'critical', due: '3/23' },
-  { id: 'FC-224', phase: 10, text: 'Raphael: operate escort bot', owner: 'raphael', priority: 'critical', due: '3/23' },
-  { id: 'FC-225', phase: 10, text: 'Josh: operate SO-101 arm', owner: null, priority: 'critical', due: '3/23' },
-  { id: 'FC-226', phase: 10, text: 'Andrew: manage recording', owner: null, priority: 'high', due: '3/23' },
-  { id: 'FC-227', phase: 10, text: 'Parth: dashboard on screen', owner: null, priority: 'high', due: '3/23' },
-  { id: 'FC-228', phase: 10, text: 'Raphael: play "vendor" in escort demo', owner: null, priority: 'high', due: '3/23' },
-  { id: 'FC-229', phase: 10, text: 'Talha: monitor from audience perspective', owner: null, priority: 'medium', due: '3/23' },
-  { id: 'FC-230', phase: 10, text: 'Push code to GitHub (clean secrets first)', owner: null, priority: 'high', due: '3/23' },
-  { id: 'FC-231', phase: 10, text: 'Submit to hackathon judges', owner: null, priority: 'critical', due: '3/23' },
-  { id: 'FC-232', phase: 10, text: 'Post demo photos/video in #more-faster-better-2026', owner: null, priority: 'low', due: '3/23' },
+  { id: 'FC-218', phase: 10, text: 'Arrive early — 30 min before kickoff', owner: null, priority: 'high', due: '3/26' },
+  { id: 'FC-219', phase: 10, text: 'Set up table + test everything at venue', owner: null, priority: 'critical', due: '3/26' },
+  { id: 'FC-220', phase: 10, text: 'Connect venue WiFi — test SSH + dashboard', owner: null, priority: 'high', due: '3/26' },
+  { id: 'FC-221', phase: 10, text: 'If WiFi unreliable: set up phone hotspot', owner: null, priority: 'medium', due: '3/26' },
+  { id: 'FC-222', phase: 10, text: 'Full dry run at venue before judges arrive', owner: null, priority: 'critical', due: '3/26' },
+  { id: 'FC-223', phase: 10, text: 'Romeo: narrate + present', owner: null, priority: 'critical', due: '3/26' },
+  { id: 'FC-224', phase: 10, text: 'Raphael: operate escort bot', owner: 'raphael', priority: 'critical', due: '3/26' },
+  { id: 'FC-225', phase: 10, text: 'Josh: operate SO-101 arm', owner: null, priority: 'critical', due: '3/26' },
+  { id: 'FC-226', phase: 10, text: 'Andrew: manage recording', owner: null, priority: 'high', due: '3/26' },
+  { id: 'FC-227', phase: 10, text: 'Parth: dashboard on screen', owner: null, priority: 'high', due: '3/26' },
+  { id: 'FC-228', phase: 10, text: 'Raphael: play "vendor" in escort demo', owner: null, priority: 'high', due: '3/26' },
+  { id: 'FC-229', phase: 10, text: 'Talha: monitor from audience perspective', owner: null, priority: 'medium', due: '3/26' },
+  { id: 'FC-230', phase: 10, text: 'Push code to GitHub (clean secrets first)', owner: null, priority: 'high', due: '3/25' },
+  { id: 'FC-231', phase: 10, text: 'Submit to hackathon judges', owner: null, priority: 'critical', due: '3/26' },
+  { id: 'FC-232', phase: 10, text: 'Post demo photos/video in #more-faster-better-2026', owner: null, priority: 'low', due: '3/26' },
 
   // Gap Tickets — Hardware & Research
   { id: 'FC-233', phase: 3, text: 'DECISION: CSI extension cable vs USB webcam for mast camera', owner: 'romeo', priority: 'critical', due: '3/13' },
@@ -1502,7 +1594,372 @@ const TICKET_DETAILS = {
   'FC-240': { desc: 'If implementing QR localization: print ArUco markers on card stock. Mount at demo area waypoints (rack positions). Bot reads markers to determine position + orientation.', notes: ['Each marker has a unique ID. Place at: start position, rack 1, rack 2, end position. Bot reads ID + estimates distance from marker size.'], deps: ['FC-239'] },
   'FC-241': { desc: 'Assemble the emergency repair kit. Pack: precision screwdriver set, spare jumper wires, electrical tape, velcro, zip ties, spare screws, USB cables.', checks: ['Precision screwdriver (PH0, PH1)', 'Spare jumper wires (M-F, M-M)', 'Electrical tape', 'Velcro strips', 'Zip ties (small)', 'Spare M2/M3 screws', 'Spare USB-C cable'] },
   'FC-242': { desc: 'Create a simple 2D floor plan overlay for the dashboard showing the demo area layout: rack positions, bot starting position, walking path.', notes: ['A simple SVG or canvas drawing. Shows the bot\'s position as a moving dot (updated via telemetry). Low priority but visually impressive.'] },
+  'FC-243': { desc: 'Install Tailscale VPN on Pi 5 so team members can reach it remotely at 100.85.225.68. Confirmed working as of 3/17.', checks: ['Tailscale installed', 'Pi accessible at 100.85.225.68', 'SSH works over Tailscale'], notes: ['DONE: Pi reachable at 100.85.225.68 via Tailscale VPN.'] },
+  'FC-244': { desc: 'Install Wayfire desktop environment on Pi 5 for remote development and GUI testing. Allows VNC/screen sharing.', notes: ['DONE: Desktop env installed 3/17.'] },
+  'FC-245': { desc: 'Install Claude Code CLI on Pi 5 for on-device AI-assisted development. Enables real-time debugging of motor/sensor/camera code directly on the hardware.', notes: ['DONE: Claude Code working on Pi.'] },
+  'FC-246': { desc: 'Verify Python venv has all required packages working: torch, ultralytics (YOLOv8), picamera2, pillow, numpy.', checks: ['torch imports', 'ultralytics imports', 'picamera2 imports', 'pillow imports'], notes: ['DONE: All imports verified 3/17.'] },
+  'FC-247': { desc: 'ROOT CAUSE: L298N motor driver +5V logic pin was not connected to Pi 5V. GPIO signals reach L298N but the driver cannot activate its H-bridge outputs without 5V logic power. Fix: connect Pi 5V pin → L298N +5V input (with regulator jumper REMOVED).', checks: ['Remove L298N 5V regulator jumper', 'Wire Pi 5V → L298N +5V pin', 'Verify motor spin with test_motors.py'], notes: ['This is THE blocker for all motor testing. GPIO signals are confirmed active but L298N outputs are 0V.', 'Found 3/17 during debug session. Test script: test_motors.py shows "signal active: YES" but no wheel movement.'], links: [['L298N Datasheet', 'https://www.sparkfun.com/datasheets/Robotics/L298_H_Bridge.pdf']] },
+  'FC-248': { desc: 'Order a 3ft CSI camera ribbon cable for mounting the Arducam camera on top of the PVC mast. Standard ribbon is too short.', notes: ['DONE: Ordered 3/17. Arriving ~3/19.'] },
+  'FC-249': { desc: 'Build a lightweight Flask or FastAPI server on the Pi 5 that runs alongside main.py and exposes the escort bot state over HTTP. This is the CRITICAL bridge between the robot and the dashboard. The dashboard escort.py already expects these endpoints at port 5000.', checks: ['Flask installed on Pi', 'Server runs on port 5000', 'GET /health returns 200', 'GET /state returns JSON with bot mode, scan progress, battery', 'Server runs in separate thread from main.py', 'Shared state via thread-safe dict'], links: [['escort.py (dashboard side)', 'file:///Users/rpatino/hackathon/elktron-app/api/escort.py'], ['models.py (EscortState schema)', 'file:///Users/rpatino/hackathon/elktron-app/api/models.py']], notes: ['Parth confirmed 3/18 in #the-elks-2026. This is his #1 priority.', 'Key challenge: main.py runs a tight detection loop. Flask server must run in a SEPARATE THREAD.'] },
+  'FC-250': { desc: 'Add MJPEG camera stream endpoint to the Pi API server. Dashboard just needs: <img src="http://escort-bot.local:5000/video">. The endpoint yields JPEG frames as multipart/x-mixed-replace.', checks: ['GET /video returns MJPEG stream', 'Stream visible in browser <img> tag', 'YOLOv8 detection boxes rendered on frames (results[0].plot())'], notes: ['~15 lines of Flask code. Use picamera2 for frame capture, cv2.imencode for JPEG, results[0].plot() for detection overlay.'] },
+  'FC-251': { desc: 'Add GET /state endpoint to Pi API server. Returns current bot mode (FOLLOW/SCAN/IDLE), person bounding box, scan progress, ultrasonic distance, battery level. See models.py EscortState for the exact schema.', checks: ['Endpoint returns JSON', 'Mode field matches actual bot state', 'Dashboard escort.py can parse the response'], links: [['models.py', 'file:///Users/rpatino/hackathon/elktron-app/api/models.py']] },
+  'FC-252': { desc: 'Add POST endpoints to Pi API server: /stop (emergency stop), /dispatch (assign vendor escort), /recall (return to base). These are commanded from the dashboard.', checks: ['POST /stop kills motors', 'POST /dispatch sets mode to FOLLOW', 'POST /recall returns bot to idle'], notes: ['Lower priority than /state and /video. Dashboard can demo without these by using mock data.'] },
+  'FC-253': { desc: 'Test dashboard ↔ Pi connectivity end-to-end. Dashboard server on MacBook (port 8080) polls Pi API server (port 5000) via Tailscale (100.85.225.68).', checks: ['curl http://100.85.225.68:5000/health from MacBook', 'Dashboard escort.py receives real state data', 'Camera feed shows in dashboard panel'], notes: ['Requires both FC-249 (Pi API server) and dashboard server running simultaneously.'], deps: ['FC-249', 'FC-250'] },
+  'FC-254': { desc: 'Add POST /api/scans endpoint on dashboard server (server.py). After a scan completes on the Pi, the Pi pushes the scan report JSON to the dashboard.', checks: ['Endpoint accepts JSON body', 'Saves to data/scans/ directory', 'New scan appears in dashboard scan log'], notes: ['Medium priority. For demo, pre-loaded mock scans are fine.'] },
 };
+
+// ─── BRIEFING DATA ──────────────────────────────────────────────────
+
+const BRIEFING_DATA = {
+  romeo: {
+    links: [
+      { label: 'PROGRESS.md — Single Source of Truth', url: 'file:///Users/rpatino/hackathon/PROGRESS.md', cat: 'file' },
+      { label: 'Elktron Dashboard', url: 'file:///Users/rpatino/hackathon/elktron-app/index.html', cat: 'app' },
+      { label: 'LeRobot GitHub', url: 'https://github.com/huggingface/lerobot', cat: 'docs' },
+      { label: 'Pi 5 Setup Guide', url: 'file:///Users/rpatino/hackathon/escort-bot/PI-SETUP.md', cat: 'file' },
+      { label: 'WIRING.md — GPIO Pin Map', url: 'file:///Users/rpatino/hackathon/escort-bot/WIRING.md', cat: 'file' },
+      { label: 'Tailscale Pi Access (100.85.225.68)', url: 'https://login.tailscale.com/', cat: 'tool' },
+      { label: 'Taskboard', url: 'file:///Users/rpatino/hackathon/taskboard/index.html', cat: 'app' },
+      { label: 'TEAM.md — Roles & Scope', url: 'file:///Users/rpatino/hackathon/docs/TEAM.md', cat: 'file' },
+    ],
+    tips: [
+      'Run `htop` on Pi during YOLO inference — watch for thermal throttling. Fan should be running.',
+      'ACT policy: start with 20 clean demonstrations, evaluate success rate, then scale to 50.',
+      'MJPEG stream is the simplest camera transport — 15 lines of Flask code. Recommend this to Parth.',
+      'Test the dashboard on projector resolution (1080p) before demo day — layout may need tweaks.',
+      'Keep PROGRESS.md updated after every significant change — it is the team sync point.',
+      'Backup the Pi SD card image once everything works — `sudo dd` to a .img file.',
+    ],
+    questions: [
+      'Has the SO-101 arm kit shipped? Check tracking — ETA matters for Josh.',
+      'Is the L298N 5V logic pin fix verified? This unblocks ALL motor testing.',
+      'Does Parth have Tailscale access to the Pi? He needs it for API server work.',
+      'What is our fallback if the arm does not arrive by 3/19?',
+      'Is the 3ft CSI ribbon cable ordered? Mast camera depends on it.',
+      'Do we have a backup power bank charged for demo day?',
+    ]
+  },
+  josh: {
+    links: [
+      { label: 'LeRobot Documentation', url: 'https://github.com/huggingface/lerobot', cat: 'docs' },
+      { label: 'SO-101 Hardware BOM', url: 'file:///Users/rpatino/hackathon/robotics-site/so101/HARDWARE.md', cat: 'file' },
+      { label: 'LeRobot ACT Policy Tutorial', url: 'https://github.com/huggingface/lerobot/blob/main/examples/7_get_started_with_real_robot.md', cat: 'docs' },
+      { label: 'Ultralytics YOLOv8 Docs', url: 'https://docs.ultralytics.com/', cat: 'docs' },
+      { label: 'SO-101 Showcase Page', url: 'file:///Users/rpatino/hackathon/robotics-site/so101/showcase.html', cat: 'app' },
+      { label: 'record.py — Teleoperation Recording', url: 'file:///Users/rpatino/hackathon/robotics-site/so101/record.py', cat: 'file' },
+      { label: 'train.py — ACT Policy Training', url: 'file:///Users/rpatino/hackathon/robotics-site/so101/train.py', cat: 'file' },
+      { label: 'deploy.py — Autonomous Execution', url: 'file:///Users/rpatino/hackathon/robotics-site/so101/deploy.py', cat: 'file' },
+    ],
+    tips: [
+      'Verify ALL 12 servos spin freely before assembly — dead servos waste hours.',
+      'Calibration is the single most important step. Save calibration file + back up to cloud immediately.',
+      'Use MPS backend on MacBook for training — 3-5x faster than CPU.',
+      'Record demos with consistent lighting and optic placement — reduces training variance.',
+      'Start with simple pick-place before optic seating — build confidence in the pipeline.',
+      'If success rate is <60% after 50 demos, try recording 20 more with intentional variation in angles.',
+      'Tighten ALL screws after assembly — loose joints cause drift during training.',
+    ],
+    questions: [
+      'When does the HiWonder kit arrive? Check tracking with Romeo.',
+      'Are USB-C cables data-capable (not charge-only)? Test with `ls /dev/ttyACM*`.',
+      'What optic type are we demoing? SFP or QSFP? Get a sample to practice with.',
+      'Is the overhead webcam (NexiGo N60) working and positioned correctly?',
+      'What compute will you use for training? MacBook M4 (MPS) or cloud GPU?',
+      'Have you practiced the pick-place motion manually? Do 5+ dry runs before recording.',
+    ]
+  },
+  parth: {
+    links: [
+      { label: 'escort.py — Dashboard Side (expects Pi endpoints)', url: 'file:///Users/rpatino/hackathon/elktron-app/api/escort.py', cat: 'file' },
+      { label: 'server.py — FastAPI Dashboard Server', url: 'file:///Users/rpatino/hackathon/elktron-app/api/server.py', cat: 'file' },
+      { label: 'models.py — Pydantic Data Models', url: 'file:///Users/rpatino/hackathon/elktron-app/api/models.py', cat: 'file' },
+      { label: 'main.py — Escort Bot Brain (Pi side)', url: 'file:///Users/rpatino/hackathon/escort-bot/main.py', cat: 'file' },
+      { label: 'Pi 5 via Tailscale', url: 'http://100.85.225.68:5000', cat: 'tool' },
+      { label: 'FastAPI Documentation', url: 'https://fastapi.tiangolo.com/', cat: 'docs' },
+      { label: 'Flask MJPEG Streaming Example', url: 'https://github.com/miguelgrinberg/flask-video-streaming', cat: 'docs' },
+      { label: 'Elktron Dashboard', url: 'file:///Users/rpatino/hackathon/elktron-app/index.html', cat: 'app' },
+    ],
+    tips: [
+      'The Pi API server is your #1 priority. Everything else depends on it existing.',
+      'Use Flask (not FastAPI) on the Pi — simpler, lighter, fewer deps. `pip install flask` is all you need.',
+      'MJPEG stream: Flask route yields JPEG frames as `multipart/x-mixed-replace`. ~15 lines of code.',
+      'The dashboard `escort.py` already expects endpoints at `escort-bot.local:5000` — match those URLs.',
+      'Run the API server in a separate thread from `main.py` — share state via a thread-safe dict.',
+      'Use `results[0].plot()` from Ultralytics to render YOLOv8 bounding boxes on MJPEG frames.',
+      'Test with `curl http://100.85.225.68:5000/health` before wiring dashboard — validate endpoints first.',
+      'SSH into Pi: `ssh pi@100.85.225.68` — ask Romeo for credentials.',
+    ],
+    questions: [
+      'Do you have Tailscale installed? You need it to reach the Pi at 100.85.225.68.',
+      'Have you read escort.py? It defines exactly what endpoints you need to build on the Pi side.',
+      'Can you run Flask on the Pi? Test: `python3 -c "from flask import Flask; print(\'ok\')"` via SSH.',
+      'What format should the GET /state endpoint return? (See models.py EscortState for the schema.)',
+      'How will main.py and the Flask server share state? Threading + shared dict is simplest.',
+      'Do you need help setting up SSH access to the Pi?',
+    ]
+  },
+  alex: {
+    links: [
+      { label: 'WIRING.md — Full GPIO Pin Map', url: 'file:///Users/rpatino/hackathon/escort-bot/WIRING.md', cat: 'file' },
+      { label: 'L298N Motor Driver Datasheet', url: 'https://www.sparkfun.com/datasheets/Robotics/L298_H_Bridge.pdf', cat: 'docs' },
+      { label: 'Assembly Page (3D)', url: 'file:///Users/rpatino/hackathon/escort-bot/assembly.html', cat: 'app' },
+      { label: 'BUILD-GUIDE.html', url: 'file:///Users/rpatino/hackathon/escort-bot/BUILD-GUIDE.html', cat: 'app' },
+      { label: 'Wiring Guide (3D)', url: 'file:///Users/rpatino/hackathon/escort-bot/wiring-guide.html', cat: 'app' },
+      { label: 'CKK0011 Chassis Tutorial', url: 'file:///Users/rpatino/hackathon/CKK0011-main/Tutorial/', cat: 'file' },
+    ],
+    tips: [
+      'CRITICAL: L298N +5V logic pin must be connected to Pi 5V — this is why motors are not spinning.',
+      'Remove the L298N 5V regulator jumper BEFORE connecting Pi 5V to the +5V pin.',
+      'HC-SR04 ECHO pin outputs 5V — Pi GPIO is 3.3V only. Voltage divider (1k + 2k resistors) is required.',
+      'Test motors one pair at a time: left pair first (GPIO 17/27), then right pair (GPIO 22/23).',
+      'PVC mast: Schedule 40, 1-inch diameter, cut to ~3.5 ft. T-connector attaches to chassis.',
+      'Label every wire with masking tape before connecting — saves hours of debugging later.',
+      'Ensure Pi 5 has airflow underneath — chassis mounting must allow ventilation.',
+    ],
+    questions: [
+      'Is the L298N +5V logic pin connected to Pi 5V now? This is the #1 blocker.',
+      'Do you have the voltage divider resistors (1k + 2k)? Check Romeo for the breadboard.',
+      'Is the PVC pipe cut to the right length? Test mast stability — should sway <1cm.',
+      'Are all 4 motors wired correctly? FL+RL to Channel A, FR+RR to Channel B.',
+      'Is the camera CSI ribbon cable long enough to reach the mast top?',
+      'Have you verified the pan-tilt servos work? Run: `python3 pan_tilt.py --simulate`',
+    ]
+  },
+  talha: {
+    links: [
+      { label: 'DEMO-SCRIPT.md — Full Narration', url: 'file:///Users/rpatino/hackathon/docs/DEMO-SCRIPT.md', cat: 'file' },
+      { label: 'DEMO-CREATIVE-BRIEF.md', url: 'file:///Users/rpatino/hackathon/docs/DEMO-CREATIVE-BRIEF.md', cat: 'file' },
+      { label: 'Elktron Landing Page', url: 'file:///Users/rpatino/hackathon/robotics-site/index.html', cat: 'app' },
+      { label: 'Dashboard (for screen recording)', url: 'file:///Users/rpatino/hackathon/elktron-app/index.html', cat: 'app' },
+      { label: 'Assembly Page (B-roll source)', url: 'file:///Users/rpatino/hackathon/escort-bot/assembly.html', cat: 'app' },
+      { label: 'DaVinci Resolve (Free)', url: 'https://www.blackmagicdesign.com/products/davinciresolve/', cat: 'tool' },
+    ],
+    tips: [
+      'Demo video must be under 3 minutes. Time every section during script review.',
+      'Film in landscape mode. 1080p minimum. Steady hands or use a tripod.',
+      'Get B-roll NOW — wiring, assembly, Pi booting, terminal output. You cannot get this footage later.',
+      'Screen-record the dashboard walkthrough with a voiceover — shows the software side.',
+      'Title card: "Elktron — Autonomous DC Floor Robots" + team name + track.',
+      'Export final video as MP4, under 100MB. Test it plays on the submission platform.',
+      'Film from multiple angles — close-up of arm gripping optic, wide shot of bot following person.',
+    ],
+    questions: [
+      'Have you read DEMO-SCRIPT.md? It has the full narration and shot list.',
+      'Do you have filming equipment ready? Phone tripod, good lighting?',
+      'Which video editor are you using? DaVinci Resolve is free and professional.',
+      'Can you attend a build session to film B-roll? Ask Romeo for schedule.',
+      'Who is doing voiceover narration? Coordinate with Romeo.',
+      'Is the team logo designed? It goes on the title card and slides.',
+    ]
+  },
+  raphael: {
+    links: [
+      { label: 'WIRING.md — Connection Verification', url: 'file:///Users/rpatino/hackathon/escort-bot/WIRING.md', cat: 'file' },
+      { label: 'Assembly Page (3D)', url: 'file:///Users/rpatino/hackathon/escort-bot/assembly.html', cat: 'app' },
+      { label: 'BUILD-GUIDE.html', url: 'file:///Users/rpatino/hackathon/escort-bot/BUILD-GUIDE.html', cat: 'app' },
+      { label: 'Parts List — Full BOM', url: 'file:///Users/rpatino/hackathon/docs/PARTS-LIST.md', cat: 'file' },
+      { label: 'TEAM-CHECKLIST.md — All Tasks', url: 'file:///Users/rpatino/hackathon/docs/TEAM-CHECKLIST.md', cat: 'file' },
+    ],
+    tips: [
+      'Charge ALL batteries the night before demo day. 18650s + USB power banks.',
+      'Label every cable and connection with masking tape — saves time during emergency repairs.',
+      'Build the emergency repair kit: screwdriver, tape, spare wires, zip ties, spare screws.',
+      'Verify every wiring connection against WIRING.md — you are the second pair of eyes.',
+      'During demo day: you play the "vendor" role. Practice walking slowly past racks.',
+      'Pack labeled boxes the night before — one box per robot, one for cables/PSUs.',
+      'Bring 2 spare 18650 batteries for hot-swap if battery runs low during demo.',
+    ],
+    questions: [
+      'Is the emergency repair kit assembled? Check the parts list.',
+      'Are all batteries charged to 100%? Test voltage with a multimeter if available.',
+      'Have you walked through the demo day packing checklist?',
+      'Do you know where the demo venue is? Confirm logistics with Romeo.',
+      'Have you practiced the "vendor" walk for the escort bot demo?',
+      'Is cable management clean? Route wires, velcro, zip tie everything.',
+    ]
+  },
+  andrew: {
+    links: [
+      { label: 'Project README', url: 'file:///Users/rpatino/hackathon/README.md', cat: 'file' },
+      { label: 'Elktron Landing Page', url: 'file:///Users/rpatino/hackathon/robotics-site/index.html', cat: 'app' },
+      { label: 'Escort Bot Simulation', url: 'file:///Users/rpatino/hackathon/escort-bot/simulation.html', cat: 'app' },
+      { label: 'Raspberry Pi Documentation', url: 'https://www.raspberrypi.com/documentation/', cat: 'docs' },
+    ],
+    tips: [
+      'Watch the build sessions closely — this is the best way to learn robotics and Pi setup.',
+      'Ask questions! The team is happy to explain decisions and tradeoffs.',
+      'If you want to help, ask Romeo — there are always small tasks available.',
+      'Take notes on what you find interesting — good prep for future hackathons.',
+    ],
+    questions: [
+      'Is there anything specific you want to learn from this hackathon?',
+      'Would you like to shadow a specific team member during build?',
+      'Are you available to help with demo day logistics?',
+    ]
+  }
+};
+
+let briefingMember = null;
+
+function renderBriefing() {
+  const el = document.getElementById('briefing-view');
+  const activeTasks = memberId => TASKS.filter(t => t.owner === memberId);
+
+  // Member strip
+  let html = '<div class="briefing-member-strip">';
+  TEAM.filter(m => m.id !== 'andrew').forEach(m => {
+    const tasks = activeTasks(m.id);
+    const done = tasks.filter(t => getStatus(t.id) === 'done').length;
+    html += `<div class="briefing-member-card ${briefingMember === m.id ? 'selected' : ''}" onclick="selectBriefingMember('${m.id}')">
+      <span class="member-dot" style="background:${m.color}">${m.short}</span>
+      <div class="briefing-member-info">
+        <span class="briefing-member-name">${m.name.split(' ')[0]}</span>
+        <span class="briefing-member-role">${m.role}</span>
+      </div>
+      <span class="briefing-member-stat">${done}/${tasks.length}</span>
+    </div>`;
+  });
+  html += '</div>';
+
+  if (!briefingMember) {
+    html += '<div class="briefing-empty">Select a team member above to see their briefing.</div>';
+    el.innerHTML = html;
+    return;
+  }
+
+  const m = getMember(briefingMember);
+  const data = BRIEFING_DATA[briefingMember];
+  const tasks = activeTasks(briefingMember);
+  if (!m || !data) { el.innerHTML = html; return; }
+
+  html += '<div class="briefing-panel">';
+
+  // Section 1: Your Tasks (sorted by priority)
+  const prOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+  const sortedTasks = [...tasks].sort((a, b) => (prOrder[a.priority] ?? 3) - (prOrder[b.priority] ?? 3));
+  const notDone = sortedTasks.filter(t => getStatus(t.id) !== 'done');
+  const doneTasks = sortedTasks.filter(t => getStatus(t.id) === 'done');
+
+  html += `<div class="briefing-section">
+    <div class="briefing-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Your Tasks (${notDone.length} remaining, ${doneTasks.length} done)
+    </div>`;
+  [...notDone, ...doneTasks].forEach(t => {
+    const s = getStatus(t.id);
+    const st = STATUSES.find(x => x.id === s);
+    const isDone = s === 'done';
+    let dueCls = '';
+    if (t.due && isDueOver(t.due) && !isDone) dueCls = 'overdue';
+    else if (t.due && isDueSoon(t.due) && !isDone) dueCls = 'soon';
+    html += `<div class="briefing-task-row ${isDone ? 'is-done' : ''}">
+      <span class="pill-dot" style="background:${st.color};width:8px;height:8px;border-radius:50%;flex-shrink:0"></span>
+      <span class="briefing-task-id">${t.id}</span>
+      <span class="briefing-task-text" onclick="openDrawer('${t.id}')" style="cursor:pointer">${t.text}</span>
+      ${t.due ? `<span class="briefing-task-due ${dueCls}">${t.due}</span>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+
+  // Section 2: Timeline
+  const timelineTasks = [...tasks].filter(t => t.due).sort((a, b) => {
+    const [am, ad] = a.due.split('/').map(Number);
+    const [bm, bd] = b.due.split('/').map(Number);
+    return (am * 100 + ad) - (bm * 100 + bd);
+  });
+  if (timelineTasks.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Timeline
+      </div>`;
+    let lastDate = '';
+    timelineTasks.forEach(t => {
+      const [mo, day] = t.due.split('/').map(Number);
+      const dateStr = `March ${day}`;
+      if (dateStr !== lastDate) {
+        html += `<div class="briefing-timeline-date">${dateStr}</div>`;
+        lastDate = dateStr;
+      }
+      const s = getStatus(t.id);
+      const st = STATUSES.find(x => x.id === s);
+      const isDone = s === 'done';
+      html += `<div class="briefing-task-row ${isDone ? 'is-done' : ''}">
+        <span class="pill-dot" style="background:${st.color};width:8px;height:8px;border-radius:50%;flex-shrink:0"></span>
+        <span class="briefing-task-id">${t.id}</span>
+        <span class="briefing-task-text">${t.text}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Section 3: Links & Resources
+  if (data.links && data.links.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        Links & Resources
+      </div>`;
+    data.links.forEach(l => {
+      html += `<a class="briefing-link" href="${l.url}" target="_blank">
+        <span class="briefing-link-cat">${l.cat}</span>
+        ${l.label}
+      </a>`;
+    });
+    html += '</div>';
+  }
+
+  // Section 4: Tips & Tricks
+  if (data.tips && data.tips.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1H9a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z"/><path d="M9 21h6M10 17v1M14 17v1"/></svg>
+        Tips & Tricks
+      </div>`;
+    data.tips.forEach((tip, i) => {
+      html += `<div class="briefing-tip">
+        <span class="briefing-tip-num">${i + 1}.</span>
+        <span>${tip}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Section 5: Questions to Investigate
+  if (data.questions && data.questions.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        Questions to Investigate
+      </div>`;
+    data.questions.forEach((q, i) => {
+      const key = `${briefingMember}:${i}`;
+      const checked = state.briefingChecks && state.briefingChecks[key];
+      html += `<div class="briefing-question">
+        <div class="briefing-q-check ${checked ? 'checked' : ''}" onclick="toggleBriefingCheck('${key}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <span style="${checked ? 'opacity:0.45;text-decoration:line-through' : ''}">${q}</span>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>'; // close briefing-panel
+  el.innerHTML = html;
+}
+
+function selectBriefingMember(id) {
+  briefingMember = id;
+  renderBriefing();
+}
+
+function toggleBriefingCheck(key) {
+  if (!state.briefingChecks) state.briefingChecks = {};
+  state.briefingChecks[key] = !state.briefingChecks[key];
+  saveState();
+  renderBriefing();
+}
 
 
 // ─── DRAWER FUNCTIONS ────────────────────────────────────────────────
@@ -1643,8 +2100,12 @@ function renderAll() {
   renderSidebar();
   renderMetrics();
   renderToolbar();
-  if (currentView === 'queue') { renderQueue(); document.getElementById('queue-view').style.display=''; document.getElementById('kanban-view').style.display='none'; }
-  else { renderKanban(); document.getElementById('kanban-view').style.display='flex'; document.getElementById('queue-view').style.display='none'; }
+  document.getElementById('queue-view').style.display = 'none';
+  document.getElementById('kanban-view').style.display = 'none';
+  document.getElementById('briefing-view').style.display = 'none';
+  if (currentView === 'queue') { renderQueue(); document.getElementById('queue-view').style.display=''; }
+  else if (currentView === 'kanban') { renderKanban(); document.getElementById('kanban-view').style.display='flex'; }
+  else if (currentView === 'briefing') { renderBriefing(); document.getElementById('briefing-view').style.display=''; }
   renderCountdown();
 }
 
@@ -1660,8 +2121,8 @@ function renderSidebar() {
   document.getElementById('sidebar-team').innerHTML = TEAM.map(m => {
     const count = TASKS.filter(t => t.owner === m.id).length;
     const done = TASKS.filter(t => t.owner === m.id && getStatus(t.id) === 'done').length;
-    return `<div class="sidebar-member ${filterMember === m.id ? 'active' : ''}"
-                 onclick="toggleMemberFilter('${m.id}')"
+    return `<div class="sidebar-member ${filterMember === m.id || (currentView === 'briefing' && briefingMember === m.id) ? 'active' : ''}"
+                 onclick="${currentView === 'briefing' ? `selectBriefingMember('${m.id}')` : `toggleMemberFilter('${m.id}')`}"
                  ondragover="event.preventDefault();this.classList.add('drop-target')"
                  ondragleave="this.classList.remove('drop-target')"
                  ondrop="dropOnMember(event,'${m.id}');this.classList.remove('drop-target')">

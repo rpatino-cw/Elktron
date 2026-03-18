@@ -1,28 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Raspberry Pi 5 — 3D Model</title>
+<link rel="stylesheet" href="../design-system.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  /* design-system.css already imports Source Sans 3 + Inconsolata */
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #0a0a0c;
-    --surface: #141418;
-    --border: rgba(255,255,255,0.07);
-    --text: #e8e6e3;
-    --text-dim: #787472;
-    --accent: #c3423f;
-    --green: #3a7d44;
+    --bg: var(--bg-dark);
+    --surface: var(--bg-surface);
+    --border: var(--border-subtle);
+    --text: var(--text-primary);
+    --text-dim: var(--text-tertiary);
+    --accent: var(--accent-primary);
+    --green: var(--status-success);
   }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: var(--font-sans);
     overflow: hidden;
     height: 100vh;
     width: 100vw;
@@ -86,7 +87,7 @@
   .explode-btn:active { transform: scale(0.95); }
   .explode-btn.active {
     color: var(--accent); border-color: var(--accent);
-    background: rgba(195,66,63,0.08);
+    background: var(--accent-primary-muted);
   }
   .explode-btn.visible { opacity: 1; transform: translateY(0);
     transition: opacity 0.6s cubic-bezier(0.25,1,0.5,1),

@@ -62,7 +62,7 @@ Laptop/Pi 5
 
 ## Demo Day Setup
 
-For the March 23 demo, you need:
+For the Demo Day (March 26) demo, you need:
 1. Follower arm clamped to table
 2. Optic + transceiver cage in workspace
 3. Pi 5 or laptop running `deploy.py`

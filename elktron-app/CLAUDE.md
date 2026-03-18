@@ -110,14 +110,18 @@ For the full map of all 11 Three.js pages in the project, see `../CLAUDE.md` →
 
 Build with Velocity
 
-## Status
+## Status (updated 2026-03-18)
 
-- [ ] FastAPI server scaffolded
-- [ ] WebSocket connection working
-- [ ] Arm status panel (mock data first, then real serial)
-- [ ] Escort bot panel (mock data first)
-- [ ] Camera feed integration
-- [ ] Rack scan log viewer
-- [ ] Training controls
+- [x] FastAPI server scaffolded — `server.py` working with mock data
+- [x] WebSocket connection working — ~10Hz state push to frontend
+- [x] Arm status panel — rendering mock pick-place cycle
+- [x] Escort bot panel — rendering mock escort sequence
+- [x] Rack scan log viewer — rendering 3 mock scan reports
+- [x] Training controls — rendering mock training pipeline
+- [ ] **Pi API server** — Parth building `escort-bot/api_server.py` (CRITICAL blocker)
+- [ ] **MJPEG camera stream** — needs Pi API server first
+- [ ] Wire `escort.py` to poll real Pi data
+- [ ] Scan upload endpoint (`POST /api/scans`)
+- [ ] Arm serial test (depends on Josh's hardware)
 - [ ] Live hardware connected
 - [ ] Demo scenarios rehearsed

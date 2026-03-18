@@ -1,34 +1,35 @@
 /* ============================================================
-   Elktron Design System — CoreWeave White + Blue
+   Elktron Design System — CoreWeave Cloud Console
    ============================================================
-   Light theme. CoreWeave brand palette. Plus Jakarta Sans.
-   Clean, bright, professional. Romeo's Touch energy.
+   Aligned with the CW cloud console visual language.
+   Source Sans 3. #4264ff primary. Compact, data-dense.
+   Light + dark mode via html.dark class.
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inconsolata:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&family=Inconsolata:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Backgrounds — light, clean, breathing */
-  --bg-primary: #ffffff;
+  /* Backgrounds — CW console light */
+  --bg-primary: #fcfcfe;
   --bg-surface: #ffffff;
-  --bg-elevated: #f7f8fc;
-  --bg-hover: #eef1f8;
-  --bg-input: #f7f8fc;
-  --bg-dark: #0a0e1a;
+  --bg-elevated: #f8fafc;
+  --bg-hover: #e6e8ed;
+  --bg-input: #f8fafc;
+  --bg-dark: #050810;
 
-  /* Text — dark on light, blue-tinted neutrals */
-  --text-primary: #0a0e1a;
-  --text-secondary: #4a5168;
-  --text-tertiary: #8890a6;
+  /* Text — CW gray scale */
+  --text-primary: #211f26;
+  --text-secondary: #64636d;
+  --text-tertiary: #64636d;
   --text-inverse: #ffffff;
 
-  /* CoreWeave Blue — the brand */
-  --accent-primary: #2741E7;
-  --accent-primary-hover: #4260f5;
-  --accent-primary-muted: rgba(39, 65, 231, 0.08);
-  --accent-secondary: #6989FF;
-  --accent-secondary-muted: rgba(105, 137, 255, 0.08);
-  --accent-gradient: linear-gradient(135deg, #2741E7, #425AF3, #6CA1E5);
+  /* CoreWeave Blue — CW console primary */
+  --accent-primary: #4264ff;
+  --accent-primary-hover: #3050e6;
+  --accent-primary-muted: rgba(66, 100, 255, 0.08);
+  --accent-secondary: #1B1E37;
+  --accent-secondary-muted: rgba(27, 30, 55, 0.08);
+  --accent-gradient: linear-gradient(135deg, #4264ff, #1B1E37);
 
   /* Status — restrained, professional */
   --status-success: #16a34a;
@@ -37,28 +38,28 @@
   --status-warning-muted: rgba(217, 119, 6, 0.08);
   --status-error: #dc2626;
   --status-error-muted: rgba(220, 38, 38, 0.08);
-  --status-info: #2741E7;
+  --status-info: #4264ff;
 
-  /* Borders — subtle, blue-tinted grays */
-  --border-subtle: rgba(10, 14, 26, 0.06);
-  --border-default: rgba(10, 14, 26, 0.10);
-  --border-strong: rgba(10, 14, 26, 0.18);
-  --border-accent: rgba(39, 65, 231, 0.25);
+  /* Borders — CW gray-400 based */
+  --border-subtle: rgba(217, 217, 225, 0.5);
+  --border-default: #d9d9e1;
+  --border-strong: #c8c8d0;
+  --border-accent: rgba(66, 100, 255, 0.25);
 
-  /* Glow — soft blue halos */
-  --glow-soft: rgba(39, 65, 231, 0.08);
-  --glow-medium: rgba(39, 65, 231, 0.15);
-  --glow-strong: rgba(39, 65, 231, 0.25);
+  /* Glow — CW blue halos */
+  --glow-soft: rgba(66, 100, 255, 0.08);
+  --glow-medium: rgba(66, 100, 255, 0.15);
+  --glow-strong: rgba(66, 100, 255, 0.25);
 
   /* Shadows — light, layered, diffused */
   --shadow-sm: 0 1px 3px rgba(10, 14, 26, 0.04), 0 1px 2px rgba(10, 14, 26, 0.02);
   --shadow-md: 0 2px 8px rgba(10, 14, 26, 0.05), 0 8px 24px rgba(10, 14, 26, 0.04);
   --shadow-lg: 0 4px 12px rgba(10, 14, 26, 0.04), 0 20px 48px rgba(10, 14, 26, 0.06);
   --shadow-xl: 0 8px 24px rgba(10, 14, 26, 0.05), 0 32px 80px rgba(10, 14, 26, 0.08);
-  --shadow-glow: 0 0 20px var(--glow-soft), 0 4px 16px rgba(39, 65, 231, 0.06);
+  --shadow-glow: 0 0 20px var(--glow-soft), 0 4px 16px rgba(66, 100, 255, 0.06);
 
-  /* Typography — Plus Jakarta Sans + Inconsolata */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, system-ui, sans-serif;
+  /* Typography — Source Sans 3 (CW console) + Inconsolata */
+  --font-sans: 'Source Sans 3', -apple-system, system-ui, sans-serif;
   --font-mono: 'Inconsolata', 'SF Mono', monospace;
 
   --text-xs: 0.6875rem;
@@ -131,6 +132,58 @@
   --max-width-narrow: 960px;
   --max-width-wide: 1440px;
   --nav-height: 56px;
+}
+
+/* --- Dark Mode (CW console dark variant) --- */
+html.dark {
+  --bg-primary: #0f1117;
+  --bg-surface: #161822;
+  --bg-elevated: #1c1e2e;
+  --bg-hover: #252840;
+  --bg-input: #1c1e2e;
+  --bg-dark: #050810;
+
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ca0b0;
+  --text-tertiary: #6b7394;
+  --text-inverse: #0f1117;
+
+  --accent-primary: #4264ff;
+  --accent-primary-hover: #5a7aff;
+  --accent-primary-muted: rgba(66, 100, 255, 0.12);
+  --accent-secondary: #6989FF;
+  --accent-secondary-muted: rgba(105, 137, 255, 0.12);
+  --accent-gradient: linear-gradient(135deg, #4264ff, #6989ff);
+
+  --status-info: #4264ff;
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-accent: rgba(66, 100, 255, 0.30);
+
+  --glow-soft: rgba(66, 100, 255, 0.10);
+  --glow-medium: rgba(66, 100, 255, 0.20);
+  --glow-strong: rgba(66, 100, 255, 0.35);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.3), 0 20px 48px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.3), 0 32px 80px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 20px var(--glow-soft), 0 4px 16px rgba(66, 100, 255, 0.10);
+}
+
+html.dark .fc-nav {
+  background: rgba(15, 17, 23, 0.85);
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+html.dark ::selection {
+  background: var(--accent-primary-muted);
+  color: var(--text-primary);
 }
 
 /* --- Base Reset --- */
@@ -302,7 +355,7 @@ a:hover { color: var(--accent-primary-hover); }
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-8);
-  background: rgba(250, 251, 253, 0.85);
+  background: rgba(252, 252, 254, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-subtle);
@@ -490,7 +543,7 @@ a:hover { color: var(--accent-primary-hover); }
   font-weight: var(--weight-semibold);
 }
 
-/* Scrollbar — subtle on light */
+/* Scrollbar — subtle */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
