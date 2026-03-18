@@ -183,12 +183,12 @@ def generate_all():
     # ── WIRE LABELS (12mm tape) ──
     wire_labels = [
         ("01_wire_left_fwd.png", "LEFT FWD", "GPIO 17 > L298N IN1"),
-        ("02_wire_left_bwd.png", "LEFT BWD", "GPIO 27 > L298N IN2"),
+        ("02_wire_left_bwd.png", "LEFT BWD", "GPIO 24 > L298N IN2"),
         ("03_wire_right_fwd.png", "RIGHT FWD", "GPIO 22 > L298N IN3"),
         ("04_wire_right_bwd.png", "RIGHT BWD", "GPIO 23 > L298N IN4"),
         ("05_wire_l298n_left.png", "L298N > LEFT", "Motor A Terminal"),
         ("06_wire_l298n_right.png", "L298N > RIGHT", "Motor B Terminal"),
-        ("07_wire_ultra_echo.png", "ULTRA ECHO", "GPIO 24 < HC-SR04"),
+        ("07_wire_ultra_echo.png", "ULTRA ECHO", "GPIO 26 < HC-SR04"),
         ("08_wire_ultra_trig.png", "ULTRA TRIG", "GPIO 25 > HC-SR04"),
         ("09_wire_sensor_5v.png", "SENSOR 5V", "Pin 2 > HC-SR04 VCC"),
         ("10_wire_sensor_gnd.png", "SENSOR GND", "Pin 6 > HC-SR04 GND"),

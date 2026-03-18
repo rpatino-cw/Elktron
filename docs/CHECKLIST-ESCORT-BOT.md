@@ -124,7 +124,7 @@
 L298N Pin    →    Pi GPIO (BCM)    Purpose
 ─────────────────────────────────────────────
 IN1          →    GPIO 17          Left motor forward
-IN2          →    GPIO 27          Left motor backward
+IN2          →    GPIO 24          Left motor backward
 IN3          →    GPIO 22          Right motor forward
 IN4          →    GPIO 23          Right motor backward
 ENA          →    GPIO 12 (PWM)    Left motor speed (optional)
@@ -133,7 +133,7 @@ GND          →    Pi GND           Common ground (CRITICAL)
 ```
 
 - [ ] Connect IN1 → GPIO 17 (jumper wire)
-- [ ] Connect IN2 → GPIO 27
+- [ ] Connect IN2 → GPIO 24
 - [ ] Connect IN3 → GPIO 22
 - [ ] Connect IN4 → GPIO 23
 - [ ] Connect L298N GND → Pi GND pin (pin 6, 9, 14, 20, 25, 30, 34, or 39)
@@ -146,7 +146,7 @@ GND          →    Pi GND           Common ground (CRITICAL)
 - [ ] Run quick test script:
 ```python
 from gpiozero import Robot
-robot = Robot(left=(17, 27), right=(22, 23))
+robot = Robot(left=(17, 24), right=(22, 23))
 robot.forward(speed=0.3)   # slow forward, 2 seconds
 import time; time.sleep(2)
 robot.stop()
@@ -195,7 +195,7 @@ ECHO           →    Voltage divider → GPIO 24   Echo return (input)
 - [ ] Run test:
 ```python
 from gpiozero import DistanceSensor
-sonar = DistanceSensor(echo=24, trigger=25, max_distance=2)
+sonar = DistanceSensor(echo=26, trigger=25, max_distance=2)
 while True:
     print(f"Distance: {sonar.distance * 100:.1f} cm")
     import time; time.sleep(0.5)

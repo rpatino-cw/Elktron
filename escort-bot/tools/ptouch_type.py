@@ -13,12 +13,12 @@ import time
 LABELS = [
     # Wire labels
     ("WIRE", "LEFT FWD", "GPIO17 > IN1"),
-    ("WIRE", "LEFT BWD", "GPIO27 > IN2"),
+    ("WIRE", "LEFT BWD", "GPIO24 > IN2"),
     ("WIRE", "RIGHT FWD", "GPIO22 > IN3"),
     ("WIRE", "RIGHT BWD", "GPIO23 > IN4"),
     ("WIRE", "L298N>LEFT", "Motor A"),
     ("WIRE", "L298N>RIGHT", "Motor B"),
-    ("WIRE", "ULTRA ECHO", "GPIO24<HC-SR04"),
+    ("WIRE", "ULTRA ECHO", "GPIO26<HC-SR04"),
     ("WIRE", "ULTRA TRIG", "GPIO25>HC-SR04"),
     ("WIRE", "SENSOR 5V", "Pin2>VCC"),
     ("WIRE", "SENSOR GND", "Pin6>GND"),

@@ -393,7 +393,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="node-icon" style="background:rgba(142,68,173,.08);color:#8e44ad">
           <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="4" width="16" height="12" rx="2" fill="currentColor" opacity=".15"/><circle cx="7" cy="10" r="3.5" fill="currentColor" opacity=".5"/><circle cx="13" cy="10" r="3.5" fill="currentColor" opacity=".5"/></svg>
         </div>
-        <div class="node-info"><span class="node-name">HC-SR04</span><span class="node-detail">Ultrasonic &middot; GPIO 24/25</span></div>
+        <div class="node-info"><span class="node-name">HC-SR04</span><span class="node-detail">Ultrasonic &middot; GPIO 26/25</span></div>
       </div>
     </div>
 
@@ -562,7 +562,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         The ECHO pin outputs <strong>5V</strong> but Pi 5 GPIO is <strong>3.3V tolerant</strong>. Use a resistor divider to step it down:
       </p>
       <div style="font-family:var(--mono);font-size:.72rem;line-height:1.8;color:var(--text);background:var(--bg);padding:12px 16px;border-radius:10px;border:1px solid rgba(10,14,26,.06)">
-        ECHO pin ──┬── <strong style="color:#dc2626">100&#8486;</strong> ── GPIO 24 (Pi)<br>
+        ECHO pin ──┬── <strong style="color:#dc2626">100&#8486;</strong> ── GPIO 26 (Pi)<br>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <strong style="color:#2741E7">200&#8486;</strong> ── GND<br><br>
         V<sub>out</sub> = 5V &times; 200/(100+200) = <strong style="color:#16a34a">3.33V</strong> &#10003;
       </div>
@@ -648,7 +648,7 @@ let overviewInitialized = false;
 
 const WIRES = [
   {from:'pi',to:'n-l298n',color:'#2741E7',group:'motor',label:'GPIO17 -> IN1',w:2.5},
-  {from:'pi',to:'n-l298n',color:'#4260f5',group:'motor',label:'GPIO27 -> IN2',w:2.5,offset:12},
+  {from:'pi',to:'n-l298n',color:'#4260f5',group:'motor',label:'GPIO24 -> IN2',w:2.5,offset:12},
   {from:'pi',to:'n-l298n',color:'#e67e22',group:'motor',label:'GPIO22 -> IN3',w:2.5,offset:24},
   {from:'pi',to:'n-l298n',color:'#f1c40f',group:'motor',label:'GPIO23 -> IN4',w:2.5,offset:36},
   {from:'pi',to:'n-l298n',color:'#4a5168',group:'power',label:'Pi GND -> L298N GND',w:2,offset:48},
@@ -657,7 +657,7 @@ const WIRES = [
   {from:'n-battery',to:'n-l298n',color:'#dc2626',group:'power',label:'7.4V -> L298N VIN',w:3},
   {from:'n-battery',to:'n-l298n',color:'#4a5168',group:'power',label:'Battery GND',w:2,offset:14},
   {from:'pi',to:'n-hcsr04',color:'#8e44ad',group:'sensor',label:'GPIO25 -> TRIG',w:2.5},
-  {from:'pi',to:'n-hcsr04',color:'#a855f7',group:'sensor',label:'GPIO24 -> ECHO (via divider)',w:2.5,offset:14},
+  {from:'pi',to:'n-hcsr04',color:'#a855f7',group:'sensor',label:'GPIO26 -> ECHO (via divider)',w:2.5,offset:14},
   {from:'pi',to:'n-hcsr04',color:'#dc2626',group:'sensor',label:'5V -> HC-SR04 VCC',w:1.8,offset:28},
   {from:'pi',to:'n-hcsr04',color:'#4a5168',group:'sensor',label:'GND -> HC-SR04 GND',w:1.8,offset:42},
   {from:'pi',to:'n-ptz',color:'#3498db',group:'servo',label:'GPIO2 (SDA) -> PTZ Board',w:2.5},
@@ -675,14 +675,14 @@ const WIRES = [
 const GPIO_DETAIL = {
   'n-l298n': [
     {pin:'GPIO 17',fn:'Left Motor FWD -> IN1',color:'#2741E7'},
-    {pin:'GPIO 27',fn:'Left Motor BWD -> IN2',color:'#4260f5'},
+    {pin:'GPIO 24',fn:'Left Motor BWD -> IN2',color:'#4260f5'},
     {pin:'GPIO 22',fn:'Right Motor FWD -> IN3',color:'#e67e22'},
     {pin:'GPIO 23',fn:'Right Motor BWD -> IN4',color:'#f1c40f'},
     {pin:'GND (Pin 6)',fn:'Common Ground',color:'#4a5168'},
   ],
   'n-hcsr04': [
     {pin:'GPIO 25',fn:'TRIG pulse',color:'#8e44ad'},
-    {pin:'GPIO 24',fn:'ECHO (via 100+200 divider)',color:'#a855f7'},
+    {pin:'GPIO 26',fn:'ECHO (via 1k+2k divider)',color:'#a855f7'},
     {pin:'5V (Pin 2)',fn:'Sensor power',color:'#dc2626'},
     {pin:'GND (Pin 6)',fn:'Sensor ground',color:'#4a5168'},
   ],
@@ -1043,29 +1043,29 @@ const STEPS=[
 {title:"Battery Holder \u2192 L298N Power",info:`Connect the <span class="pin-ref">RED (+)</span> wire from the 18650 battery holder to the <span class="pin-ref">+12V</span> terminal on the L298N. Then connect the <span class="pin-ref">BLACK (\u2212)</span> wire to the <span class="pin-ref">GND</span> terminal.`,why:"This gives the motors their own 7.4V power supply, separate from the Pi.",diagram:'battery-l298n'},
 {title:"Left Motors \u2192 L298N Channel A",info:`Twist the <strong>red wires</strong> from both Front-Left and Rear-Left motors together. Push into <span class="pin-ref">OUT1</span>. Twist both <strong>black wires</strong> into <span class="pin-ref">OUT2</span>.`,why:"Both left motors run in parallel on Channel A \u2014 they always spin the same direction.",diagram:'left-motors'},
 {title:"Right Motors \u2192 L298N Channel B",info:`Same pattern. Twist <strong>red wires</strong> from FR + RR motors into <span class="pin-ref">OUT3</span>. Twist <strong>black wires</strong> into <span class="pin-ref">OUT4</span>.`,why:"Channel B drives the right pair. Left + Right channels give you tank steering.",diagram:'right-motors'},
-{title:"Pi GPIO \u2192 L298N Control Pins",info:`Connect 4 jumper wires from the Pi header to the L298N:<br><span class="pin-ref">Pin 11</span> GPIO17 \u2192 <span class="pin-ref">IN1</span> &nbsp;<span class="pin-ref">Pin 13</span> GPIO27 \u2192 <span class="pin-ref">IN2</span><br><span class="pin-ref">Pin 15</span> GPIO22 \u2192 <span class="pin-ref">IN3</span> &nbsp;<span class="pin-ref">Pin 16</span> GPIO23 \u2192 <span class="pin-ref">IN4</span>`,why:"These 4 signals tell the L298N which direction to spin each motor pair.",diagram:'gpio-l298n'},
+{title:"Pi GPIO \u2192 L298N Control Pins",info:`Connect 4 jumper wires from the Pi header to the L298N:<br><span class="pin-ref">Pin 11</span> GPIO17 \u2192 <span class="pin-ref">IN1</span> &nbsp;<span class="pin-ref">Pin 18</span> GPIO24 \u2192 <span class="pin-ref">IN2</span><br><span class="pin-ref">Pin 15</span> GPIO22 \u2192 <span class="pin-ref">IN3</span> &nbsp;<span class="pin-ref">Pin 16</span> GPIO23 \u2192 <span class="pin-ref">IN4</span>`,why:"These 4 signals tell the L298N which direction to spin each motor pair.",diagram:'gpio-l298n'},
 {title:"Pi GND \u2192 L298N GND",info:`Connect a jumper from <span class="pin-ref">Pin 6</span> (GND) on the Pi to the <span class="pin-ref">GND</span> terminal on the L298N \u2014 the same rail as the battery negative.`,why:"Without common ground, GPIO signals won't register. This is the #1 missed step.",diagram:'common-gnd',danger:'warn',callout:"COMMON GROUND is critical. If motors ignore GPIO commands, check this wire first."},
 {title:"HC-SR04 \u2014 Power",info:`Connect <span class="pin-ref">VCC</span> on the HC-SR04 to <span class="pin-ref">Pin 2</span> (5V) via a <strong>breadboard row</strong> (Pin 2 is shared with PTZ Board). Connect <span class="pin-ref">GND</span> to <span class="pin-ref">Pin 9</span> (GND). Pin 6 is taken by L298N, so HC-SR04 gets its own GND on Pin 9.`,why:"The ultrasonic sensor needs 5V to operate. Pin 2 (5V) is split via breadboard since the PTZ board also needs 5V from Pin 2.",diagram:'hcsr04-power'},
 {title:"HC-SR04 \u2014 TRIG Pin",info:`Connect <span class="pin-ref">TRIG</span> on the HC-SR04 to <span class="pin-ref">Pin 22</span> (GPIO25). This is a 3.3V signal \u2014 no resistors needed.`,why:"TRIG sends the ultrasonic pulse out. Perfectly safe as a Pi output.",diagram:'hcsr04-trig'},
-{title:"HC-SR04 \u2014 ECHO + Voltage Divider",info:`On the breadboard:<br>1. <span class="pin-ref">ECHO</span> \u2192 <strong>100\u2126 resistor</strong> \u2192 junction<br>2. Junction \u2192 wire to <span class="pin-ref">Pin 18</span> (GPIO24)<br>3. Junction \u2192 <strong>200\u2126 resistor</strong> \u2192 GND<br><br>Result: 5V \u00d7 (200 \u00f7 300) = <strong>3.33V</strong> \u2014 safe for Pi.`,why:"ECHO outputs 5V. Pi GPIO is 3.3V max. Without the divider, you fry the Pi.",diagram:'voltage-divider',danger:'danger',interstitial:true,callout:"DO NOT skip the voltage divider. 5V on a 3.3V GPIO = permanent damage.",test:`python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"`},
+{title:"HC-SR04 \u2014 ECHO + Voltage Divider",info:`On the breadboard:<br>1. <span class="pin-ref">ECHO</span> \u2192 <strong>100\u2126 resistor</strong> \u2192 junction<br>2. Junction \u2192 wire to <span class="pin-ref">Pin 37</span> (GPIO26)<br>3. Junction \u2192 <strong>200\u2126 resistor</strong> \u2192 GND<br><br>Result: 5V \u00d7 (200 \u00f7 300) = <strong>3.33V</strong> \u2014 safe for Pi.`,why:"ECHO outputs 5V. Pi GPIO is 3.3V max. Without the divider, you fry the Pi.",diagram:'voltage-divider',danger:'danger',interstitial:true,callout:"DO NOT skip the voltage divider. 5V on a 3.3V GPIO = permanent damage.",test:`python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=26,trigger=25); print(f'{s.distance*100:.1f}cm')"`},
 {title:"I2C LCD Display",info:`Connect the QA-Pass I2C LCD to the Pi \u2014 same I2C bus as the PTZ board:<br><span class="pin-ref">SDA</span> \u2192 <span class="pin-ref">Pin 3</span> GPIO2<br><span class="pin-ref">SCL</span> \u2192 <span class="pin-ref">Pin 5</span> GPIO3<br><span class="pin-ref">VCC</span> \u2192 <span class="pin-ref">Pin 4</span> 5V<br><span class="pin-ref">GND</span> \u2192 <span class="pin-ref">Pin 14</span> GND<br><br>Every component gets its own power + ground pin. LCD uses Pin 4 (5V) and Pin 14 (GND).<br><br><strong>I2C bus sharing:</strong> LCD and PTZ board both need Pin 3 (SDA) and Pin 5 (SCL). Since you can\u2019t plug 2 wires into 1 pin, use the <strong>breadboard</strong> as a splitter: run a jumper from Pin 3 to a breadboard row, then connect both LCD SDA and PTZ SDA to that row. Same for Pin 5 (SCL).`,why:"The LCD shows bot status (mode, detection count, scan progress) during escort runs. Shares I2C bus with PTZ board at different address (LCD: 0x27/0x3F, PTZ: 0x40).",diagram:'lcd'},
 {title:"PTZ Controller Board (I2C)",info:`The Arducam PTZ board drives both servos via I2C \u2014 only 4 wires to the Pi:<br><span class="pin-ref">SDA</span> \u2192 <span class="pin-ref">Pin 3</span> GPIO2<br><span class="pin-ref">SCL</span> \u2192 <span class="pin-ref">Pin 5</span> GPIO3<br><span class="pin-ref">VCC</span> \u2192 <span class="pin-ref">Pin 2</span> 5V<br><span class="pin-ref">GND</span> \u2192 <span class="pin-ref">Pin 20</span> GND<br><br>Using Pin 20 for PTZ ground (Pin 6/9/14 already taken). Pin 2 (5V) is shared with HC-SR04 via a <strong>breadboard row</strong>.<br><br><strong>I2C bus sharing:</strong> SDA and SCL are shared with the LCD via <strong>breadboard rows</strong> \u2014 Pin 3 \u2192 breadboard row \u2192 LCD SDA + PTZ SDA. Same for Pin 5 (SCL).<br>Plug both servos directly into the PTZ board headers. The board generates PWM for you.`,why:"The PTZ controller board (12-bit PWM, I2C addr 0x40) replaces direct GPIO PWM. Shares the I2C bus with the LCD \u2014 different addresses, no conflict.",diagram:'ptz-board'},
 {title:"Verify I2C Devices",info:`After wiring the PTZ board (and LCD if connected), verify both devices are detected:<br><br><code>sudo raspi-config</code> \u2192 Interface Options \u2192 I2C \u2192 Enable<br><code>sudo i2cdetect -y 1</code><br><br>Expected: <span class="pin-ref">0x40</span> (PTZ board) and <span class="pin-ref">0x27</span> or <span class="pin-ref">0x3F</span> (LCD). If missing, check wiring.`,why:"Both the PTZ board and LCD share the I2C bus (GPIO 2/3). This confirms both are detected before moving on.",diagram:'tilt-servo',test:`sudo i2cdetect -y 1`},
 {title:"Camera CSI Ribbon Cable",info:`<strong>1.</strong> Pull up the black clip on the Pi's <span class="pin-ref">CAM</span> port gently.<br><strong>2.</strong> Slide ribbon in \u2014 <strong>blue side facing USB ports</strong>, contacts facing HDMI.<br><strong>3.</strong> Push clip back down until it clicks.`,why:"A loose ribbon = 'no camera detected' errors. Hours of debugging.",diagram:'camera-csi',danger:'warn',callout:"The clip is fragile. Pull straight up. If cable doesn't slide easily, it may be backwards.",test:`libcamera-hello --timeout 5000`},
 {title:"Power Bank \u2192 Pi USB-C",info:`<strong>1.</strong> Plug <span class="pin-ref">90\u00b0 USB-C adapter</span> into Pi's USB-C port.<br><strong>2.</strong> Connect <span class="pin-ref">PiSwitch</span> inline (if available).<br><strong>3.</strong> Connect USB-C cable from <span class="pin-ref">Anker 10K</span> to switch/adapter.`,why:"Pi 5 needs solid 5V/3A. Anker 10K handles this. 90\u00b0 keeps cable flush.",diagram:'power-bank'},
-{title:"Final Verification",info:`<strong>Tap each item</strong> as you verify. All connections secure. No bare wires touching.`,why:"One loose wire = hours of debugging. Check everything before power-on.",diagram:'checklist',test:`python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"`},
+{title:"Final Verification",info:`<strong>Tap each item</strong> as you verify. All connections secure. No bare wires touching.`,why:"One loose wire = hours of debugging. Check everything before power-on.",diagram:'checklist',test:`python3 -c "from gpiozero import Robot; r=Robot(left=(17,24),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"`},
 {title:"Complete Pin Map",info:`Every Pi 5 GPIO pin and what\u2019s connected to it. <strong>14 of 40 pins used.</strong> Green = available. Color-coded by component.<br><br>I2C bus (SDA/SCL) is shared between LCD and PTZ Board \u2014 different addresses, no conflict.`,why:"Your single reference for the entire wiring layout. Print this or keep it open on your phone while building.",diagram:'full-pinmap'},
 ];
 
 const CHECKLIST_ITEMS=[
   "Battery RED \u2192 L298N +12V","Battery BLACK \u2192 L298N GND",
   "Left motors twisted \u2192 OUT1/OUT2","Right motors twisted \u2192 OUT3/OUT4",
-  "Pin 11 (GPIO17) \u2192 IN1","Pin 13 (GPIO27) \u2192 IN2",
+  "Pin 11 (GPIO17) \u2192 IN1","Pin 18 (GPIO24) \u2192 IN2",
   "Pin 15 (GPIO22) \u2192 IN3","Pin 16 (GPIO23) \u2192 IN4",
   "Pi GND (Pin 6) \u2192 L298N GND","ENA/ENB jumpers ON",
   "HC-SR04 VCC \u2192 Pin 2 (5V) via breadboard","HC-SR04 GND \u2192 Pin 9 (GND)",
   "HC-SR04 TRIG \u2192 Pin 22 (GPIO25)",
-  "HC-SR04 ECHO \u2192 voltage divider \u2192 Pin 18 (GPIO24)",
+  "HC-SR04 ECHO \u2192 voltage divider \u2192 Pin 37 (GPIO26)",
   "LCD SDA \u2192 Pin 3 (GPIO2)",
   "LCD SCL \u2192 Pin 5 (GPIO3)",
   "LCD VCC \u2192 Pin 4 (5V)",
@@ -1125,8 +1125,8 @@ function buildDiagram(type){
     return mkSvg(620,260,c);
   }
   case 'gpio-l298n': {
-    const pi=piHeader(30,20,[11,13,15,16]);const l=l298nBoard(380,30,['IN1','IN2','IN3','IN4']);let c=pi.svg+l.svg;
-    const pairs=[[11,'IN1','GPIO17\u2192IN1 (Left FWD)'],[13,'IN2','GPIO27\u2192IN2 (Left BWD)'],[15,'IN3','GPIO22\u2192IN3 (Right FWD)'],[16,'IN4','GPIO23\u2192IN4 (Right BWD)']];
+    const pi=piHeader(30,20,[11,18,15,16]);const l=l298nBoard(380,30,['IN1','IN2','IN3','IN4']);let c=pi.svg+l.svg;
+    const pairs=[[11,'IN1','GPIO17\u2192IN1 (Left FWD)'],[18,'IN2','GPIO24\u2192IN2 (Left BWD)'],[15,'IN3','GPIO22\u2192IN3 (Right FWD)'],[16,'IN4','GPIO23\u2192IN4 (Right BWD)']];
     const labelYs=[28,48,68,88];
     pairs.forEach(([pin,term,lbl],i)=>{const pp=pi.pinPos(pin),tp=l.termPos(term);c+=wirePath(pp.x,pp.y,tp.x,tp.y,'var(--wire-blue)',0.3+i*0.25,false);c+=labelTag(310,labelYs[i],lbl,'var(--wire-blue)','middle',0.5+i*0.2);});
     c+=`<text x="310" y="300" text-anchor="middle" font-family="var(--mono)" font-weight="600" font-size="10" fill="var(--text-light)" class="stagger" style="--del:1.5s">Use female-to-female jumper wires</text>`;
@@ -1154,7 +1154,7 @@ function buildDiagram(type){
     return mkSvg(560,200,c);
   }
   case 'voltage-divider': {
-    const pi=piHeader(530,30,[18]);const hc=hcsr04Board(20,50,['ECHO']);let c=hc.svg;
+    const pi=piHeader(530,30,[37]);const hc=hcsr04Board(20,50,['ECHO']);let c=hc.svg;
     const bbx=160,bby=10,bbw=320,bbh=280;
     c+=`<rect x="${bbx}" y="${bby}" width="${bbw}" height="${bbh}" rx="6" fill="#f5f3ee" stroke="#d0ccc0" stroke-width="1.5"/>`;
     c+=`<rect x="${bbx+3}" y="${bby+3}" width="${bbw-6}" height="${bbh-6}" rx="4" fill="none" stroke="#e0ddd4" stroke-width=".5"/>`;
@@ -1322,7 +1322,7 @@ function buildDiagram(type){
       {name:'Anker 10K',sub:'USB-C 5V/3A',color:'#78909c',y:8,pins:[]},
       {name:'Battery',sub:'2\u00d718650 7.4V',color:'#dc2626',y:58,pins:[]},
       {name:'HC-SR04',sub:'Ultrasonic',color:'#8e44ad',y:108,pins:[
-        {pin:22,label:'TRIG',c:'#8e44ad'},{pin:18,label:'ECHO',c:'#a855f7'},
+        {pin:22,label:'TRIG',c:'#8e44ad'},{pin:37,label:'ECHO',c:'#a855f7'},
         {pin:2,label:'5V',c:'#dc2626'},{pin:9,label:'GND',c:'#4a5168'}
       ]},
       {name:'Camera',sub:'CSI Ribbon',color:'#9b59b6',y:196,pins:[]},

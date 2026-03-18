@@ -236,12 +236,12 @@ def send_label(ser, raster_lines):
 LABELS = [
     # (category, line1, line2)
     ("MOTOR",  "LEFT FWD",       "GPIO17 > IN1"),
-    ("MOTOR",  "LEFT BWD",       "GPIO27 > IN2"),
+    ("MOTOR",  "LEFT BWD",       "GPIO24 > IN2"),
     ("MOTOR",  "RIGHT FWD",      "GPIO22 > IN3"),
     ("MOTOR",  "RIGHT BWD",      "GPIO23 > IN4"),
     ("MOTOR",  "L298N > LEFT",   "Motor A Terminal"),
     ("MOTOR",  "L298N > RIGHT",  "Motor B Terminal"),
-    ("SENSOR", "ULTRA ECHO",     "GPIO24 < HC-SR04"),
+    ("SENSOR", "ULTRA ECHO",     "GPIO26 < HC-SR04"),
     ("SENSOR", "ULTRA TRIG",     "GPIO25 > HC-SR04"),
     ("SENSOR", "SENSOR 5V",      "Pin2 > HC-SR04 VCC"),
     ("SENSOR", "SENSOR GND",     "Pin6 > HC-SR04 GND"),

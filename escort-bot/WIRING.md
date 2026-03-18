@@ -9,10 +9,10 @@
 │  Pin  │ BCM │ Function        │ Connects To      │
 │───────┼─────┼─────────────────┼──────────────────│
 │  11   │  17 │ Left Motor FWD  │ L298N IN1        │
-│  13   │  27 │ Left Motor BWD  │ L298N IN2        │
+│  18   │  24 │ Left Motor BWD  │ L298N IN2        │
 │  15   │  22 │ Right Motor FWD │ L298N IN3        │
 │  16   │  23 │ Right Motor BWD │ L298N IN4        │
-│  18   │  24 │ Ultrasonic ECHO │ HC-SR04 ECHO     │
+│  37   │  26 │ Ultrasonic ECHO │ HC-SR04 ECHO     │
 │  22   │  25 │ Ultrasonic TRIG │ HC-SR04 TRIG     │
 │  32   │  12 │ Pan Servo PWM   │ Pan-Tilt PAN     │
 │  33   │  13 │ Tilt Servo PWM  │ Pan-Tilt TILT    │
@@ -45,7 +45,7 @@ BATTERY (7.4V)                 L298N                    MOTORS
              │          │              ├── OUT3/4 ┤                (Channel B — RIGHT)
              │          │              │         └── Rear-Right
              │     Pi ──┤ IN1 ← GPIO17 │
-             │     Pi ──┤ IN2 ← GPIO27 │
+             │     Pi ──┤ IN2 ← GPIO24 │
              │     Pi ──┤ IN3 ← GPIO22 │
              │     Pi ──┤ IN4 ← GPIO23 │
              │          │              │
@@ -91,7 +91,7 @@ HC-SR04          Pi 5
 ────────         ─────
 VCC ──────────── 5V (Pin 2)
 TRIG ─────────── GPIO25 (Pin 22)
-ECHO ──┬── 1kΩ ── GPIO24 (Pin 18)   ← VOLTAGE DIVIDER (5V → 3.3V)
+ECHO ──┬── 1kΩ ── GPIO26 (Pin 37)   ← VOLTAGE DIVIDER (5V → 3.3V)
        └── 2kΩ ── GND               ← Protects Pi GPIO from 5V
 GND ──────────── GND (Pin 9)
 ```
@@ -180,10 +180,10 @@ Do NOT power the Pi from the L298N's 5V regulator — it can't supply enough cur
 libcamera-hello --timeout 5000
 
 # Test ultrasonic (Python)
-python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"
+python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=26,trigger=25); print(f'{s.distance*100:.1f}cm')"
 
 # Test motors (Python) — wheels will spin!
-python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"
+python3 -c "from gpiozero import Robot; r=Robot(left=(17,24),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"
 
 # Scan I2C bus for LCD address
 sudo i2cdetect -y 1

@@ -82,7 +82,7 @@ The Escort Bot **autonomously follows a vendor** walking the data center floor. 
 ### Ultrasonic Sensor
 - **Model:** HC-SR04
 - **Range:** 2-450cm, resolution 3mm
-- **CRITICAL:** Echo pin outputs 5V. Pi GPIO is 3.3V. A voltage divider (1kΩ series + 2kΩ to GND) is wired between echo and GPIO 24.
+- **CRITICAL:** Echo pin outputs 5V. Pi GPIO is 3.3V. A voltage divider (1kΩ series + 2kΩ to GND) is wired between echo and GPIO 26.
 - **Obstacle threshold:** 30cm — motors stop immediately when triggered
 
 ### Mast
@@ -288,7 +288,7 @@ pip3 list | grep -E "picamera2|opencv|gpiozero|lgpio|numpy|ultralytics"
 # Test ultrasonic sensor
 python3 -c "
 from gpiozero import DistanceSensor
-sensor = DistanceSensor(echo=24, trigger=25)
+sensor = DistanceSensor(echo=26, trigger=25)
 print(f'Distance: {sensor.distance * 100:.1f} cm')
 "
 
@@ -296,7 +296,7 @@ print(f'Distance: {sensor.distance * 100:.1f} cm')
 python3 -c "
 from gpiozero import Motor
 from time import sleep
-left = Motor(forward=17, backward=27)
+left = Motor(forward=17, backward=24)
 left.forward(0.3)
 sleep(0.5)
 left.stop()

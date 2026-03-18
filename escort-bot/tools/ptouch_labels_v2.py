@@ -250,7 +250,7 @@ def generate_all():
     # Wire labels — motor (green bar)
     wires_motor = [
         ("01_left_fwd.png",    "LEFT FWD",      "GPIO 17 -> L298N IN1"),
-        ("02_left_bwd.png",    "LEFT BWD",      "GPIO 27 -> L298N IN2"),
+        ("02_left_bwd.png",    "LEFT BWD",      "GPIO 24 -> L298N IN2"),
         ("03_right_fwd.png",   "RIGHT FWD",     "GPIO 22 -> L298N IN3"),
         ("04_right_bwd.png",   "RIGHT BWD",     "GPIO 23 -> L298N IN4"),
         ("05_l298n_left.png",  "L298N -> LEFT",  "Motor A Terminal"),
@@ -261,7 +261,7 @@ def generate_all():
 
     # Wire labels — sensor (blue bar)
     wires_sensor = [
-        ("07_ultra_echo.png", "ULTRA ECHO",  "GPIO 24 <- HC-SR04"),
+        ("07_ultra_echo.png", "ULTRA ECHO",  "GPIO 26 <- HC-SR04"),
         ("08_ultra_trig.png", "ULTRA TRIG",  "GPIO 25 -> HC-SR04"),
         ("09_sensor_5v.png",  "SENSOR 5V",   "Pin 2 -> HC-SR04 VCC"),
         ("10_sensor_gnd.png", "SENSOR GND",  "Pin 6 -> HC-SR04 GND"),

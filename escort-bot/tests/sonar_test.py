@@ -12,7 +12,7 @@ Wiring (HC-SR04 → Pi 5):
 from gpiozero import DistanceSensor
 from time import sleep
 
-sensor = DistanceSensor(echo=24, trigger=25, max_distance=4.0)
+sensor = DistanceSensor(echo=26, trigger=25, max_distance=4.0)
 
 print("Sonar Test — HC-SR04 via gpiozero")
 print("=" * 40)

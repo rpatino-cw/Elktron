@@ -681,9 +681,9 @@
         <td class="dest">L298N IN1</td>
         <td><span class="gpio-cat motor">Motor</span></td>
       </tr>
-      <tr data-reveal data-delay="40" data-pin="13">
-        <td class="pin-num">13</td>
-        <td class="bcm-num">GPIO 27</td>
+      <tr data-reveal data-delay="40" data-pin="18">
+        <td class="pin-num">18</td>
+        <td class="bcm-num">GPIO 24</td>
         <td class="func">Left Motor BWD</td>
         <td class="dest">L298N IN2</td>
         <td><span class="gpio-cat motor">Motor</span></td>
@@ -709,9 +709,9 @@
         <td class="dest">HC-SR04 TRIG</td>
         <td><span class="gpio-cat sensor">Sensor</span></td>
       </tr>
-      <tr data-reveal data-delay="200" data-pin="18">
-        <td class="pin-num">18</td>
-        <td class="bcm-num">GPIO 24</td>
+      <tr data-reveal data-delay="200" data-pin="37">
+        <td class="pin-num">37</td>
+        <td class="bcm-num">GPIO 26</td>
         <td class="func">Ultrasonic ECHO</td>
         <td class="dest">HC-SR04 ECHO (via divider)</td>
         <td><span class="gpio-cat sensor">Sensor</span></td>
@@ -753,7 +753,7 @@
         <span class="w-to">IN1 &rarr; Left Motor FWD</span>
       </div>
       <div class="wiring-line">
-        <span class="w-from">GPIO 27</span>
+        <span class="w-from">GPIO 24</span>
         <span class="w-wire blue"></span>
         <span class="w-to">IN2 &rarr; Left Motor BWD</span>
       </div>
@@ -831,11 +831,11 @@
     </div>
     <div class="test-cmd">
       <span class="test-cmd-label">Ultrasonic distance</span>
-      <code class="test-cmd-code">python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"</code>
+      <code class="test-cmd-code">python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=26,trigger=25); print(f'{s.distance*100:.1f}cm')"</code>
     </div>
     <div class="test-cmd">
       <span class="test-cmd-label">Motor spin (1 sec forward)</span>
-      <code class="test-cmd-code">python3 -c "from gpiozero import Robot; r=Robot(left=(17,27),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"</code>
+      <code class="test-cmd-code">python3 -c "from gpiozero import Robot; r=Robot(left=(17,24),right=(22,23)); r.forward(0.3); import time; time.sleep(1); r.stop()"</code>
     </div>
   </div>
 </section>
@@ -1954,7 +1954,7 @@ function createWiringHarness() {
     [L298N_X - 0.15, L298N_Y, L298N_Z],
   ], 0x2d5fa0);
 
-  // GPIO 27 (left bwd) → L298N IN2 — light blue
+  // GPIO 24 (left bwd) → L298N IN2 — light blue
   addWire([
     [GPIO_X - 0.08, GPIO_Y, GPIO_Z],
     [GPIO_X - 0.08, GPIO_Y + 0.06, GPIO_Z + 0.2],
@@ -2018,7 +2018,7 @@ function createWiringHarness() {
     [HC_X + 0.03, HC_Y, HC_Z],
   ], 0x8e44ad);
 
-  // Echo wire — GPIO 24 → voltage divider → HC-SR04 — light purple
+  // Echo wire — GPIO 26 → voltage divider → HC-SR04 — light purple
   addWire([
     [GPIO_X + 0.10, GPIO_Y, GPIO_Z],
     [GPIO_X + 0.10, GPIO_Y + 0.07, GPIO_Z - 0.25],
@@ -2240,10 +2240,10 @@ document.querySelectorAll('[data-reveal]').forEach(el => obs.observe(el));
     2:  { color: '#b8860b', role: 'Sensor Power (5V)' },
     6:  { color: '#52525b', role: 'Common Ground' },
     11: { color: '#3b82f6', role: 'Left Motor FWD (GPIO 17)' },
-    13: { color: '#3b82f6', role: 'Left Motor BWD (GPIO 27)' },
+    18: { color: '#3b82f6', role: 'Left Motor BWD (GPIO 24)' },
     15: { color: '#3b82f6', role: 'Right Motor FWD (GPIO 22)' },
     16: { color: '#3b82f6', role: 'Right Motor BWD (GPIO 23)' },
-    18: { color: '#34d399', role: 'Ultrasonic ECHO (GPIO 24)' },
+    37: { color: '#34d399', role: 'Ultrasonic ECHO (GPIO 26)' },
     22: { color: '#34d399', role: 'Ultrasonic TRIG (GPIO 25)' },
   };
 

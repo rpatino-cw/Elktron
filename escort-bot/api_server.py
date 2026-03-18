@@ -26,7 +26,7 @@ JPEG_QUALITY = 70
 CONFIDENCE_THRESHOLD = 0.5
 
 # GPIO pins (BCM) — ultrasonic only, motors controlled by main.py
-ULTRASONIC_ECHO = 24
+ULTRASONIC_ECHO = 26
 ULTRASONIC_TRIG = 25
 
 # ─── APP ───────────────────────────────────────────────────────────
@@ -252,7 +252,7 @@ def stop():
     # If motors are active, stop them
     try:
         from gpiozero import Robot
-        robot = Robot(left=(17, 27), right=(22, 23))
+        robot = Robot(left=(17, 24), right=(22, 23))
         robot.stop()
     except Exception:
         pass

@@ -579,10 +579,10 @@
         <text x="255" y="136" text-anchor="middle" font-size="4" fill="#1B1E37" font-family="IBM Plex Mono,monospace" font-weight="600">40-PIN GPIO HEADER</text>
         <!-- Specific pin callouts on the Pi -->
         <text x="213" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G17</text>
-        <text x="228" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G27</text>
+        <text x="228" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G24</text>
         <text x="243" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G22</text>
         <text x="258" y="127" font-size="3.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">G23</text>
-        <text x="273" y="127" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">G24</text>
+        <text x="273" y="127" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">G26</text>
         <text x="288" y="127" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">G25</text>
         <text x="213" y="145" font-size="3.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">G12</text>
         <text x="228" y="145" font-size="3.5" fill="#7d3c98" font-family="IBM Plex Mono,monospace" font-weight="600">G13</text>
@@ -618,7 +618,7 @@
         <path d="M 215,140 L 215,155 L 127,155 L 127,153" fill="none" stroke="#1e8449" stroke-width="1.2" marker-end="url(#ah-g)"/>
         <text x="170" y="162" text-anchor="middle" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="700">G17&rarr;IN1</text>
 
-        <!-- G27 → IN2 (Left BWD) -->
+        <!-- G24 → IN2 (Left BWD) -->
         <path d="M 230,140 L 230,165 L 140,165 L 140,153" fill="none" stroke="#1e8449" stroke-width="1" stroke-dasharray="3,1.5"/>
 
         <!-- G22 → IN3 (Right FWD) -->
@@ -639,7 +639,7 @@
 
         <!-- SENSOR WIRES (blue): Pi GPIO → HC-SR04 -->
 
-        <!-- G24 (ECHO) → V.DIVIDER → HC-SR04 ECHO -->
+        <!-- G26 (ECHO) → V.DIVIDER → HC-SR04 ECHO -->
         <path d="M 278,140 L 278,80 L 277,80" fill="none" stroke="#2471a3" stroke-width="1" marker-end="url(#ah-b)"/>
         <path d="M 277,60 L 277,55 L 224,55 L 224,56" fill="none" stroke="#2471a3" stroke-width="1" marker-end="url(#ah-b)"/>
         <text x="250" y="55" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">via V.DIV</text>
@@ -720,8 +720,8 @@
         <text x="180" y="396" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">L298N IN1</text>
         <rect x="255" y="391" width="20" height="5" rx="1" fill="#1e8449"/><text x="280" y="396" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
 
-        <text x="35" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">27</text>
-        <text x="62" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">13</text>
+        <text x="35" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">24</text>
+        <text x="62" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">18</text>
         <text x="85" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace" font-weight="600">Left BWD</text>
         <text x="180" y="406" font-size="4.5" fill="#1e8449" font-family="IBM Plex Mono,monospace">L298N IN2</text>
         <rect x="255" y="401" width="20" height="5" rx="1" fill="#1e8449" fill-opacity="0.5"/><text x="280" y="406" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
@@ -739,8 +739,8 @@
         <rect x="255" y="421" width="20" height="5" rx="1" fill="#1e8449" fill-opacity="0.5"/><text x="280" y="426" font-size="4" fill="#1e8449" font-family="IBM Plex Mono,monospace">green</text>
 
         <!-- Sensor rows (blue) -->
-        <text x="35" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">24</text>
-        <text x="62" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">18</text>
+        <text x="35" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">26</text>
+        <text x="62" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">37</text>
         <text x="85" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">ECHO</text>
         <text x="180" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">HC-SR04 (via 1k+2k divider)</text>
         <rect x="255" y="431" width="20" height="5" rx="1" fill="#2471a3"/><text x="280" y="436" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">blue</text>
@@ -904,9 +904,9 @@
   </div>
 
   <div class="label wire-label motor">
-    <div class="wire-half"><span class="fn">LEFT BWD</span><span class="gpio">GPIO 27 &rarr; L298N IN2</span></div>
+    <div class="wire-half"><span class="fn">LEFT BWD</span><span class="gpio">GPIO 24 &rarr; L298N IN2</span></div>
     <div class="fold-line"></div>
-    <div class="wire-half"><span class="fn">LEFT BWD</span><span class="gpio">GPIO 27 &rarr; L298N IN2</span></div>
+    <div class="wire-half"><span class="fn">LEFT BWD</span><span class="gpio">GPIO 24 &rarr; L298N IN2</span></div>
   </div>
 
   <div class="label wire-label motor">
@@ -938,9 +938,9 @@
   <div class="section-header">Sensor Wires (blue)</div>
 
   <div class="label wire-label sensor">
-    <div class="wire-half"><span class="fn">ULTRA ECHO</span><span class="gpio">GPIO 24 &larr; HC-SR04</span></div>
+    <div class="wire-half"><span class="fn">ULTRA ECHO</span><span class="gpio">GPIO 26 &larr; HC-SR04</span></div>
     <div class="fold-line"></div>
-    <div class="wire-half"><span class="fn">ULTRA ECHO</span><span class="gpio">GPIO 24 &larr; HC-SR04</span></div>
+    <div class="wire-half"><span class="fn">ULTRA ECHO</span><span class="gpio">GPIO 26 &larr; HC-SR04</span></div>
   </div>
 
   <div class="label wire-label sensor">
@@ -1159,10 +1159,10 @@
       <td style="padding:3px 8px;">Connects To</td>
     </tr>
     <tr><td style="padding:3px 8px;">Left Motor FWD</td><td style="padding:3px 8px;">17</td><td style="padding:3px 8px;">11</td><td style="padding:3px 8px;">L298N IN1</td></tr>
-    <tr><td style="padding:3px 8px;">Left Motor BWD</td><td style="padding:3px 8px;">27</td><td style="padding:3px 8px;">13</td><td style="padding:3px 8px;">L298N IN2</td></tr>
+    <tr><td style="padding:3px 8px;">Left Motor BWD</td><td style="padding:3px 8px;">24</td><td style="padding:3px 8px;">18</td><td style="padding:3px 8px;">L298N IN2</td></tr>
     <tr><td style="padding:3px 8px;">Right Motor FWD</td><td style="padding:3px 8px;">22</td><td style="padding:3px 8px;">15</td><td style="padding:3px 8px;">L298N IN3</td></tr>
     <tr><td style="padding:3px 8px;">Right Motor BWD</td><td style="padding:3px 8px;">23</td><td style="padding:3px 8px;">16</td><td style="padding:3px 8px;">L298N IN4</td></tr>
-    <tr><td style="padding:3px 8px;">Ultrasonic ECHO</td><td style="padding:3px 8px;">24</td><td style="padding:3px 8px;">18</td><td style="padding:3px 8px;">HC-SR04 (via divider)</td></tr>
+    <tr><td style="padding:3px 8px;">Ultrasonic ECHO</td><td style="padding:3px 8px;">26</td><td style="padding:3px 8px;">37</td><td style="padding:3px 8px;">HC-SR04 (via divider)</td></tr>
     <tr><td style="padding:3px 8px;">Ultrasonic TRIG</td><td style="padding:3px 8px;">25</td><td style="padding:3px 8px;">22</td><td style="padding:3px 8px;">HC-SR04 TRIG</td></tr>
     <tr><td style="padding:3px 8px;">Pan Servo</td><td style="padding:3px 8px;">12</td><td style="padding:3px 8px;">32</td><td style="padding:3px 8px;">MG90S (pan)</td></tr>
     <tr><td style="padding:3px 8px;">Tilt Servo</td><td style="padding:3px 8px;">13</td><td style="padding:3px 8px;">33</td><td style="padding:3px 8px;">MG90S (tilt)</td></tr>

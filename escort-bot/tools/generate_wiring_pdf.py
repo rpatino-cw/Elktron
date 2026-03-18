@@ -134,10 +134,10 @@ def draw_raspberry_pi(c, x, y):
     # Return pin connection points
     return {
         "gpio17": (x + 18 + 0*6.2, y + h - 12),   # leftmost pins
-        "gpio27": (x + 18 + 1*6.2, y + h - 12),
+        "gpio24": (x + 18 + 1*6.2, y + h - 12),
         "gpio22": (x + 18 + 2*6.2, y + h - 12),
         "gpio23": (x + 18 + 3*6.2, y + h - 12),
-        "gpio24": (x + 18 + 4*6.2, y + h - 12),
+        "gpio26": (x + 18 + 4*6.2, y + h - 12),
         "gpio25": (x + 18 + 5*6.2, y + h - 12),
         "gpio12": (x + 18 + 6*6.2, y + h - 12),
         "gpio13": (x + 18 + 7*6.2, y + h - 12),
@@ -452,7 +452,7 @@ def page1(c):
     # GPIO -> L298N control wires (4 wires)
     gpio_l298n = [
         (pi["gpio17"], l298n["in1"], W_BLUE, "GPIO17 -> IN1"),
-        (pi["gpio27"], l298n["in2"], W_LBLUE, "GPIO27 -> IN2"),
+        (pi["gpio24"], l298n["in2"], W_LBLUE, "GPIO24 -> IN2"),
         (pi["gpio22"], l298n["in3"], W_ORANGE, "GPIO22 -> IN3"),
         (pi["gpio23"], l298n["in4"], W_YELLOW, "GPIO23 -> IN4"),
     ]
@@ -499,7 +499,7 @@ def page1(c):
     wire(c, [pi["gpio25"], (pi["gpio25"][0], hc_base),
              (hc["trig"][0], hc_base),
              (hc["trig"][0], hc["trig"][1] + 20), hc["trig"]], W_PURPLE, 1.8)
-    wire(c, [pi["gpio24"], (pi["gpio24"][0], hc_base + 14),
+    wire(c, [pi["gpio26"], (pi["gpio26"][0], hc_base + 14),
              (hc["echo"][0], hc_base + 14),
              (hc["echo"][0], hc["echo"][1] + 20), hc["echo"]], W_LPURPLE, 1.8)
     wire(c, [pi["5v"], (pi["5v"][0], hc_base + 28),
@@ -624,17 +624,17 @@ def page2(c):
     odd_pins = [
         (1, "3.3V", "", ACCENT, ""), (3, "GPIO2", "SDA", HexColor("#3498db"), "LCD SDA"), (5, "GPIO3", "SCL", HexColor("#2ecc71"), "LCD SCL"),
         (7, "GPIO4", "", DIM, ""), (9, "GND", "", W_BLACK, ""), (11, "GPIO17", "L-FWD", W_BLUE, "L298N IN1"),
-        (13, "GPIO27", "L-BWD", W_LBLUE, "L298N IN2"), (15, "GPIO22", "R-FWD", W_ORANGE, "L298N IN3"),
+        (13, "GPIO24", "L-BWD", W_LBLUE, "L298N IN2"), (15, "GPIO22", "R-FWD", W_ORANGE, "L298N IN3"),
         (17, "3.3V", "", ACCENT, ""), (19, "GPIO10", "MOSI", DIM, ""), (21, "GPIO9", "MISO", DIM, ""),
         (23, "GPIO11", "SCLK", DIM, ""), (25, "GND", "", W_BLACK, ""), (27, "GPIO0", "", DIM, ""),
         (29, "GPIO5", "", DIM, ""), (31, "GPIO6", "", DIM, ""), (33, "GPIO13", "TILT", W_LGREEN, "Tilt servo"),
-        (35, "GPIO19", "", DIM, ""), (37, "GPIO26", "", DIM, ""), (39, "GND", "", W_BLACK, ""),
+        (35, "GPIO19", "", DIM, ""), (37, "GPIO26", "ECHO", W_LPURPLE, "HC-SR04 (divider!)"), (39, "GND", "", W_BLACK, ""),
     ]
     even_pins = [
         (2, "5V", "", W_RED, "HC-SR04 VCC"), (4, "5V", "", W_RED, "Servos VCC"), (6, "GND", "", W_BLACK, "HC-SR04/L298N"),
         (8, "GPIO14", "TX", DIM, ""), (10, "GPIO15", "RX", DIM, ""), (12, "GPIO18", "", DIM, ""),
         (14, "GND", "", W_BLACK, ""), (16, "GPIO23", "R-BWD", W_YELLOW, "L298N IN4"),
-        (18, "GPIO24", "ECHO", W_LPURPLE, "HC-SR04 (divider!)"), (20, "GND", "", W_BLACK, ""),
+        (18, "GPIO24", "L-BWD", W_LBLUE, "L298N IN2"), (20, "GND", "", W_BLACK, ""),
         (22, "GPIO25", "TRIG", W_PURPLE, "HC-SR04 TRIG"), (24, "GPIO8", "CE0", DIM, ""),
         (26, "GPIO7", "CE1", DIM, ""), (28, "GPIO1", "", DIM, ""), (30, "GND", "", W_BLACK, ""),
         (32, "GPIO12", "PAN", W_GREEN, "Pan servo"), (34, "GND", "", W_BLACK, ""),
@@ -760,9 +760,9 @@ def page3(c):
     # Junction
     wire(c, [(cx + 100, cy + 5), (cx + 130, cy + 5)], W_LPURPLE, 2)
     wire_dot(c, cx + 130, cy + 5, W_LPURPLE, 3)
-    # To GPIO24
+    # To GPIO26
     wire(c, [(cx + 130, cy + 5), (cx + 200, cy + 5)], W_LPURPLE, 2)
-    label(c, cx + 210, cy + 2, "-> GPIO24", 6, W_LPURPLE)
+    label(c, cx + 210, cy + 2, "-> GPIO26", 6, W_LPURPLE)
     # R2 (2k) — vertical to GND
     wire(c, [(cx + 130, cy + 5), (cx + 130, cy - 15)], W_LPURPLE, 1.5)
     filled_rrect(c, cx + 125, cy - 30, 10, 15, 2, fill=HexColor("#884400"), stroke=HexColor("#553300"), lw=1)

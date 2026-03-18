@@ -149,7 +149,7 @@ This can start immediately — only needs Pi 5 + MicroSD + power.
 | # | Task | Owner | Status | Notes |
 |---|------|-------|--------|-------|
 | 3C.1 | Connect L298N IN1 → Pi GPIO 17 (jumper wire) | Alex | [ ] | Left motor forward |
-| 3C.2 | Connect L298N IN2 → Pi GPIO 27 | Alex | [ ] | Left motor backward |
+| 3C.2 | Connect L298N IN2 → Pi GPIO 24 | Alex | [ ] | Left motor backward |
 | 3C.3 | Connect L298N IN3 → Pi GPIO 22 | Alex | [ ] | Right motor forward |
 | 3C.4 | Connect L298N IN4 → Pi GPIO 23 | Alex | [ ] | Right motor backward |
 | 3C.5 | **CRITICAL: Connect L298N GND → Pi GND (pin 6)** | Alex | [ ] | Common ground — without this, motors won't respond to GPIO |
@@ -170,7 +170,7 @@ This can start immediately — only needs Pi 5 + MicroSD + power.
 # motor_test.py — run on Pi
 from gpiozero import Robot
 import time
-robot = Robot(left=(17, 27), right=(22, 23))
+robot = Robot(left=(17, 24), right=(22, 23))
 print("Forward..."); robot.forward(0.3); time.sleep(2)
 print("Stop"); robot.stop(); time.sleep(1)
 print("Backward..."); robot.backward(0.3); time.sleep(2)
@@ -206,7 +206,7 @@ print("DONE — all 4 directions tested")
 # sonar_test.py — run on Pi
 from gpiozero import DistanceSensor
 import time
-sonar = DistanceSensor(echo=24, trigger=25, max_distance=2)
+sonar = DistanceSensor(echo=26, trigger=25, max_distance=2)
 for i in range(20):
     print(f"Distance: {sonar.distance * 100:.1f} cm")
     time.sleep(0.5)

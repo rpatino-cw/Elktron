@@ -35,11 +35,11 @@ INPUT_SIZE = (300, 300)      # MobileNet SSD input size
 # Motor GPIO pins (BCM) — single L298N drives all 4 motors as 2 parallel pairs
 # Channel A (OUT1/OUT2): FL+RL in parallel — left pair
 # Channel B (OUT3/OUT4): FR+RR in parallel — right pair
-LEFT_MOTOR = (17, 27)       # IN1/IN2 (forward, backward)
+LEFT_MOTOR = (17, 24)       # IN1/IN2 (forward, backward)
 RIGHT_MOTOR = (22, 23)      # IN3/IN4 (forward, backward)
 
 # Ultrasonic sensor pins (BCM)
-ULTRASONIC_ECHO = 24
+ULTRASONIC_ECHO = 26
 ULTRASONIC_TRIG = 25
 
 # Steering

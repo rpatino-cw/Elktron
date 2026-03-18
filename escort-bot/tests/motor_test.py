@@ -3,7 +3,7 @@
 Run with wheels OFF THE GROUND first!
 
 Wiring (L298N → Pi 5 GPIO):
-  IN1 → GPIO17  IN2 → GPIO27  (left motors)
+  IN1 → GPIO17  IN2 → GPIO24  (left motors)
   IN3 → GPIO22  IN4 → GPIO23  (right motors)
   L298N GND → Pi GND (CRITICAL — common ground)
   Remove 5V jumper on L298N (Pi powered separately via USB-C)
@@ -12,7 +12,7 @@ from gpiozero import Robot
 from time import sleep
 import sys
 
-bot = Robot(left=(17, 27), right=(22, 23))
+bot = Robot(left=(17, 24), right=(22, 23))
 
 tests = [
     ("FORWARD",  bot.forward,  0.3),
