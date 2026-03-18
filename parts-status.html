@@ -2,573 +2,415 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parts Status — Elktron</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Parts & Inventory — Elktron</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inconsolata:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#050810;color:#e8eaf0;line-height:1.5;padding:0 0 80px;-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased}
 
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:rgba(5,8,16,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(39,65,231,0.15);z-index:200}
+.nav-back{color:#8a90a8;text-decoration:none;font-size:0.75rem;font-weight:500;display:flex;align-items:center;gap:6px;transition:color 0.2s}
+.nav-back:hover{color:#6CA1E5}
+.nav-title{font-size:0.625rem;letter-spacing:0.12em;text-transform:uppercase;color:#6b7394}
 
-:root {
-  --white: #faf8f5;
-  --cream: #f5f0ea;
-  --sand: #e8dfd4;
-  --amber: #d4a574;
-  --sky: #7eb8d8;
-  --dark: #2a2520;
-  --dark-mid: #4a4540;
-  --dark-soft: #8a8580;
-  --green: #6db889;
-  --green-bg: #e8f5ee;
-  --yellow: #d4b474;
-  --yellow-bg: #faf3e4;
-  --red: #d47474;
-  --red-bg: #fceaea;
-  --blue: #7494d4;
-  --blue-bg: #e8eff8;
-}
+/* HEADER */
+header{background:rgba(10,14,26,0.9);padding:68px 20px 16px;border-bottom:1px solid rgba(39,65,231,0.12);position:sticky;top:52px;z-index:100;backdrop-filter:blur(12px)}
+header h1{font-size:1.25rem;font-weight:800;letter-spacing:-0.02em;color:#fff}
+header h1 span{color:#6CA1E5}
+.header-sub{font-size:0.75rem;color:#6b7394;margin-top:2px}
+.header-stats{display:flex;gap:16px;margin-top:10px;font-family:'Inconsolata',monospace;font-size:0.6875rem;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot-delivered{background:#22c55e}
+.dot-transit{background:#d97706}
+.dot-need{background:#ef4444}
+.dot-owned{background:#6CA1E5}
 
-body {
-  background: var(--white);
-  color: var(--dark);
-  font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
+/* FILTERS */
+.filters{display:flex;gap:6px;padding:12px 20px;overflow-x:auto;background:rgba(10,14,26,0.7);border-bottom:1px solid rgba(39,65,231,0.08);position:sticky;top:120px;z-index:99;backdrop-filter:blur(12px)}
+.filter-btn{font-size:0.6875rem;padding:5px 12px;border:1px solid rgba(39,65,231,0.15);border-radius:100px;background:transparent;color:#8a90a8;cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:'Plus Jakarta Sans',sans-serif}
+.filter-btn.active{background:#2741E7;color:#fff;border-color:#2741E7}
+.filter-btn:hover:not(.active){border-color:rgba(39,65,231,0.4)}
+.filter-btn .count{display:inline-block;margin-left:4px;opacity:0.6}
 
-.header {
-  padding: 2rem 2rem 1.5rem;
-  border-bottom: 1px solid var(--sand);
-  position: sticky;
-  top: 0;
-  background: rgba(250, 248, 245, 0.95);
-  backdrop-filter: blur(12px);
-  z-index: 10;
-}
+/* PROGRESS */
+.progress-wrap{padding:12px 20px 0}
+.progress-bar{height:3px;background:rgba(39,65,231,0.15);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#2741E7,#6CA1E5);border-radius:2px;transition:width 0.4s}
+.progress-label{font-size:0.625rem;color:#6b7394;margin-top:4px;text-align:right;font-family:'Inconsolata',monospace}
 
-.header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
+/* SECTION DIVIDERS */
+.section-divider{display:flex;align-items:center;gap:10px;padding:20px 20px 8px}
+.section-badge{font-size:0.5625rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:3px 10px;border-radius:100px}
+.badge-escort{background:rgba(39,65,231,0.1);color:#6CA1E5}
+.badge-arm{background:rgba(124,58,237,0.1);color:#a78bfa}
+.badge-owned{background:rgba(34,197,94,0.1);color:#22c55e}
+.badge-needed{background:rgba(239,68,68,0.1);color:#ef4444}
+.badge-amazon{background:rgba(255,153,0,0.15);color:#ff9900}
+.badge-homedepot{background:rgba(249,99,2,0.15);color:#f96302}
+.section-line{flex:1;height:1px;background:rgba(39,65,231,0.12)}
 
-.header h1 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.header h1 span { color: var(--amber); }
-
-.last-updated {
-  font-size: 0.75rem;
-  color: var(--dark-soft);
-}
-
-/* SUMMARY CARDS */
-.summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--sand);
-}
-
-.stat {
-  text-align: center;
-  padding: 1rem;
-  border-radius: 12px;
-}
-
-.stat-number {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-top: 0.3rem;
-}
-
-.stat-delivered { background: var(--green-bg); }
-.stat-delivered .stat-number { color: var(--green); }
-.stat-delivered .stat-label { color: var(--green); }
-
-.stat-transit { background: var(--yellow-bg); }
-.stat-transit .stat-number { color: var(--yellow); }
-.stat-transit .stat-label { color: var(--yellow); }
-
-.stat-pending { background: var(--red-bg); }
-.stat-pending .stat-number { color: var(--red); }
-.stat-pending .stat-label { color: var(--red); }
-
-.stat-owned { background: var(--blue-bg); }
-.stat-owned .stat-number { color: var(--blue); }
-.stat-owned .stat-label { color: var(--blue); }
-
-.stat-cost { background: var(--cream); }
-.stat-cost .stat-number { color: var(--dark); }
-.stat-cost .stat-label { color: var(--dark-soft); }
-
-/* SECTIONS */
-.sections {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-.section {
-  margin-bottom: 2.5rem;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--sand);
-}
-
-.section-icon {
-  font-size: 1.2rem;
-}
-
-.section-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.section-cost {
-  margin-left: auto;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--dark-mid);
-  font-variant-numeric: tabular-nums;
-}
+/* CATEGORY */
+.category{padding:14px 20px 6px;font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#6b7394}
 
 /* ITEMS */
-.item {
-  display: grid;
-  grid-template-columns: auto 1fr auto auto;
-  gap: 1rem;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  margin-bottom: 0.3rem;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
+.item{display:flex;align-items:flex-start;gap:12px;padding:10px 20px;cursor:pointer;transition:opacity 0.2s,background 0.15s;-webkit-user-select:none;user-select:none}
+.item:active{background:rgba(39,65,231,0.04)}
+.item.checked{opacity:0.4}
+.item.checked .item-name{text-decoration:line-through;text-decoration-color:#6b7394}
 
-.item:hover { background: var(--cream); }
+.checkbox{width:20px;height:20px;border:2px solid rgba(39,65,231,0.25);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.item.checked .checkbox{background:#2741E7;border-color:#2741E7}
+.checkbox svg{width:12px;height:12px;stroke:#fff;stroke-width:2.5;fill:none;opacity:0;transition:opacity 0.15s}
+.item.checked .checkbox svg{opacity:1}
 
-.item-status {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.item-content{flex:1;min-width:0}
+.item-top{display:flex;align-items:baseline;gap:8px}
+.item-name{font-size:0.875rem;font-weight:500;color:#e8eaf0;line-height:1.3}
+.item-price{font-family:'Inconsolata',monospace;font-size:0.75rem;color:#d97706;font-weight:500;white-space:nowrap;margin-left:auto;flex-shrink:0}
+.item-detail{font-size:0.75rem;color:#6b7394;margin-top:2px;line-height:1.4}
+.item-who{font-size:0.6875rem;color:#8a90a8;margin-top:2px}
+.item-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:0.5rem;padding:1px 6px;border-radius:3px;text-transform:uppercase;letter-spacing:0.04em;font-weight:600}
+.tag-delivered{background:rgba(34,197,94,0.1);color:#22c55e}
+.tag-transit{background:rgba(217,119,6,0.1);color:#d97706}
+.tag-high{background:rgba(239,68,68,0.1);color:#ef4444}
+.tag-medium{background:rgba(217,119,6,0.1);color:#d97706}
+.tag-low{background:rgba(107,115,148,0.15);color:#6b7394}
+.tag-ordered{background:rgba(34,197,94,0.1);color:#22c55e}
+.tag-owned{background:rgba(108,161,229,0.1);color:#6CA1E5}
+.tag-pickup{background:rgba(217,119,6,0.1);color:#d97706}
 
-.status-delivered { background: var(--green); }
-.status-transit { background: var(--yellow); }
-.status-pending { background: var(--red); }
-.status-owned { background: var(--blue); }
-.status-pickup { background: var(--amber); }
-
-.item-info { min-width: 0; }
-
-.item-name {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--dark);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.item-detail {
-  font-size: 0.72rem;
-  color: var(--dark-soft);
-  margin-top: 0.1rem;
-}
-
-.item-who {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--dark-mid);
-  white-space: nowrap;
-}
-
-.item-eta {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.eta-delivered { background: var(--green-bg); color: var(--green); }
-.eta-transit { background: var(--yellow-bg); color: var(--yellow); }
-.eta-pending { background: var(--red-bg); color: var(--red); }
-.eta-owned { background: var(--blue-bg); color: var(--blue); }
-.eta-pickup { background: #faf0e4; color: var(--amber); }
+.item-link{display:inline-block;margin-top:4px;font-size:0.6875rem;color:#6CA1E5;text-decoration:none}
+.item-link:hover{text-decoration:underline}
 
 /* LEGEND */
-.legend {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  padding: 1rem 2rem;
-  border-top: 1px solid var(--sand);
-  justify-content: center;
-}
+.legend{display:flex;gap:16px;flex-wrap:wrap;padding:16px 20px;border-top:1px solid rgba(39,65,231,0.12);justify-content:center}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:0.6875rem;color:#6b7394}
+.legend-dot{width:8px;height:8px;border-radius:50%}
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.7rem;
-  color: var(--dark-soft);
-}
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,14,26,0.95);backdrop-filter:blur(16px);color:#e8eaf0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;z-index:200;border-top:1px solid rgba(39,65,231,0.15)}
+.bottom-left{font-size:0.75rem}
+.bottom-left .amount{font-size:1.125rem;font-weight:700;color:#d97706}
+.bottom-right{display:flex;gap:8px}
+.btn{font-size:0.6875rem;padding:7px 14px;border:1px solid rgba(39,65,231,0.2);border-radius:6px;background:transparent;color:#8a90a8;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all 0.15s}
+.btn:hover{border-color:rgba(39,65,231,0.4);color:#e8eaf0}
+.btn-accent{background:#2741E7;border-color:#2741E7;color:#fff}
+.btn-accent:hover{background:#425AF3}
 
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-/* ACTION ITEMS */
-.action-box {
-  margin-top: 1rem;
-  padding: 1.2rem 1.5rem;
-  border-radius: 12px;
-  background: var(--red-bg);
-  border: 1px solid rgba(212, 116, 116, 0.2);
-}
-
-.action-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--red);
-  margin-bottom: 0.5rem;
-}
-
-.action-item {
-  font-size: 0.85rem;
-  color: var(--dark);
-  padding: 0.25rem 0;
-  line-height: 1.5;
-}
-
-@media (max-width: 700px) {
-  .item { grid-template-columns: auto 1fr auto; }
-  .item-who { display: none; }
-  .summary { grid-template-columns: repeat(3, 1fr); }
-}
-
-/* ─── THREE.JS CANVAS ─────────────────────────────────── */
-#bg-canvas {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-.page-layer { position: relative; z-index: 1; }
-
-@media (prefers-reduced-motion: reduce) {
-  #bg-canvas { display: none; }
-}
+.hidden{display:none!important}
+@media(min-width:640px){body{max-width:640px;margin:0 auto}}
 </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
-<div class="page-layer">
+<nav class="nav">
+  <a class="nav-back" href="index.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a>
+  <span class="nav-title">Parts & Inventory</span>
+</nav>
 
-<div class="header">
-  <div class="header-row">
-    <h1><span>Parts</span> Status</h1>
-    <div class="last-updated">Updated: March 12, 2026</div>
+<header>
+  <h1><span>Parts</span> & Inventory</h1>
+  <div class="header-sub">Escort Bot + SO-101 Arm — Demo March 23</div>
+  <div class="header-stats">
+    <div class="stat"><div class="dot dot-delivered"></div><span id="deliveredCount">0</span> delivered</div>
+    <div class="stat"><div class="dot dot-transit"></div><span id="transitCount">0</span> in transit</div>
+    <div class="stat"><div class="dot dot-need"></div><span id="needCount">0</span> to buy</div>
+    <div class="stat"><div class="dot dot-owned"></div><span id="ownedCount">0</span> owned</div>
   </div>
+</header>
+
+<div class="filters" id="filters"></div>
+
+<div class="progress-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel"></div>
 </div>
 
-<div class="summary" id="summary"></div>
-
-<div class="sections" id="sections"></div>
+<div id="list"></div>
 
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot status-delivered"></div> Delivered</div>
-  <div class="legend-item"><div class="legend-dot status-transit"></div> In Transit</div>
-  <div class="legend-item"><div class="legend-dot status-pending"></div> Still Needed</div>
-  <div class="legend-item"><div class="legend-dot status-pickup"></div> Pickup Ready</div>
-  <div class="legend-item"><div class="legend-dot status-owned"></div> Already Owned</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Delivered</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div> In Transit</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Still Needed</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6CA1E5"></div> Already Owned</div>
+</div>
+
+<div class="bottom-bar">
+  <div class="bottom-left">
+    <div style="font-size:0.5625rem;opacity:0.5;text-transform:uppercase;letter-spacing:0.1em">Remaining</div>
+    <div class="amount">$<span id="bottomTotal">0</span></div>
+  </div>
+  <div class="bottom-right">
+    <button class="btn" onclick="resetAll()">Reset</button>
+    <button class="btn" onclick="copyList()">Copy List</button>
+    <button class="btn btn-accent" onclick="shareList()">Share</button>
+  </div>
 </div>
 
 <script>
-const PARTS = {
-  escort: {
-    title: 'Escort Bot',
-    cost: '~$260',
-    items: [
-      { name: 'LK-COKOINO 4WD Chassis Kit', price: '$26.99', who: 'Alex', status: 'delivered', eta: 'Alex has it', detail: 'Amazon — 4 motors, 4 wheels, chassis plates, screws' },
-      { name: 'Arducam 120° Wide Camera (IMX708)', price: '$59.99', who: 'Romeo', status: 'transit', eta: 'Sat 3/15', detail: 'Amazon — CSI camera module for Pi 5. LAST ESCORT PART.' },
-      { name: 'Arducam Pan-Tilt Platform', price: '$26.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — 2 servos + I2C controller + mounting bracket' },
-      { name: 'Pi 5 Active Cooler', price: '$9.98', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/11', detail: 'Amazon — PWM blower + heatsink. Prevents thermal throttle.' },
-      { name: 'WWZMDiB L298N Motor Driver 2-Pack', price: '$6.98', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Dual H-bridge for 4 DC motors. Have a spare.' },
-      { name: 'ELEGOO HC-SR04 Ultrasonic 5-Pack', price: '$8.99', who: 'Romeo', status: 'transit', eta: '3/13', detail: 'Amazon — Distance sensing + 20 dupont cables included.' },
-      { name: 'DIYables HC-SR04 2-Pack', price: '$6.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Primary ultrasonic sensors' },
-      { name: 'QTEATAK 18650 Battery Holders 8-Pack', price: '$9.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — 1/2/3/4 slot holders, 2 of each' },
-      { name: 'QOJH 18650 Batteries (4-pack)', price: '$22.98', who: 'Romeo', status: 'transit', eta: 'Sat 3/15', detail: 'Amazon — 3.7V 3000mAh, button top. 2 in bot + 2 hot-swap.' },
-      { name: 'ACEBOTT 18650 Charger (dual-slot)', price: '$8.59', who: 'Romeo', status: 'transit', eta: 'Sat 3/15', detail: 'Amazon — Smart charger, auto-shutoff. CHARGE NIGHT BEFORE DEMO.' },
-      { name: 'Anker PowerCore 10K (USB-C)', price: '$21.99', who: 'Romeo', status: 'transit', eta: '3/13', detail: 'Amazon — 5V/3A. Powers Pi 5 on the bot. ~3-4 hrs runtime.' },
-      { name: 'USB-C Right-Angle Adapter 2-Pack', price: '$8.49', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Silkland 90°. Keeps cable flush on chassis.' },
-      { name: 'CanaKit 3.5A Pi PSU + PiSwitch', price: '$12.99', who: 'Romeo', status: 'delivered', eta: 'Delivered 3/12', detail: 'Amazon — Wall adapter for BENCH TESTING ONLY.' },
-      { name: 'PVC Pipe 1" x 4ft + T-connector', price: '~$8', who: 'TBD', status: 'pickup', eta: 'HD Cart', detail: 'Home Depot — For camera mast. Needs someone to pick up.' },
-    ]
-  },
-  arm: {
-    title: 'SO-101 Robot Arm',
-    cost: '~$295',
-    items: [
-      { name: 'HiWonder LeRobot SO-ARM101 Kit', price: '~$270', who: 'Romeo', status: 'transit', eta: '~3/18', detail: 'hiwonder.com — Ships from China. LONG POLE. 6 biz days.' },
-      { name: 'NexiGo N60 1080P Webcam', price: '~$25', who: 'Romeo', status: 'transit', eta: '3/11', detail: 'Amazon — Overhead camera for training data' },
-    ]
-  },
-  owned: {
-    title: 'Already Owned',
-    cost: '$0',
-    items: [
-      { name: 'Raspberry Pi 5', price: '—', who: 'Alex', status: 'owned', eta: 'Alex has it', detail: 'Main compute for escort bot — Alex bringing to build sessions' },
-      { name: 'Raspberry Pi 4', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Backup / dashboard display' },
-      { name: 'MicroSD Card', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Needs flashing with Bookworm Lite 64-bit' },
-      { name: 'Raspberry Pi Pico', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Backup microcontroller' },
-      { name: 'SIM Card', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'For mobile hotspot if needed' },
-      { name: 'Velcro Strips', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'For mounting components' },
-      { name: 'Laptop (Mac M-series)', price: '—', who: 'Romeo', status: 'owned', eta: 'Have', detail: 'Training + demo display' },
-    ]
-  },
-  needed: {
-    title: 'Still Needed',
-    cost: '~$22-50',
-    items: [
-      { name: 'Second USB-C Power Bank (backup)', price: '~$22', who: 'TBD', status: 'pending', eta: 'Optional', detail: 'Same Anker 10K. Demo is 3 hours — one bank might not last.' },
-      { name: 'Resistor kit (1k + 2k)', price: '~$3', who: 'TBD', status: 'pending', eta: 'Needed', detail: 'REQUIRED for HC-SR04 voltage divider. Without this, GPIO 24 fries.' },
-      { name: 'Half-size breadboard', price: '~$4', who: 'TBD', status: 'pending', eta: 'Needed', detail: 'Mounts voltage divider circuit on chassis.' },
-      { name: 'Jumper wires (if ELEGOO 20 not enough)', price: '~$5', who: 'TBD', status: 'pending', eta: 'Check', detail: 'ELEGOO 5-pack comes with 20 dupont cables — may suffice.' },
-    ]
-  }
-};
+const ITEMS = [
+  // ===== ESCORT BOT — DELIVERED =====
+  { name: "LK-COKOINO 4WD Chassis Kit", price: 26.99, category: "Chassis", group: "escort", status: "delivered", who: "Alex",
+    detail: "4x TT motors, 4x wheels, acrylic frame, standoffs. Alex has it.", link: "https://www.amazon.com/Arduino-LK-COKOINO-Raspberry-Building/dp/B0B5JPJ9R4" },
+  { name: "L298N Motor Driver (2-pack)", price: 6.98, category: "Motor Control", group: "escort", status: "delivered", who: "Romeo",
+    detail: "WWZMDiB dual H-Bridge. DELIVERED 3/12. GPIO 17/27 (left), 22/23 (right). Have a spare." },
+  { name: "HC-SR04 Ultrasonic (DIYables 2-pack)", price: 6.99, category: "Sensors", group: "escort", status: "delivered", who: "Romeo",
+    detail: "DELIVERED 3/12. ECHO pin 5V — NEEDS voltage divider (1k + 2k resistors)." },
+  { name: "Arducam Pan/Tilt Platform", price: 26.99, category: "Vision", group: "escort", status: "delivered", who: "Romeo",
+    detail: "DELIVERED 3/12. I2C controlled, 12-bit PWM, 180° pan+tilt, 2 servos included." },
+  { name: "Pi 5 Active Cooler (Official)", price: 9.98, category: "Compute", group: "escort", status: "delivered", who: "Romeo",
+    detail: "DELIVERED 3/11. PWM blower + heatsink + thermal tape." },
+  { name: "18650 Battery Holder Bundle (8-pack)", price: 9.99, category: "Power", group: "escort", status: "delivered", who: "Romeo",
+    detail: "DELIVERED 3/12. QTEATAK 1/2/3/4 slot holders, 2 of each." },
+  { name: "USB-C Right-Angle Adapter (2-pack)", price: 8.49, category: "Power", group: "escort", status: "delivered", who: "Romeo",
+    detail: "DELIVERED 3/12. Silkland 90° adapter. Keeps cable flush on chassis." },
+  { name: "CanaKit 3.5A Pi PSU + PiSwitch", price: 12.99, category: "Power", group: "escort", status: "delivered", who: "Romeo",
+    detail: "DELIVERED 3/12. FOR BENCH TESTING ONLY — not for the bot." },
 
-const ETA_CLASS = {
-  delivered: 'eta-delivered',
-  transit: 'eta-transit',
-  pending: 'eta-pending',
-  owned: 'eta-owned',
-  pickup: 'eta-pickup',
-};
+  // ===== ESCORT BOT — IN TRANSIT =====
+  { name: "Arducam Camera Module 3 Wide (IMX708)", price: 59.99, category: "Vision", group: "escort", status: "transit", who: "Romeo",
+    detail: "120° wide-angle, autofocus, Pi 5 compatible. 12MP. ETA Sat 3/15.", link: "https://www.amazon.com/s?k=arducam+imx708" },
+  { name: "HC-SR04 Ultrasonic (ELEGOO 5-pack)", price: 8.99, category: "Sensors", group: "escort", status: "transit", who: "Romeo",
+    detail: "Arriving 3/13. Includes 20 dupont cables." },
+  { name: "18650 Batteries (4-pack)", price: 22.98, category: "Power", group: "escort", status: "transit", who: "Romeo",
+    detail: "QOJH 3.7V 3000mAh. 2 in bot + 2 hot-swap spares. ETA Sat 3/15." },
+  { name: "18650 Dual-Slot Charger", price: 8.59, category: "Power", group: "escort", status: "transit", who: "Romeo",
+    detail: "ACEBOTT smart charger. CHARGE NIGHT BEFORE DEMO (4 hours). ETA Sat 3/15." },
+  { name: "Anker PowerCore 10K (USB-C)", price: 21.99, category: "Power", group: "escort", status: "transit", who: "Romeo",
+    detail: "5V/3A. Powers Pi 5. ~3-4 hours runtime under CV load. ETA 3/13.", link: "https://www.amazon.com/dp/B0D5CLSMFB" },
 
-// Render summary
-const allItems = Object.values(PARTS).flatMap(s => s.items);
-const counts = { delivered: 0, transit: 0, pending: 0, owned: 0, pickup: 0 };
-allItems.forEach(i => counts[i.status]++);
+  // ===== ESCORT BOT — NEED TO BUY =====
+  { name: "Resistor Assortment Kit", price: 3, category: "Voltage Divider", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "MUST include 1kΩ + 2kΩ. HC-SR04 ECHO 5V→3.3V divider. WITHOUT THIS GPIO 24 FRIES.", link: "https://www.amazon.com/s?k=resistor+assortment+kit+1k+2k" },
+  { name: "Half-Size Breadboard (400 pts)", price: 4, category: "Prototyping", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Mounts voltage divider circuit. Half-size fits on chassis.", link: "https://www.amazon.com/s?k=half+size+breadboard+400" },
+  { name: "Jumper Wires M-F x20 (20cm)", price: 5, category: "Wiring", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "GPIO → L298N (4), HC-SR04 (4), common GND (1), spares (11).", link: "https://www.amazon.com/s?k=female+to+male+jumper+wires+20cm" },
+  { name: "Jumper Wires M-M x10 (20cm)", price: 3, category: "Wiring", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Breadboard connections, voltage divider, motor leads.", link: "https://www.amazon.com/s?k=male+to+male+jumper+wires+20cm" },
+  { name: "Short USB-C Cable (6-12 inches)", price: 5, category: "Wiring", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Power bank → right-angle adapter → Pi. Must support 5V/3A.", link: "https://www.amazon.com/s?k=short+usb+c+cable+6+inch" },
+  { name: "1\" Schedule 40 PVC Pipe (3-4 ft)", price: 3, category: "Mast", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Raises camera to mid-rack height. Free cuts at Home Depot.", store: "homedepot" },
+  { name: "1\" PVC T-Connector", price: 1, category: "Mast", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Mounts pipe vertically. Horizontal arm bolts to chassis.", store: "homedepot" },
+  { name: "1\" PVC 90° Elbow", price: 1, category: "Mast", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Top of mast — angles camera toward rack face.", store: "homedepot" },
+  { name: "Hose Clamps x2 (1\" diameter)", price: 2, category: "Mast", group: "escort", status: "need", priority: "high", who: "TBD",
+    detail: "Secures T-connector to acrylic chassis frame.", store: "homedepot" },
+  { name: "Second USB-C Power Bank (backup)", price: 22, category: "Power", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "Demo is 2-5pm (3 hours). One bank might not last.", link: "https://www.amazon.com/dp/B0D5CLSMFB" },
+  { name: "Velcro Cable Ties (50-pack)", price: 5, category: "Mounting", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "Strap power bank, battery holder, wires, breadboard.", link: "https://www.amazon.com/s?k=reusable+velcro+cable+ties" },
+  { name: "Double-Sided Foam Tape (3M)", price: 5, category: "Mounting", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "Mount L298N + breadboard to chassis. Dampen vibration.", link: "https://www.amazon.com/s?k=3m+double+sided+foam+tape" },
+  { name: "Rubber Bumper Pads (20-pack)", price: 3, category: "Mounting", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "All 4 chassis corners — protects acrylic when bot bumps racks.", link: "https://www.amazon.com/s?k=self+adhesive+rubber+bumper+pads" },
+  { name: "Electrical Tape (1 roll)", price: 3, category: "Insulation", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "Insulate solder joints, tape wires, color-mark GPIO leads." },
+  { name: "Heat Shrink Tubing Assortment", price: 5, category: "Insulation", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "Voltage divider solder joints, motor wire splices." },
+  { name: "Ethernet Cable (6ft Cat6)", price: 5, category: "Shared", group: "escort", status: "need", priority: "medium", who: "TBD",
+    detail: "SSH into Pi from laptop. Faster than WiFi for dev." },
 
-document.getElementById('summary').innerHTML = `
-  <div class="stat stat-delivered"><div class="stat-number">${counts.delivered}</div><div class="stat-label">Delivered</div></div>
-  <div class="stat stat-transit"><div class="stat-number">${counts.transit}</div><div class="stat-label">In Transit</div></div>
-  <div class="stat stat-pending"><div class="stat-number">${counts.pending + counts.pickup}</div><div class="stat-label">Still Needed</div></div>
-  <div class="stat stat-owned"><div class="stat-number">${counts.owned}</div><div class="stat-label">Already Owned</div></div>
-  <div class="stat stat-cost"><div class="stat-number">~$468</div><div class="stat-label">Total Budget</div></div>
-`;
+  // ===== SO-101 ARM =====
+  { name: "HiWonder LeRobot SO-ARM101 Kit", price: 270, category: "Arm Kit", group: "arm", status: "transit", who: "Romeo",
+    detail: "Ships from China. LONG POLE. 6 biz days. ETA ~3/18." },
+  { name: "NexiGo N60 1080P Webcam", price: 25, category: "Vision", group: "arm", status: "transit", who: "Romeo",
+    detail: "Overhead camera for training data. ETA 3/11." },
 
-// Render sections
-const sectionsEl = document.getElementById('sections');
-Object.entries(PARTS).forEach(([key, section]) => {
-  const items = section.items.map(item => `
-    <div class="item">
-      <div class="item-status status-${item.status}"></div>
-      <div class="item-info">
-        <div class="item-name">${item.name}</div>
-        <div class="item-detail">${item.detail}</div>
-      </div>
-      <div class="item-who">${item.who}</div>
-      <div class="item-eta ${ETA_CLASS[item.status]}">${item.eta}</div>
-    </div>
-  `).join('');
+  // ===== ALREADY OWNED =====
+  { name: "Raspberry Pi 5 (8GB)", price: 0, category: "Compute", group: "owned", status: "owned", who: "Alex",
+    detail: "Main compute for escort bot. Alex bringing to build sessions." },
+  { name: "Raspberry Pi 4 (backup)", price: 0, category: "Compute", group: "owned", status: "owned", who: "Romeo",
+    detail: "Backup / dashboard display." },
+  { name: "MicroSD Card", price: 0, category: "Compute", group: "owned", status: "owned", who: "Romeo",
+    detail: "Flash with Raspberry Pi OS Bookworm Lite 64-bit." },
+  { name: "Raspberry Pi Pico", price: 0, category: "Compute", group: "owned", status: "owned", who: "Romeo",
+    detail: "Backup microcontroller." },
+  { name: "Velcro Strips", price: 0, category: "Mounting", group: "owned", status: "owned", who: "Romeo",
+    detail: "For mounting components." },
+  { name: "Laptop (Mac M-series)", price: 0, category: "Shared", group: "owned", status: "owned", who: "Romeo",
+    detail: "Training + demo display." },
+];
 
-  sectionsEl.innerHTML += `
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title">${section.title}</div>
-        <div class="section-cost">${section.cost}</div>
-      </div>
-      ${items}
-    </div>
-  `;
-});
+// ===== STATE =====
+let checkedItems = JSON.parse(localStorage.getItem('elktron-parts') || '{}');
+let activeFilter = 'all';
 
-// Action items
-sectionsEl.innerHTML += `
-  <div class="action-box">
-    <div class="action-title">Action Required</div>
-    <div class="action-item">1. <strong>Resistor kit + breadboard</strong> — NEEDED for HC-SR04 voltage divider. Order ASAP or grab from electronics store.</div>
-    <div class="action-item">2. <strong>PVC pipe pickup</strong> — Someone with a car needs to grab the pipe + T-connector from Home Depot ($8.09, already in cart).</div>
-    <div class="action-item">3. <strong>Arducam camera (Sat 3/15)</strong> — Last major escort bot part. No camera testing until Saturday.</div>
-    <div class="action-item">4. <strong>18650 batteries + charger (Sat 3/15)</strong> — Start charging THE MOMENT they arrive. Takes 4 hours.</div>
-    <div class="action-item">5. <strong>Flash MicroSD card</strong> — Romeo has card. Flash with Bookworm Lite 64-bit using Pi Imager. Can do now.</div>
-    <div class="action-item">6. <strong>SO-101 arm kit (~3/18)</strong> — Long pole. If delayed past 3/19, arm demo uses pre-recorded video as fallback.</div>
-  </div>
-`;
-</script>
+// ===== RENDER =====
+function render() {
+  const listEl = document.getElementById('list');
+  listEl.innerHTML = '';
 
-</div><!-- end .page-layer -->
+  let filtered = ITEMS;
+  if (activeFilter === 'need') filtered = ITEMS.filter(i => i.status === 'need');
+  else if (activeFilter === 'transit') filtered = ITEMS.filter(i => i.status === 'transit');
+  else if (activeFilter === 'delivered') filtered = ITEMS.filter(i => i.status === 'delivered');
+  else if (activeFilter === 'owned') filtered = ITEMS.filter(i => i.status === 'owned');
+  else if (activeFilter === 'high') filtered = ITEMS.filter(i => i.priority === 'high');
+  else if (activeFilter === 'escort') filtered = ITEMS.filter(i => i.group === 'escort');
+  else if (activeFilter === 'arm') filtered = ITEMS.filter(i => i.group === 'arm');
 
-<!-- ─── THREE.JS ──────────────────────────────────────── -->
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
-  }
-}
-</script>
-<script type="module">
-import * as THREE from 'three';
+  // Group by group then category
+  const groups = ['escort', 'arm', 'owned'];
+  const groupLabels = { escort: 'Escort Bot', arm: 'SO-101 Arm', owned: 'Already Owned' };
+  const groupBadges = { escort: 'badge-escort', arm: 'badge-arm', owned: 'badge-owned' };
 
-const canvas = document.getElementById('bg-canvas');
-if (canvas && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x000000, 0);
+  for (const group of groups) {
+    const groupItems = filtered.filter(i => i.group === group);
+    if (groupItems.length === 0) continue;
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.OrthographicCamera(
-    -window.innerWidth / 2, window.innerWidth / 2,
-    window.innerHeight / 2, -window.innerHeight / 2, 0.1, 10
-  );
-  camera.position.z = 1;
+    const divider = document.createElement('div');
+    divider.className = 'section-divider';
+    divider.innerHTML = '<span class="section-badge ' + groupBadges[group] + '">' + groupLabels[group] + '</span><div class="section-line"></div>';
+    listEl.appendChild(divider);
 
-  const DOT_COUNT = 350;
-  const positions = new Float32Array(DOT_COUNT * 3);
-  const phases = new Float32Array(DOT_COUNT);
-  for (let i = 0; i < DOT_COUNT; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * window.innerWidth;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * window.innerHeight;
-    positions[i * 3 + 2] = 0;
-    phases[i] = Math.random() * Math.PI * 2;
-  }
+    const cats = [...new Set(groupItems.map(i => i.category))];
+    for (const cat of cats) {
+      const catEl = document.createElement('div');
+      catEl.className = 'category';
+      catEl.textContent = cat;
+      listEl.appendChild(catEl);
 
-  const dotGeo = new THREE.BufferGeometry();
-  dotGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  dotGeo.setAttribute('phase', new THREE.BufferAttribute(phases, 1));
+      const catItems = groupItems.filter(i => i.category === cat);
+      for (const item of catItems) {
+        const idx = ITEMS.indexOf(item);
+        const isChecked = checkedItems[idx] || item.status === 'owned' || item.status === 'delivered';
 
-  const dotMat = new THREE.ShaderMaterial({
-    transparent: true, depthTest: false,
-    uniforms: {
-      time: { value: 0 },
-      mouse: { value: new THREE.Vector2(9999, 9999) },
-      resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-      baseColor: { value: new THREE.Color(0xd4a574) },
-    },
-    vertexShader: `
-      attribute float phase;
-      uniform float time;
-      uniform vec2 mouse;
-      uniform vec2 resolution;
-      varying float vAlpha;
-      varying float vGlow;
-      void main() {
-        vec3 pos = position;
-        pos.y += sin(time * 0.4 + phase) * 3.0;
-        pos.x += cos(time * 0.3 + phase * 1.3) * 2.0;
-        float dist = distance(pos.xy, mouse);
-        vGlow = smoothstep(200.0, 0.0, dist);
-        vAlpha = 0.07 + sin(time * 0.5 + phase) * 0.03 + vGlow * 0.3;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-        gl_PointSize = 2.0 + vGlow * 3.0;
-      }
-    `,
-    fragmentShader: `
-      uniform vec3 baseColor;
-      varying float vAlpha;
-      varying float vGlow;
-      void main() {
-        float d = length(gl_PointCoord - 0.5);
-        if (d > 0.5) discard;
-        float soft = 1.0 - smoothstep(0.2, 0.5, d);
-        vec3 col = mix(baseColor, vec3(0.75, 0.7, 0.65), 1.0 - vGlow);
-        gl_FragColor = vec4(col, vAlpha * soft);
-      }
-    `
-  });
-  scene.add(new THREE.Points(dotGeo, dotMat));
+        const el = document.createElement('div');
+        el.className = 'item' + (isChecked ? ' checked' : '');
+        el.dataset.idx = idx;
 
-  const LINE_COUNT = 50;
-  const linePositions = new Float32Array(LINE_COUNT * 6);
-  const lineGeo = new THREE.BufferGeometry();
-  lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-  const lineMat = new THREE.LineBasicMaterial({ color: 0xd4a574, transparent: true, opacity: 0.04, depthTest: false });
-  scene.add(new THREE.LineSegments(lineGeo, lineMat));
+        let tags = '';
+        if (item.status === 'delivered') tags += '<span class="tag tag-delivered">DELIVERED</span>';
+        else if (item.status === 'transit') tags += '<span class="tag tag-transit">IN TRANSIT</span>';
+        else if (item.status === 'ordered') tags += '<span class="tag tag-ordered">ORDERED</span>';
+        else if (item.status === 'owned') tags += '<span class="tag tag-owned">OWNED</span>';
+        else if (item.priority === 'high') tags += '<span class="tag tag-high">HIGH PRIORITY</span>';
+        else if (item.priority === 'medium') tags += '<span class="tag tag-medium">MEDIUM</span>';
+        else if (item.priority === 'low') tags += '<span class="tag tag-low">OPTIONAL</span>';
 
-  function updateLines() {
-    const pos = dotGeo.attributes.position.array;
-    let idx = 0;
-    for (let i = 0; i < DOT_COUNT && idx < LINE_COUNT * 6; i++) {
-      for (let j = i + 1; j < DOT_COUNT && idx < LINE_COUNT * 6; j++) {
-        const dx = pos[i*3] - pos[j*3], dy = pos[i*3+1] - pos[j*3+1];
-        if (Math.sqrt(dx*dx + dy*dy) < 110) {
-          linePositions[idx++] = pos[i*3]; linePositions[idx++] = pos[i*3+1]; linePositions[idx++] = 0;
-          linePositions[idx++] = pos[j*3]; linePositions[idx++] = pos[j*3+1]; linePositions[idx++] = 0;
-        }
+        if (item.store === 'homedepot') tags += ' <span class="tag" style="background:rgba(249,99,2,0.15);color:#f96302">HOME DEPOT</span>';
+
+        let linkHtml = '';
+        if (item.link) linkHtml = '<a class="item-link" href="' + item.link + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">View product →</a>';
+
+        let whoHtml = item.who ? '<div class="item-who">Owner: ' + item.who + '</div>' : '';
+
+        el.innerHTML =
+          '<div class="checkbox"><svg viewBox="0 0 14 14"><polyline points="2.5 7 5.5 10.5 11.5 3.5"/></svg></div>' +
+          '<div class="item-content">' +
+            '<div class="item-top"><span class="item-name">' + item.name + '</span>' +
+            (item.price > 0 ? '<span class="item-price">$' + item.price.toFixed(2) + '</span>' : '') +
+            '</div>' +
+            '<div class="item-detail">' + item.detail + '</div>' +
+            whoHtml +
+            '<div class="item-tags">' + tags + '</div>' +
+            linkHtml +
+          '</div>';
+        listEl.appendChild(el);
       }
     }
-    for (let k = idx; k < LINE_COUNT * 6; k++) linePositions[k] = 0;
-    lineGeo.attributes.position.needsUpdate = true;
   }
-
-  let mouseX = 9999, mouseY = 9999;
-  window.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX - window.innerWidth / 2;
-    mouseY = -(e.clientY - window.innerHeight / 2);
-  });
-
-  window.addEventListener('resize', () => {
-    const w = window.innerWidth, h = window.innerHeight;
-    renderer.setSize(w, h);
-    camera.left = -w / 2; camera.right = w / 2;
-    camera.top = h / 2; camera.bottom = -h / 2;
-    camera.updateProjectionMatrix();
-    dotMat.uniforms.resolution.value.set(w, h);
-  });
-
-  const clock = new THREE.Clock();
-  let f = 0;
-  (function animate() {
-    requestAnimationFrame(animate);
-    dotMat.uniforms.time.value = clock.getElapsedTime();
-    dotMat.uniforms.mouse.value.set(mouseX, mouseY);
-    if (f++ % 4 === 0) updateLines();
-    renderer.render(scene, camera);
-  })();
+  updateStats();
 }
+
+// Event delegation
+document.getElementById('list').addEventListener('click', function(e) {
+  var item = e.target.closest('.item');
+  if (!item || e.target.closest('.item-link')) return;
+  var idx = parseInt(item.dataset.idx, 10);
+  if (isNaN(idx)) return;
+  checkedItems[idx] = !checkedItems[idx];
+  item.classList.toggle('checked', checkedItems[idx] || ITEMS[idx].status === 'owned' || ITEMS[idx].status === 'delivered');
+  localStorage.setItem('elktron-parts', JSON.stringify(checkedItems));
+  updateStats();
+});
+
+function updateStats() {
+  var delivered = ITEMS.filter(function(i) { return i.status === 'delivered'; }).length;
+  var transit = ITEMS.filter(function(i) { return i.status === 'transit'; }).length;
+  var need = ITEMS.filter(function(i) { return i.status === 'need'; }).length;
+  var owned = ITEMS.filter(function(i) { return i.status === 'owned'; }).length;
+  var secured = delivered + transit + owned;
+  var total = ITEMS.length;
+  var remaining = ITEMS.filter(function(i) { return i.status === 'need'; }).reduce(function(s, i) { return s + i.price; }, 0);
+
+  document.getElementById('deliveredCount').textContent = delivered;
+  document.getElementById('transitCount').textContent = transit;
+  document.getElementById('needCount').textContent = need;
+  document.getElementById('ownedCount').textContent = owned;
+  document.getElementById('bottomTotal').textContent = remaining.toFixed(0);
+
+  var pct = Math.round((secured / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = secured + '/' + total + ' items secured (' + pct + '%)';
+}
+
+// ===== FILTERS =====
+function renderFilters() {
+  var needCount = ITEMS.filter(function(i) { return i.status === 'need'; }).length;
+  var transitCount = ITEMS.filter(function(i) { return i.status === 'transit'; }).length;
+  var highCount = ITEMS.filter(function(i) { return i.priority === 'high'; }).length;
+  var escortCount = ITEMS.filter(function(i) { return i.group === 'escort'; }).length;
+  var armCount = ITEMS.filter(function(i) { return i.group === 'arm'; }).length;
+
+  var filters = [
+    { id: 'all', label: 'All', count: ITEMS.length },
+    { id: 'need', label: 'Need', count: needCount },
+    { id: 'high', label: 'High Priority', count: highCount },
+    { id: 'transit', label: 'In Transit', count: transitCount },
+    { id: 'escort', label: 'Escort Bot', count: escortCount },
+    { id: 'arm', label: 'SO-101 Arm', count: armCount },
+  ];
+
+  document.getElementById('filters').innerHTML = filters.map(function(f) {
+    return '<button class="filter-btn ' + (f.id === activeFilter ? 'active' : '') + '" onclick="setFilter(\'' + f.id + '\')">' + f.label + '<span class="count">' + f.count + '</span></button>';
+  }).join('');
+}
+
+function setFilter(id) { activeFilter = id; renderFilters(); render(); }
+
+// ===== ACTIONS =====
+function resetAll() {
+  if (confirm('Reset all checkboxes?')) {
+    checkedItems = {};
+    localStorage.setItem('elktron-parts', '{}');
+    render();
+  }
+}
+
+function copyList() {
+  var needItems = ITEMS.filter(function(i) { return i.status === 'need' && !checkedItems[ITEMS.indexOf(i)]; });
+  var text = "ELKTRON — PARTS NEEDED\n========================\n\n" +
+    needItems.map(function(i) { return "[ ] " + i.name + " — $" + i.price.toFixed(2) + "\n    " + i.detail; }).join('\n\n');
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.querySelectorAll('.btn')[1];
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  });
+}
+
+function shareList() {
+  var needItems = ITEMS.filter(function(i) { return i.status === 'need' && !checkedItems[ITEMS.indexOf(i)]; });
+  var total = needItems.reduce(function(s, i) { return s + i.price; }, 0);
+  var text = 'Elktron — ' + needItems.length + ' items left ($' + total.toFixed(0) + ')\n\n' +
+    needItems.map(function(i) { return '- ' + i.name + ' $' + i.price.toFixed(2); }).join('\n');
+  if (navigator.share) navigator.share({ title: 'Elktron Parts List', text: text });
+  else navigator.clipboard.writeText(text).then(function() { alert('List copied to clipboard'); });
+}
+
+// ===== INIT =====
+renderFilters();
+render();
 </script>
 </body>
 </html>

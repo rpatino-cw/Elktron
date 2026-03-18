@@ -50,12 +50,9 @@ Pages use a mix of Three.js versions: **v0.162.0**, **v0.163.0**, and **v0.170.0
 | 1 | `robotics-site/index.html` | Elktron landing page (dark luxury-tech, Hermes-inspired, CSS only) | Working | `file:///Users/rpatino/hackathon/robotics-site/index.html` |
 | 2 | `robotics-site/so101/showcase.html` | SO-101 robot arm scope page (CSS animations) | Working | `file:///Users/rpatino/hackathon/robotics-site/so101/showcase.html` |
 | 3 | `escort-bot/showcase.html` | Escort bot scope page (CSS animations) | Working | `file:///Users/rpatino/hackathon/escort-bot/showcase.html` |
-| 4 | `shopping-list.html` | Shopping list for all hardware | Working | `file:///Users/rpatino/hackathon/shopping-list.html` |
+| 4 | `parts-status.html` | Hardware inventory, shopping list, and status tracker | Working | `file:///Users/rpatino/hackathon/parts-status.html` |
 | 5 | `pitch-deck.html` | Pitch deck for presentation | Working | `file:///Users/rpatino/hackathon/pitch-deck.html` |
 | 6 | `pitch-playbook.html` | Pitch playbook and talking points | Working | `file:///Users/rpatino/hackathon/pitch-playbook.html` |
-| 7 | `romeo-ops.html` | Operations page | Working | `file:///Users/rpatino/hackathon/romeo-ops.html` |
-| 8 | `raphael-checklist.html` | Team member checklist | Working | `file:///Users/rpatino/hackathon/raphael-checklist.html` |
-| 9 | `parts-status.html` | Parts arrival tracker | Working | `file:///Users/rpatino/hackathon/parts-status.html` |
 | 10 | `img/2d_drawing/frame_trace.html` | Canvas-based frame tracing tool | Reference Only | `file:///Users/rpatino/hackathon/img/2d_drawing/frame_trace.html` |
 
 ---

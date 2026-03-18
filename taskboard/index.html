@@ -898,7 +898,7 @@ const TEAM = [
 ];
 
 const PHASES = [
-  { id: 0, name: 'Admin & Sign-Up', color: '#e2445c', due: '3/12', desc: 'Register team in #more-better-faster-2026, confirm Slack access, create GitHub repo, share checklist and credentials with all members.' },
+  { id: 0, name: 'Admin & Sign-Up', color: '#e2445c', due: '3/12', desc: 'Register team in #more-faster-better-2026, confirm Slack access, create GitHub repo, share checklist and credentials with all members.' },
   { id: 1, name: 'Hardware Intake', color: '#ff642e', due: '3/13', desc: 'Receive and verify all shipments (chassis, motors, sensors, cameras, batteries), gather owned parts (Pi 5, cables, tools), label everything, and set up the assembly war room.' },
   { id: 2, name: 'Pi Setup', color: '#fdab3d', due: '3/12', desc: 'Flash Raspberry Pi 5 with Bookworm Lite 64-bit, install active cooler, enable camera + I2C, install Python venv with Ultralytics YOLOv8n, download YOLOv8n model.' },
   { id: 3, name: 'Escort Bot Build', color: '#00c875', due: '3/15', desc: 'Assemble LK-COKOINO 4WD chassis, wire L298N motor driver + HC-SR04 ultrasonic, build PVC mast, mount pan-tilt + camera, wire power system, and verify motors + sonar + camera individually.' },
@@ -929,7 +929,7 @@ const PRIORITIES = [
 // Full task list
 const TASKS = [
   // Phase 0 — Admin
-  { id: 'FC-001', phase: 0, text: 'Sign up team in #more-better-faster-2026', owner: null, priority: 'critical', due: '3/12', status: 'done' },
+  { id: 'FC-001', phase: 0, text: 'Sign up team in #more-faster-better-2026', owner: null, priority: 'critical', due: '3/12', status: 'done' },
   { id: 'FC-002', phase: 0, text: 'Confirm all members have Slack access to hackathon channel', owner: null, priority: 'high', due: '3/12', status: 'done' },
   { id: 'FC-003', phase: 0, text: 'Create shared GitHub repo — add all collaborators', owner: 'romeo', priority: 'high', due: '3/12', status: 'done' },
   { id: 'FC-004', phase: 0, text: 'Share TEAM-CHECKLIST.md with everyone', owner: 'romeo', priority: 'medium', due: '3/12', status: 'done' },
@@ -1185,7 +1185,7 @@ const TASKS = [
   { id: 'FC-229', phase: 10, text: 'Talha: monitor from audience perspective', owner: null, priority: 'medium', due: '3/23' },
   { id: 'FC-230', phase: 10, text: 'Push code to GitHub (clean secrets first)', owner: null, priority: 'high', due: '3/23' },
   { id: 'FC-231', phase: 10, text: 'Submit to hackathon judges', owner: null, priority: 'critical', due: '3/23' },
-  { id: 'FC-232', phase: 10, text: 'Post demo photos/video in #more-better-faster-2026', owner: null, priority: 'low', due: '3/23' },
+  { id: 'FC-232', phase: 10, text: 'Post demo photos/video in #more-faster-better-2026', owner: null, priority: 'low', due: '3/23' },
 
   // Gap Tickets — Hardware & Research
   { id: 'FC-233', phase: 3, text: 'DECISION: CSI extension cable vs USB webcam for mast camera', owner: 'romeo', priority: 'critical', due: '3/13' },
@@ -1234,8 +1234,8 @@ function getInitials(name) { return name.split(' ').map(w => w[0]).join(''); }
 
 const TICKET_DETAILS = {
   // ── Phase 0: Admin & Sign-Up ──
-  'FC-001': { desc: 'Register the Elktron team in the hackathon Slack channel. List all 7 members by name and role. This is the single hardest deadline — miss it and we cannot compete.', checks: ['Open #more-better-faster-2026 in Slack', 'Post team registration with all 7 names', 'Confirm organizers acknowledged'], notes: ['HARD DEADLINE: March 12. No extensions. Romeo owns this.'] },
-  'FC-002': { desc: 'Verify every team member can see and post in #more-better-faster-2026. If anyone is missing, request channel access from Slack admin.', checks: ['Romeo — confirmed', 'Josh — confirmed', 'Raphael — confirmed', 'Parth — confirmed', 'Andrew — confirmed', 'Talha — confirmed'] },
+  'FC-001': { desc: 'Register the Elktron team in the hackathon Slack channel. List all 7 members by name and role. This is the single hardest deadline — miss it and we cannot compete.', checks: ['Open #more-faster-better-2026 in Slack', 'Post team registration with all 7 names', 'Confirm organizers acknowledged'], notes: ['HARD DEADLINE: March 12. No extensions. Romeo owns this.'] },
+  'FC-002': { desc: 'Verify every team member can see and post in #more-faster-better-2026. If anyone is missing, request channel access from Slack admin.', checks: ['Romeo — confirmed', 'Josh — confirmed', 'Raphael — confirmed', 'Parth — confirmed', 'Andrew — confirmed', 'Talha — confirmed'] },
   'FC-003': { desc: 'Create the Elktron GitHub repo under Romeo\'s account. Add all 6 collaborators with write access. Set up main branch protection.', checks: ['Create repo: elktron', 'Add collaborators (6 invites)', 'Add .gitignore for Python + Node', 'Add README with project summary'], links: [['GitHub New Repo', 'https://github.com/new']] },
   'FC-004': { desc: 'Share the TEAM-CHECKLIST.md file in the team Slack channel. Pin the message so everyone can find it.', notes: ['File is at hackathon/TEAM-CHECKLIST.md. Also share this taskboard URL.'] },
   'FC-005': { desc: 'Everyone reads the VELOCITY.md engineering philosophy document. It sets the standard for how we build — speed, simplicity, closed loops.', notes: ['Takes 5 minutes. Sets the tone for the whole hackathon.'] },
@@ -1489,7 +1489,7 @@ const TICKET_DETAILS = {
   'FC-229': { desc: 'Talha: observe from the audience perspective. Note anything that looks confusing, too fast, or unclear. Give feedback after the demo.', notes: ['Judges see what you see. If something looks wrong from the audience, tell the team so they can adjust.'] },
   'FC-230': { desc: 'Push all code to the GitHub repo. CLEAN SECRETS FIRST: remove any API keys, passwords, or personal paths from the code.', checks: ['No API keys in code', 'No passwords in code', 'No hardcoded paths', '.gitignore includes .env, *.db, __pycache__'], notes: ['Run a quick grep for "password", "key", "secret" across all files before pushing.'] },
   'FC-231': { desc: 'CRITICAL: Submit to the hackathon judges. Follow the submission format exactly. Include: video link, GitHub repo, team members, track.', notes: ['Double-check the submission. Verify the video plays. Verify the repo is public (or shared with judges). Submit EARLY.'] },
-  'FC-232': { desc: 'Post demo photos and video clips in #more-better-faster-2026. Celebrate. Tag everyone. This is the team\'s showcase moment.', notes: ['Win or lose, the work is impressive. Share it proudly.'] },
+  'FC-232': { desc: 'Post demo photos and video clips in #more-faster-better-2026. Celebrate. Tag everyone. This is the team\'s showcase moment.', notes: ['Win or lose, the work is impressive. Share it proudly.'] },
 
   // ── Gap Tickets ──
   'FC-233': { desc: 'DECISION REQUIRED: Stock CSI cable is ~15cm. Max reliable CSI extension is 500mm (1.64ft) — NOT enough for 3.5ft mast. Three options: (A) Arducam CSI-to-HDMI adapter kit (~$35) — converts CSI to HDMI, run standard HDMI cable up the mast (3-5m reliable), best signal quality. (B) USB webcam — simplest, zero signal issues, slightly higher CPU load/latency. (C) Raw 1m CSI extension — risky, signal degradation likely at 1m+.', checks: ['RESEARCH DONE: CSI max reliable = 500mm', 'Option A: Order CSI-to-HDMI adapter ($35) + HDMI cable ($15)', 'Option B: Use USB webcam + USB extension cable', 'Option C: Risk raw 1m CSI (NOT recommended)', 'Make decision and update FC-081'], links: [['Arducam CSI-to-HDMI Adapter Kit (Amazon)', 'https://www.amazon.com/Arducam-Extension-Module-Raspberry-Specific/dp/B0CBXDNBM63'], ['Arducam HDMI Extension Docs', 'https://docs.arducam.com/Camera-Extension-Solution/HDMI-Extension-Kit/'], ['Pi Forums: CSI Cable Length Limits', 'https://forums.raspberrypi.com/viewtopic.php?t=262041']], notes: ['RECOMMENDED: Option A (CSI-to-HDMI adapter). Keeps IMX708 native quality + picamera2 compatibility. HDMI is designed for this distance. No code changes needed.', 'FALLBACK: Option B (USB webcam). Zero risk, but needs ~10 lines of code changes from picamera2 to cv2.VideoCapture().', 'CSI2 signals are only 200mV swing — easily swamped by noise beyond 500mm. Do NOT rely on raw CSI at 1m+.', 'MAKE THIS DECISION BY MARCH 13 — it blocks the camera mast build.'] },

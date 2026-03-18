@@ -26,7 +26,7 @@
 - **Claim a task:** Put your name in the `Owner` column
 - **Mark done:** Change `[ ]` to `[x]`
 - **Blocked?** Add `BLOCKED:` + reason next to the task
-- **Questions?** Drop them in `#more-better-faster-2026` or DM Romeo
+- **Questions?** Drop them in `#more-faster-better-2026` or DM Romeo
 - **Rule:** If a task takes >2 hours and you're stuck, ask for help. Don't spin.
 
 ---
@@ -35,7 +35,7 @@
 
 | # | Task | Owner | Status | Notes |
 |---|------|-------|--------|-------|
-| 0.1 | Sign up team in `#more-better-faster-2026` | Romeo | [ ] | **DEADLINE MARCH 12** — list all 7 names |
+| 0.1 | Sign up team in `#more-faster-better-2026` | Romeo | [ ] | **DEADLINE MARCH 12** — list all 7 names |
 | 0.2 | Confirm all team members have Slack access to hackathon channel | Romeo | [ ] | DM each person |
 | 0.3 | Create shared GitHub repo for Elktron | Romeo | [ ] | Private repo, add all members as collaborators |
 | 0.4 | Share this checklist with the team (link or copy) | Romeo | [ ] | Pin in hackathon channel |

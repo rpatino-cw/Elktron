@@ -3,7 +3,7 @@
 ## Key Info
 - **Event:** March 23-25, 2026
 - **Demo Day:** March 26 (2-5pm ET)
-- **Team:** Elktron — signed up March 12 via `#more-better-faster-2026`
+- **Team:** Elktron — signed up March 12 via `#more-faster-better-2026`
 - **Deliverable:** 2-3 min pre-recorded demo + optional slides + GitHub repo
 - **Track:** Build with Velocity
 - **Git:** This folder is a git repo (`main` branch)

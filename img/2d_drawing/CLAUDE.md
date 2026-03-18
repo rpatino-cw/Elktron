@@ -38,7 +38,6 @@ Each stage has a **user approval gate** before advancing.
 - **Reference implementations:**
   - `chassis_topdown_frame_analysis.html` (top-down — 51 lines, 10 regions)
   - `chassis_side_frame_analysis.html` (side view — 14 lines, 6 regions)
-  - `chassis_front_frame_analysis.html` (front view — 11 lines, 5 regions)
 - **Required style:** Space Grotesk + JetBrains Mono, `#0a0a0c` bg, amber `#c9943a` accents, grid layout (canvas + 380px sidebar), `.panel` cards with `.stat-row` measurements, `.region-item` hover highlight, `.ctrl-btn` toggles, dimension arrows with dashed extension lines
 - **Required panels:** Geometry Measurements, Identified Regions (with color dots + hover), Orientation/Context notes, Line Data summary
 - **Required toggles:** Grid, Numbers, Regions, Dimensions, Zones (minimum)
@@ -184,7 +183,6 @@ Each stage has a **user approval gate** before advancing.
 | `frame_trace.html` | 2 | Frame tracing tool (canvas-based) |
 | `chassis_topdown_frame_analysis.html` | 2 | Top-down view analysis (51 lines, 10 regions) |
 | `chassis_side_frame_analysis.html` | 2 | Side view analysis (14 lines, 6 regions) |
-| `chassis_front_frame_analysis.html` | 2 | Front view analysis (11 lines, 5 regions) |
 | `chassis_frame_traced.html` | 2 | Original top-down analysis (22 lines, superseded) |
 | `2d_car_reference.png` | 1 | Car reference image for tracing |
 | `rc_chassis_frame_lines.png` | 1 | Traced frame lines output |

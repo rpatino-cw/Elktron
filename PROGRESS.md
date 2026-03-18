@@ -303,7 +303,7 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 3. [x] Create detailed parts list with Amazon links — **Done 3/9** (`PARTS-LIST.md`)
 4. [x] Verify Freenove kit contents (motor driver, sensor, camera) — **Done 3/9**
 5. [x] Create Pi 5 setup guide — **Done 3/9** (`escort-bot/PI-SETUP.md`)
-6. [x] **Sign up for hackathon** — **Done 3/12** via `#more-better-faster-2026`
+6. [x] **Sign up for hackathon** — **Done 3/12** via `#more-faster-better-2026`
 7. [x] Order Pi 5 Active Cooler (~$10) — **Ordered 3/10, ETA 3/11**
 8. [x] Order Arducam Camera + Pan-Tilt — **Ordered 3/10, ETA 3/12-3/14**
 9. [x] Write `elktron-app/api/arm.py` — LeRobot serial interface — **Done 3/10**

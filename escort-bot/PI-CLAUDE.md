@@ -240,7 +240,7 @@ Both robots connect to a **Dashboard** (FastAPI + WebSocket + vanilla JS) that s
 
 ### CoreWeave (Employer)
 - **CoreWeave docs:** https://docs.coreweave.com/
-- **Hackathon channel:** `#more-better-faster-2026` (Slack)
+- **Hackathon channel:** `#more-faster-better-2026` (Slack)
 
 ---
 

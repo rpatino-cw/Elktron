@@ -115,7 +115,7 @@
 ---
 
 ## Communication
-- **Slack:** #more-better-faster-2026
+- **Slack:** `#the-elks-2026` (team) · `#more-faster-better-2026` (hackathon)
 - **Daily sync:** Share `daily.html` link in team DM each morning
 - **Decisions:** Update PROGRESS.md — single source of truth
 - **Rule:** Everyone owns their lane. Nobody waits for permission.
