@@ -964,6 +964,9 @@
             <div class="camera-feed hero-camera">
               <div class="camera-feed-label">Escort Cam</div>
               <div class="camera-feed-rec"><div class="rec-dot"></div> Live</div>
+              <img id="escort-cam-feed" src="http://escort-bot.local:5000/video_feed"
+                   style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;z-index:1;"
+                   onerror="this.style.display='none'">
               <div class="camera-static"></div>
               <div class="camera-placeholder">No Signal</div>
             </div>
