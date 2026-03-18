@@ -663,13 +663,13 @@ const WIRES = [
   {from:'pi',to:'n-ptz',color:'#3498db',group:'servo',label:'GPIO2 (SDA) -> PTZ Board',w:2.5},
   {from:'pi',to:'n-ptz',color:'#2ecc71',group:'servo',label:'GPIO3 (SCL) -> PTZ Board',w:2.5,offset:12},
   {from:'pi',to:'n-ptz',color:'#dc2626',group:'servo',label:'5V (Pin 2) -> PTZ VCC',w:1.5,offset:24},
-  {from:'pi',to:'n-ptz',color:'#4a5168',group:'servo',label:'GND (Pin 6) -> PTZ GND',w:1.5,offset:36},
+  {from:'pi',to:'n-ptz',color:'#4a5168',group:'servo',label:'GND (Pin 20) -> PTZ GND',w:1.5,offset:36},
   {from:'pi',to:'n-camera',color:'#9b59b6',group:'sensor',label:'CSI Ribbon Cable',w:4},
   {from:'n-powerbank',to:'pi',color:'#dc2626',group:'power',label:'USB-C 5V/3A -> Pi',w:4},
   {from:'pi',to:'n-lcd',color:'#3498db',group:'sensor',label:'GPIO2 (SDA) -> LCD',w:2},
   {from:'pi',to:'n-lcd',color:'#2ecc71',group:'sensor',label:'GPIO3 (SCL) -> LCD',w:2,offset:12},
-  {from:'pi',to:'n-lcd',color:'#dc2626',group:'sensor',label:'5V -> LCD VCC',w:1.5,offset:24},
-  {from:'pi',to:'n-lcd',color:'#4a5168',group:'sensor',label:'GND -> LCD GND',w:1.5,offset:36},
+  {from:'pi',to:'n-lcd',color:'#dc2626',group:'sensor',label:'5V (Pin 4) -> LCD VCC',w:1.5,offset:24},
+  {from:'pi',to:'n-lcd',color:'#4a5168',group:'sensor',label:'GND (Pin 14) -> LCD GND',w:1.5,offset:36},
 ];
 
 const GPIO_DETAIL = {
@@ -690,13 +690,13 @@ const GPIO_DETAIL = {
     {pin:'GPIO 2 (Pin 3)',fn:'I2C SDA (data) -> PTZ Board',color:'#3498db'},
     {pin:'GPIO 3 (Pin 5)',fn:'I2C SCL (clock) -> PTZ Board',color:'#2ecc71'},
     {pin:'5V (Pin 2)',fn:'PTZ Board + servo power',color:'#dc2626'},
-    {pin:'GND (Pin 6)',fn:'PTZ Board ground',color:'#4a5168'},
+    {pin:'GND (Pin 20)',fn:'PTZ Board ground',color:'#4a5168'},
   ],
   'n-lcd': [
     {pin:'GPIO 2',fn:'I2C SDA (data)',color:'#3498db'},
     {pin:'GPIO 3',fn:'I2C SCL (clock)',color:'#2ecc71'},
-    {pin:'5V',fn:'LCD power',color:'#dc2626'},
-    {pin:'GND',fn:'LCD ground',color:'#4a5168'},
+    {pin:'5V (Pin 4)',fn:'LCD power',color:'#dc2626'},
+    {pin:'GND (Pin 14)',fn:'LCD ground',color:'#4a5168'},
   ],
   'n-camera': [{pin:'CSI Port',fn:'Ribbon cable - no GPIO',color:'#9b59b6'}],
   'n-powerbank': [{pin:'USB-C',fn:'5V / 3A+ -> Pi power',color:'#dc2626'}],
@@ -1048,8 +1048,8 @@ const STEPS=[
 {title:"HC-SR04 \u2014 Power",info:`Connect <span class="pin-ref">VCC</span> on the HC-SR04 to <span class="pin-ref">Pin 2</span> (5V) on the Pi. Connect <span class="pin-ref">GND</span> to <span class="pin-ref">Pin 9</span> (GND). Using Pin 9 instead of Pin 6 \u2014 Pin 6 is already taken by the L298N common ground.`,why:"The ultrasonic sensor needs 5V to operate.",diagram:'hcsr04-power'},
 {title:"HC-SR04 \u2014 TRIG Pin",info:`Connect <span class="pin-ref">TRIG</span> on the HC-SR04 to <span class="pin-ref">Pin 22</span> (GPIO25). This is a 3.3V signal \u2014 no resistors needed.`,why:"TRIG sends the ultrasonic pulse out. Perfectly safe as a Pi output.",diagram:'hcsr04-trig'},
 {title:"HC-SR04 \u2014 ECHO + Voltage Divider",info:`On the breadboard:<br>1. <span class="pin-ref">ECHO</span> \u2192 <strong>100\u2126 resistor</strong> \u2192 junction<br>2. Junction \u2192 wire to <span class="pin-ref">Pin 18</span> (GPIO24)<br>3. Junction \u2192 <strong>200\u2126 resistor</strong> \u2192 GND<br><br>Result: 5V \u00d7 (200 \u00f7 300) = <strong>3.33V</strong> \u2014 safe for Pi.`,why:"ECHO outputs 5V. Pi GPIO is 3.3V max. Without the divider, you fry the Pi.",diagram:'voltage-divider',danger:'danger',interstitial:true,callout:"DO NOT skip the voltage divider. 5V on a 3.3V GPIO = permanent damage.",test:`python3 -c "from gpiozero import DistanceSensor; s=DistanceSensor(echo=24,trigger=25); print(f'{s.distance*100:.1f}cm')"`},
-{title:"I2C LCD Display",info:`Connect the QA-Pass I2C LCD to the Pi \u2014 same I2C bus as the PTZ board:<br><span class="pin-ref">SDA</span> \u2192 <span class="pin-ref">Pin 3</span> GPIO2<br><span class="pin-ref">SCL</span> \u2192 <span class="pin-ref">Pin 5</span> GPIO3<br><span class="pin-ref">VCC</span> \u2192 <span class="pin-ref">Pin 2</span> 5V<br><span class="pin-ref">GND</span> \u2192 <span class="pin-ref">Pin 6</span> GND<br><br>Both LCD and PTZ board share GPIO 2/3 (I2C bus). They have different addresses so no conflict.`,why:"The LCD shows bot status (mode, detection count, scan progress) during escort runs. Shares I2C bus with PTZ board at different address (LCD: 0x27/0x3F, PTZ: 0x40).",diagram:'lcd'},
-{title:"PTZ Controller Board (I2C)",info:`The Arducam PTZ board drives both servos via I2C \u2014 only 4 wires to the Pi:<br><span class="pin-ref">SDA</span> \u2192 <span class="pin-ref">Pin 3</span> GPIO2<br><span class="pin-ref">SCL</span> \u2192 <span class="pin-ref">Pin 5</span> GPIO3<br><span class="pin-ref">VCC</span> \u2192 <span class="pin-ref">Pin 2</span> 5V<br><span class="pin-ref">GND</span> \u2192 <span class="pin-ref">Pin 6</span> GND<br><br>Plug both servos directly into the PTZ board headers. The board generates PWM for you.`,why:"The PTZ controller board (12-bit PWM, I2C addr 0x40) replaces direct GPIO PWM. Shares the I2C bus with the LCD \u2014 different addresses, no conflict.",diagram:'ptz-board'},
+{title:"I2C LCD Display",info:`Connect the QA-Pass I2C LCD to the Pi \u2014 same I2C bus as the PTZ board:<br><span class="pin-ref">SDA</span> \u2192 <span class="pin-ref">Pin 3</span> GPIO2<br><span class="pin-ref">SCL</span> \u2192 <span class="pin-ref">Pin 5</span> GPIO3<br><span class="pin-ref">VCC</span> \u2192 <span class="pin-ref">Pin 4</span> 5V<br><span class="pin-ref">GND</span> \u2192 <span class="pin-ref">Pin 14</span> GND<br><br>Every component gets its own power + ground pin. LCD uses Pin 4 (5V) and Pin 14 (GND). Both LCD and PTZ board share GPIO 2/3 (I2C bus) at different addresses.`,why:"The LCD shows bot status (mode, detection count, scan progress) during escort runs. Shares I2C bus with PTZ board at different address (LCD: 0x27/0x3F, PTZ: 0x40).",diagram:'lcd'},
+{title:"PTZ Controller Board (I2C)",info:`The Arducam PTZ board drives both servos via I2C \u2014 only 4 wires to the Pi:<br><span class="pin-ref">SDA</span> \u2192 <span class="pin-ref">Pin 3</span> GPIO2<br><span class="pin-ref">SCL</span> \u2192 <span class="pin-ref">Pin 5</span> GPIO3<br><span class="pin-ref">VCC</span> \u2192 <span class="pin-ref">Pin 2</span> 5V<br><span class="pin-ref">GND</span> \u2192 <span class="pin-ref">Pin 20</span> GND<br><br>Pin 6 is taken by L298N, Pin 9 by HC-SR04, Pin 14 by LCD. Using Pin 20 for PTZ ground.<br>Plug both servos directly into the PTZ board headers. The board generates PWM for you.`,why:"The PTZ controller board (12-bit PWM, I2C addr 0x40) replaces direct GPIO PWM. Shares the I2C bus with the LCD \u2014 different addresses, no conflict.",diagram:'ptz-board'},
 {title:"Verify I2C Devices",info:`After wiring the PTZ board (and LCD if connected), verify both devices are detected:<br><br><code>sudo raspi-config</code> \u2192 Interface Options \u2192 I2C \u2192 Enable<br><code>sudo i2cdetect -y 1</code><br><br>Expected: <span class="pin-ref">0x40</span> (PTZ board) and <span class="pin-ref">0x27</span> or <span class="pin-ref">0x3F</span> (LCD). If missing, check wiring.`,why:"Both the PTZ board and LCD share the I2C bus (GPIO 2/3). This confirms both are detected before moving on.",diagram:'tilt-servo',test:`sudo i2cdetect -y 1`},
 {title:"Camera CSI Ribbon Cable",info:`<strong>1.</strong> Pull up the black clip on the Pi's <span class="pin-ref">CAM</span> port gently.<br><strong>2.</strong> Slide ribbon in \u2014 <strong>blue side facing USB ports</strong>, contacts facing HDMI.<br><strong>3.</strong> Push clip back down until it clicks.`,why:"A loose ribbon = 'no camera detected' errors. Hours of debugging.",diagram:'camera-csi',danger:'warn',callout:"The clip is fragile. Pull straight up. If cable doesn't slide easily, it may be backwards.",test:`libcamera-hello --timeout 5000`},
 {title:"Power Bank \u2192 Pi USB-C",info:`<strong>1.</strong> Plug <span class="pin-ref">90\u00b0 USB-C adapter</span> into Pi's USB-C port.<br><strong>2.</strong> Connect <span class="pin-ref">PiSwitch</span> inline (if available).<br><strong>3.</strong> Connect USB-C cable from <span class="pin-ref">Anker 10K</span> to switch/adapter.`,why:"Pi 5 needs solid 5V/3A. Anker 10K handles this. 90\u00b0 keeps cable flush.",diagram:'power-bank'},
@@ -1067,12 +1067,12 @@ const CHECKLIST_ITEMS=[
   "HC-SR04 ECHO \u2192 voltage divider \u2192 Pin 18 (GPIO24)",
   "LCD SDA \u2192 Pin 3 (GPIO2)",
   "LCD SCL \u2192 Pin 5 (GPIO3)",
-  "LCD VCC \u2192 Pin 2 (5V)",
-  "LCD GND \u2192 Pin 6 (GND)",
+  "LCD VCC \u2192 Pin 4 (5V)",
+  "LCD GND \u2192 Pin 14 (GND)",
   "PTZ Board SDA \u2192 Pin 3 (GPIO2)",
   "PTZ Board SCL \u2192 Pin 5 (GPIO3)",
   "PTZ Board VCC \u2192 Pin 2 (5V)",
-  "PTZ Board GND \u2192 Pin 6 (GND)",
+  "PTZ Board GND \u2192 Pin 20 (GND)",
   "Both servos plugged into PTZ board headers",
   "i2cdetect shows 0x40 (PTZ) + 0x27 (LCD)",
   "Camera ribbon in CAM port (blue side out)",
@@ -1198,7 +1198,7 @@ function buildDiagram(type){
     return mkSvg(720,310,c);
   }
   case 'lcd': {
-    const pi=piHeader(30,20,[3,5,2,6]);
+    const pi=piHeader(30,20,[3,5,4,14]);
     let c=pi.svg;
     const lx=400,ly=70,lw=140,lh=160;
     c+=`<rect x="${lx}" y="${ly}" width="${lw}" height="${lh}" rx="8" fill="#1a1a3a" stroke="#3a3a6a" stroke-width="1.5"/>`;
@@ -1207,13 +1207,13 @@ function buildDiagram(type){
     c+=`<text x="${lx+lw/2}" y="${ly+lh/2+18}" text-anchor="middle" font-family="var(--mono)" font-size="8" fill="rgba(255,255,255,.3)">addr: 0x27 or 0x3F</text>`;
     const lcdPins=[{name:'SDA',y:ly+100,color:'#3498db'},{name:'SCL',y:ly+115,color:'#2ecc71'},{name:'VCC',y:ly+130,color:'var(--wire-red)'},{name:'GND',y:ly+145,color:'var(--wire-black)'}];
     lcdPins.forEach(p=>{c+=`<circle cx="${lx+10}" cy="${p.y}" r="4" fill="${p.color}"/><text x="${lx+20}" y="${p.y+4}" font-family="var(--mono)" font-weight="700" font-size="9" fill="${p.color}">${p.name}</text>`;});
-    const piPins=[3,5,2,6];const colors=['#3498db','#2ecc71','var(--wire-red)','var(--wire-black)'];
-    const wireLabels=['SDA (Data)','SCL (Clock)','5V Power','Ground'];const labelYs=[40,58,76,94];
+    const piPins=[3,5,4,14];const colors=['#3498db','#2ecc71','var(--wire-red)','var(--wire-black)'];
+    const wireLabels=['SDA (Data)','SCL (Clock)','5V Power (Pin 4)','Ground (Pin 14)'];const labelYs=[40,58,76,94];
     piPins.forEach((pin,i)=>{const pp=pi.pinPos(pin);c+=wirePath(pp.x,pp.y,lx+10,lcdPins[i].y,colors[i],i*0.2+0.3,false);c+=labelTag(280,labelYs[i],wireLabels[i],colors[i],'middle',i*0.2+0.5);});
     return mkSvg(580,280,c);
   }
   case 'ptz-board': {
-    const pi=piHeader(30,20,[3,5,2,6]);
+    const pi=piHeader(30,20,[3,5,2,20]);
     let c=pi.svg;
     // PTZ Controller Board
     const bx=400,by=60,bw=140,bh=180;
@@ -1230,7 +1230,7 @@ function buildDiagram(type){
     c+=`<text x="${bx+105}" y="${by+94}" text-anchor="middle" font-family="var(--mono)" font-size="7" fill="#27ae60">TILT</text>`;
     c+=`<text x="${bx+105}" y="${by+120}" text-anchor="middle" font-family="var(--font)" font-size="8" fill="rgba(255,255,255,.4)">Servos plug in here</text>`;
     // Wires: Pi -> PTZ board
-    const piPins=[3,5,2,6];const ptzColors=['#3498db','#2ecc71','var(--wire-red)','var(--wire-black)'];
+    const piPins=[3,5,2,20];const ptzColors=['#3498db','#2ecc71','var(--wire-red)','var(--wire-black)'];
     const wireLabels=['SDA (Data)','SCL (Clock)','5V Power','Ground'];const labelYs=[40,58,76,94];
     piPins.forEach((pin,i)=>{const pp=pi.pinPos(pin);c+=wirePath(pp.x,pp.y,bx+10,ptzPins[i].y,ptzColors[i],i*0.2+0.3,false);c+=labelTag(280,labelYs[i],wireLabels[i],ptzColors[i],'middle',i*0.2+0.5);});
     return mkSvg(580,310,c);
