@@ -11,19 +11,19 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a;overflow-x:hidden}
-::selection{background:rgba(39,65,231,0.12);color:#0a0e1a}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:#050810;color:#e8eaf0;overflow-x:hidden}
+::selection{background:rgba(39,65,231,0.3);color:#fff}
 
 /* ── Three.js Full Background ── */
-#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.12}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55}
 
 /* ── Nav ── */
-.nav{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,40px);background:rgba(250,251,254,0.6);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(39,65,231,0.06);z-index:100;transition:all 0.4s cubic-bezier(0.16,1,0.3,1)}
-.nav.scrolled{background:rgba(250,251,254,0.88);box-shadow:0 4px 30px rgba(39,65,231,0.06)}
-.nav-brand{font-size:0.8125rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#0a0e1a;position:relative}
+.nav{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,40px);background:rgba(5,8,16,0.6);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid rgba(39,65,231,0.15);z-index:100;transition:all 0.4s cubic-bezier(0.16,1,0.3,1)}
+.nav.scrolled{background:rgba(5,8,16,0.88);box-shadow:0 4px 30px rgba(39,65,231,0.15)}
+.nav-brand{font-size:0.8125rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#e8eaf0;position:relative}
 .nav-brand::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:linear-gradient(90deg,#2741E7,#6CA1E5);animation:brand-glow 3s ease infinite}
 .nav-links{display:flex;gap:28px;list-style:none}
-.nav-links a{font-size:0.8125rem;color:#2d3348;font-weight:500;text-decoration:none;position:relative;transition:color 0.2s}
+.nav-links a{font-size:0.8125rem;color:#8a90a8;font-weight:500;text-decoration:none;position:relative;transition:color 0.2s}
 .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;background:#2741E7;transition:width 0.3s cubic-bezier(0.16,1,0.3,1)}
 .nav-links a:hover{color:#2741E7}
 .nav-links a:hover::after{width:100%}
@@ -33,41 +33,41 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 .nav-cta:hover::before{opacity:1}
 
 /* ── Hero ── */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden;padding-top:56px;background:linear-gradient(135deg,rgba(250,251,254,0.92) 0%,rgba(245,243,248,0.88) 50%,rgba(250,251,254,0.92) 100%)}
+.hero{position:relative;z-index:2;height:clamp(360px,45vh,480px);display:flex;align-items:center;overflow:hidden;padding-top:56px;background:linear-gradient(135deg,rgba(5,8,16,0.85) 0%,rgba(10,14,26,0.6) 40%,rgba(5,8,16,0.3) 100%)}
 .hero-content{position:relative;z-index:2;max-width:600px;padding:0 clamp(16px,4vw,40px);margin-left:clamp(24px,8vw,120px)}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;font-size:0.6875rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2741E7;background:rgba(39,65,231,0.06);border:1px solid rgba(39,65,231,0.12);border-radius:100px;margin-bottom:24px;animation:badge-pulse 4s ease infinite}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;font-size:0.6875rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#2741E7;background:rgba(39,65,231,0.06);border:1px solid rgba(39,65,231,0.12);border-radius:100px;margin-bottom:12px;animation:badge-pulse 4s ease infinite}
 .hero-badge .dot{width:7px;height:7px;border-radius:50%;background:#2741E7;box-shadow:0 0 8px rgba(39,65,231,0.6);animation:dot-pulse 2s ease infinite}
-.hero h1{font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.05;letter-spacing:-0.03em;color:#0a0e1a;margin-bottom:16px}
-.hero h1 .accent{color:#2741E7;position:relative;display:inline-block}
-.hero h1 .accent::after{content:'';position:absolute;bottom:4px;left:0;width:100%;height:8px;background:rgba(39,65,231,0.1);border-radius:4px;animation:underline-glow 3s ease infinite}
-.hero p{font-size:clamp(1rem,1.5vw,1.25rem);color:#2d3348;line-height:1.65;margin-bottom:36px;max-width:480px}
+.hero h1{font-size:clamp(2rem,4.5vw,3.5rem);font-weight:800;line-height:1.05;letter-spacing:-0.03em;color:#fff;margin-bottom:10px;text-shadow:0 0 40px rgba(39,65,231,0.3)}
+.hero h1 .accent{color:#6CA1E5;position:relative;display:inline-block}
+.hero h1 .accent::after{content:'';position:absolute;bottom:4px;left:0;width:100%;height:8px;background:rgba(39,65,231,0.2);border-radius:4px;animation:underline-glow 3s ease infinite}
+.hero p{font-size:clamp(0.875rem,1.2vw,1.05rem);color:#8a90a8;line-height:1.5;margin-bottom:16px;max-width:420px}
 .hero-stats{display:flex;gap:48px}
 .hero-stat{position:relative}
-.hero-stat-val{font-family:'Inconsolata',monospace;font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;color:#0a0e1a;letter-spacing:-0.02em;position:relative}
+.hero-stat-val{font-family:'Inconsolata',monospace;font-size:clamp(1.5rem,3vw,2.25rem);font-weight:700;color:#fff;letter-spacing:-0.02em;position:relative}
 .hero-stat-val::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:3px;background:linear-gradient(90deg,#2741E7 0%,transparent 100%);border-radius:2px;animation:stat-line 2.5s ease infinite}
-.hero-stat-label{font-size:0.6875rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#5a6380;margin-top:6px}
+.hero-stat-label{font-size:0.6875rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#6b7394;margin-top:6px}
 
 /* ── Content ── */
-.main{position:relative;z-index:1;background:#fafbfe}
+.main{position:relative;z-index:1;background:transparent}
 .container{max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,40px)}
 .section{padding:clamp(48px,8vw,100px) 0}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:16px;border-bottom:1px solid rgba(39,65,231,0.08);position:relative}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:16px;border-bottom:1px solid rgba(39,65,231,0.15);position:relative}
 .section-header::after{content:'';position:absolute;bottom:-1px;left:0;width:80px;height:2px;background:linear-gradient(90deg,#2741E7,transparent)}
 .section-title{font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2741E7}
-.section-count{font-family:'Inconsolata',monospace;font-size:0.8125rem;color:#5a6380;padding:2px 10px;background:rgba(39,65,231,0.04);border-radius:100px}
+.section-count{font-family:'Inconsolata',monospace;font-size:0.8125rem;color:#6b7394;padding:2px 10px;background:rgba(39,65,231,0.1);border-radius:100px}
 
 /* ── Cards ── */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-.card{display:block;padding:28px;background:rgba(255,255,255,0.88);backdrop-filter:blur(12px);border:1px solid rgba(39,65,231,0.06);border-radius:12px;text-decoration:none;color:#0a0e1a;position:relative;overflow:hidden;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);animation:card-float var(--float-dur,6s) ease-in-out infinite;animation-delay:var(--float-delay,0s)}
+.card{display:block;padding:28px;background:rgba(10,14,26,0.7);backdrop-filter:blur(16px);border:1px solid rgba(39,65,231,0.12);border-radius:12px;text-decoration:none;color:#e8eaf0;position:relative;overflow:hidden;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);animation:card-float var(--float-dur,6s) ease-in-out infinite;animation-delay:var(--float-delay,0s)}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#2741E7,#425AF3,#6CA1E5);opacity:0;transition:opacity 0.4s}
 .card::after{content:'';position:absolute;inset:-1px;border-radius:13px;background:linear-gradient(135deg,rgba(39,65,231,0.15),transparent 50%);opacity:0;transition:opacity 0.4s;z-index:-1;filter:blur(12px)}
-.card:hover{transform:translateY(-6px) scale(1.01);border-color:rgba(39,65,231,0.15);box-shadow:0 8px 32px rgba(39,65,231,0.08),0 2px 8px rgba(10,14,26,0.04)}
+.card:hover{transform:translateY(-6px) scale(1.01);border-color:rgba(39,65,231,0.35);box-shadow:0 8px 32px rgba(39,65,231,0.2),0 2px 8px rgba(0,212,255,0.08)}
 .card:hover::before{opacity:1}
 .card:hover::after{opacity:1}
-.card-name{font-size:1rem;font-weight:700;color:#0a0e1a;margin-bottom:6px;display:flex;align-items:center;gap:10px}
-.card-name .arrow{font-size:0.75rem;color:#5a6380;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);opacity:0;transform:translateX(-4px)}
-.card:hover .card-name .arrow{opacity:1;transform:translateX(4px);color:#2741E7}
-.card-desc{font-size:0.8125rem;color:#2d3348;line-height:1.55;margin-bottom:14px}
+.card-name{font-size:1rem;font-weight:700;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.card-name .arrow{font-size:0.75rem;color:#6b7394;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);opacity:0;transform:translateX(-4px)}
+.card:hover .card-name .arrow{opacity:1;transform:translateX(4px);color:#6CA1E5}
+.card-desc{font-size:0.8125rem;color:#8a90a8;line-height:1.55;margin-bottom:14px}
 .tag{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;font-size:0.6875rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;border-radius:100px;line-height:1.3}
 .tag::before{content:'';width:5px;height:5px;border-radius:50%;animation:tag-dot 3s ease infinite}
 .tag-3d{background:rgba(39,65,231,0.06);color:#2741E7}.tag-3d::before{background:#2741E7;box-shadow:0 0 6px rgba(39,65,231,0.5)}
@@ -77,9 +77,15 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 .tag-ref{background:rgba(71,85,105,0.06);color:#475569}.tag-ref::before{background:#475569;box-shadow:0 0 6px rgba(71,85,105,0.5)}
 .tag-present{background:rgba(219,39,119,0.06);color:#db2777}.tag-present::before{background:#db2777;box-shadow:0 0 6px rgba(219,39,119,0.5)}
 
+/* ── Timeline Phase Markers ── */
+.phase-marker{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:8px 0;margin:8px 0 4px}
+.phase-marker .phase-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(39,65,231,0.25),transparent)}
+.phase-marker .phase-label{font-family:'Inconsolata',monospace;font-size:0.6875rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#6CA1E5;white-space:nowrap;padding:3px 10px;background:rgba(39,65,231,0.08);border:1px solid rgba(39,65,231,0.12);border-radius:100px}
+.phase-marker .phase-num{font-family:'Inconsolata',monospace;font-size:0.6875rem;font-weight:700;color:#2741E7;min-width:20px;text-align:center}
+
 /* ── Footer ── */
-.footer{position:relative;z-index:1;padding:48px 0;border-top:1px solid rgba(39,65,231,0.08);text-align:center}
-.footer p{font-size:0.8125rem;color:#5a6380}
+.footer{position:relative;z-index:1;padding:48px 0;border-top:1px solid rgba(39,65,231,0.15);text-align:center}
+.footer p{font-size:0.8125rem;color:#6b7394}
 .footer a{color:#2741E7;text-decoration:none;position:relative}
 .footer a::after{content:'';position:absolute;bottom:-1px;left:0;width:0;height:1px;background:#2741E7;transition:width 0.3s}
 .footer a:hover::after{width:100%}
@@ -102,10 +108,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 .scan-line{position:fixed;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(39,65,231,0.08) 30%,rgba(39,65,231,0.15) 50%,rgba(39,65,231,0.08) 70%,transparent 100%);z-index:50;pointer-events:none;animation:scan-line 8s linear infinite;box-shadow:0 0 12px rgba(39,65,231,0.05)}
 
 /* ── Grid lines overlay ── */
-.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.02;background-image:linear-gradient(rgba(39,65,231,1) 1px,transparent 1px),linear-gradient(90deg,rgba(39,65,231,1) 1px,transparent 1px);background-size:60px 60px}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;background-image:linear-gradient(rgba(39,65,231,1) 1px,transparent 1px),linear-gradient(90deg,rgba(39,65,231,1) 1px,transparent 1px);background-size:60px 60px}
 
 /* ── Simulation Preview ── */
-.sim-preview{max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,40px);padding-top:clamp(24px,4vw,48px)}
+.sim-preview{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:0 clamp(16px,4vw,40px);padding-top:clamp(24px,4vw,48px)}
 .sim-preview a{display:block;position:relative;border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.12)}
 .sim-preview a:hover{box-shadow:0 12px 50px rgba(39,65,231,0.15)}
 .sim-preview img{width:100%;display:block;border-radius:12px}
@@ -137,12 +143,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 <nav class="nav" id="nav">
   <span class="nav-brand">Elktron</span>
   <ul class="nav-links">
-    <li><a href="#escort-bot">Escort Bot</a></li>
-    <li><a href="#landing">Landing</a></li>
-    <li><a href="#3d-models">3D Models</a></li>
-    <li><a href="#tools">Tools</a></li>
-    <li><a href="#pitch">Pitch</a></li>
-    <li><a href="#topologies">Topologies</a></li>
+    <li><a href="#timeline">Timeline</a></li>
     <li><a href="#progress">Progress</a></li>
   </ul>
   <a class="nav-cta" href="https://github.com/rpatino-cw/Elktron" target="_blank">GitHub →</a>
@@ -155,7 +156,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
     <h1>DC Floor<br><span class="accent">Robotics</span></h1>
     <p>Two autonomous robots built for the data center floor. An escort bot that shadows vendors through aisles and a robotic arm for precision rack operations.</p>
     <div class="hero-stats">
-      <div class="hero-stat"><span class="hero-stat-val">46</span><span class="hero-stat-label">Interactive Pages</span></div>
+      <div class="hero-stat"><span class="hero-stat-val" id="daysLeft">5</span><span class="hero-stat-label">Days to Demo</span></div>
       <div class="hero-stat"><span class="hero-stat-val">15</span><span class="hero-stat-label">Assembly Steps</span></div>
       <div class="hero-stat"><span class="hero-stat-val">2</span><span class="hero-stat-label">Robots</span></div>
     </div>
@@ -171,104 +172,86 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
 
 <main class="main container">
 
-<!-- Escort Bot -->
-<section class="section" id="escort-bot">
-  <div class="section-header"><span class="section-title">Escort Bot</span><span class="section-count">10 pages</span></div>
+<!-- ═══ BUILD TIMELINE ═══ -->
+<section class="section" id="timeline">
+  <div class="section-header"><span class="section-title">Build Timeline</span><span class="section-count">45 pages</span></div>
   <div class="grid">
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0s" href="escort-bot/assembly.html"><div class="card-name">Assembly Instructions <span class="arrow">→</span></div><div class="card-desc">15-step interactive 3D build guide with exploded views and progressive cable spawning</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.3s" href="escort-bot/simulation.html"><div class="card-name">DC Floor Simulation <span class="arrow">→</span></div><div class="card-desc">10-rack data center with autonomous escort bot AI and collision detection</div><span class="tag tag-sim">Simulation</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.6s" href="escort-bot/BUILD-GUIDE.html"><div class="card-name">Build Guide <span class="arrow">→</span></div><div class="card-desc">Comprehensive step-by-step with 3D component models</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.2s" href="escort-bot/wiring-guide.html"><div class="card-name">Wiring Guide <span class="arrow">→</span></div><div class="card-desc">Interactive GPIO wiring — L298N, HC-SR04, servos, power. Overview + step-by-step modes</div><span class="tag tag-guide">Step-by-Step</span></a>
-    <a class="card reveal" style="--float-dur:5.3s;--float-delay:0.5s" href="escort-bot/hardware-showcase.html"><div class="card-name">Hardware Showcase <span class="arrow">→</span></div><div class="card-desc">Every physical component rendered in interactive 3D</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:6.8s;--float-delay:0.1s" href="escort-bot/hardware.html"><div class="card-name">Hardware Reference <span class="arrow">→</span></div><div class="card-desc">Specs, pin diagrams, datasheets for each component</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.4s" href="escort-bot/mast-hardware.html"><div class="card-name">Mast Assembly <span class="arrow">→</span></div><div class="card-desc">PVC camera mast, pan-tilt servo mount, positioning</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.7s" href="escort-bot/showcase.html"><div class="card-name">Overview <span class="arrow">→</span></div><div class="card-desc">Escort bot scope, architecture, and capabilities</div><span class="tag tag-ref">Overview</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.8s" href="escort-bot/controller.html"><div class="card-name">Controller <span class="arrow">→</span></div><div class="card-desc">Remote control interface</div><span class="tag tag-tool">Tool</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.9s" href="escort-bot/label-guide.html"><div class="card-name">Label Placement Guide <span class="arrow">→</span></div><div class="card-desc">Where to stick all 27 P-touch labels on the bot</div><span class="tag tag-ref">Reference</span></a>
-  </div>
-</section>
 
-<!-- Landing -->
-<section class="section" id="landing">
-  <div class="section-header"><span class="section-title">Landing & Navigation</span><span class="section-count">4 pages</span></div>
-  <div class="grid">
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="robotics-site/index.html"><div class="card-name">Landing Page <span class="arrow">→</span></div><div class="card-desc">Elktron project showcase and team pitch</div><span class="tag tag-ref">Showcase</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="robotics-site/topology.html"><div class="card-name">System Topology <span class="arrow">→</span></div><div class="card-desc">How the arm, bot, and dashboard connect</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.4s" href="robotics-site/so101/showcase.html"><div class="card-name">SO-101 Arm <span class="arrow">→</span></div><div class="card-desc">Robotic arm scope and capabilities</div><span class="tag tag-ref">Overview</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.3s" href="daily.html"><div class="card-name">Daily Standup <span class="arrow">→</span></div><div class="card-desc">Team sync and coordination</div><span class="tag tag-3d">Interactive 3D</span></a>
-  </div>
-</section>
+    <!-- ── Phase 1: Planning & Coordination ── -->
+    <div class="phase-marker reveal"><span class="phase-num">01</span><span class="phase-label">Planning & Coordination</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0s" href="https://coreweave.slack.com/archives/more-better-faster-2026" target="_blank"><div class="card-name">Team Slack <span class="arrow">→</span></div><div class="card-desc">Daily sync in #more-better-faster-2026</div><span class="tag tag-tool">Communication</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.1s" href="parts-status.html"><div class="card-name">Parts Status <span class="arrow">→</span></div><div class="card-desc">Hardware parts arrival and inventory tracker</div><span class="tag tag-tool">Tracker</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.2s" href="shopping-list.html"><div class="card-name">Shopping List <span class="arrow">→</span></div><div class="card-desc">Components needed and purchase links</div><span class="tag tag-tool">Tracker</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.3s" href="raphael-checklist.html"><div class="card-name">Raphael Checklist <span class="arrow">→</span></div><div class="card-desc">Logistics and task tracking</div><span class="tag tag-tool">Tracker</span></a>
+    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.15s" href="taskboard/index.html"><div class="card-name">Taskboard <span class="arrow">→</span></div><div class="card-desc">Team progress tracker</div><span class="tag tag-tool">Tool</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.25s" href="romeo-ops.html"><div class="card-name">Romeo Ops <span class="arrow">→</span></div><div class="card-desc">Operational command interface</div><span class="tag tag-tool">Tool</span></a>
 
-<!-- 3D Models -->
-<section class="section" id="3d-models">
-  <div class="section-header"><span class="section-title">3D Reference Models</span><span class="section-count">4 pages</span></div>
-  <div class="grid">
-    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0s" href="3d-reference/pi5-3d-model.html"><div class="card-name">Raspberry Pi 5 <span class="arrow">→</span></div><div class="card-desc">Interactive 3D board with labeled components</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="3d-reference/chassis_assembly_viewer.html"><div class="card-name">Chassis Assembly Viewer <span class="arrow">→</span></div><div class="card-desc">LK-COKOINO 4WD chassis interactive assembly</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.4s" href="3d-reference/chassis_glb_viewer.html"><div class="card-name">Chassis GLB Viewer <span class="arrow">→</span></div><div class="card-desc">GLB model render of the chassis</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="3d-reference/chassis_side_3d_model.html"><div class="card-name">Chassis Side 3D <span class="arrow">→</span></div><div class="card-desc">Side-view 3D model of the chassis</div><span class="tag tag-3d">Interactive 3D</span></a>
-  </div>
-</section>
-
-<!-- Tools -->
-<section class="section" id="tools">
-  <div class="section-header"><span class="section-title">Dashboard & Tools</span><span class="section-count">8 pages</span></div>
-  <div class="grid">
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="elktron-app/index.html"><div class="card-name">Dashboard <span class="arrow">→</span></div><div class="card-desc">Unified control panel — arm, escort, scans, training</div><span class="tag tag-tool">Dashboard</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="elktron-app/guide.html"><div class="card-name">Dashboard Guide <span class="arrow">→</span></div><div class="card-desc">Usage instructions and panel reference</div><span class="tag tag-guide">Guide</span></a>
-    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.1s" href="taskboard/index.html"><div class="card-name">Taskboard <span class="arrow">→</span></div><div class="card-desc">Team progress tracker</div><span class="tag tag-tool">Tool</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.2s" href="parts-status.html"><div class="card-name">Parts Status <span class="arrow">→</span></div><div class="card-desc">Hardware parts arrival and inventory tracker</div><span class="tag tag-tool">Tracker</span></a>
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.4s" href="shopping-list.html"><div class="card-name">Shopping List <span class="arrow">→</span></div><div class="card-desc">Components needed and purchase links</div><span class="tag tag-tool">Tracker</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.5s" href="raphael-checklist.html"><div class="card-name">Raphael Checklist <span class="arrow">→</span></div><div class="card-desc">Logistics and task tracking</div><span class="tag tag-tool">Tracker</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.6s" href="romeo-ops.html"><div class="card-name">Romeo Ops <span class="arrow">→</span></div><div class="card-desc">Operational command interface</div><span class="tag tag-tool">Tool</span></a>
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.7s" href="sites/index.html"><div class="card-name">Sites Index <span class="arrow">→</span></div><div class="card-desc">Alternate site listing and navigation</div><span class="tag tag-tool">Navigation</span></a>
-  </div>
-</section>
-
-<!-- Pitch -->
-<section class="section reveal" id="pitch">
-  <div class="section-header"><span class="section-title">Pitch & Presentation</span><span class="section-count">2 pages</span></div>
-  <div class="grid">
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="pitch-deck.html"><div class="card-name">Pitch Deck <span class="arrow">→</span></div><div class="card-desc">Hackathon pitch slides and talking points</div><span class="tag tag-present">Presentation</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="pitch-playbook.html"><div class="card-name">Pitch Playbook <span class="arrow">→</span></div><div class="card-desc">Strategy, narrative arc, and delivery notes</div><span class="tag tag-present">Presentation</span></a>
-  </div>
-</section>
-
-<!-- Topologies -->
-<section class="section reveal" id="topologies">
-  <div class="section-header"><span class="section-title">System Topologies</span><span class="section-count">3 pages</span></div>
-  <div class="grid">
-    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0s" href="topology-deep.html"><div class="card-name">Deep Topology <span class="arrow">→</span></div><div class="card-desc">Full system architecture — hardware, software, data flow</div><span class="tag tag-3d">Interactive 3D</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="topology-context.html"><div class="card-name">Context Topology <span class="arrow">→</span></div><div class="card-desc">Context and information flow between components</div><span class="tag tag-ref">Architecture</span></a>
-    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.4s" href="topology-folders.html"><div class="card-name">Folder Topology <span class="arrow">→</span></div><div class="card-desc">Repository directory structure visualization</div><span class="tag tag-ref">Architecture</span></a>
-  </div>
-</section>
-
-<!-- Chassis Blueprints -->
-<section class="section reveal" id="blueprints">
-  <div class="section-header"><span class="section-title">Chassis Blueprints</span><span class="section-count">6 pages</span></div>
-  <div class="grid">
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="2d_manual_3d/chassis_2d_diagram.html"><div class="card-name">2D Component Diagram <span class="arrow">→</span></div><div class="card-desc">Top-down 2D layout of all chassis components</div><span class="tag tag-ref">Blueprint</span></a>
-    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.15s" href="2d_manual_3d/chassis_merged_blueprint.html"><div class="card-name">Merged Blueprint <span class="arrow">→</span></div><div class="card-desc">Three views merged — top, side, front</div><span class="tag tag-ref">Blueprint</span></a>
-    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.3s" href="2d_manual_3d/chassis_side_2d_diagram.html"><div class="card-name">Side View 2D <span class="arrow">→</span></div><div class="card-desc">Chassis side profile with measurements</div><span class="tag tag-ref">Blueprint</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.45s" href="2d_manual_3d/chassis_topdown_2d_diagram.html"><div class="card-name">Top-Down Blueprint <span class="arrow">→</span></div><div class="card-desc">Overhead view with component placement</div><span class="tag tag-ref">Blueprint</span></a>
-    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.6s" href="2d_manual_3d/chassis_ascii_3d.html"><div class="card-name">ASCII 3D Preview <span class="arrow">→</span></div><div class="card-desc">Isometric ASCII wireframe with rotation, zoom, wireframe/solid modes</div><span class="tag tag-ref">Blueprint</span></a>
-    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.9s" href="2d_manual_3d/chassis_topdown_ascii3d.html"><div class="card-name">Isometric Preview <span class="arrow">→</span></div><div class="card-desc">Top-down isometric 3D wireframe</div><span class="tag tag-ref">Blueprint</span></a>
-  </div>
-</section>
-
-<!-- Frame Analysis -->
-<section class="section reveal" id="frame-analysis">
-  <div class="section-header"><span class="section-title">Frame Analysis & Tracing</span><span class="section-count">8 pages</span></div>
-  <div class="grid">
+    <!-- ── Phase 2: Frame Analysis & Tracing ── -->
+    <div class="phase-marker reveal"><span class="phase-num">02</span><span class="phase-label">Frame Analysis & Tracing</span><span class="phase-line"></span></div>
     <a class="card reveal" style="--float-dur:6.1s;--float-delay:0s" href="img/2d_drawing/frame_trace.html"><div class="card-name">Part Identification <span class="arrow">→</span></div><div class="card-desc">Interactive tracing tool for chassis part ID</div><span class="tag tag-tool">Tool</span></a>
-    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.15s" href="img/2d_drawing/chassis_blueprint.html"><div class="card-name">All Views Compiled <span class="arrow">→</span></div><div class="card-desc">Complete chassis blueprint from all angles</div><span class="tag tag-ref">Blueprint</span></a>
-    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.3s" href="img/2d_drawing/chassis_frame_analysis.html"><div class="card-name">Frame Analysis <span class="arrow">→</span></div><div class="card-desc">2D trace from reference photos</div><span class="tag tag-ref">Analysis</span></a>
-    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.45s" href="img/2d_drawing/chassis_frame_traced.html"><div class="card-name">Frame Traced <span class="arrow">→</span></div><div class="card-desc">Traced outline analysis of chassis frame</div><span class="tag tag-ref">Analysis</span></a>
-    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.6s" href="img/2d_drawing/chassis_front_frame_analysis.html"><div class="card-name">Front Frame <span class="arrow">→</span></div><div class="card-desc">Front-facing frame trace and analysis</div><span class="tag tag-ref">Analysis</span></a>
-    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.75s" href="img/2d_drawing/chassis_side_frame_analysis.html"><div class="card-name">Side Frame <span class="arrow">→</span></div><div class="card-desc">Side-view frame trace and analysis</div><span class="tag tag-ref">Analysis</span></a>
-    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.9s" href="img/2d_drawing/chassis_topdown_frame_analysis.html"><div class="card-name">Top-Down Frame <span class="arrow">→</span></div><div class="card-desc">Overhead frame analysis</div><span class="tag tag-ref">Analysis</span></a>
-    <a class="card reveal" style="--float-dur:5.7s;--float-delay:1.05s" href="img/2d_drawing/chassis_unified_3d.html"><div class="card-name">Unified 3D Model <span class="arrow">→</span></div><div class="card-desc">All frame traces merged into unified 3D model</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.1s" href="img/2d_drawing/chassis_frame_analysis.html"><div class="card-name">Frame Analysis <span class="arrow">→</span></div><div class="card-desc">2D trace from reference photos</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.2s" href="img/2d_drawing/chassis_frame_traced.html"><div class="card-name">Frame Traced <span class="arrow">→</span></div><div class="card-desc">Traced outline analysis of chassis frame</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0.3s" href="img/2d_drawing/chassis_front_frame_analysis.html"><div class="card-name">Front Frame <span class="arrow">→</span></div><div class="card-desc">Front-facing frame trace and analysis</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.4s" href="img/2d_drawing/chassis_side_frame_analysis.html"><div class="card-name">Side Frame <span class="arrow">→</span></div><div class="card-desc">Side-view frame trace and analysis</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0.5s" href="img/2d_drawing/chassis_topdown_frame_analysis.html"><div class="card-name">Top-Down Frame <span class="arrow">→</span></div><div class="card-desc">Overhead frame analysis</div><span class="tag tag-ref">Analysis</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.6s" href="img/2d_drawing/chassis_blueprint.html"><div class="card-name">All Views Compiled <span class="arrow">→</span></div><div class="card-desc">Complete chassis blueprint from all angles</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.7s" href="img/2d_drawing/chassis_unified_3d.html"><div class="card-name">Unified 3D Model <span class="arrow">→</span></div><div class="card-desc">All frame traces merged into unified 3D model</div><span class="tag tag-3d">Interactive 3D</span></a>
+
+    <!-- ── Phase 3: Chassis Blueprints ── -->
+    <div class="phase-marker reveal"><span class="phase-num">03</span><span class="phase-label">Chassis Blueprints</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="2d_manual_3d/chassis_2d_diagram.html"><div class="card-name">2D Component Diagram <span class="arrow">→</span></div><div class="card-desc">Top-down 2D layout of all chassis components</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.1s" href="2d_manual_3d/chassis_merged_blueprint.html"><div class="card-name">Merged Blueprint <span class="arrow">→</span></div><div class="card-desc">Three views merged — top, side, front</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.2s" href="2d_manual_3d/chassis_side_2d_diagram.html"><div class="card-name">Side View 2D <span class="arrow">→</span></div><div class="card-desc">Chassis side profile with measurements</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.3s" href="2d_manual_3d/chassis_topdown_2d_diagram.html"><div class="card-name">Top-Down Blueprint <span class="arrow">→</span></div><div class="card-desc">Overhead view with component placement</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.4s" href="2d_manual_3d/chassis_ascii_3d.html"><div class="card-name">ASCII 3D Preview <span class="arrow">→</span></div><div class="card-desc">Isometric ASCII wireframe with rotation, zoom, wireframe/solid modes</div><span class="tag tag-ref">Blueprint</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.5s" href="2d_manual_3d/chassis_topdown_ascii3d.html"><div class="card-name">Isometric Preview <span class="arrow">→</span></div><div class="card-desc">Top-down isometric 3D wireframe</div><span class="tag tag-ref">Blueprint</span></a>
+
+    <!-- ── Phase 4: 3D Reference Models ── -->
+    <div class="phase-marker reveal"><span class="phase-num">04</span><span class="phase-label">3D Reference Models</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0s" href="3d-reference/pi5-3d-model.html"><div class="card-name">Raspberry Pi 5 <span class="arrow">→</span></div><div class="card-desc">Interactive 3D board with labeled components</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.1s" href="3d-reference/chassis_assembly_viewer.html"><div class="card-name">Chassis Assembly Viewer <span class="arrow">→</span></div><div class="card-desc">LK-COKOINO 4WD chassis interactive assembly</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.2s" href="3d-reference/chassis_glb_viewer.html"><div class="card-name">Chassis GLB Viewer <span class="arrow">→</span></div><div class="card-desc">GLB model render of the chassis</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="3d-reference/chassis_side_3d_model.html"><div class="card-name">Chassis Side 3D <span class="arrow">→</span></div><div class="card-desc">Side-view 3D model of the chassis</div><span class="tag tag-3d">Interactive 3D</span></a>
+
+    <!-- ── Phase 5: Escort Bot — Hardware ── -->
+    <div class="phase-marker reveal"><span class="phase-num">05</span><span class="phase-label">Escort Bot — Hardware</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.8s;--float-delay:0s" href="escort-bot/hardware.html"><div class="card-name">Hardware Reference <span class="arrow">→</span></div><div class="card-desc">Specs, pin diagrams, datasheets for each component</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.3s;--float-delay:0.1s" href="escort-bot/hardware-showcase.html"><div class="card-name">Hardware Showcase <span class="arrow">→</span></div><div class="card-desc">Every physical component rendered in interactive 3D</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.5s;--float-delay:0.2s" href="escort-bot/wiring-guide.html"><div class="card-name">Wiring Guide <span class="arrow">→</span></div><div class="card-desc">Interactive GPIO wiring — L298N, HC-SR04, servos, power. Overview + step-by-step modes</div><span class="tag tag-guide">Step-by-Step</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.3s" href="escort-bot/mast-hardware.html"><div class="card-name">Mast Assembly <span class="arrow">→</span></div><div class="card-desc">PVC camera mast, pan-tilt servo mount, positioning</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.0s;--float-delay:0.4s" href="escort-bot/label-guide.html"><div class="card-name">Label Placement Guide <span class="arrow">→</span></div><div class="card-desc">Where to stick all 27 P-touch labels on the bot</div><span class="tag tag-ref">Reference</span></a>
+
+    <!-- ── Phase 6: Escort Bot — Assembly ── -->
+    <div class="phase-marker reveal"><span class="phase-num">06</span><span class="phase-label">Escort Bot — Assembly</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0s" href="escort-bot/assembly.html"><div class="card-name">Assembly Instructions <span class="arrow">→</span></div><div class="card-desc">15-step interactive 3D build guide with exploded views and progressive cable spawning</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.1s" href="escort-bot/BUILD-GUIDE.html"><div class="card-name">Build Guide <span class="arrow">→</span></div><div class="card-desc">Comprehensive step-by-step with 3D component models</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.2s" href="escort-bot/showcase.html"><div class="card-name">Escort Bot Overview <span class="arrow">→</span></div><div class="card-desc">Escort bot scope, architecture, and capabilities</div><span class="tag tag-ref">Overview</span></a>
+
+    <!-- ── Phase 7: Escort Bot — Software & Simulation ── -->
+    <div class="phase-marker reveal"><span class="phase-num">07</span><span class="phase-label">Escort Bot — Software & Sim</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="escort-bot/simulation.html"><div class="card-name">DC Floor Simulation <span class="arrow">→</span></div><div class="card-desc">10-rack data center with autonomous escort bot AI and collision detection</div><span class="tag tag-sim">Simulation</span></a>
+    <a class="card reveal" style="--float-dur:5.9s;--float-delay:0.1s" href="escort-bot/controller.html"><div class="card-name">Controller <span class="arrow">→</span></div><div class="card-desc">Remote control interface</div><span class="tag tag-tool">Tool</span></a>
+
+    <!-- ── Phase 8: SO-101 Arm ── -->
+    <div class="phase-marker reveal"><span class="phase-num">08</span><span class="phase-label">SO-101 Robotic Arm</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.6s;--float-delay:0s" href="robotics-site/so101/showcase.html"><div class="card-name">SO-101 Arm <span class="arrow">→</span></div><div class="card-desc">Robotic arm scope and capabilities</div><span class="tag tag-ref">Overview</span></a>
+
+    <!-- ── Phase 9: Dashboard & Integration ── -->
+    <div class="phase-marker reveal"><span class="phase-num">09</span><span class="phase-label">Dashboard & Integration</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.2s;--float-delay:0s" href="elktron-app/index.html"><div class="card-name">Dashboard <span class="arrow">→</span></div><div class="card-desc">Unified control panel — arm, escort, scans, training</div><span class="tag tag-tool">Dashboard</span></a>
+    <a class="card reveal" style="--float-dur:5.6s;--float-delay:0.1s" href="elktron-app/guide.html"><div class="card-name">Dashboard Guide <span class="arrow">→</span></div><div class="card-desc">Usage instructions and panel reference</div><span class="tag tag-guide">Guide</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.2s" href="robotics-site/topology.html"><div class="card-name">System Topology <span class="arrow">→</span></div><div class="card-desc">How the arm, bot, and dashboard connect</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:6.1s;--float-delay:0.3s" href="topology-deep.html"><div class="card-name">Deep Topology <span class="arrow">→</span></div><div class="card-desc">Full system architecture — hardware, software, data flow</div><span class="tag tag-3d">Interactive 3D</span></a>
+    <a class="card reveal" style="--float-dur:5.7s;--float-delay:0.4s" href="topology-context.html"><div class="card-name">Context Topology <span class="arrow">→</span></div><div class="card-desc">Context and information flow between components</div><span class="tag tag-ref">Architecture</span></a>
+    <a class="card reveal" style="--float-dur:6.4s;--float-delay:0.5s" href="topology-folders.html"><div class="card-name">Folder Topology <span class="arrow">→</span></div><div class="card-desc">Repository directory structure visualization</div><span class="tag tag-ref">Architecture</span></a>
+
+    <!-- ── Phase 10: Landing & Presentation ── -->
+    <div class="phase-marker reveal"><span class="phase-num">10</span><span class="phase-label">Landing & Presentation</span><span class="phase-line"></span></div>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0s" href="robotics-site/index.html"><div class="card-name">Landing Page <span class="arrow">→</span></div><div class="card-desc">Elktron project showcase and team pitch</div><span class="tag tag-ref">Showcase</span></a>
+    <a class="card reveal" style="--float-dur:6.3s;--float-delay:0.1s" href="pitch-deck.html"><div class="card-name">Pitch Deck <span class="arrow">→</span></div><div class="card-desc">Hackathon pitch slides and talking points</div><span class="tag tag-present">Presentation</span></a>
+    <a class="card reveal" style="--float-dur:5.8s;--float-delay:0.2s" href="pitch-playbook.html"><div class="card-name">Pitch Playbook <span class="arrow">→</span></div><div class="card-desc">Strategy, narrative arc, and delivery notes</div><span class="tag tag-present">Presentation</span></a>
+    <a class="card reveal" style="--float-dur:5.5s;--float-delay:0.3s" href="sites/index.html"><div class="card-name">Sites Index <span class="arrow">→</span></div><div class="card-desc">Alternate site listing and navigation</div><span class="tag tag-tool">Navigation</span></a>
+
   </div>
 </section>
 
@@ -302,6 +285,17 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#fafbfe;color:#0a0e1a
   <p>Elktron — <a href="https://github.com/rpatino-cw/Elktron" target="_blank">GitHub</a> — CoreWeave Hackathon March 2026</p>
 </footer>
 
+<!-- Countdown timer -->
+<script>
+(function(){
+  var DEMO_DAY = new Date('2026-03-23T00:00:00');
+  var now = new Date();
+  var dd = Math.max(0, Math.ceil((DEMO_DAY - now) / 864e5));
+  var el = document.getElementById('daysLeft');
+  if (el) { el.textContent = dd; if (dd <= 3) el.style.color = '#ef4444'; }
+})();
+</script>
+
 <script type="module">
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -314,44 +308,55 @@ const H = () => window.innerHeight;
 
 // ── Scene ──
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(50, W() / H(), 0.1, 200);
-camera.position.set(0, 0, 18);
+scene.fog = new THREE.FogExp2(0x0a0e1a, 0.012);
+const camera = new THREE.PerspectiveCamera(75, W() / H(), 0.1, 500);
+camera.position.set(0, 12, 22);
 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
 renderer.setSize(W(), H());
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0xfafbfe, 1);
+renderer.setClearColor(0x050810, 1);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.6;
 
-// ── Post-processing — Bloom ──
+// ── Post-processing — CRANKED Bloom ──
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(W(), H()), 0.08, 0.4, 0.9);
+const bloom = new UnrealBloomPass(new THREE.Vector2(W(), H()), 1.2, 0.6, 0.15);
 composer.addPass(bloom);
 
-// ── Materials ──
-const blue = 0x2741E7;
-const warm = 0xD97706;
-const neutral = 0x6B7280;
-const blueMat = new THREE.MeshBasicMaterial({ color: neutral, transparent: true, opacity: 0.4 });
-const wireBlue = new THREE.LineBasicMaterial({ color: neutral, transparent: true, opacity: 0.15 });
-const glowMat = new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.6 });
+// ── Colors ──
+const BLUE = 0x2741E7;
+const CYAN = 0x00d4ff;
+const MAGENTA = 0xff00aa;
+const WARM = 0xD97706;
+const WHITE = 0xffffff;
+const PURPLE = 0x7c3aed;
+const LIME = 0x22d3ee;
 
-// ── Central Icosahedron — wireframe + vertex dots ──
-const icoGeo = new THREE.IcosahedronGeometry(2.2, 1);
+// ── Helper: random in range ──
+const rr = (min, max) => Math.random() * (max - min) + min;
+
+// ══════════════════════════════════════════════════
+// LAYER 1: CENTRAL MORPHING GEOMETRY CLUSTER
+// ══════════════════════════════════════════════════
+const centralGroup = new THREE.Group();
+scene.add(centralGroup);
+
+// Icosahedron wireframe — larger, glowing
+const icoGeo = new THREE.IcosahedronGeometry(3.5, 2);
 const icoEdges = new THREE.EdgesGeometry(icoGeo);
-const icoWire = new THREE.LineSegments(icoEdges, wireBlue.clone());
-scene.add(icoWire);
+const icoWire = new THREE.LineSegments(icoEdges, new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: 0.4 }));
+centralGroup.add(icoWire);
 
-// Inner glow sphere
-const innerGlow = new THREE.Mesh(
-  new THREE.SphereGeometry(1.8, 32, 32),
-  new THREE.MeshBasicMaterial({ color: blue, transparent: true, opacity: 0.02, side: THREE.BackSide })
+// Inner pulsing sphere
+const innerSphere = new THREE.Mesh(
+  new THREE.SphereGeometry(2.8, 64, 64),
+  new THREE.MeshBasicMaterial({ color: BLUE, transparent: true, opacity: 0.08, side: THREE.BackSide })
 );
-scene.add(innerGlow);
+centralGroup.add(innerSphere);
 
-// Vertex nodes
+// Vertex glow nodes
 const verts = icoGeo.attributes.position;
 const seen = new Set();
 const nodes = [];
@@ -359,157 +364,520 @@ for (let i = 0; i < verts.count; i++) {
   const key = `${verts.getX(i).toFixed(2)},${verts.getY(i).toFixed(2)},${verts.getZ(i).toFixed(2)}`;
   if (seen.has(key)) continue;
   seen.add(key);
-  const node = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), glowMat.clone());
+  const node = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08, 12, 12),
+    new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.8 })
+  );
   node.position.set(verts.getX(i), verts.getY(i), verts.getZ(i));
   icoWire.add(node);
   nodes.push(node);
 }
 
-// ── Orbital Rings ──
-function makeRing(radius, tilt, speed, ringColor) {
-  const geo = new THREE.TorusGeometry(radius, 0.01, 8, 120);
-  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: ringColor || neutral, transparent: true, opacity: 0.08 }));
+// Dodecahedron shell — counter-rotating
+const dodecGeo = new THREE.DodecahedronGeometry(4.5, 0);
+const dodecEdges = new THREE.EdgesGeometry(dodecGeo);
+const dodecWire = new THREE.LineSegments(dodecEdges, new THREE.LineBasicMaterial({ color: MAGENTA, transparent: true, opacity: 0.2 }));
+centralGroup.add(dodecWire);
+
+// Octahedron shell — different axis
+const octGeo = new THREE.OctahedronGeometry(5.5, 0);
+const octEdges = new THREE.EdgesGeometry(octGeo);
+const octWire = new THREE.LineSegments(octEdges, new THREE.LineBasicMaterial({ color: WARM, transparent: true, opacity: 0.15 }));
+centralGroup.add(octWire);
+
+// ══════════════════════════════════════════════════
+// LAYER 2: ORBITAL RINGS (6 of them, all different)
+// ══════════════════════════════════════════════════
+const orbitals = [];
+function makeRing(radius, tilt, speed, col, tubeR) {
+  const geo = new THREE.TorusGeometry(radius, tubeR || 0.015, 8, 200);
+  const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.15 }));
   mesh.rotation.x = tilt;
   scene.add(mesh);
-  // Orbiting dot
-  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), glowMat.clone());
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.9 }));
   scene.add(dot);
-  return { mesh, dot, radius, tilt, speed };
+  // Trail
+  const trail = [];
+  for (let i = 0; i < 20; i++) {
+    const t = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.4 - i * 0.02 }));
+    scene.add(t);
+    trail.push(t);
+  }
+  return { mesh, dot, trail, radius, tilt, speed, col };
 }
-const rings = [
-  makeRing(3.5, Math.PI * 0.4, 0.25, blue),
-  makeRing(4.2, Math.PI * 0.6, -0.18, warm),
-  makeRing(5.0, Math.PI * 0.25, 0.12, neutral),
-];
+orbitals.push(makeRing(5, Math.PI * 0.4, 0.35, BLUE, 0.02));
+orbitals.push(makeRing(6.5, Math.PI * 0.65, -0.25, CYAN, 0.015));
+orbitals.push(makeRing(8, Math.PI * 0.3, 0.18, MAGENTA, 0.01));
+orbitals.push(makeRing(9.5, Math.PI * 0.8, -0.15, WARM, 0.012));
+orbitals.push(makeRing(11, Math.PI * 0.5, 0.22, PURPLE, 0.008));
+orbitals.push(makeRing(13, Math.PI * 0.15, -0.12, LIME, 0.01));
 
-// ── Connection Lines — dynamic ──
-const lineCount = 15;
-const lineGeo = new THREE.BufferGeometry();
-const linePositions = new Float32Array(lineCount * 6);
-lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
-const connectionLines = new THREE.LineSegments(lineGeo, new THREE.LineBasicMaterial({ color: neutral, transparent: true, opacity: 0.05 }));
-scene.add(connectionLines);
+// ══════════════════════════════════════════════════
+// LAYER 3: FLOATING CUBES — 80 cubes, all spinning
+// ══════════════════════════════════════════════════
+const cubes = [];
+const cubeColors = [BLUE, CYAN, MAGENTA, WARM, PURPLE, LIME, WHITE];
+for (let i = 0; i < 80; i++) {
+  const size = rr(0.15, 0.6);
+  const geo = new THREE.BoxGeometry(size, size, size);
+  const isWireframe = Math.random() > 0.5;
+  let mesh;
+  if (isWireframe) {
+    const edges = new THREE.EdgesGeometry(geo);
+    mesh = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+      color: cubeColors[i % cubeColors.length], transparent: true, opacity: rr(0.2, 0.6)
+    }));
+  } else {
+    mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+      color: cubeColors[i % cubeColors.length], transparent: true, opacity: rr(0.08, 0.25)
+    }));
+  }
+  mesh.position.set(rr(-35, 35), rr(-25, 25), rr(-20, 5));
+  mesh.rotation.set(rr(0, Math.PI * 2), rr(0, Math.PI * 2), rr(0, Math.PI * 2));
+  scene.add(mesh);
+  cubes.push({
+    mesh,
+    rotSpeed: { x: rr(-0.02, 0.02), y: rr(-0.03, 0.03), z: rr(-0.01, 0.01) },
+    orbitRadius: rr(8, 40),
+    orbitSpeed: rr(-0.08, 0.08),
+    orbitOffset: rr(0, Math.PI * 2),
+    yBob: rr(0.5, 3),
+    yBobSpeed: rr(0.3, 1.5),
+    baseY: mesh.position.y,
+    pulse: rr(0.5, 3)
+  });
+}
 
-// ── Floating Particles ──
-const pCount = 120;
+// ══════════════════════════════════════════════════
+// LAYER 4: FLOATING SPHERES — 60 spheres
+// ══════════════════════════════════════════════════
+const spheres = [];
+for (let i = 0; i < 60; i++) {
+  const r = rr(0.1, 0.5);
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(r, 16, 16),
+    new THREE.MeshBasicMaterial({
+      color: cubeColors[(i + 3) % cubeColors.length],
+      transparent: true,
+      opacity: rr(0.1, 0.4)
+    })
+  );
+  mesh.position.set(rr(-40, 40), rr(-30, 30), rr(-25, 5));
+  scene.add(mesh);
+  spheres.push({
+    mesh, basePos: mesh.position.clone(),
+    speed: { x: rr(0.01, 0.04), y: rr(0.005, 0.03), z: rr(0.005, 0.02) },
+    amplitude: { x: rr(3, 12), y: rr(2, 8), z: rr(2, 6) },
+    phase: rr(0, Math.PI * 2),
+    scaleSpeed: rr(0.5, 2)
+  });
+}
+
+// ══════════════════════════════════════════════════
+// LAYER 5: TORUS KNOTS — 8 spinning knots
+// ══════════════════════════════════════════════════
+const knots = [];
+for (let i = 0; i < 8; i++) {
+  const p = [2, 3, 5, 7][i % 4];
+  const q = [3, 5, 2, 4][i % 4];
+  const geo = new THREE.TorusKnotGeometry(rr(0.5, 1.5), 0.04, 100, 8, p, q);
+  const edges = new THREE.EdgesGeometry(geo);
+  const knot = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+    color: cubeColors[i % cubeColors.length], transparent: true, opacity: rr(0.15, 0.35)
+  }));
+  knot.position.set(rr(-20, 20), rr(-15, 15), rr(-10, 0));
+  scene.add(knot);
+  knots.push({
+    mesh: knot,
+    rotSpeed: { x: rr(-0.01, 0.01), y: rr(-0.02, 0.02), z: rr(-0.005, 0.005) },
+    orbitR: rr(6, 18),
+    orbitS: rr(0.02, 0.08),
+    offset: rr(0, Math.PI * 2)
+  });
+}
+
+// ══════════════════════════════════════════════════
+// LAYER 6: PARTICLE STORM — 600 particles
+// ══════════════════════════════════════════════════
+const pCount = 600;
 const pGeo = new THREE.BufferGeometry();
 const pPos = new Float32Array(pCount * 3);
+const pCol = new Float32Array(pCount * 3);
 const pSpeeds = [];
+const particleColors = [
+  new THREE.Color(BLUE), new THREE.Color(CYAN), new THREE.Color(MAGENTA),
+  new THREE.Color(WARM), new THREE.Color(PURPLE), new THREE.Color(LIME)
+];
 for (let i = 0; i < pCount; i++) {
-  pPos[i * 3] = (Math.random() - 0.5) * 30;
-  pPos[i * 3 + 1] = (Math.random() - 0.5) * 24;
-  pPos[i * 3 + 2] = (Math.random() - 0.5) * 16 - 4;
-  pSpeeds.push({ x: (Math.random() - 0.5) * 0.008, y: (Math.random() - 0.5) * 0.006, z: (Math.random() - 0.5) * 0.004 });
+  pPos[i * 3] = rr(-50, 50);
+  pPos[i * 3 + 1] = rr(-40, 40);
+  pPos[i * 3 + 2] = rr(-30, 10);
+  const c = particleColors[i % particleColors.length];
+  pCol[i * 3] = c.r; pCol[i * 3 + 1] = c.g; pCol[i * 3 + 2] = c.b;
+  pSpeeds.push({ x: rr(-0.03, 0.03), y: rr(-0.02, 0.02), z: rr(-0.015, 0.015) });
 }
 pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
 const particles = new THREE.Points(pGeo, new THREE.PointsMaterial({
-  color: neutral, size: 0.03, transparent: true, opacity: 0.25, sizeAttenuation: true
+  size: 0.06, transparent: true, opacity: 0.5, vertexColors: true, sizeAttenuation: true
 }));
 scene.add(particles);
 
-// ── Data Streams — vertical lines ──
-const streamCount = 8;
+// Second particle layer — tiny sparkles
+const sparkCount = 400;
+const sparkGeo = new THREE.BufferGeometry();
+const sparkPos = new Float32Array(sparkCount * 3);
+const sparkSpeeds = [];
+for (let i = 0; i < sparkCount; i++) {
+  sparkPos[i * 3] = rr(-60, 60);
+  sparkPos[i * 3 + 1] = rr(-50, 50);
+  sparkPos[i * 3 + 2] = rr(-40, 10);
+  sparkSpeeds.push({ x: rr(-0.05, 0.05), y: rr(-0.04, 0.04), z: rr(-0.02, 0.02) });
+}
+sparkGeo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+const sparkles = new THREE.Points(sparkGeo, new THREE.PointsMaterial({
+  color: WHITE, size: 0.025, transparent: true, opacity: 0.35, sizeAttenuation: true
+}));
+scene.add(sparkles);
+
+// ══════════════════════════════════════════════════
+// LAYER 7: CONNECTION WEB — dynamic lines between all objects
+// ══════════════════════════════════════════════════
+const webLineCount = 40;
+const webGeo = new THREE.BufferGeometry();
+const webPositions = new Float32Array(webLineCount * 6);
+webGeo.setAttribute('position', new THREE.BufferAttribute(webPositions, 3));
+const webLines = new THREE.LineSegments(webGeo, new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: 0.08 }));
+scene.add(webLines);
+
+// ══════════════════════════════════════════════════
+// LAYER 8: DATA STREAMS — cascading vertical tubes
+// ══════════════════════════════════════════════════
+const streamCount = 20;
 const streams = [];
 for (let i = 0; i < streamCount; i++) {
   const pts = [];
-  const x = (Math.random() - 0.5) * 20;
-  const z = -2 - Math.random() * 6;
-  for (let j = 0; j < 20; j++) pts.push(new THREE.Vector3(x, -12 + j * 1.2, z));
+  const x = rr(-30, 30);
+  const z = rr(-15, 0);
+  for (let j = 0; j < 30; j++) pts.push(new THREE.Vector3(x + Math.sin(j * 0.3) * 0.5, -20 + j * 1.5, z));
   const curve = new THREE.CatmullRomCurve3(pts);
-  const geo = new THREE.TubeGeometry(curve, 40, 0.005, 4, false);
-  const mat = new THREE.MeshBasicMaterial({ color: neutral, transparent: true, opacity: 0.03 });
+  const geo = new THREE.TubeGeometry(curve, 60, 0.008, 4, false);
+  const col = cubeColors[i % cubeColors.length];
+  const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.06 });
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);
-  streams.push({ mesh, speed: 0.2 + Math.random() * 0.3, offset: Math.random() * Math.PI * 2 });
+  streams.push({ mesh, speed: rr(0.3, 1.5), offset: rr(0, Math.PI * 2), col });
 }
 
-// ── Mouse tracking ──
+// ══════════════════════════════════════════════════
+// LAYER 9: CUBE WAVE GRID — 10x10 grid that waves
+// ══════════════════════════════════════════════════
+const gridGroup = new THREE.Group();
+const gridCubes = [];
+const gridSize = 10;
+const gridSpacing = 2.5;
+for (let x = 0; x < gridSize; x++) {
+  for (let z = 0; z < gridSize; z++) {
+    const geo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+    const edges = new THREE.EdgesGeometry(geo);
+    const cube = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({
+      color: new THREE.Color().lerpColors(new THREE.Color(BLUE), new THREE.Color(CYAN), (x + z) / (gridSize * 2)),
+      transparent: true, opacity: 0.25
+    }));
+    cube.position.set(
+      (x - gridSize / 2) * gridSpacing,
+      -12,
+      (z - gridSize / 2) * gridSpacing - 15
+    );
+    gridGroup.add(cube);
+    gridCubes.push({ mesh: cube, gx: x, gz: z });
+  }
+}
+scene.add(gridGroup);
+
+// ══════════════════════════════════════════════════
+// LAYER 10: SPIRAL HELIX — double helix DNA-like
+// ══════════════════════════════════════════════════
+const helixGroup = new THREE.Group();
+const helixSpheres = [];
+for (let strand = 0; strand < 2; strand++) {
+  for (let i = 0; i < 60; i++) {
+    const angle = i * 0.2 + strand * Math.PI;
+    const y = (i - 30) * 0.5;
+    const x = Math.cos(angle) * 3;
+    const z = Math.sin(angle) * 3;
+    const s = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 8, 8),
+      new THREE.MeshBasicMaterial({
+        color: strand === 0 ? BLUE : MAGENTA,
+        transparent: true, opacity: 0.5
+      })
+    );
+    s.position.set(x, y, z);
+    helixGroup.add(s);
+    helixSpheres.push({ mesh: s, baseAngle: angle, baseY: y, strand, idx: i });
+  }
+}
+helixGroup.position.set(20, 0, -10);
+scene.add(helixGroup);
+
+// Second helix on the other side
+const helix2 = helixGroup.clone();
+helix2.position.set(-22, 0, -8);
+scene.add(helix2);
+
+// ══════════════════════════════════════════════════
+// LAYER 11: EXPLODING/IMPLODING SPHERE BURSTS
+// ══════════════════════════════════════════════════
+const burstGroup = new THREE.Group();
+const burstParticles = [];
+for (let i = 0; i < 100; i++) {
+  const s = new THREE.Mesh(
+    new THREE.SphereGeometry(rr(0.04, 0.12), 8, 8),
+    new THREE.MeshBasicMaterial({
+      color: cubeColors[i % cubeColors.length],
+      transparent: true, opacity: rr(0.3, 0.7)
+    })
+  );
+  const dir = new THREE.Vector3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize();
+  burstGroup.add(s);
+  burstParticles.push({ mesh: s, dir, maxR: rr(3, 8), speed: rr(0.5, 2) });
+}
+burstGroup.position.set(-10, 8, -5);
+scene.add(burstGroup);
+
+const burstGroup2 = new THREE.Group();
+const burstParticles2 = [];
+for (let i = 0; i < 80; i++) {
+  const s = new THREE.Mesh(
+    new THREE.SphereGeometry(rr(0.03, 0.1), 8, 8),
+    new THREE.MeshBasicMaterial({ color: cubeColors[(i + 2) % cubeColors.length], transparent: true, opacity: rr(0.2, 0.6) })
+  );
+  const dir = new THREE.Vector3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize();
+  burstGroup2.add(s);
+  burstParticles2.push({ mesh: s, dir, maxR: rr(2, 6), speed: rr(0.3, 1.5) });
+}
+burstGroup2.position.set(15, -5, -3);
+scene.add(burstGroup2);
+
+// ══════════════════════════════════════════════════
+// MOUSE + SCROLL
+// ══════════════════════════════════════════════════
 let mx = 0, my = 0, tmx = 0, tmy = 0;
 document.addEventListener('mousemove', e => {
   tmx = (e.clientX / W() - 0.5) * 2;
   tmy = (e.clientY / H() - 0.5) * 2;
 });
-
-// ── Scroll tracking ──
 let scrollY = 0;
 window.addEventListener('scroll', () => { scrollY = window.scrollY; });
 
-// ── Animate ──
+// ══════════════════════════════════════════════════
+// ANIMATE — THE MAIN LOOP — EVERYTHING MOVES ALWAYS
+// ══════════════════════════════════════════════════
 const clock = new THREE.Clock();
 function animate() {
   requestAnimationFrame(animate);
   const t = clock.getElapsedTime();
+  const dt = Math.min(clock.getDelta(), 0.05);
 
-  // Smooth mouse
-  mx += (tmx - mx) * 0.04;
-  my += (tmy - my) * 0.04;
+  mx += (tmx - mx) * 0.06;
+  my += (tmy - my) * 0.06;
 
-  // Icosahedron rotation
-  icoWire.rotation.y = t * 0.06 + mx * 0.15;
-  icoWire.rotation.x = Math.sin(t * 0.04) * 0.2 + my * 0.1;
+  // ── Central cluster rotation — 3 axes always ──
+  centralGroup.rotation.y = t * 0.08 + mx * 0.2;
+  centralGroup.rotation.x = Math.sin(t * 0.06) * 0.3 + my * 0.15;
+  centralGroup.rotation.z = Math.sin(t * 0.04) * 0.15;
 
-  // Node pulse
+  // Ico wireframe spins faster inside
+  icoWire.rotation.y += 0.003;
+  icoWire.rotation.z += 0.001;
+
+  // Dodec counter-rotates
+  dodecWire.rotation.y -= 0.004;
+  dodecWire.rotation.x += 0.002;
+  dodecWire.material.opacity = 0.15 + Math.sin(t * 1.5) * 0.1;
+
+  // Oct rotates on different axis
+  octWire.rotation.z += 0.003;
+  octWire.rotation.x -= 0.002;
+  octWire.material.opacity = 0.1 + Math.sin(t * 1.2 + 1) * 0.08;
+
+  // Inner sphere breathes
+  innerSphere.material.opacity = 0.05 + Math.sin(t * 0.8) * 0.04;
+  innerSphere.scale.setScalar(1 + Math.sin(t * 0.6) * 0.15);
+
+  // Nodes pulse like crazy
   nodes.forEach((n, i) => {
-    const s = 0.8 + Math.sin(t * 2 + i * 0.5) * 0.4;
-    n.material.opacity = 0.4 + Math.sin(t * 3 + i) * 0.3;
-    n.scale.setScalar(s);
+    n.material.opacity = 0.5 + Math.sin(t * 4 + i * 0.7) * 0.4;
+    n.scale.setScalar(0.6 + Math.sin(t * 3 + i * 0.5) * 0.6);
   });
 
-  // Inner glow breathe
-  innerGlow.material.opacity = 0.015 + Math.sin(t * 0.8) * 0.01;
-  innerGlow.scale.setScalar(1 + Math.sin(t * 0.5) * 0.05);
-
-  // Orbital dots
-  rings.forEach(r => {
+  // ── Orbital rings ──
+  orbitals.forEach((r, ri) => {
     const a = t * r.speed;
+    r.mesh.rotation.z += r.speed * 0.01;
     const cx = Math.cos(a) * r.radius;
     const sy = Math.sin(a) * r.radius * Math.sin(r.tilt);
     const sz = Math.sin(a) * r.radius * Math.cos(r.tilt);
     r.dot.position.set(cx, sy, sz);
-    r.dot.material.opacity = 0.5 + Math.sin(t * 4) * 0.3;
-    r.mesh.material.opacity = 0.06 + Math.sin(t * 0.5 + r.speed) * 0.04;
+    r.dot.material.opacity = 0.7 + Math.sin(t * 5 + ri) * 0.3;
+    r.dot.scale.setScalar(0.8 + Math.sin(t * 3 + ri * 0.8) * 0.4);
+    r.mesh.material.opacity = 0.1 + Math.sin(t * 0.8 + ri) * 0.08;
+    // Trail follows dot
+    for (let j = 0; j < r.trail.length; j++) {
+      const ta = a - j * 0.04;
+      r.trail[j].position.set(
+        Math.cos(ta) * r.radius,
+        Math.sin(ta) * r.radius * Math.sin(r.tilt),
+        Math.sin(ta) * r.radius * Math.cos(r.tilt)
+      );
+    }
   });
 
-  // Connection lines update
-  const lp = connectionLines.geometry.attributes.position.array;
-  for (let i = 0; i < lineCount; i++) {
-    const n1 = nodes[Math.floor(Math.sin(t * 0.3 + i) * 0.5 * nodes.length + nodes.length * 0.5) % nodes.length];
-    const n2 = nodes[Math.floor(Math.cos(t * 0.2 + i * 1.3) * 0.5 * nodes.length + nodes.length * 0.5) % nodes.length];
-    const wp1 = new THREE.Vector3(); n1.getWorldPosition(wp1);
-    const wp2 = new THREE.Vector3(); n2.getWorldPosition(wp2);
-    lp[i * 6] = wp1.x; lp[i * 6 + 1] = wp1.y; lp[i * 6 + 2] = wp1.z;
-    lp[i * 6 + 3] = wp2.x; lp[i * 6 + 4] = wp2.y; lp[i * 6 + 5] = wp2.z;
-  }
-  connectionLines.geometry.attributes.position.needsUpdate = true;
-  connectionLines.material.opacity = 0.04 + Math.sin(t * 0.7) * 0.02;
+  // ── Cubes — orbit + spin + bob ──
+  cubes.forEach((c, i) => {
+    c.mesh.rotation.x += c.rotSpeed.x;
+    c.mesh.rotation.y += c.rotSpeed.y;
+    c.mesh.rotation.z += c.rotSpeed.z;
+    const a = t * c.orbitSpeed + c.orbitOffset;
+    c.mesh.position.x = Math.cos(a) * c.orbitRadius;
+    c.mesh.position.z = Math.sin(a) * c.orbitRadius * 0.4 - 8;
+    c.mesh.position.y = c.baseY + Math.sin(t * c.yBobSpeed + i) * c.yBob;
+    // Scale pulse
+    const s = 0.7 + Math.sin(t * c.pulse + i * 0.3) * 0.4;
+    c.mesh.scale.setScalar(s);
+  });
 
-  // Particles drift
+  // ── Spheres — sine wave float ──
+  spheres.forEach((s, i) => {
+    s.mesh.position.x = s.basePos.x + Math.sin(t * s.speed.x + s.phase) * s.amplitude.x;
+    s.mesh.position.y = s.basePos.y + Math.cos(t * s.speed.y + s.phase + 1) * s.amplitude.y;
+    s.mesh.position.z = s.basePos.z + Math.sin(t * s.speed.z + s.phase + 2) * s.amplitude.z;
+    s.mesh.material.opacity = 0.15 + Math.sin(t * s.scaleSpeed + i) * 0.15;
+    s.mesh.scale.setScalar(0.6 + Math.sin(t * s.scaleSpeed * 0.7 + i * 0.4) * 0.5);
+  });
+
+  // ── Torus knots — orbit + spin ──
+  knots.forEach((k, i) => {
+    k.mesh.rotation.x += k.rotSpeed.x;
+    k.mesh.rotation.y += k.rotSpeed.y;
+    k.mesh.rotation.z += k.rotSpeed.z;
+    const a = t * k.orbitS + k.offset;
+    k.mesh.position.x = Math.cos(a) * k.orbitR;
+    k.mesh.position.y = Math.sin(a * 0.7) * k.orbitR * 0.5;
+    k.mesh.position.z = Math.sin(a) * k.orbitR * 0.3 - 5;
+  });
+
+  // ── Particle storm ──
   const pp = particles.geometry.attributes.position.array;
   for (let i = 0; i < pCount; i++) {
     pp[i * 3] += pSpeeds[i].x;
     pp[i * 3 + 1] += pSpeeds[i].y;
     pp[i * 3 + 2] += pSpeeds[i].z;
-    if (Math.abs(pp[i * 3]) > 15) pSpeeds[i].x *= -1;
-    if (Math.abs(pp[i * 3 + 1]) > 12) pSpeeds[i].y *= -1;
-    if (pp[i * 3 + 2] > 2 || pp[i * 3 + 2] < -12) pSpeeds[i].z *= -1;
+    if (Math.abs(pp[i * 3]) > 50) pSpeeds[i].x *= -1;
+    if (Math.abs(pp[i * 3 + 1]) > 40) pSpeeds[i].y *= -1;
+    if (pp[i * 3 + 2] > 10 || pp[i * 3 + 2] < -30) pSpeeds[i].z *= -1;
+    // Slight spiral
+    pp[i * 3] += Math.sin(t * 0.5 + i * 0.01) * 0.01;
+    pp[i * 3 + 1] += Math.cos(t * 0.5 + i * 0.01) * 0.01;
   }
   particles.geometry.attributes.position.needsUpdate = true;
-  particles.material.opacity = 0.2 + Math.sin(t * 0.6) * 0.1;
+  particles.material.opacity = 0.4 + Math.sin(t * 0.8) * 0.15;
 
-  // Data streams pulse
-  streams.forEach(s => {
-    s.mesh.material.opacity = 0.02 + Math.sin(t * s.speed + s.offset) * 0.02;
+  // Sparkle layer
+  const sp = sparkles.geometry.attributes.position.array;
+  for (let i = 0; i < sparkCount; i++) {
+    sp[i * 3] += sparkSpeeds[i].x;
+    sp[i * 3 + 1] += sparkSpeeds[i].y;
+    sp[i * 3 + 2] += sparkSpeeds[i].z;
+    if (Math.abs(sp[i * 3]) > 60) sparkSpeeds[i].x *= -1;
+    if (Math.abs(sp[i * 3 + 1]) > 50) sparkSpeeds[i].y *= -1;
+    if (sp[i * 3 + 2] > 10 || sp[i * 3 + 2] < -40) sparkSpeeds[i].z *= -1;
+  }
+  sparkles.geometry.attributes.position.needsUpdate = true;
+  sparkles.material.opacity = 0.25 + Math.sin(t * 1.2) * 0.15;
+
+  // ── Connection web ──
+  const wp = webLines.geometry.attributes.position.array;
+  for (let i = 0; i < webLineCount; i++) {
+    const n1 = nodes[Math.floor(Math.abs(Math.sin(t * 0.4 + i * 0.7)) * nodes.length) % nodes.length];
+    const n2 = nodes[Math.floor(Math.abs(Math.cos(t * 0.3 + i * 1.1)) * nodes.length) % nodes.length];
+    const w1 = new THREE.Vector3(); n1.getWorldPosition(w1);
+    const w2 = new THREE.Vector3(); n2.getWorldPosition(w2);
+    wp[i * 6] = w1.x; wp[i * 6 + 1] = w1.y; wp[i * 6 + 2] = w1.z;
+    wp[i * 6 + 3] = w2.x; wp[i * 6 + 4] = w2.y; wp[i * 6 + 5] = w2.z;
+  }
+  webLines.geometry.attributes.position.needsUpdate = true;
+  webLines.material.opacity = 0.06 + Math.sin(t * 0.9) * 0.04;
+
+  // ── Data streams pulse + color shift ──
+  streams.forEach((s, i) => {
+    s.mesh.material.opacity = 0.04 + Math.sin(t * s.speed + s.offset) * 0.04;
+    s.mesh.position.y = Math.sin(t * 0.3 + i) * 2;
   });
 
-  // Camera — parallax + scroll drift
-  const scrollFactor = scrollY * 0.002;
-  camera.position.x = mx * 1.5;
-  camera.position.y = -my * 1.0 - scrollFactor;
-  camera.position.z = 18 + scrollFactor * 0.5;
-  camera.lookAt(0, -scrollFactor, 0);
+  // ── Cube wave grid ──
+  gridCubes.forEach(c => {
+    const wave = Math.sin(t * 2 + c.gx * 0.5 + c.gz * 0.5) * 2;
+    c.mesh.position.y = -12 + wave;
+    c.mesh.rotation.x = t * 0.5 + c.gx * 0.1;
+    c.mesh.rotation.y = t * 0.3 + c.gz * 0.1;
+    c.mesh.material.opacity = 0.15 + Math.sin(t * 2 + c.gx * 0.3 + c.gz * 0.3) * 0.15;
+    const s = 0.5 + Math.sin(t * 1.5 + c.gx * 0.4 + c.gz * 0.4) * 0.3;
+    c.mesh.scale.setScalar(s);
+  });
+  gridGroup.rotation.y = t * 0.05;
 
-  // Bloom intensity breathe
-  bloom.strength = 0.06 + Math.sin(t * 0.4) * 0.03;
+  // ── Double helix twist ──
+  helixGroup.rotation.y = t * 0.3;
+  helixGroup.position.y = Math.sin(t * 0.4) * 3;
+  helixSpheres.forEach(h => {
+    const newAngle = h.baseAngle + t * 0.5;
+    h.mesh.position.x = Math.cos(newAngle) * (3 + Math.sin(t * 0.8) * 0.5);
+    h.mesh.position.z = Math.sin(newAngle) * (3 + Math.sin(t * 0.8) * 0.5);
+    h.mesh.material.opacity = 0.3 + Math.sin(t * 3 + h.idx * 0.2) * 0.3;
+    h.mesh.scale.setScalar(0.7 + Math.sin(t * 2 + h.idx * 0.15) * 0.5);
+  });
+
+  // ── Burst 1 — breathe in/out ──
+  const burstPhase = (Math.sin(t * 0.6) + 1) * 0.5; // 0-1
+  burstParticles.forEach(b => {
+    const r = b.maxR * burstPhase;
+    b.mesh.position.copy(b.dir).multiplyScalar(r);
+    b.mesh.material.opacity = 0.5 * (1 - burstPhase * 0.5);
+    b.mesh.scale.setScalar(0.5 + burstPhase);
+  });
+  burstGroup.rotation.y = t * 0.2;
+  burstGroup.rotation.x = t * 0.1;
+
+  // Burst 2 — opposite phase
+  const burstPhase2 = (Math.cos(t * 0.5) + 1) * 0.5;
+  burstParticles2.forEach(b => {
+    const r = b.maxR * burstPhase2;
+    b.mesh.position.copy(b.dir).multiplyScalar(r);
+    b.mesh.material.opacity = 0.4 * (1 - burstPhase2 * 0.4);
+  });
+  burstGroup2.rotation.y = -t * 0.15;
+  burstGroup2.rotation.z = t * 0.08;
+
+  // ══════════════════════════════════════════════════
+  // CAMERA — wide cinematic angle, slow sweep
+  // ══════════════════════════════════════════════════
+  const scrollFactor = scrollY * 0.003;
+  const camAngle = t * 0.06;
+  const camSwoop = Math.sin(t * 0.1) * 8;
+  camera.position.x = Math.sin(camAngle) * 18 + mx * 5 + camSwoop;
+  camera.position.y = 10 + Math.cos(t * 0.08) * 4 - my * 2 - scrollFactor * 2;
+  camera.position.z = 20 + Math.cos(camAngle) * 8 + scrollFactor;
+  camera.lookAt(
+    Math.sin(t * 0.04) * 3,
+    Math.cos(t * 0.06) * 2 - scrollFactor * 1.5,
+    -6
+  );
+
+  // ── Bloom pulses hard ──
+  bloom.strength = 0.8 + Math.sin(t * 0.5) * 0.5 + Math.sin(t * 2.1) * 0.15;
+  bloom.radius = 0.5 + Math.sin(t * 0.7) * 0.2;
 
   composer.render();
 }
@@ -542,7 +910,6 @@ reveals.forEach(el => obs.observe(el));
 window.addEventListener('scroll', () => {
   document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
 });
-
 
 </script>
 

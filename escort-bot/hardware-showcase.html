@@ -444,7 +444,7 @@
 </style>
 </head>
 <body>
-<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="https://codepen.io/romeo-patino/project/live/AdMznV" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Hardware</span></nav>
+<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="../index.html" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Hardware</span></nav>
 
 <nav>
   <div class="brand"><b>Elktron</b> &nbsp;Escort Bot</div>
@@ -912,184 +912,1250 @@ const gnd = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.ShadowMate
 gnd.rotation.x = -Math.PI / 2; gnd.position.y = -0.42; gnd.receiveShadow = true;
 scene.add(gnd);
 
-// Materials
-const chassisMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.5, metalness: 0.2 });
-const pcbMat = new THREE.MeshStandardMaterial({ color: 0x0d6832, roughness: 0.6, metalness: 0.05 });
-const piMat = new THREE.MeshStandardMaterial({ color: 0x35854a, roughness: 0.5, metalness: 0.08 });
-const metalMat = new THREE.MeshStandardMaterial({ color: 0xb8b8bd, roughness: 0.25, metalness: 0.9 });
-const darkMat = new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.6, metalness: 0.1 });
-const wheelMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.8, metalness: 0.05 });
-const accentMat = new THREE.MeshStandardMaterial({ color: 0x4a9eff, roughness: 0.4, metalness: 0.0 });
-const camMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.3, metalness: 0.4 });
-const lensMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.15, metalness: 0.3 });
-const batteryMat = new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.5, metalness: 0.3 });
-const coolMat = new THREE.MeshStandardMaterial({ color: 0xd4d4d8, roughness: 0.25, metalness: 0.92 });
+// ─── Component Materials & Helpers (ported from assembly.html final step) ───
+// ─── Component Materials & Helpers (from assembly.html) ───
+const PI_BW = 8.5, PI_BH = 0.16, PI_BD = 5.6;
+const PI_SCALE = 0.14; // Scale factor to fit on chassis
 
+// Materials (ported from standalone Pi 5 model)
+const silverMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, roughness: 0.25, metalness: 0.95 });
+const darkMetalMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.4, metalness: 0.9 });
+const blackPlasticMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.8, metalness: 0.05 });
+const whitePlasticMat = new THREE.MeshStandardMaterial({ color: 0xe8e8e0, roughness: 0.7 });
+const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4a843, roughness: 0.3, metalness: 0.95 });
+const copperMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.5, metalness: 0.8 });
+const usb3BlueMat = new THREE.MeshStandardMaterial({ color: 0x1565c0, roughness: 0.6, metalness: 0.1 });
+const usb2BlackMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7, metalness: 0.05 });
+const chipMat = new THREE.MeshStandardMaterial({ color: 0x151518, roughness: 0.5, metalness: 0.15 });
+const heatSpreaderMat = new THREE.MeshStandardMaterial({ color: 0xb8b8c0, roughness: 0.2, metalness: 0.95 });
+const ethernetMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c8, roughness: 0.3, metalness: 0.85 });
+const connectorMat = new THREE.MeshStandardMaterial({ color: 0xf0e6d0, roughness: 0.5, metalness: 0.1 });
+const audioMat = new THREE.MeshStandardMaterial({ color: 0x222225, roughness: 0.5, metalness: 0.6 });
+const matLED = new THREE.MeshStandardMaterial({ color: 0x112211, roughness: 0.3, emissive: 0x00ff44, emissiveIntensity: 0.1 });
+const matLEDRed = new THREE.MeshStandardMaterial({ color: 0x221111, roughness: 0.3, emissive: 0xff2020, emissiveIntensity: 0.1 });
+const ledAmberMat = new THREE.MeshStandardMaterial({ color: 0xffaa00, roughness: 0.3, emissive: 0xffaa00, emissiveIntensity: 1.5 });
+const matSD = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.5, metalness: 0.4 });
+const matSDLabel = new THREE.MeshStandardMaterial({ color: 0x1a3a8a, roughness: 0.6, metalness: 0.1 });
+
+// Pi 5 helper functions
+function piBox(w, h, d, mat) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+function piCyl(rT, rB, h, s, mat) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rT, rB, h, s), mat);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+function generatePCBTexture(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+
+  // Base green solder mask
+  ctx.fillStyle = '#1a6b3a';
+  ctx.fillRect(0, 0, w, h);
+
+  // Texture noise
+  for (let i = 0; i < 6000; i++) {
+    const x = Math.random() * w, y = Math.random() * h;
+    ctx.fillStyle = `rgba(${Math.random()>0.5?40:10}, ${60+Math.random()*30}, ${30+Math.random()*20}, 0.15)`;
+    ctx.fillRect(x, y, 1, 1);
+  }
+
+  // Copper traces
+  ctx.strokeStyle = 'rgba(180, 150, 60, 0.12)';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 25; i++) {
+    const y = 40 + Math.random() * (h - 80);
+    const x1 = 30 + Math.random() * 100;
+    const x2 = w - 30 - Math.random() * 100;
+    ctx.beginPath(); ctx.moveTo(x1, y);
+    const midX = x1 + (x2 - x1) * (0.3 + Math.random() * 0.4);
+    const jog = (Math.random() - 0.5) * 30;
+    ctx.lineTo(midX, y); ctx.lineTo(midX, y + jog); ctx.lineTo(x2, y + jog);
+    ctx.stroke();
+  }
+  for (let i = 0; i < 20; i++) {
+    const x = 40 + Math.random() * (w - 80);
+    const y1 = 40 + Math.random() * 200;
+    ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y1 + 80 + Math.random() * 300); ctx.stroke();
+  }
+
+  // Copper pours
+  ctx.fillStyle = 'rgba(170, 140, 50, 0.05)';
+  for (let i = 0; i < 6; i++) {
+    ctx.fillRect(Math.random() * (w - 200), Math.random() * (h - 150), 100 + Math.random() * 150, 60 + Math.random() * 100);
+  }
+
+  // Via holes
+  for (let i = 0; i < 120; i++) {
+    const vx = 30 + Math.random() * (w - 60), vy = 30 + Math.random() * (h - 60);
+    ctx.beginPath(); ctx.arc(vx, vy, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(180, 150, 60, 0.2)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(vx, vy, 1.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#0d4422'; ctx.fill();
+  }
+
+  // Solder pads
+  function drawPadRow(sx, sy, count, dx, dy, padW, padH) {
+    for (let i = 0; i < count; i++) {
+      const px = sx + i * dx, py = sy + i * dy;
+      ctx.fillStyle = 'rgba(200, 170, 70, 0.25)';
+      ctx.beginPath(); ctx.roundRect(px - padW/2, py - padH/2, padW, padH, 1.5); ctx.fill();
+    }
+  }
+  // BGA pads for SoC
+  const socCx = w * 0.42, socCy = h * 0.50;
+  for (let row = 0; row < 12; row++) {
+    for (let col = 0; col < 12; col++) {
+      const px = socCx - 30 + col * 5.5, py = socCy - 30 + row * 5.5;
+      ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200, 170, 70, 0.15)'; ctx.fill();
+    }
+  }
+  drawPadRow(w * 0.25, 38, 20, 15.3, 0, 4, 4);
+  drawPadRow(w * 0.25, 50, 20, 15.3, 0, 4, 4);
+
+  // Silkscreen
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.font = 'bold 28px "Courier New", monospace';
+  ctx.fillText('Raspberry Pi 5', w * 0.06, h * 0.52);
+  ctx.font = '14px "Courier New", monospace';
+  ctx.fillText('Model B  Rev 1.0', w * 0.06, h * 0.56);
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.font = '11px "Courier New", monospace';
+  ctx.fillText('\u00A9 2023 Raspberry Pi Ltd.', w * 0.06, h * 0.60);
+
+  // Reference designators
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+  ctx.font = '8px "Courier New", monospace';
+  [['U1',0.42,0.42],['U2',0.62,0.42],['U3',0.22,0.44],['C1',0.32,0.58],['C2',0.52,0.65],
+   ['R1',0.35,0.78],['R2',0.58,0.38],['L1',0.30,0.70],['J1',0.12,0.88],['J2',0.88,0.20]
+  ].forEach(([label, rx, ry]) => ctx.fillText(label, w * rx, h * ry));
+
+  // Component outlines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(socCx - 35, socCy - 35, 70, 70);
+  for (let i = 0; i < 25; i++) {
+    ctx.strokeRect(30 + Math.random() * (w - 60), 70 + Math.random() * (h - 140), 4 + Math.random() * 10, 3 + Math.random() * 6);
+  }
+
+  return new THREE.CanvasTexture(c);
+}
+
+function createRaspberryPi5() {
+  const group = new THREE.Group();
+  group.name = 'raspberry-pi-5';
+
+  const piG = new THREE.Group(); // Inner group at full Pi 5 scale
+
+  // ── PCB with canvas texture ──
+  const pcbTexture = generatePCBTexture(2048, 1344);
+  pcbTexture.colorSpace = THREE.SRGBColorSpace;
+  const pcbMat = new THREE.MeshStandardMaterial({ map: pcbTexture, roughness: 0.6, metalness: 0.08 });
+
+  function createRoundedRectShape(w, h, r) {
+    const shape = new THREE.Shape();
+    shape.moveTo(-w/2 + r, -h/2);
+    shape.lineTo(w/2 - r, -h/2);
+    shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r);
+    shape.lineTo(w/2, h/2 - r);
+    shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2);
+    shape.lineTo(-w/2 + r, h/2);
+    shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r);
+    shape.lineTo(-w/2, -h/2 + r);
+    shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2);
+    // Mounting holes
+    [[-3.8,-2.4],[2.45,-2.45],
+     [-3.8,2.4],[2.45,2.4]].forEach(([hx,hy]) => {
+      const hole = new THREE.Path();
+      hole.absarc(hx, hy, 0.15, 0, Math.PI * 2, true);
+      shape.holes.push(hole);
+    });
+    return shape;
+  }
+
+  const pcbGeo = new THREE.ExtrudeGeometry(
+    createRoundedRectShape(PI_BW, PI_BD, 0.3), { depth: PI_BH, bevelEnabled: false }
+  );
+  pcbGeo.rotateX(-Math.PI / 2);
+  // Fix UVs
+  const posAttr = pcbGeo.attributes.position;
+  const uvAttr = pcbGeo.attributes.uv;
+  for (let i = 0; i < posAttr.count; i++) {
+    uvAttr.setXY(i, (posAttr.getX(i) + PI_BW/2) / PI_BW, (posAttr.getZ(i) + PI_BD/2) / PI_BD);
+  }
+  uvAttr.needsUpdate = true;
+
+  const pcb = new THREE.Mesh(pcbGeo, pcbMat);
+  pcb.castShadow = true; pcb.receiveShadow = true;
+  piG.add(pcb);
+
+  // Mounting hole copper rings
+  [[-3.8,-2.4],[2.45,-2.45],
+   [-3.8,2.4],[2.45,2.4]].forEach(([hx,hz]) => {
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.15, 0.28, 24), copperMat);
+    ring.rotation.x = -Math.PI/2; ring.position.set(hx, PI_BH+0.002, hz);
+    piG.add(ring);
+  });
+
+  // ── SoC — BCM2712 ──
+  const socPkg = piBox(1.6, 0.12, 1.55, chipMat);
+  socPkg.position.set(-1.55, PI_BH + 0.06, 0.275); piG.add(socPkg);
+  const spreader = piBox(1.5, 0.08, 1.45, heatSpreaderMat);
+  spreader.position.set(-1.55, PI_BH + 0.16, 0.275); piG.add(spreader);
+  // SoC label
+  const spC = document.createElement('canvas'); spC.width = 256; spC.height = 256;
+  const spX = spC.getContext('2d');
+  spX.fillStyle = '#888'; spX.font = 'bold 24px monospace'; spX.textAlign = 'center';
+  spX.fillText('BCM2712', 128, 115);
+  spX.font = '16px monospace'; spX.fillText('BROADCOM', 128, 145);
+  const spL = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.35),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(spC), transparent: true, depthWrite: false }));
+  spL.rotation.x = -Math.PI/2; spL.position.set(-1.55, PI_BH + 0.201, 0.275); piG.add(spL);
+
+  // ── RAM ──
+  const ram = piBox(1.0, 0.08, 0.7, chipMat);
+  ram.position.set(-1.6, PI_BH + 0.04, -1.15); piG.add(ram);
+  const rC = document.createElement('canvas'); rC.width = 256; rC.height = 128;
+  const rX = rC.getContext('2d');
+  rX.fillStyle = '#666'; rX.font = 'bold 20px monospace'; rX.textAlign = 'center';
+  rX.fillText('MICRON', 128, 50); rX.font = '14px monospace'; rX.fillText('8GB LPDDR4X', 128, 75);
+  const rL = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6),
+    new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(rC), transparent: true, depthWrite: false }));
+  rL.rotation.x = -Math.PI/2; rL.position.set(-1.6, PI_BH + 0.081, -1.15); piG.add(rL);
+
+  // ── RP1 Southbridge ──
+  const rp1 = piBox(0.8, 0.08, 0.8, chipMat);
+  rp1.position.set(2.05, PI_BH + 0.04, -0.9); piG.add(rp1);
+
+  // ── PMIC ──
+  const pmic = piBox(0.45, 0.06, 0.45, chipMat);
+  pmic.position.set(-2.9, PI_BH + 0.03, 1.65); piG.add(pmic);
+
+  // ── WiFi/BT module ──
+  const wifi = piBox(1.0, 0.18, 1.0, silverMat);
+  wifi.position.set(-3.0, PI_BH + 0.09, -1.55); piG.add(wifi);
+
+  // ── GPIO Header (40-pin) ──
+  const gpioBase = piBox(5.5, 0.25, 0.5, blackPlasticMat);
+  gpioBase.position.set(-0.7, PI_BH + 0.125, -2.45); piG.add(gpioBase);
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 20; c++) {
+    const p = piCyl(0.025, 0.025, 0.6, 6, goldMat);
+    p.position.set(-0.7 + (-2.4 + c * 0.254), PI_BH + 0.3, -2.45 + (-0.127 + r * 0.254));
+    piG.add(p);
+  }
+
+  // ── USB-C Power ──
+  const usbC1 = piBox(0.9, 0.32, 0.76, silverMat);
+  usbC1.position.set(-2.75, PI_BH + 0.16, PI_BD/2 - 0.02); piG.add(usbC1);
+  const usbC2 = piBox(0.55, 0.04, 0.4, whitePlasticMat);
+  usbC2.position.set(-2.75, PI_BH + 0.16, PI_BD/2 + 0.02); piG.add(usbC2);
+
+  // ── Micro HDMI x2 ──
+  [-1.675, -0.475].forEach(x => {
+    const h1 = piBox(0.65, 0.28, 0.6, silverMat);
+    h1.position.set(x, PI_BH + 0.14, PI_BD/2 - 0.02); piG.add(h1);
+    const h2 = piBox(0.5, 0.15, 0.45, darkMetalMat);
+    h2.position.set(x, PI_BH + 0.14, PI_BD/2 + 0.06); piG.add(h2);
+  });
+
+  // ── USB 3.0 Stack ──
+  function mkUSBStack(mat, z) {
+    const shell = piBox(1.45, 1.58, 0.76, silverMat);
+    shell.position.set(PI_BW/2 - 0.02, PI_BH + 0.79, z);
+    shell.rotation.y = Math.PI / 2; piG.add(shell);
+    for (let i = 0; i < 2; i++) {
+      const inner = piBox(1.2, 0.5, 0.56, darkMetalMat);
+      inner.position.set(PI_BW/2 - 0.02 + 0.11 * Math.sin(Math.PI/2), PI_BH + 0.35 + i * 0.7, z + 0.11 * Math.cos(Math.PI/2));
+      inner.rotation.y = Math.PI / 2; piG.add(inner);
+      const tab = piBox(1.0, 0.08, 0.35, mat);
+      tab.position.set(PI_BW/2 - 0.02 + 0.05 * Math.sin(Math.PI/2), PI_BH + 0.35 + i * 0.7, z + 0.05 * Math.cos(Math.PI/2));
+      tab.rotation.y = Math.PI / 2; piG.add(tab);
+    }
+  }
+  mkUSBStack(usb2BlackMat, -1.925);
+  mkUSBStack(usb3BlueMat, -0.25);
+
+  // ── Ethernet ──
+  const ethShell = piBox(1.6, 1.36, 1.58, ethernetMat);
+  ethShell.position.set(PI_BW/2 - 0.02, PI_BH + 0.68, 1.6);
+  ethShell.rotation.y = Math.PI / 2; piG.add(ethShell);
+  // Ethernet LEDs
+  const ethLedG = piBox(0.15, 0.12, 0.08, matLED);
+  ethLedG.position.set(PI_BW/2 + 0.54, PI_BH + 1.2, 1.6 + 0.55); piG.add(ethLedG);
+  const ethLedA = piBox(0.15, 0.12, 0.08, ledAmberMat);
+  ethLedA.position.set(PI_BW/2 + 0.54, PI_BH + 1.2, 1.6 - 0.55); piG.add(ethLedA);
+
+  // (Pi 5 has no 3.5mm audio jack)
+
+  // ── CSI/DSI FPC connectors (rotated 90° to run vertically) ──
+  [{ x: 1.05, z: 0.95 }, { x: 1.6, z: 0.95 }].forEach(({ x, z }) => {
+    const fpc = piBox(2.2, 0.18, 0.35, connectorMat);
+    fpc.position.set(x, PI_BH + 0.09, z); fpc.rotation.y = Math.PI / 2; piG.add(fpc);
+    const clip = piBox(2.0, 0.08, 0.12, blackPlasticMat);
+    clip.position.set(x, PI_BH + 0.22, z - 0.1); clip.rotation.y = Math.PI / 2; piG.add(clip);
+    for (let i = 0; i < 15; i++) {
+      const pin = piBox(0.06, 0.04, 0.25, goldMat);
+      pin.position.set(x, PI_BH + 0.02, z - 1.0 + i * 0.14); piG.add(pin);
+    }
+  });
+
+  // ── Power Button (side-facing tactile switch on left edge — 2D: x:-1.5, y:36) ──
+  // Small housing on PCB surface, button nub faces left edge for case access
+  const pwrHousing = piBox(0.2, 0.12, 0.2, blackPlasticMat);
+  pwrHousing.position.set(-PI_BW/2 + 0.1, PI_BH + 0.06, 0.95); piG.add(pwrHousing);
+  // Side-facing button cap — cylinder rotated to point left, barely past board edge
+  const pwrCap = piCyl(0.08, 0.08, 0.1, 12, silverMat);
+  pwrCap.rotation.z = Math.PI / 2;
+  pwrCap.position.set(-PI_BW/2 + 0.02, PI_BH + 0.06, 0.95); piG.add(pwrCap);
+
+  // ── Fan Header ──
+  const fanBase = piBox(0.5, 0.25, 0.25, whitePlasticMat);
+  fanBase.position.set(3.0, PI_BH + 0.125, -2.425); fanBase.rotation.y = Math.PI / 2; piG.add(fanBase);
+  for (let i = 0; i < 4; i++) {
+    const fp = piCyl(0.02, 0.02, 0.35, 6, goldMat);
+    fp.position.set(3.0, PI_BH + 0.175, -2.425 + (-0.15 + i * 0.1)); piG.add(fp);
+  }
+
+  // ── Power LED + Activity LED ──
+  const pwrLed = piBox(0.1, 0.06, 0.06, matLEDRed);
+  pwrLed.position.set(-3.5, PI_BH + 0.03, 1.8); piG.add(pwrLed);
+  const actLed = piBox(0.1, 0.06, 0.06, matLED);
+  actLed.position.set(-3.2, PI_BH + 0.03, 1.8); piG.add(actLed);
+
+  // ── SD card slot housing ──
+  const sdSlot = piBox(1.1, 0.14, 1.4, silverMat);
+  sdSlot.position.set(-4.35, -0.14, -0.15); piG.add(sdSlot);
+  const sdOpening = piBox(0.3, 0.1, 1.1, darkMetalMat);
+  sdOpening.position.set(-4.35 - 0.55, -0.14, -0.15); piG.add(sdOpening);
+
+  // ── SD card — ejected, floating beside the slot ──
+  const sdCard = piBox(1.0, 0.08, 1.1, matSDLabel);
+  sdCard.position.set(-6.5, -0.14, -0.15); piG.add(sdCard);
+  const sdContacts = piBox(0.7, 0.01, 0.6, goldMat);
+  sdContacts.position.set(-6.5, -0.18, -0.15); piG.add(sdContacts);
+
+  // ── SMD components ──
+  const smdMats = [chipMat, copperMat, darkMetalMat];
+  [[-1.8,0.6,.15,.06,.1],[-1.5,0.8,.12,.05,.08],[0.5,1.6,.15,.06,.1],
+   [0.8,1.8,.1,.05,.08],[2.0,0.8,.18,.06,.12],[2.3,0.5,.12,.05,.08],
+   [-0.5,-1.2,.15,.06,.1],[1.0,-0.8,.12,.05,.08],[1.5,-1.3,.15,.06,.1],
+   [-2.5,-1.0,.12,.05,.08],[-3.0,0.0,.15,.06,.1],[3.2,0.3,.12,.06,.08],
+  ].forEach(([px,pz,w,h,d]) => {
+    const m = piBox(w, h, d, smdMats[Math.floor(Math.random()*3)]);
+    m.position.set(px, PI_BH + h/2, pz); piG.add(m);
+  });
+
+  // Inductors
+  [[-1.5,-1.5],[0.5,-1.6],[-2.8,-0.8]].forEach(([x,z]) => {
+    const m = piCyl(0.12, 0.12, 0.1, 12, darkMetalMat);
+    m.position.set(x, PI_BH + 0.05, z); piG.add(m);
+  });
+
+  // Crystal
+  const xtal = piBox(0.2, 0.08, 0.15, silverMat);
+  xtal.position.set(1.8, PI_BH + 0.04, -0.3); piG.add(xtal);
+
+  // Scale the entire Pi 5 down to fit the chassis
+  piG.scale.setScalar(PI_SCALE);
+  group.add(piG);
+
+  // Position will be set by GLB loader callback (or default fallback)
+  group.position.y = 0;
+  group.position.x = 0;
+
+  return group;
+}
+
+function catenaryPoints(start, end, { sag = 0.12, segments = 8, exitDir = null, entryDir = null } = {}) {
+  const pts = [];
+  const dist = start.distanceTo(end);
+  const sagAmount = sag * dist;
+  if (exitDir) {
+    pts.push(start.clone(), start.clone().add(exitDir.clone().multiplyScalar(dist * 0.12)));
+  } else { pts.push(start.clone()); }
+  for (let i = 1; i < segments; i++) {
+    const t = i / segments;
+    const p = new THREE.Vector3().lerpVectors(start, end, t);
+    p.y -= sagAmount * 4 * t * (1 - t);
+    p.x += Math.sin(t * Math.PI * 2.7) * sagAmount * 0.15;
+    pts.push(p);
+  }
+  if (entryDir) {
+    pts.push(end.clone().add(entryDir.clone().multiplyScalar(dist * 0.12)), end.clone());
+  } else { pts.push(end.clone()); }
+  return pts;
+}
+
+function createL298N() {
+  // L298N Dual H-Bridge Motor Driver — accurate model from STEP/CAD reference
+  // Real dimensions: 43×43×~27mm (with heatsink). Scale: 1 unit ≈ 65mm
+  const group = new THREE.Group(); group.name = 'l298n-driver';
+
+  const BW = 0.66, BD = 0.66, BH = 0.025; // PCB: 43mm square, 1.6mm thick
+
+  // ── Shared materials ──
+  const pcbMat = new THREE.MeshStandardMaterial({ color: 0xcc2222, roughness: 0.55, metalness: 0.08 });
+  const termMat = new THREE.MeshStandardMaterial({ color: 0x2277dd, roughness: 0.6, metalness: 0.15 });
+  const termSlotMat = new THREE.MeshStandardMaterial({ color: 0x1a5599, roughness: 0.7, metalness: 0.1 });
+  const hsMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.35, metalness: 0.85 });
+  const icMat = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.5, metalness: 0.3 });
+  const capBodyMat = new THREE.MeshStandardMaterial({ color: 0xf0ead8, roughness: 0.55, metalness: 0.05 });
+  const capStripeMat = new THREE.MeshStandardMaterial({ color: 0xcc3333, roughness: 0.6, metalness: 0.05 });
+  const smallIcMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7, metalness: 0.3 });
+  const copperMat = new THREE.MeshStandardMaterial({ color: 0xb87333, roughness: 0.35, metalness: 0.9 });
+  const jumperMat = new THREE.MeshStandardMaterial({ color: 0x2277dd, roughness: 0.6, metalness: 0.2 });
+  const screwMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.9 });
+  const pinMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5, metalness: 0.4 });
+
+  // ── PCB Board ──
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(BW, BH, BD), pcbMat);
+  pcb.castShadow = true; pcb.receiveShadow = true; group.add(pcb);
+
+  // ── 4 Mounting holes with copper rings ──
+  const mhR = 0.035, mhIR = 0.02;
+  const mhPositions = [
+    [-BW/2 + 0.055, 0, -BD/2 + 0.055],
+    [ BW/2 - 0.055, 0, -BD/2 + 0.055],
+    [-BW/2 + 0.055, 0,  BD/2 - 0.055],
+    [ BW/2 - 0.055, 0,  BD/2 - 0.055],
+  ];
+  mhPositions.forEach(([x, _, z]) => {
+    // Copper ring
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(mhR, 0.012, 8, 16),
+      copperMat
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(x, BH/2 + 0.002, z);
+    group.add(ring);
+    // Hole (dark center)
+    const hole = new THREE.Mesh(
+      new THREE.CylinderGeometry(mhIR, mhIR, BH + 0.01, 12),
+      new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 })
+    );
+    hole.position.set(x, 0, z);
+    group.add(hole);
+  });
+
+  // ── Heatsink — black aluminum, top-center of board ──
+  // Main body (centered on board, offset toward -Z i.e. "top" in top-down view)
+  const hsW = 0.38, hsH = 0.31, hsD = 0.22;
+  const hsBody = new THREE.Mesh(new THREE.BoxGeometry(hsW, hsH, hsD), hsMat);
+  hsBody.position.set(0, BH/2 + hsH/2, -0.1);
+  hsBody.castShadow = true; group.add(hsBody);
+
+  // Heatsink fins — 6 vertical fins along the top
+  const finCount = 6, finW = hsW + 0.01, finH = hsH * 0.85, finD = 0.012;
+  for (let i = 0; i < finCount; i++) {
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(finW, finH, finD), hsMat);
+    const fz = -0.1 - hsD/2 + 0.025 + i * (hsD - 0.05) / (finCount - 1);
+    fin.position.set(0, BH/2 + hsH - finH/2, fz);
+    fin.castShadow = true; group.add(fin);
+  }
+
+  // IC chip (white/silver rectangle on heatsink face)
+  const icW = 0.16, icH = 0.12, icD = 0.015;
+  const ic = new THREE.Mesh(new THREE.BoxGeometry(icW, icH, icD), icMat);
+  ic.position.set(0, BH/2 + hsH * 0.45, -0.1 + hsD/2 + icD/2);
+  group.add(ic);
+
+  // Screw on IC
+  const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.02, 8), screwMat);
+  screw.rotation.x = Math.PI / 2;
+  screw.position.set(0, BH/2 + hsH * 0.45, -0.1 + hsD/2 + icD + 0.005);
+  group.add(screw);
+  // Screw slot
+  const slot = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.003, 0.005), smallIcMat);
+  slot.position.set(0, BH/2 + hsH * 0.45, -0.1 + hsD/2 + icD + 0.016);
+  group.add(slot);
+
+  // ── Terminal blocks — blue with screws ──
+  function addTerminalBlock(x, z, screwCount, w) {
+    const tH = 0.10, tD = 0.10;
+    // Main body
+    const body = new THREE.Mesh(new THREE.BoxGeometry(w, tH, tD), termMat);
+    body.position.set(x, BH/2 + tH/2, z);
+    body.castShadow = true; group.add(body);
+
+    // Wire entry slots (dark recesses on front face)
+    for (let i = 0; i < screwCount; i++) {
+      const sx = x - w/2 + w/(screwCount * 2) + i * (w / screwCount);
+      const slotMesh = new THREE.Mesh(new THREE.BoxGeometry(w/screwCount * 0.6, tH * 0.5, 0.015), termSlotMat);
+      slotMesh.position.set(sx, BH/2 + tH * 0.55, z + tD/2 + 0.005);
+      group.add(slotMesh);
+
+      // Screw top (silver cylinder)
+      const screwTop = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.015, 8), screwMat);
+      screwTop.position.set(sx, BH/2 + tH + 0.005, z);
+      group.add(screwTop);
+      // Screw slot line
+      const screwSlot = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.003, 0.003), smallIcMat);
+      screwSlot.position.set(sx, BH/2 + tH + 0.013, z);
+      group.add(screwSlot);
+    }
+
+    // Pins below terminal (through PCB)
+    for (let i = 0; i < screwCount; i++) {
+      const px = x - w/2 + w/(screwCount * 2) + i * (w / screwCount);
+      const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.06, 6), silverMat);
+      pin.position.set(px, -BH/2 - 0.02, z);
+      group.add(pin);
+    }
+  }
+
+  // Motor A terminal — left side (2 screws)
+  addTerminalBlock(-BW/2 + 0.08, -0.15, 2, 0.14);
+  // Motor B terminal — right side (2 screws)
+  addTerminalBlock( BW/2 - 0.08, -0.15, 2, 0.14);
+  // Power terminal — bottom-left (3 screws: +12V, GND, +5V)
+  addTerminalBlock(-0.12, BD/2 - 0.07, 3, 0.22);
+
+  // ── Small blue terminal — bottom-right (ENA, IN1-IN4, ENB) — 6-pin ──
+  const pinBlockW = 0.20, pinBlockH = 0.06;
+  const pinBlock = new THREE.Mesh(new THREE.BoxGeometry(pinBlockW, pinBlockH, 0.06), pinMat);
+  pinBlock.position.set(0.15, BH/2 + pinBlockH/2, BD/2 - 0.06);
+  group.add(pinBlock);
+
+  // 6 header pins
+  for (let i = 0; i < 6; i++) {
+    const px = 0.15 - pinBlockW/2 + 0.02 + i * (pinBlockW - 0.04) / 5;
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6), silverMat);
+    pin.position.set(px, BH/2 + pinBlockH + 0.04, BD/2 - 0.06);
+    group.add(pin);
+  }
+
+  // ── Jumper caps — 2 blue jumpers near header ──
+  [[0.08, BD/2 - 0.15], [0.22, BD/2 - 0.15]].forEach(([jx, jz]) => {
+    const jmp = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.04, 0.025), jumperMat);
+    jmp.position.set(jx, BH/2 + 0.035, jz);
+    group.add(jmp);
+    // Jumper pins
+    for (let p = 0; p < 2; p++) {
+      const jp = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.05, 6), silverMat);
+      jp.position.set(jx - 0.008 + p * 0.016, BH/2 + 0.02, jz);
+      group.add(jp);
+    }
+  });
+
+  // ── 2 Electrolytic capacitors — white cylinders with red stripe ──
+  const capR = 0.05, capH = 0.12;
+  [[-0.06, 0.08], [0.10, 0.14]].forEach(([cx, cz]) => {
+    // White body
+    const capBody = new THREE.Mesh(new THREE.CylinderGeometry(capR, capR, capH, 16), capBodyMat);
+    capBody.position.set(cx, BH/2 + capH/2, cz);
+    capBody.castShadow = true; group.add(capBody);
+
+    // Top disc (silver)
+    const capTop = new THREE.Mesh(new THREE.CylinderGeometry(capR - 0.005, capR - 0.005, 0.005, 16), silverMat);
+    capTop.position.set(cx, BH/2 + capH + 0.002, cz);
+    group.add(capTop);
+
+    // Red stripe band (thin torus around cap body)
+    const stripe = new THREE.Mesh(
+      new THREE.CylinderGeometry(capR + 0.003, capR + 0.003, capH * 0.15, 16),
+      capStripeMat
+    );
+    stripe.position.set(cx, BH/2 + capH * 0.7, cz);
+    group.add(stripe);
+
+    // Second red stripe
+    const stripe2 = new THREE.Mesh(
+      new THREE.CylinderGeometry(capR + 0.003, capR + 0.003, capH * 0.08, 16),
+      capStripeMat
+    );
+    stripe2.position.set(cx, BH/2 + capH * 0.45, cz);
+    group.add(stripe2);
+
+    // Legs (2 pins below)
+    for (let l = -1; l <= 1; l += 2) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.04, 6), silverMat);
+      leg.position.set(cx + l * 0.015, -BH/2 - 0.015, cz);
+      group.add(leg);
+    }
+  });
+
+  // ── Small IC chip (SO-8 package) — black square, near capacitors ──
+  const soIC = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.06), smallIcMat);
+  soIC.position.set(0.12, BH/2 + 0.01, -0.02);
+  group.add(soIC);
+  // IC pins (4 per side)
+  for (let s = -1; s <= 1; s += 2) {
+    for (let i = 0; i < 4; i++) {
+      const icPin = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.003, 0.005), silverMat);
+      icPin.position.set(0.12 + s * 0.04, BH/2 + 0.005, -0.02 - 0.02 + i * 0.013);
+      group.add(icPin);
+    }
+  }
+
+  // ── PCB traces — subtle copper lines on board surface ──
+  const traceMat = new THREE.MeshStandardMaterial({ color: 0xaa6633, roughness: 0.5, metalness: 0.6, transparent: true, opacity: 0.3 });
+  // A few representative traces
+  [[-0.15, 0, 0.24, 0.005, 0.15], [0.15, 0, 0.24, 0.005, 0.15], [0, 0, 0, 0.005, 0.3]].forEach(([tx, _, tz, tw, tl]) => {
+    const trace = new THREE.Mesh(new THREE.BoxGeometry(tl, 0.002, tw), traceMat);
+    trace.position.set(tx, BH/2 + 0.001, tz);
+    group.add(trace);
+  });
+
+  // User-placed position — right side of chassis, next to Pi
+  group.position.set(1.5355, 1.0336, -0.0025);
+  return group;
+}
+
+function createHCSR04() {
+  const group = new THREE.Group(); group.name = 'hc-sr04';
+  const pcb = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.4),
+    new THREE.MeshStandardMaterial({ color: 0x1177aa, roughness: 0.5, metalness: 0.1 }));
+  pcb.castShadow = true; group.add(pcb);
+  const tM = new THREE.MeshStandardMaterial({ color: 0xd0d0d0, roughness: 0.3, metalness: 0.8 });
+  [-0.12, 0.12].forEach(x => {
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.12, 16), tM);
+    tr.rotation.x = Math.PI / 2; tr.position.set(x, 0.02, -0.22); tr.castShadow = true; group.add(tr);
+    const inn = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.03, 12),
+      new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 }));
+    inn.rotation.x = Math.PI / 2; inn.position.set(x, 0.02, -0.29); group.add(inn);
+  });
+  for (let i = 0; i < 4; i++) {
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.18, 6), goldMat);
+    p.position.set(-0.09 + i * 0.06, -0.06, 0.14); group.add(p);
+  }
+  group.position.set(1.5, 0.12, 0); group.rotation.y = Math.PI / 2; return group;
+}
+
+function createBatteryPack() {
+  const group = new THREE.Group(); group.name = 'battery-pack';
+  const h = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.22, 0.42),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.8, metalness: 0.1 }));
+  h.castShadow = true; group.add(h);
+  const bM = new THREE.MeshStandardMaterial({ color: 0x229933, roughness: 0.4, metalness: 0.6 });
+  [-0.1, 0.1].forEach(z => {
+    const b = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.7, 16), bM);
+    b.rotation.z = Math.PI / 2; b.position.set(0, 0.02, z); b.castShadow = true; group.add(b);
+    const n = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 8), silverMat);
+    n.rotation.z = Math.PI / 2; n.position.set(0.36, 0.02, z); group.add(n);
+  });
+  const rW = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4, 6),
+    new THREE.MeshStandardMaterial({ color: 0xcc2222, roughness: 0.7 }));
+  rW.position.set(0.45, 0.12, 0.1); rW.rotation.z = Math.PI / 4; group.add(rW);
+  const bW = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.4, 6),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.7 }));
+  bW.position.set(0.45, 0.12, -0.1); bW.rotation.z = Math.PI / 4; group.add(bW);
+  group.position.set(-1.746, 0.5813, 0.0031);
+  group.rotation.set(0, -1.5647, 0);
+  return group;
+}
+
+function createPowerBank() {
+  // Anker PowerCore Slim 10K (A1229) — 152 x 71 x 15.5 mm
+  // Scene scale: 1 unit ≈ 65mm (chassis 260mm = 4.0 units)
+  const group = new THREE.Group(); group.name = 'power-bank';
+
+  const W = 2.34, D = 1.09, H = 0.24;
+  const R = 0.04; // corner radius approximation
+
+  // ── Main body — glossy black sides ──
+  const sideMat = new THREE.MeshStandardMaterial({ color: 0x0e0e10, roughness: 0.25, metalness: 0.35 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(W - R * 2, H, D - R * 2), sideMat);
+  body.castShadow = true; body.receiveShadow = true; group.add(body);
+
+  // Side panels (long edges — glossy black rail)
+  const sideL = new THREE.Mesh(new THREE.BoxGeometry(W - R * 2, H, 0.008), sideMat);
+  sideL.position.z = -D / 2 + 0.004; group.add(sideL);
+  const sideR = new THREE.Mesh(new THREE.BoxGeometry(W - R * 2, H, 0.008), sideMat);
+  sideR.position.z = D / 2 - 0.004; group.add(sideR);
+
+  // ── Rounded long-edge rails (4 cylinders along length) ──
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x111114, roughness: 0.3, metalness: 0.3 });
+  const railR = 0.025;
+  [[-D/2 + railR, H/2 - railR], [D/2 - railR, H/2 - railR],
+   [-D/2 + railR, -H/2 + railR], [D/2 - railR, -H/2 + railR]].forEach(([z, y]) => {
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(railR, railR, W - R * 2, 8), railMat);
+    rail.rotation.z = Math.PI / 2; rail.position.set(0, y, z);
+    rail.castShadow = true; group.add(rail);
+  });
+
+  // ── Rounded short-edge rails (4 cylinders along width) ──
+  [[-D/2 + railR, H/2 - railR], [D/2 - railR, H/2 - railR],
+   [-D/2 + railR, -H/2 + railR], [D/2 - railR, -H/2 + railR]].forEach(([z, y]) => {
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(railR, railR, D - R * 2, 8), railMat);
+    rail.rotation.x = Math.PI / 2; rail.position.set(W / 2 - R, y, 0);
+    rail.castShadow = true; group.add(rail);
+    const rail2 = rail.clone();
+    rail2.position.x = -W / 2 + R; group.add(rail2);
+  });
+
+  // ── Top face — crosshatch textured panel ──
+  const topCanvas = document.createElement('canvas');
+  topCanvas.width = 512; topCanvas.height = 256;
+  const tCtx = topCanvas.getContext('2d');
+  // Dark base
+  tCtx.fillStyle = '#1a1a1e';
+  tCtx.fillRect(0, 0, 512, 256);
+  // Crosshatch pattern
+  tCtx.strokeStyle = 'rgba(255,255,255,0.06)';
+  tCtx.lineWidth = 0.8;
+  for (let i = -512; i < 1024; i += 4) {
+    tCtx.beginPath(); tCtx.moveTo(i, 0); tCtx.lineTo(i + 256, 256); tCtx.stroke();
+    tCtx.beginPath(); tCtx.moveTo(i, 256); tCtx.lineTo(i + 256, 0); tCtx.stroke();
+  }
+  const topTex = new THREE.CanvasTexture(topCanvas);
+  topTex.wrapS = THREE.RepeatWrapping; topTex.wrapT = THREE.RepeatWrapping;
+  const topMat = new THREE.MeshStandardMaterial({ map: topTex, roughness: 0.85, metalness: 0.05 });
+  const topPanel = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.94, D * 0.9), topMat);
+  topPanel.rotation.x = -Math.PI / 2;
+  topPanel.position.y = H / 2 + 0.001; group.add(topPanel);
+
+  // ── Bottom face — smooth matte ──
+  const botMat = new THREE.MeshStandardMaterial({ color: 0x111115, roughness: 0.5, metalness: 0.15 });
+  const botPanel = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.94, D * 0.9), botMat);
+  botPanel.rotation.x = Math.PI / 2;
+  botPanel.position.y = -H / 2 - 0.001; group.add(botPanel);
+
+  // ── Port face — dark gunmetal end cap ──
+  const portFaceMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.4, metalness: 0.5 });
+  const portFace = new THREE.Mesh(new THREE.PlaneGeometry(D * 0.85, H * 0.85), portFaceMat);
+  portFace.rotation.y = Math.PI / 2;
+  portFace.position.x = W / 2 + 0.001; group.add(portFace);
+
+  // ── USB-A port (blue inner — iQ output) ──
+  const portShellMat = new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.3, metalness: 0.7 });
+  const usbAOuter = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.065, 0.13), portShellMat);
+  usbAOuter.position.set(W / 2 + 0.002, -0.005, -0.15); group.add(usbAOuter);
+  // Blue inner tongue
+  const usbABlue = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.025, 0.1),
+    new THREE.MeshStandardMaterial({ color: 0x2266dd, roughness: 0.4, metalness: 0.3 }));
+  usbABlue.position.set(W / 2 + 0.006, -0.015, -0.15); group.add(usbABlue);
+  // iQ label
+  const iqCanvas = document.createElement('canvas');
+  iqCanvas.width = 64; iqCanvas.height = 32;
+  const iqCtx = iqCanvas.getContext('2d');
+  iqCtx.fillStyle = 'rgba(255,255,255,0.4)';
+  iqCtx.font = 'bold 16px sans-serif';
+  iqCtx.textAlign = 'center';
+  iqCtx.fillText('iQ', 32, 22);
+  const iqTex = new THREE.CanvasTexture(iqCanvas);
+  const iqLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.04),
+    new THREE.MeshBasicMaterial({ map: iqTex, transparent: true, depthWrite: false }));
+  iqLabel.rotation.y = Math.PI / 2;
+  iqLabel.position.set(W / 2 + 0.003, -0.005, -0.26); group.add(iqLabel);
+
+  // ── Micro-USB port (IN only) ──
+  const microUSB = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.035, 0.07), portShellMat);
+  microUSB.position.set(W / 2 + 0.002, -0.005, 0.05); group.add(microUSB);
+  // Micro-USB inner
+  const microInner = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.018, 0.05),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.5, metalness: 0.4 }));
+  microInner.position.set(W / 2 + 0.006, -0.005, 0.05); group.add(microInner);
+  // "IN" label
+  const inCanvas = document.createElement('canvas');
+  inCanvas.width = 64; inCanvas.height = 32;
+  const inCtx = inCanvas.getContext('2d');
+  inCtx.fillStyle = 'rgba(255,255,255,0.35)';
+  inCtx.font = '11px sans-serif';
+  inCtx.textAlign = 'center';
+  inCtx.fillText('IN', 32, 22);
+  const inTex = new THREE.CanvasTexture(inCanvas);
+  const inLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.06, 0.03),
+    new THREE.MeshBasicMaterial({ map: inTex, transparent: true, depthWrite: false }));
+  inLabel.rotation.y = Math.PI / 2;
+  inLabel.position.set(W / 2 + 0.003, 0.04, 0.05); group.add(inLabel);
+
+  // ── USB-C port (IN/OUT) ──
+  const usbCOuter = new THREE.Mesh(new THREE.BoxGeometry(0.01, 0.04, 0.08), portShellMat);
+  usbCOuter.position.set(W / 2 + 0.002, -0.005, 0.17); group.add(usbCOuter);
+  // USB-C inner (dark with slight blue tint)
+  const usbCInner = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.02, 0.055),
+    new THREE.MeshStandardMaterial({ color: 0x1a2a44, roughness: 0.4, metalness: 0.5 }));
+  usbCInner.position.set(W / 2 + 0.006, -0.005, 0.17); group.add(usbCInner);
+  // "IN/OUT" label
+  const ioCanvas = document.createElement('canvas');
+  ioCanvas.width = 96; ioCanvas.height = 32;
+  const ioCtx = ioCanvas.getContext('2d');
+  ioCtx.fillStyle = 'rgba(255,255,255,0.35)';
+  ioCtx.font = '11px sans-serif';
+  ioCtx.textAlign = 'center';
+  ioCtx.fillText('IN/OUT', 48, 22);
+  const ioTex = new THREE.CanvasTexture(ioCanvas);
+  const ioLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.03),
+    new THREE.MeshBasicMaterial({ map: ioTex, transparent: true, depthWrite: false }));
+  ioLabel.rotation.y = Math.PI / 2;
+  ioLabel.position.set(W / 2 + 0.003, 0.04, 0.17); group.add(ioLabel);
+
+  // ── Power button — recessed oval on top face, right side ──
+  const btnRing = new THREE.Mesh(new THREE.TorusGeometry(0.04, 0.005, 8, 24),
+    new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.4, metalness: 0.5 }));
+  btnRing.rotation.x = -Math.PI / 2;
+  btnRing.position.set(W * 0.28, H / 2 + 0.003, D * 0.22); group.add(btnRing);
+  // Button center (recessed)
+  const btnCenter = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.003, 16),
+    new THREE.MeshStandardMaterial({ color: 0x151518, roughness: 0.6, metalness: 0.2 }));
+  btnCenter.position.set(W * 0.28, H / 2 - 0.001, D * 0.22); group.add(btnCenter);
+
+  // ── 4 LED indicators — in a row near power button ──
+  for (let i = 0; i < 4; i++) {
+    const led = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.003, 8),
+      new THREE.MeshStandardMaterial({
+        color: 0x113322,
+        emissive: 0x44dd66,
+        emissiveIntensity: 0.1,
+        roughness: 0.3,
+      }));
+    led.position.set(W * 0.28 - 0.15 + i * 0.035, H / 2 + 0.003, D * 0.22);
+    group.add(led);
+  }
+
+  // ── Anker logo — debossed on top face ──
+  const logoC = document.createElement('canvas');
+  logoC.width = 512; logoC.height = 128;
+  const lCtx = logoC.getContext('2d');
+  // Subtle debossed look
+  lCtx.fillStyle = 'rgba(0,0,0,0.25)';
+  lCtx.font = 'bold 52px sans-serif';
+  lCtx.textAlign = 'center';
+  lCtx.fillText('ANKER', 256, 75);
+  // Slight highlight offset for depth
+  lCtx.fillStyle = 'rgba(255,255,255,0.08)';
+  lCtx.fillText('ANKER', 256, 73);
+  const logoTex = new THREE.CanvasTexture(logoC);
+  const logoPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.6, 0.15),
+    new THREE.MeshBasicMaterial({ map: logoTex, transparent: true, depthWrite: false }));
+  logoPlane.rotation.x = -Math.PI / 2;
+  logoPlane.position.set(-W * 0.18, H / 2 + 0.002, -D * 0.1); group.add(logoPlane);
+
+  // ── Opposite end cap (clean) ──
+  const endCap = new THREE.Mesh(new THREE.PlaneGeometry(D * 0.85, H * 0.85), portFaceMat);
+  endCap.rotation.y = -Math.PI / 2;
+  endCap.position.x = -W / 2 - 0.001; group.add(endCap);
+
+  // User-placed position — left side of chassis
+  group.position.set(-1.746, 0.5813, 0.0031);
+  group.rotation.set(0, -1.5647, 0);
+  return group;
+}
+
+// ── PiSwitch world position — referenced by both createPiSwitch and createUSBCCable ──
+// User-placed — right side of chassis, near Pi
+const PISWITCH_POS = new THREE.Vector3(0.5865, 1.3293, 0.0207);
+const PISWITCH_ROT = new THREE.Euler(3.1416, -1.5555, 3.1416);
+
+function createPiSwitch() {
+  // CanaKit PiSwitch — inline USB-C power switch with ON/OFF button + LED
+  // Real size: ~38mm x 20mm x 12mm. Scene scale: ~0.38 x 0.20 x 0.12
+  const group = new THREE.Group(); group.name = 'pi-switch';
+
+  const W = 0.38, H = 0.12, D = 0.20;
+
+  // ── Main body — glossy black enclosure ──
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 0.25, metalness: 0.3 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), bodyMat);
+  body.castShadow = true; body.receiveShadow = true; group.add(body);
+
+  // Rounded edges — 4 vertical cylinders at corners
+  const edgeR = 0.015;
+  const edgeMat = new THREE.MeshStandardMaterial({ color: 0x0e0e10, roughness: 0.3, metalness: 0.25 });
+  [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(([sx, sz]) => {
+    const edge = new THREE.Mesh(new THREE.CylinderGeometry(edgeR, edgeR, H, 6), edgeMat);
+    edge.position.set(sx * (W/2 - edgeR), 0, sz * (D/2 - edgeR));
+    group.add(edge);
+  });
+
+  // ── Top face — subtle matte panel ──
+  const topMat = new THREE.MeshStandardMaterial({ color: 0x111114, roughness: 0.7, metalness: 0.1 });
+  const topFace = new THREE.Mesh(new THREE.PlaneGeometry(W * 0.92, D * 0.88), topMat);
+  topFace.rotation.x = -Math.PI / 2;
+  topFace.position.y = H / 2 + 0.001; group.add(topFace);
+
+  // ── ON/OFF tactile button — raised circle on top ──
+  const btnBase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.042, 0.015, 16),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.5, metalness: 0.4 }));
+  btnBase.position.set(0.05, H / 2 + 0.008, 0);
+  group.add(btnBase);
+  // Button cap — slightly raised
+  const btnCap = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.034, 0.012, 16),
+    new THREE.MeshStandardMaterial({ color: 0x222228, roughness: 0.4, metalness: 0.5 }));
+  btnCap.position.set(0.05, H / 2 + 0.018, 0);
+  group.add(btnCap);
+  // Power icon ring on button (subtle)
+  const iconRing = new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.002, 6, 16),
+    new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.4, metalness: 0.3 }));
+  iconRing.rotation.x = -Math.PI / 2;
+  iconRing.position.set(0.05, H / 2 + 0.025, 0);
+  group.add(iconRing);
+
+  // ── LED indicator — small dome, starts dim (lights up during Power On step) ──
+  const ledGlow = new THREE.MeshStandardMaterial({
+    color: 0x331111, emissive: 0xff1111, emissiveIntensity: 0.15, roughness: 0.3 });
+  const led = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 8), ledGlow);
+  led.position.set(-0.08, H / 2 + 0.006, 0);
+  group.add(led);
+  // LED lens surround
+  const ledRing = new THREE.Mesh(new THREE.TorusGeometry(0.014, 0.003, 6, 12),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.5, metalness: 0.4 }));
+  ledRing.rotation.x = -Math.PI / 2;
+  ledRing.position.set(-0.08, H / 2 + 0.002, 0);
+  group.add(ledRing);
+
+  // ── USB-C port recesses — both short ends ──
+  const portMat = new THREE.MeshStandardMaterial({ color: 0x333338, roughness: 0.3, metalness: 0.7 });
+  const portInner = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.5, metalness: 0.5 });
+  // Input side (-X)
+  const portInOuter = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.035, 0.07), portMat);
+  portInOuter.position.set(-W / 2 - 0.002, -0.005, 0); group.add(portInOuter);
+  const portInInner = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.018, 0.05), portInner);
+  portInInner.position.set(-W / 2 - 0.005, -0.005, 0); group.add(portInInner);
+  // Output side (+X)
+  const portOutOuter = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.035, 0.07), portMat);
+  portOutOuter.position.set(W / 2 + 0.002, -0.005, 0); group.add(portOutOuter);
+  const portOutInner = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.018, 0.05), portInner);
+  portOutInner.position.set(W / 2 + 0.005, -0.005, 0); group.add(portOutInner);
+
+  // ── "CanaKit" label on front face ──
+  const ckCanvas = document.createElement('canvas');
+  ckCanvas.width = 256; ckCanvas.height = 64;
+  const ckCtx = ckCanvas.getContext('2d');
+  ckCtx.fillStyle = 'rgba(255,255,255,0.45)';
+  ckCtx.font = 'bold 28px sans-serif';
+  ckCtx.textAlign = 'center';
+  ckCtx.fillText('CanaKit', 128, 38);
+  const ckTex = new THREE.CanvasTexture(ckCanvas);
+  const ckLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.28, 0.06),
+    new THREE.MeshBasicMaterial({ map: ckTex, transparent: true, depthWrite: false }));
+  ckLabel.position.set(0, 0, D / 2 + 0.001);
+  group.add(ckLabel);
+
+  // ── "PiSwitch" label on top face ──
+  const psCanvas = document.createElement('canvas');
+  psCanvas.width = 256; psCanvas.height = 64;
+  const psCtx = psCanvas.getContext('2d');
+  psCtx.fillStyle = 'rgba(255,255,255,0.35)';
+  psCtx.font = '20px sans-serif';
+  psCtx.textAlign = 'center';
+  psCtx.fillText('PiSwitch', 128, 38);
+  const psTex = new THREE.CanvasTexture(psCanvas);
+  const psLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.05),
+    new THREE.MeshBasicMaterial({ map: psTex, transparent: true, depthWrite: false }));
+  psLabel.rotation.x = -Math.PI / 2;
+  psLabel.position.set(-0.02, H / 2 + 0.002, -0.05);
+  group.add(psLabel);
+
+  // ── "ON / OFF" text near button ──
+  const ooCanvas = document.createElement('canvas');
+  ooCanvas.width = 128; ooCanvas.height = 32;
+  const ooCtx = ooCanvas.getContext('2d');
+  ooCtx.fillStyle = 'rgba(255,255,255,0.3)';
+  ooCtx.font = '11px sans-serif';
+  ooCtx.textAlign = 'center';
+  ooCtx.fillText('ON / OFF', 64, 22);
+  const ooTex = new THREE.CanvasTexture(ooCanvas);
+  const ooLabel = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.03),
+    new THREE.MeshBasicMaterial({ map: ooTex, transparent: true, depthWrite: false }));
+  ooLabel.rotation.x = -Math.PI / 2;
+  ooLabel.position.set(0.05, H / 2 + 0.002, 0.055);
+  group.add(ooLabel);
+
+  // ── Bottom — rubber pads ──
+  const padMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.95, metalness: 0 });
+  [[-0.1, -0.05], [-0.1, 0.05], [0.1, -0.05], [0.1, 0.05]].forEach(([x, z]) => {
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.005, 8), padMat);
+    pad.position.set(x, -H / 2 - 0.002, z);
+    group.add(pad);
+  });
+
+  // Orient switch so USB-C ports face along cable direction (roughly +X toward bank, -X toward Pi)
+  group.position.copy(PISWITCH_POS);
+  group.rotation.copy(PISWITCH_ROT);
+  return group;
+}
+
+function createPVCMast() {
+  const group = new THREE.Group(); group.name = 'pvc-mast';
+  const pM = new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.7, metalness: 0.05 });
+  const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4.0, 12), pM);
+  pipe.position.set(0, 2.0, 0); pipe.castShadow = true; group.add(pipe);
+  const tH = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.5, 12), pM);
+  tH.rotation.z = Math.PI / 2; group.add(tH);
+  group.add(new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), pM));
+  const zM = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+  [0.5, 1.5, 2.5, 3.5].forEach(y => {
+    const z = new THREE.Mesh(new THREE.TorusGeometry(0.065, 0.008, 6, 16), zM);
+    z.position.set(0, y, 0); group.add(z);
+  });
+  group.position.set(-1.2, 0.1, 0); return group;
+}
+
+function createPanTiltCamera() {
+  const group = new THREE.Group(); group.name = 'pan-tilt-camera';
+  const sM = new THREE.MeshStandardMaterial({ color: 0x222288, roughness: 0.6, metalness: 0.2 });
+  const pan = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.12, 0.2), sM);
+  pan.castShadow = true; group.add(pan);
+  const tilt = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.1, 0.15), sM);
+  tilt.position.set(0, 0.15, 0); group.add(tilt);
+  const brk = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.04, 0.25),
+    new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.5, metalness: 0.6 }));
+  brk.position.set(0, 0.23, 0); group.add(brk);
+  const cam = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.04, 0.28),
+    new THREE.MeshStandardMaterial({ color: 0x0a6e0a, roughness: 0.5, metalness: 0.1 }));
+  cam.position.set(0, 0.27, 0); cam.castShadow = true; group.add(cam);
+  const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.04, 16),
+    new THREE.MeshStandardMaterial({ color: 0x111122, roughness: 0.2, metalness: 0.8 }));
+  lens.rotation.x = Math.PI / 2; lens.position.set(0, 0.27, -0.16); group.add(lens);
+  const glass = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.01, 16),
+    new THREE.MeshStandardMaterial({ color: 0x3344aa, roughness: 0.1, metalness: 0.9 }));
+  glass.rotation.x = Math.PI / 2; glass.position.set(0, 0.27, -0.185); group.add(glass);
+  const rib = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.8, 0.005),
+    new THREE.MeshStandardMaterial({ color: 0xf5f0e0, roughness: 0.8 }));
+  rib.position.set(0, -0.15, 0.12); group.add(rib);
+  group.position.set(-1.2, 4.1, 0); return group;
+}
+
+function createWiringHarness() {
+  const group = new THREE.Group(); group.name = 'wiring-harness';
+
+  function wireMat(color) {
+    return new THREE.MeshStandardMaterial({ color, roughness: 0.65, metalness: 0.05 });
+  }
+
+  function addWire(points, color, radius, sagOverride) {
+    radius = radius || 0.012;
+    const vecs = points.map(p => new THREE.Vector3(...p));
+    // Apply catenary sag between first and last points, keeping user waypoints as guides
+    const start = vecs[0], end = vecs[vecs.length - 1];
+    const sagPts = catenaryPoints(start, end, { sag: sagOverride || 0.1, segments: 6 });
+    const curve = new THREE.CatmullRomCurve3(sagPts, false, 'catmullrom', 0.35);
+    const geo = new THREE.TubeGeometry(curve, 40, radius, 6, false);
+    const mesh = new THREE.Mesh(geo, wireMat(color));
+    mesh.castShadow = true;
+    group.add(mesh);
+    return mesh;
+  }
+
+  // Pi GPIO header is at approx Y=0.57 (on upper plate), centered at X≈-0.5, Z≈-0.25
+  // L298N motor driver is at approx Y=0.35, X≈-0.7, Z≈0.6
+  // HC-SR04 is at front of chassis approx Y=0.2, X≈0, Z≈-1.3
+  // Servos are up on the mast
+
+  const GPIO_Y = 0.60;   // GPIO header height
+  const GPIO_X = -0.5;   // GPIO header X center
+  const GPIO_Z = -0.25;  // GPIO header Z
+  const L298N_Y = 0.38;  // Motor driver height
+  const L298N_X = -0.7;  // Motor driver X
+  const L298N_Z = 0.55;  // Motor driver Z
+
+  // ── Motor wires: GPIO → L298N ──
+  // GPIO 17 (left fwd) → L298N IN1 — blue
+  addWire([
+    [GPIO_X - 0.12, GPIO_Y, GPIO_Z],
+    [GPIO_X - 0.12, GPIO_Y + 0.08, GPIO_Z + 0.15],
+    [L298N_X - 0.15, L298N_Y + 0.12, L298N_Z - 0.15],
+    [L298N_X - 0.15, L298N_Y, L298N_Z],
+  ], 0x2d5fa0);
+
+  // GPIO 27 (left bwd) → L298N IN2 — light blue
+  addWire([
+    [GPIO_X - 0.08, GPIO_Y, GPIO_Z],
+    [GPIO_X - 0.08, GPIO_Y + 0.06, GPIO_Z + 0.2],
+    [L298N_X - 0.05, L298N_Y + 0.1, L298N_Z - 0.15],
+    [L298N_X - 0.05, L298N_Y, L298N_Z],
+  ], 0x3a7daa);
+
+  // GPIO 22 (right fwd) → L298N IN3 — orange
+  addWire([
+    [GPIO_X + 0.02, GPIO_Y, GPIO_Z],
+    [GPIO_X + 0.02, GPIO_Y + 0.1, GPIO_Z + 0.15],
+    [L298N_X + 0.05, L298N_Y + 0.12, L298N_Z - 0.15],
+    [L298N_X + 0.05, L298N_Y, L298N_Z],
+  ], 0xd4792a);
+
+  // GPIO 23 (right bwd) → L298N IN4 — yellow
+  addWire([
+    [GPIO_X + 0.06, GPIO_Y, GPIO_Z],
+    [GPIO_X + 0.06, GPIO_Y + 0.08, GPIO_Z + 0.2],
+    [L298N_X + 0.15, L298N_Y + 0.1, L298N_Z - 0.15],
+    [L298N_X + 0.15, L298N_Y, L298N_Z],
+  ], 0xc5a832);
+
+  // ── Motor leads: L298N OUT → Motors ──
+  // Left motors (front + rear) — orange pair
+  addWire([
+    [L298N_X - 0.2, L298N_Y, L298N_Z + 0.05],
+    [L298N_X - 0.4, L298N_Y - 0.1, L298N_Z + 0.1],
+    [-1.35, 0.12, -0.7],
+    [-1.4, 0.08, -0.9],
+  ], 0xdd8800);
+  addWire([
+    [L298N_X - 0.2, L298N_Y, L298N_Z + 0.1],
+    [L298N_X - 0.4, L298N_Y - 0.1, L298N_Z + 0.2],
+    [-1.35, 0.12, 0.7],
+    [-1.4, 0.08, 0.9],
+  ], 0xdd8800);
+
+  // Right motors (front + rear) — gold pair
+  addWire([
+    [L298N_X + 0.2, L298N_Y, L298N_Z + 0.05],
+    [L298N_X + 0.5, L298N_Y - 0.1, L298N_Z + 0.1],
+    [1.35, 0.12, -0.7],
+    [1.4, 0.08, -0.9],
+  ], 0xddaa00);
+  addWire([
+    [L298N_X + 0.2, L298N_Y, L298N_Z + 0.1],
+    [L298N_X + 0.5, L298N_Y - 0.1, L298N_Z + 0.2],
+    [1.35, 0.12, 0.7],
+    [1.4, 0.08, 0.9],
+  ], 0xddaa00);
+
+  // ── HC-SR04: GPIO 24 (echo), GPIO 25 (trigger) ──
+  const HC_X = 0, HC_Y = 0.22, HC_Z = -1.2;
+
+  // Trigger wire — GPIO 25 → HC-SR04 — purple
+  addWire([
+    [GPIO_X + 0.14, GPIO_Y, GPIO_Z],
+    [GPIO_X + 0.14, GPIO_Y + 0.05, GPIO_Z - 0.3],
+    [HC_X + 0.03, HC_Y + 0.15, HC_Z + 0.3],
+    [HC_X + 0.03, HC_Y, HC_Z],
+  ], 0x8e44ad);
+
+  // Echo wire — GPIO 24 → voltage divider → HC-SR04 — light purple
+  addWire([
+    [GPIO_X + 0.10, GPIO_Y, GPIO_Z],
+    [GPIO_X + 0.10, GPIO_Y + 0.07, GPIO_Z - 0.25],
+    [HC_X - 0.03, HC_Y + 0.15, HC_Z + 0.3],
+    [HC_X - 0.03, HC_Y, HC_Z],
+  ], 0xa855f7);
+
+  // 5V wire → HC-SR04 VCC — red
+  addWire([
+    [GPIO_X - 0.2, GPIO_Y, GPIO_Z],
+    [GPIO_X - 0.2, GPIO_Y + 0.04, GPIO_Z - 0.2],
+    [HC_X - 0.08, HC_Y + 0.1, HC_Z + 0.3],
+    [HC_X - 0.08, HC_Y, HC_Z],
+  ], 0xe74c3c);
+
+  // GND wire → HC-SR04 GND — black
+  addWire([
+    [GPIO_X - 0.16, GPIO_Y, GPIO_Z],
+    [GPIO_X - 0.16, GPIO_Y + 0.03, GPIO_Z - 0.15],
+    [HC_X + 0.08, HC_Y + 0.08, HC_Z + 0.3],
+    [HC_X + 0.08, HC_Y, HC_Z],
+  ], 0x222222);
+
+  // ── Pan/Tilt servo wires: GPIO 12 + 13 → up the mast ──
+  // Servos are at top of PVC mast, ~Y=3.8
+  addWire([
+    [GPIO_X - 0.04, GPIO_Y, GPIO_Z],
+    [GPIO_X - 0.04, GPIO_Y + 0.15, GPIO_Z + 0.05],
+    [-0.05, 1.5, 0.05],
+    [-0.05, 3.0, 0.02],
+    [-0.05, 3.8, 0.0],
+  ], 0x3a7d44); // pan — green
+
+  addWire([
+    [GPIO_X, GPIO_Y, GPIO_Z],
+    [GPIO_X, GPIO_Y + 0.15, GPIO_Z + 0.08],
+    [0.05, 1.5, 0.08],
+    [0.05, 3.0, 0.05],
+    [0.05, 3.8, 0.02],
+  ], 0x5aad64); // tilt — light green
+
+  // ── CSI ribbon cable: Pi → up mast to camera ──
+  addWire([
+    [GPIO_X + 0.3, GPIO_Y - 0.05, GPIO_Z + 0.15],
+    [GPIO_X + 0.3, GPIO_Y + 0.1, GPIO_Z + 0.1],
+    [0.0, 1.2, 0.0],
+    [0.0, 2.5, -0.02],
+    [0.0, 3.8, -0.05],
+  ], 0x9b59b6, 0.02); // CSI ribbon is wider
+
+  // ── GND bus: Pi GND → L298N GND (common ground) — black ──
+  addWire([
+    [GPIO_X - 0.18, GPIO_Y, GPIO_Z],
+    [GPIO_X - 0.18, GPIO_Y + 0.05, GPIO_Z + 0.3],
+    [L298N_X, L298N_Y + 0.08, L298N_Z - 0.1],
+    [L298N_X, L298N_Y, L298N_Z],
+  ], 0x1a1a1a, 0.015);
+
+  // ── Battery power: battery pack → L298N 12V — red/black pair ──
+  const BATT_X = 0.6, BATT_Y = 0.15, BATT_Z = 0.4;
+  addWire([
+    [BATT_X, BATT_Y, BATT_Z],
+    [BATT_X - 0.3, BATT_Y + 0.1, BATT_Z + 0.1],
+    [L298N_X + 0.1, L298N_Y + 0.05, L298N_Z + 0.1],
+    [L298N_X + 0.1, L298N_Y, L298N_Z],
+  ], 0xcc2222, 0.015); // red = positive
+
+  addWire([
+    [BATT_X + 0.05, BATT_Y, BATT_Z],
+    [BATT_X - 0.25, BATT_Y + 0.08, BATT_Z + 0.1],
+    [L298N_X + 0.2, L298N_Y + 0.05, L298N_Z + 0.1],
+    [L298N_X + 0.2, L298N_Y, L298N_Z],
+  ], 0x1a1a1a, 0.015); // black = negative
+
+  return group;
+}
+
+// ─── Assemble Full Bot (final step from assembly.html) ───
 const bot = new THREE.Group();
 
-// --- Chassis GLB (Meshy AI LK-COKOINO 4WD) ---
-let chassisTopY = 2.1; // default, updated after GLB loads
+// Load GLB chassis
+let chassisGroup = null;
+let chassisReady = false;
+let chassisTopY = 1.0;
+
 const gltfLoader = new GLTFLoader();
 gltfLoader.load('../glb/Meshy_AI_Modular_robot_car_0315155200_generate.glb', (gltf) => {
-  const chassis = gltf.scene;
-  const box = new THREE.Box3().setFromObject(chassis);
+  chassisGroup = gltf.scene;
+  const box = new THREE.Box3().setFromObject(chassisGroup);
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
   const targetSize = 4.0;
   const scale = targetSize / maxDim;
-  chassis.scale.setScalar(scale);
-  chassis.position.set(
-    -center.x * scale,
-    -box.min.y * scale,
-    -center.z * scale
-  );
-  chassis.traverse(child => {
-    if (child.isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    }
-  });
-  chassis.name = 'chassis-glb';
-  bot.add(chassis);
+  chassisGroup.scale.setScalar(scale);
+  chassisGroup.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+  chassisGroup.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+  chassisGroup.name = 'chassis-glb';
+  bot.add(chassisGroup);
 
-  // Recalculate top of chassis for upper-plate components
-  const loadedBox = new THREE.Box3().setFromObject(chassis);
-  chassisTopY = loadedBox.max.y + 0.05;
+  const chassisBox = new THREE.Box3().setFromObject(chassisGroup);
+  chassisTopY = chassisBox.max.y;
+  chassisReady = true;
+}, undefined, (err) => console.warn('Chassis GLB failed:', err.message));
 
-  // Reposition upper-plate components relative to chassis top
-  if (piBoard) piBoard.position.y = chassisTopY + 0.05;
-  if (piSoC) piSoC.position.y = chassisTopY + 0.08;
-  if (coolerBase) coolerBase.position.y = chassisTopY + 0.11;
-  if (connBoard) connBoard.position.y = chassisTopY + 0.04;
-  if (powerBank) powerBank.position.y = chassisTopY + 0.13;
-  if (ankerLabel) ankerLabel.position.y = chassisTopY + 0.225;
-  if (mastBase) mastBase.position.y = chassisTopY + 0.17;
-  if (panServo) panServo.position.y = chassisTopY + 0.36;
-  if (tiltBracket) tiltBracket.position.y = chassisTopY + 0.47;
-  if (camBody) camBody.position.y = chassisTopY + 0.58;
-  if (lens) lens.position.y = chassisTopY + 0.58;
-  if (usBody) usBody.position.y = chassisTopY + 0.28;
-  if (usSensor1) usSensor1.position.y = chassisTopY + 0.28;
-  if (usSensor2) usSensor2.position.y = chassisTopY + 0.28;
-  if (ledStrip) ledStrip.position.y = chassisTopY + 0.02;
-  // Cooler fins
-  coolerFins.forEach((fin, i) => { fin.position.y = chassisTopY + 0.21; });
-  if (fanHousing) fanHousing.position.y = chassisTopY + 0.3;
-  if (fanBlades) fanBlades.position.y = chassisTopY + 0.3;
-  if (usbc) usbc.position.y = chassisTopY + 0.06;
-});
+// Add all components at their assembly.html positions
+const piGroup = createRaspberryPi5();
+piGroup.position.set(0.2914, 1.0199, 0.0172);
+piGroup.rotation.y = 0;
+bot.add(piGroup);
 
-// (Smart car board + batteries are part of the GLB chassis model)
-
-// --- Raspberry Pi 5 (on upper plate) ---
-const piBoard = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.04, 0.56), piMat);
-piBoard.position.set(-0.3, 2.15, 0.4);
-piBoard.castShadow = true;
-bot.add(piBoard);
-
-// Pi chips
-const piSoC = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.025, 0.16), metalMat);
-piSoC.position.set(-0.3, 2.18, 0.4);
-bot.add(piSoC);
-
-// --- Active Cooler on Pi ---
-const coolerBase = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.06, 0.45), coolMat);
-coolerBase.position.set(-0.3, 2.21, 0.4);
-coolerBase.castShadow = true;
-bot.add(coolerBase);
-
-// Cooler fins
-const coolerFins = [];
-for (let i = 0; i < 6; i++) {
-  const fin = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.14, 0.42), coolMat);
-  fin.position.set(-0.3 - 0.18 + i * 0.072, 2.31, 0.4);
-  bot.add(fin);
-  coolerFins.push(fin);
-}
-
-// Fan on cooler
-const fanHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 20, 1, true), darkMat);
-fanHousing.position.set(-0.3, 2.4, 0.4);
-bot.add(fanHousing);
-
-const fanBlades = new THREE.Group();
-fanBlades.position.set(-0.3, 2.4, 0.4);
-for (let i = 0; i < 5; i++) {
-  const a = (i / 5) * Math.PI * 2;
-  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.008, 0.03), darkMat);
-  blade.position.set(Math.cos(a) * 0.08, 0, Math.sin(a) * 0.08);
-  blade.rotation.y = a;
-  fanBlades.add(blade);
-}
-bot.add(fanBlades);
-
-// USB-C port hint
-const usbc = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.03, 0.04), metalMat);
-usbc.position.set(-0.3 + 0.44, 2.16, 0.4);
-bot.add(usbc);
-
-// --- Connection Board (upper plate, center) ---
-const connBoard = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.03, 0.5), pcbMat);
-connBoard.position.set(0.5, 2.14, 0.0);
-bot.add(connBoard);
-
-// --- Power bank (upper plate, rear) ---
-const powerBank = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 1.0), new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.4, metalness: 0.3 }));
-powerBank.position.set(0.0, 2.23, -0.8);
-powerBank.castShadow = true;
+const powerBank = createPowerBank();
 bot.add(powerBank);
 
-// Anker label
-const ankerLabel = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.005, 0.06), new THREE.MeshStandardMaterial({ color: 0xa1a1aa, roughness: 0.5 }));
-ankerLabel.position.set(0.0, 2.325, -0.6);
-bot.add(ankerLabel);
+const piSwitch = createPiSwitch();
+bot.add(piSwitch);
 
-// --- Pan-Tilt Camera Mast (front) ---
-const mastBase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.28, 10), metalMat);
-mastBase.position.set(0, 2.27, 1.3);
-mastBase.castShadow = true;
-bot.add(mastBase);
+const l298n = createL298N();
+bot.add(l298n);
 
-// Pan servo
-const panServo = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 0.08), darkMat);
-panServo.position.set(0, 2.46, 1.3);
-bot.add(panServo);
+const hcsr04 = createHCSR04();
+bot.add(hcsr04);
 
-// Tilt bracket
-const tiltBracket = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.12, 0.04), metalMat);
-tiltBracket.position.set(0, 2.57, 1.3);
-bot.add(tiltBracket);
+const batteryPack = createBatteryPack();
+bot.add(batteryPack);
 
-// Camera module
-const camBody = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.18, 0.04), camMat);
-camBody.position.set(0, 2.68, 1.34);
-camBody.castShadow = true;
-bot.add(camBody);
+const pvcMast = createPVCMast();
+bot.add(pvcMast);
 
-// Lens dot (flush circle on camera face)
-const lens = new THREE.Mesh(new THREE.CircleGeometry(0.03, 16), lensMat);
-lens.position.set(0, 2.68, 1.365);
-bot.add(lens);
+const panTiltCamera = createPanTiltCamera();
+bot.add(panTiltCamera);
 
-// --- HC-SR04 Ultrasonic (on pan servo, below camera) ---
-const usBody = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.1, 0.03), pcbMat);
-usBody.position.set(0, 2.38, 1.34);
-usBody.castShadow = true;
-bot.add(usBody);
-
-const usSensor1 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16), metalMat);
-usSensor1.rotation.x = Math.PI / 2; usSensor1.position.set(-0.08, 2.38, 1.36);
-bot.add(usSensor1);
-
-const usSensor2 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.03, 16), metalMat);
-usSensor2.rotation.x = Math.PI / 2; usSensor2.position.set(0.08, 2.38, 1.36);
-bot.add(usSensor2);
-
-// --- Accent: small LED strip ---
-const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.02, 0.02), accentMat);
-ledStrip.position.set(0, 2.12, 1.5);
-bot.add(ledStrip);
+const wiringHarness = createWiringHarness();
+bot.add(wiringHarness);
 
 bot.position.y = -0.15;
 scene.add(bot);
@@ -1101,9 +2167,6 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   const elapsed = clock.getElapsedTime();
-
-  // Fan spins
-  fanBlades.rotation.y += 12 * delta;
 
   controls.update();
   renderer.render(scene, camera);
