@@ -227,7 +227,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* Info Panel */
 .info-panel{flex-shrink:0;padding:4px 32px 2px;max-height:105px;overflow-y:auto}
-.info-box{background:var(--bg-card);border-radius:var(--radius);padding:10px 16px;box-shadow:var(--shadow);opacity:0;transform:translateY(12px);transition:opacity .4s var(--ease-out-quart) .15s,transform .4s var(--ease-out-quart) .15s}
+.info-box{background:transparent;border-radius:var(--radius);padding:10px 16px;box-shadow:none;opacity:0;transform:translateY(12px);transition:opacity .4s var(--ease-out-quart) .15s,transform .4s var(--ease-out-quart) .15s}
 .info-box.visible{opacity:1;transform:translateY(0)}
 .info-text{font-size:.8125rem;line-height:1.5;color:var(--text)}
 .info-text strong{font-weight:700;color:var(--accent)}
