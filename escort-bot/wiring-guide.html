@@ -1300,7 +1300,7 @@ function buildDiagram(type){
   case 'full-pinmap': {
     const usedPins=[2,3,4,5,6,9,11,14,15,16,18,20,22,37];
     // === LAYOUT: Pi (left) → Breadboard (center) → Components (right) → Peripherals (far right) ===
-    const W=960,H=640;
+    const W=960,H=700;
     // --- Pi Header (left) ---
     const ox=10,oy=20,bw=120,bh=270,pinR=4,pinGap=12.5,colGap=16,padX=18,padTop=20;
     let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="7" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
@@ -1337,8 +1337,8 @@ function buildDiagram(type){
     c+=`<text x="${ox+bw/2}" y="${oy+bh+14}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(155,89,182,.5)">CSI \u2192 Camera</text>`;
     c+=`<text x="${ox+bw/2}" y="${oy+bh+24}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(120,144,156,.5)">USB-C \u2192 Anker 10K</text>`;
     // --- Breadboard (center) — 30 rows x 4 cols (a-d) x 2 sides ---
-    const bbx=230,bby=8,holeR=2,holeGap=8,colGap_bb=8;
-    const bbCols=4,bbRowCount=30,chanGap=12;
+    const bbx=230,bby=8,holeR=1.8,holeGap=10,colGap_bb=10;
+    const bbCols=4,bbRowCount=30,chanGap=14;
     const bbPadX=14,bbPadTop=20;
     const bbw=bbPadX*2+bbCols*colGap_bb+chanGap+bbCols*colGap_bb;
     const bbh=bbPadTop+bbRowCount*holeGap+10;
@@ -1388,12 +1388,11 @@ function buildDiagram(type){
         const colLetter=colLabels[ci_];
         const isUsed=ru&&ru.holes&&ru.holes[colLetter];
         if(isUsed){
-          // Active hole — large, colored, with glow ring
-          c+=`<circle cx="${cx_}" cy="${ry}" r="3.5" fill="${ru.c}" opacity=".15"/>`;
-          c+=`<circle cx="${cx_}" cy="${ry}" r="${holeR+.5}" fill="${ru.c}" stroke="${ru.c}" stroke-width=".6" opacity=".85"/>`;
+          // Active hole — filled dot with bright outline
+          c+=`<circle cx="${cx_}" cy="${ry}" r="${holeR}" fill="${ru.c}" stroke="#fff" stroke-width=".5" opacity=".9"/>`;
         } else {
-          // Empty hole — subtle square cutout
-          c+=`<rect x="${cx_-1}" y="${ry-1}" width="2" height="2" rx=".4" fill="rgba(0,0,0,.15)" stroke="rgba(212,165,116,${ru?'.12':'.06'})" stroke-width=".3"/>`;
+          // Empty hole — dark pit
+          c+=`<circle cx="${cx_}" cy="${ry}" r="1.2" fill="rgba(0,0,0,.25)" opacity="${ru?'.4':'.15'}"/>`;
         }
       }
       // Row label on right side (only for used rows)
@@ -1520,7 +1519,7 @@ function buildDiagram(type){
       c+=wirePath(rcx+cardW,l298nTopY+30+mi*20,mx,m.y+20,motorColor,1.1+mi*0.1,false);
     });
     // --- Voltage divider callout (under HC-SR04 area) ---
-    const vdx=440,vdy=510;
+    const vdx=440,vdy=560;
     c+=`<rect x="${vdx}" y="${vdy}" width="180" height="28" rx="4" fill="rgba(168,85,247,.06)" stroke="rgba(168,85,247,.2)" stroke-width=".8" class="stagger" style="--del:1.3s"/>`;
     c+=`<text x="${vdx+8}" y="${vdy+12}" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="#a855f7" class="stagger" style="--del:1.35s">\u26A0 ECHO VOLTAGE DIVIDER</text>`;
     c+=`<text x="${vdx+8}" y="${vdy+22}" font-family="var(--mono)" font-size="5" fill="rgba(168,85,247,.4)" class="stagger" style="--del:1.4s">ECHO (5V) \u2192 [1k\u03A9] \u2192 GPIO26 (3.3V) \u2192 [2k\u03A9] \u2192 GND</text>`;
