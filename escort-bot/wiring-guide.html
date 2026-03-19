@@ -1300,7 +1300,7 @@ function buildDiagram(type){
   case 'full-pinmap': {
     const usedPins=[2,3,4,5,6,9,11,14,15,16,18,20,22,37];
     // === LAYOUT: Pi (left) → Breadboard (center) → Components (right) → Peripherals (far right) ===
-    const W=960,H=500;
+    const W=960,H=580;
     // --- Pi Header (left) ---
     const ox=10,oy=20,bw=120,bh=270,pinR=4,pinGap=12.5,colGap=16,padX=18,padTop=20;
     let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="7" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
