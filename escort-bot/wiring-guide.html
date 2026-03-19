@@ -1376,18 +1376,55 @@ function buildDiagram(type){
       card.pins.forEach((p,j)=>{const py=baseY+32+j*10;s+=`<circle cx="${x+8}" cy="${py}" r="2.5" fill="${p.c}" opacity=".7"/>`;s+=`<text x="${x+14}" y="${py+3}" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.45)">Pin ${p.pin}</text>`;});
       return {svg:s,h:ch};
     }
+    // Breadboard nodes for shared pins — one wire from Pi, two wires fan out
+    const sharedPins={2:true,3:true,5:true};
+    const bbPos={};const bbW=28,bbH=12;
+    [2,3,5].forEach(pin=>{
+      const pp=pinPos(pin);
+      // Pin 2 is right-column, pins 3/5 are left-column
+      const isRight=pin===2;
+      const bx=isRight?pp.x+pinR+32:pp.x-pinR-32-bbW;
+      const by=pp.y-bbH/2;
+      bbPos[pin]={x:isRight?bx:bx+bbW, y:pp.y, bx:bx};
+      // BB node rect
+      c+=`<rect x="${bx}" y="${by}" width="${bbW}" height="${bbH}" rx="3" fill="rgba(212,165,116,.15)" stroke="#d4a574" stroke-width="1" class="stagger" style="--del:0.3s"/>`;
+      c+=`<text x="${bx+bbW/2}" y="${pp.y+3}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="#d4a574">BB</text>`;
+      // Single wire from Pi pin to BB node
+      const wx=isRight?pp.x+pinR+1:pp.x-pinR-1;
+      const bex=isRight?bx:bx+bbW;
+      c+=wirePath(wx,pp.y,bex,pp.y,'#d4a574',0.2,true);
+    });
     // Left cards
     let ly=10;
     leftCards.forEach((card,i)=>{
       const d=drawCard(card,4,ly,i*0.2);c+=d.svg;
-      card.pins.forEach((p,j)=>{const pp=pinPos(p.pin);c+=wirePath(4+cardW,ly+32+j*10,pp.x-pinR-1,pp.y,p.c,0.4+i*0.15+j*0.05,false);});
+      card.pins.forEach((p,j)=>{
+        const fromX=4+cardW,fromY=ly+32+j*10;
+        if(sharedPins[p.pin]){
+          // Wire to BB node instead of pin
+          const bb=bbPos[p.pin];
+          c+=wirePath(fromX,fromY,bb.bx,bb.y,p.c,0.4+i*0.15+j*0.05,false);
+        } else {
+          const pp=pinPos(p.pin);
+          c+=wirePath(fromX,fromY,pp.x-pinR-1,pp.y,p.c,0.4+i*0.15+j*0.05,false);
+        }
+      });
       ly+=d.h+cardGap;
     });
     // Right cards
     const rcx=ox+bw+80;let ry=10;
     rightCards.forEach((card,i)=>{
       const d=drawCard(card,rcx,ry,0.6+i*0.2);c+=d.svg;
-      card.pins.forEach((p,j)=>{const pp=pinPos(p.pin);c+=wirePath(pp.x+pinR+1,pp.y,rcx,ry+32+j*10,p.c,0.7+i*0.15+j*0.05,false);});
+      card.pins.forEach((p,j)=>{
+        const toX=rcx,toY=ry+32+j*10;
+        if(sharedPins[p.pin]){
+          const bb=bbPos[p.pin];
+          c+=wirePath(bb.bx+bbW,bb.y,toX,toY,p.c,0.7+i*0.15+j*0.05,false);
+        } else {
+          const pp=pinPos(p.pin);
+          c+=wirePath(pp.x+pinR+1,pp.y,toX,toY,p.c,0.7+i*0.15+j*0.05,false);
+        }
+      });
       ry+=d.h+cardGap;
     });
     // Legend
