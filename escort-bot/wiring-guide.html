@@ -1299,10 +1299,10 @@ function buildDiagram(type){
   }
   case 'full-pinmap': {
     const usedPins=[2,3,4,5,6,9,11,14,15,16,18,20,22,37];
-    // === LAYOUT: Pi (left) → Breadboard (center) → Components (right) ===
-    const W=760,H=380;
+    // === LAYOUT: Pi (left) → Breadboard (center) → Components (right) → Peripherals (far right) ===
+    const W=960,H=500;
     // --- Pi Header (left) ---
-    const ox=8,oy=16,bw=120,bh=270,pinR=4,pinGap=12.5,colGap=16,padX=18,padTop=20;
+    const ox=10,oy=20,bw=120,bh=270,pinR=4,pinGap=12.5,colGap=16,padX=18,padTop=20;
     let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="7" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
     c+=`<text x="${ox+bw/2}" y="${oy+13}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="8" fill="rgba(255,255,255,.5)" letter-spacing=".08em">RASPBERRY PI 5</text>`;
     const pinUse={
@@ -1319,7 +1319,7 @@ function buildDiagram(type){
       const row=Math.floor(idx/2);const isRight=idx%2===1;
       return {x:ox+(isRight?padX+colGap:padX), y:oy+padTop+row*pinGap};
     }
-    // Render all 40 pins with labels on right side of header only
+    // Render all 40 pins
     for(let i=0;i<PI_PINS.length;i+=2){
       const row=i/2,cy=oy+padTop+row*pinGap;
       const lp=PI_PINS[i],rp=PI_PINS[i+1];
@@ -1327,61 +1327,41 @@ function buildDiagram(type){
       const lUsed=usedPins.includes(lp[0]),rUsed=usedPins.includes(rp[0]);
       c+=`<circle cx="${lx_}" cy="${cy}" r="${pinR}" fill="${lUsed?PIN_COLORS[lp[2]]:'var(--pin-inactive)'}" ${lUsed?'class="pin-active" style="--glow-color:'+PIN_COLORS[lp[2]]+'"':'opacity=".3"'}/>`;
       c+=`<circle cx="${rx_}" cy="${cy}" r="${pinR}" fill="${rUsed?PIN_COLORS[rp[2]]:'var(--pin-inactive)'}" ${rUsed?'class="pin-active" style="--glow-color:'+PIN_COLORS[rp[2]]+'"':'opacity=".3"'}/>`;
-      // Pin numbers inside header
       c+=`<text x="${lx_-pinR-2}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="5.5" font-weight="600" fill="${lUsed?'#fff':'rgba(255,255,255,.18)'}">${lp[0]}</text>`;
       c+=`<text x="${rx_+pinR+2}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="5.5" font-weight="600" fill="${rUsed?'#fff':'rgba(255,255,255,.18)'}">${rp[0]}</text>`;
-      // GPIO labels to the right of the header
-      const pu=pinUse[rp[0]];
-      if(rUsed&&pu){
-        c+=`<text x="${ox+bw+4}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="6" font-weight="700" fill="${pu.c}">${pu.label}</text>`;
-      } else {
-        c+=`<text x="${ox+bw+4}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.1)">${rp[1]}</text>`;
-      }
-      // GPIO labels to the left of the header
-      const pul=pinUse[lp[0]];
-      if(lUsed&&pul){
-        c+=`<text x="${ox-4}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="6" font-weight="700" fill="${pul.c}">${pul.label}</text>`;
-      } else {
-        c+=`<text x="${ox-4}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.1)">${lp[1]}</text>`;
-      }
+      const pu=pinUse[rp[0]],pul=pinUse[lp[0]];
+      c+=pu&&rUsed?`<text x="${ox+bw+4}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="6" font-weight="700" fill="${pu.c}">${pu.label}</text>`:`<text x="${ox+bw+4}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.1)">${rp[1]}</text>`;
+      c+=pul&&lUsed?`<text x="${ox-4}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="6" font-weight="700" fill="${pul.c}">${pul.label}</text>`:`<text x="${ox-4}" y="${cy+3}" text-anchor="end" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.1)">${lp[1]}</text>`;
     }
+    // --- CSI + USB-C labels on Pi ---
+    c+=`<text x="${ox+bw/2}" y="${oy+bh+14}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(155,89,182,.5)">CSI \u2192 Camera</text>`;
+    c+=`<text x="${ox+bw/2}" y="${oy+bh+24}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(120,144,156,.5)">USB-C \u2192 Anker 10K</text>`;
     // --- Breadboard (center) ---
-    const bbx=210,bby=10,bbw=100,bbh=110;
-    const bbRowGap=10,bbRows=3,bbPadTop=30;
-    // Board outline — tan breadboard color
+    const bbx=240,bby=14,bbw=120,bbh=120;
     c+=`<rect x="${bbx}" y="${bby}" width="${bbw}" height="${bbh}" rx="5" fill="rgba(212,165,116,.06)" stroke="#d4a574" stroke-width="1.2" class="stagger" style="--del:0.2s"/>`;
     c+=`<text x="${bbx+bbw/2}" y="${bby+13}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="7.5" fill="#d4a574" letter-spacing=".06em">BREADBOARD</text>`;
     c+=`<text x="${bbx+bbw/2}" y="${bby+22}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(212,165,116,.4)">I2C + POWER BUS</text>`;
-    // Breadboard bus rows — 3 shared buses
     const busRows=[
-      {pin:3,label:'SDA BUS',sub:'Pin 3 \u2192 LCD + PTZ',c:'#3498db',devices:['I2C LCD','PTZ Board']},
-      {pin:5,label:'SCL BUS',sub:'Pin 5 \u2192 LCD + PTZ',c:'#2ecc71',devices:['I2C LCD','PTZ Board']},
-      {pin:2,label:'5V BUS',sub:'Pin 2 \u2192 HC-SR04 + PTZ',c:'#dc2626',devices:['HC-SR04','PTZ Board']},
+      {pin:3,label:'SDA BUS',c:'#3498db'},
+      {pin:5,label:'SCL BUS',c:'#2ecc71'},
+      {pin:2,label:'5V BUS',c:'#dc2626'},
     ];
-    const busStartY=bby+bbPadTop+4;
-    const busH=18,busGap=8;
+    const busStartY=bby+32,busH=20,busGap=6;
     const busPositions={};
     busRows.forEach((bus,i)=>{
       const by_=busStartY+i*(busH+busGap);
       busPositions[bus.pin]={x:bbx,y:by_+busH/2,right:bbx+bbw};
-      // Row background
-      c+=`<rect x="${bbx+6}" y="${by_}" width="${bbw-12}" height="${busH}" rx="3" fill="rgba(${bus.c==='#dc2626'?'220,38,38':bus.c==='#3498db'?'52,152,219':'46,204,113'},.08)" stroke="${bus.c}" stroke-width=".8" stroke-dasharray="3 2" class="stagger" style="--del:${0.3+i*0.1}s"/>`;
-      // 5 holes per row
-      for(let h=0;h<5;h++){
-        const hx=bbx+18+h*16,hy=by_+busH/2;
-        c+=`<circle cx="${hx}" cy="${hy}" r="2.5" fill="rgba(0,0,0,.3)" stroke="${bus.c}" stroke-width=".6" opacity=".6"/>`;
-      }
-      // Row label
+      c+=`<rect x="${bbx+8}" y="${by_}" width="${bbw-16}" height="${busH}" rx="3" fill="rgba(${bus.c==='#dc2626'?'220,38,38':bus.c==='#3498db'?'52,152,219':'46,204,113'},.08)" stroke="${bus.c}" stroke-width=".8" stroke-dasharray="3 2" class="stagger" style="--del:${0.3+i*0.1}s"/>`;
+      for(let h=0;h<5;h++){c+=`<circle cx="${bbx+22+h*18}" cy="${by_+busH/2}" r="2.5" fill="rgba(0,0,0,.3)" stroke="${bus.c}" stroke-width=".6" opacity=".6"/>`;}
       c+=`<text x="${bbx+bbw/2}" y="${by_-2}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="${bus.c}" opacity=".7">${bus.label}</text>`;
     });
-    // --- Wires: Pi → Breadboard bus rows (shared pins) ---
+    // Pi → Breadboard wires
     busRows.forEach((bus,i)=>{
-      const pp=pinPos(bus.pin);
-      const bp=busPositions[bus.pin];
-      c+=wirePath(pp.x+pinR+1,pp.y,bp.x+6,bp.y,bus.c,0.4+i*0.15,false);
+      const pp=pinPos(bus.pin),bp=busPositions[bus.pin];
+      c+=wirePath(pp.x+pinR+1,pp.y,bp.x+8,bp.y,bus.c,0.4+i*0.15,false);
     });
     // --- Component Cards (right side) ---
-    const rcx=340;
+    const rcx=440,cardW=110,cardGap=6;
     const components=[
       {name:'I2C LCD',sub:'addr 0x27',color:'#3498db',wires:[
         {bus:3,label:'SDA',c:'#3498db'},{bus:5,label:'SCL',c:'#2ecc71'},
@@ -1392,50 +1372,72 @@ function buildDiagram(type){
         {bus:2,label:'5V',c:'#dc2626'},{direct:20,label:'GND',c:'#4a5168'}
       ]},
       {name:'L298N',sub:'Motor Driver',color:'#4260f5',wires:[
-        {direct:11,label:'IN1',c:'#2741E7'},{direct:18,label:'IN2',c:'#4260f5'},
-        {direct:15,label:'IN3',c:'#e67e22'},{direct:16,label:'IN4',c:'#f1c40f'},
-        {direct:6,label:'GND',c:'#4a5168'}
+        {direct:11,label:'IN1 (GPIO17)',c:'#2741E7'},{direct:18,label:'IN2 (GPIO24)',c:'#4260f5'},
+        {direct:15,label:'IN3 (GPIO22)',c:'#e67e22'},{direct:16,label:'IN4 (GPIO23)',c:'#f1c40f'},
+        {direct:6,label:'GND',c:'#4a5168'},
+        {label:'+12V \u2190 Battery',c:'#dc2626'},{label:'GND \u2190 Battery',c:'#555'}
       ]},
       {name:'HC-SR04',sub:'Ultrasonic',color:'#8e44ad',wires:[
         {bus:2,label:'5V',c:'#dc2626'},{direct:9,label:'GND',c:'#4a5168'},
-        {direct:22,label:'TRIG',c:'#8e44ad'},{direct:37,label:'ECHO',c:'#a855f7'}
+        {direct:22,label:'TRIG (GPIO25)',c:'#8e44ad'},{direct:37,label:'ECHO (divider)',c:'#a855f7'}
       ]},
-      {name:'Camera',sub:'CSI Ribbon',color:'#9b59b6',wires:[]},
-      {name:'Anker 10K',sub:'USB-C 5V/3A',color:'#78909c',wires:[]},
-      {name:'Battery',sub:'2\u00d718650 7.4V',color:'#dc2626',wires:[]},
+      {name:'Camera',sub:'Arducam IMX708',color:'#9b59b6',wires:[
+        {label:'CSI ribbon \u2190 Pi',c:'#9b59b6'}
+      ]},
+      {name:'Anker 10K',sub:'Power Bank',color:'#78909c',wires:[
+        {label:'USB-C \u2192 Pi 5V/3A',c:'#78909c'}
+      ]},
+      {name:'Battery',sub:'2\u00d718650 7.4V',color:'#dc2626',wires:[
+        {label:'RED (+) \u2192 L298N +12V',c:'#dc2626'},{label:'BLK (\u2212) \u2192 L298N GND',c:'#555'}
+      ]},
     ];
-    const cardW=100,cardGap=4;let cy_=8;
+    let cy_=8;
     components.forEach((comp,ci)=>{
-      const wireH=comp.wires.length>0?comp.wires.length*9+4:0;
-      const ch=26+wireH;
-      // Card
-      c+=`<rect x="${rcx}" y="${cy_}" width="${cardW}" height="${ch}" rx="4" fill="rgba(10,14,26,.4)" stroke="${comp.color}" stroke-width="1" class="stagger" style="--del:${0.5+ci*0.1}s"/>`;
-      c+=`<text x="${rcx+cardW/2}" y="${cy_+12}" text-anchor="middle" font-family="var(--font)" font-weight="800" font-size="7.5" fill="${comp.color}">${comp.name}</text>`;
-      c+=`<text x="${rcx+cardW/2}" y="${cy_+21}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.25)">${comp.sub}</text>`;
-      if(!comp.wires.length){
-        c+=`<text x="${rcx+cardW/2}" y="${cy_+21}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.12)">No GPIO</text>`;
-      }
-      // Wire entries inside card + connection lines
+      const wireH=comp.wires.length>0?comp.wires.length*10+4:0;
+      const ch=28+wireH;
+      c+=`<rect x="${rcx}" y="${cy_}" width="${cardW}" height="${ch}" rx="5" fill="rgba(10,14,26,.35)" stroke="${comp.color}" stroke-width="1" class="stagger" style="--del:${0.5+ci*0.1}s"/>`;
+      c+=`<text x="${rcx+cardW/2}" y="${cy_+13}" text-anchor="middle" font-family="var(--font)" font-weight="800" font-size="8" fill="${comp.color}">${comp.name}</text>`;
+      c+=`<text x="${rcx+cardW/2}" y="${cy_+22}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.25)">${comp.sub}</text>`;
       comp.wires.forEach((w,wi)=>{
-        const wy=cy_+28+wi*9;
-        const isBus=w.bus!==undefined;
-        c+=`<circle cx="${rcx+7}" cy="${wy}" r="2" fill="${w.c}" opacity=".6"/>`;
-        c+=`<text x="${rcx+12}" y="${wy+3}" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.4)">${w.label}${isBus?' (bus)':''}</text>`;
-        // Wire from breadboard bus or direct from Pi pin to card
+        const wy=cy_+30+wi*10;
+        const isBus=w.bus!==undefined,isDirect=w.direct!==undefined;
+        c+=`<circle cx="${rcx+8}" cy="${wy}" r="2.5" fill="${w.c}" opacity=".7"/>`;
+        c+=`<text x="${rcx+14}" y="${wy+3}" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.45)">${w.label}${isBus?' (bus)':''}</text>`;
         if(isBus){
           const bp=busPositions[w.bus];
-          c+=wirePath(bp.right-6,bp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
-        } else if(w.direct!==undefined){
+          c+=wirePath(bp.right-8,bp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+        } else if(isDirect){
           const pp=pinPos(w.direct);
           c+=wirePath(pp.x+pinR+1,pp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
         }
       });
       cy_+=ch+cardGap;
     });
+    // --- Motor boxes (far right, connected from L298N) ---
+    const mx=620,motorColor='#60a5fa';
+    const motors=[
+      {name:'LEFT MOTORS',sub:'FL + RL (parallel)',y:168,outs:['OUT1','OUT2']},
+      {name:'RIGHT MOTORS',sub:'FR + RR (parallel)',y:228,outs:['OUT3','OUT4']},
+    ];
+    motors.forEach((m,mi)=>{
+      c+=`<rect x="${mx}" y="${m.y}" width="${cardW}" height="42" rx="5" fill="rgba(10,14,26,.25)" stroke="${motorColor}" stroke-width=".8" stroke-dasharray="4 2" class="stagger" style="--del:${1+mi*0.1}s"/>`;
+      c+=`<text x="${mx+cardW/2}" y="${m.y+14}" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="7" fill="${motorColor}">${m.name}</text>`;
+      c+=`<text x="${mx+cardW/2}" y="${m.y+24}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(96,165,250,.35)">${m.sub}</text>`;
+      m.outs.forEach((o,oi)=>{
+        c+=`<text x="${mx+cardW/2}" y="${m.y+33+oi*8}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.2)">\u2190 L298N ${o}</text>`;
+      });
+      // Wire from L298N card right edge to motor box
+      const l298nTopY=168; // approximate L298N card position
+      c+=wirePath(rcx+cardW,l298nTopY+30+mi*20,mx,m.y+20,motorColor,1.1+mi*0.1,false);
+    });
+    // --- Voltage divider callout (under HC-SR04 area) ---
+    const vdx=440,vdy=360;
+    c+=`<rect x="${vdx}" y="${vdy}" width="180" height="28" rx="4" fill="rgba(168,85,247,.06)" stroke="rgba(168,85,247,.2)" stroke-width=".8" class="stagger" style="--del:1.3s"/>`;
+    c+=`<text x="${vdx+8}" y="${vdy+12}" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="#a855f7" class="stagger" style="--del:1.35s">\u26A0 ECHO VOLTAGE DIVIDER</text>`;
+    c+=`<text x="${vdx+8}" y="${vdy+22}" font-family="var(--mono)" font-size="5" fill="rgba(168,85,247,.4)" class="stagger" style="--del:1.4s">HC-SR04 ECHO (5V) \u2192 1k\u03A9+2k\u03A9 \u2192 Pi GPIO26 (3.3V)</text>`;
     // --- Stats bar ---
-    c+=`<rect x="4" y="${H-38}" width="${W-8}" height="32" rx="5" fill="rgba(10,14,26,.3)" stroke="rgba(255,255,255,.05)" stroke-width="1" class="stagger" style="--del:1.2s"/>`;
-    c+=`<text x="16" y="${H-19}" font-family="var(--mono)" font-size="6.5" font-weight="700" fill="rgba(255,255,255,.35)" class="stagger" style="--del:1.3s">14/40 PINS USED \u2022 5 COMPONENTS \u2022 3 BREADBOARD BUSES (SDA, SCL, 5V) \u2022 11 DIRECT WIRES</text>`;
-    c+=`<text x="${W-16}" y="${H-19}" text-anchor="end" font-family="var(--mono)" font-size="6" fill="rgba(212,165,116,.4)" class="stagger" style="--del:1.4s">BREADBOARD = shared pin bus splitter</text>`;
+    c+=`<rect x="4" y="${H-34}" width="${W-8}" height="28" rx="5" fill="rgba(10,14,26,.25)" stroke="rgba(255,255,255,.04)" stroke-width="1" class="stagger" style="--del:1.5s"/>`;
+    c+=`<text x="16" y="${H-17}" font-family="var(--mono)" font-size="6" font-weight="700" fill="rgba(255,255,255,.3)" class="stagger" style="--del:1.55s">14/40 GPIO PINS \u2022 7 COMPONENTS \u2022 3 BREADBOARD BUSES \u2022 11 DIRECT WIRES \u2022 4 MOTOR OUTPUTS \u2022 1 CSI \u2022 1 USB-C \u2022 1 VOLTAGE DIVIDER</text>`;
     return mkSvg(W,H,c);
   }
   default: return null;
