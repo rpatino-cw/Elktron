@@ -1,24 +1,27 @@
 // ============================================
-// ESCORT BOT SHELL — Clean Minimal Box v3
+// ESCORT BOT SHELL — Clean Minimal Box v4
 // ============================================
-// Amazon confirmed: chassis 10" x 6" x 2.5"
-// Wheels + tires: 3" tall (76.2mm diameter)
-// Wheel spec: 65mm OD rubber, 45mm ID hub
+// MEASURED by Romeo 2026-03-19:
+//   Total width (tire-to-tire): 6" (152.4mm)
+//   Tire width: 1" (25.4mm) each
+//   Tire diameter: 2.5" (63.5mm)
+//   Gap between front & rear tires: 2-3/8" (60.3mm)
+//   Chassis length: 10" (254mm, Amazon confirmed)
+// Mounting: L-brackets at 4 corners
 //
 // F5 = preview | F6 = render | File > Export STL
 // Print: 0.2mm layer, 15% infill, no supports
 // ============================================
 
-// --- DIMENSIONS (mm) ---
-chassis_l  = 254;      // 10" front-to-back
-chassis_w  = 152;      // 6" side-to-side
-wheel_d    = 76.2;     // 3" wheel+tire diameter
-wheel_w    = 76.2;     // 3" wheel+tire width
-wheel_r    = wheel_d / 2 + 3;  // 41.1mm — radius + 3mm clearance
+// --- DIMENSIONS (mm) — REAL MEASUREMENTS ---
+chassis_l  = 254;      // 10" front-to-back (Amazon confirmed)
+chassis_w  = 100;      // frame body width (152mm tire-to-tire - 2x25.4mm tires = 101.2mm - clearance)
+wheel_d    = 63.5;     // 2.5" tire diameter (measured)
+wheel_w    = 25.4;     // 1" tire width (measured)
+tire_gap   = 60.3;     // 2-3/8" gap between front & rear tires (measured)
+wheel_r    = wheel_d / 2 + 3;  // 34.75mm — radius + 3mm clearance
 
-// Ground to tallest point: 6.5" (165mm)
-// Ground to top plate: 2.5" (63.5mm) — Amazon confirmed
-// Shell height: 165 - 63.5 = 101.5mm + 3.5mm margin
+// Shell height: keeping 105mm (ground-to-tallest ~165mm, plate at ~63.5mm)
 shell_h    = 105;
 wall       = 2.5;
 tol        = 0.8;      // slide-on fit gap per side
@@ -30,14 +33,24 @@ inner_w = chassis_w + tol * 2;
 outer_l = inner_l + wall * 2;
 outer_w = inner_w + wall * 2;
 
-// Wheel arch height — wheels poke above the support plate
-// Chassis total 63.5mm, wheel 76.2mm → wheel tops are ~12mm above chassis top
-// Support plate is ~15mm below chassis top → wheels ~27mm above plate
-wheel_arch_h = 50;    // taller shell = wheels are lower relative to shell top
+// Wheel arch height — how tall the arch cutout is from the bottom
+// Tires are 63.5mm diameter, poke ~6mm above the support plate
+wheel_arch_h = 40;
 
-// Wheel positions from center (estimated — update after Rapha measures)
-wx = 97;              // front/back wheel center from chassis center
-wy = outer_w / 2;    // wheels at the side walls
+// Wheel positions — DERIVED FROM TIRE GAP MEASUREMENT
+// Axle-to-axle = tire_gap + wheel_d = 60.3 + 63.5 = 123.8mm
+// wx = half that distance from chassis center
+wx = (tire_gap + wheel_d) / 2;  // ~61.9mm from center
+wy = outer_w / 2;               // wheels at the side walls
+
+// L-bracket mounting — 4 corners
+bracket_hole_d = 5;    // M3 or M4 screw + clearance
+bracket_tab_w  = 12;   // tab width
+bracket_tab_d  = 12;   // tab depth (inward from wall)
+bracket_tab_h  = 3;    // tab thickness
+bracket_z      = 15;   // height above bottom edge
+// Bracket tab inset from wheel arch (so they don't collide)
+bracket_inset  = 20;   // mm inboard from wheel arch center
 
 // Mast hole
 mast_d = 35;          // 1" PVC + clearance
@@ -76,24 +89,50 @@ module rounded_rect(l, w, h, r) {
 
 module shell() {
     difference() {
-        // Outer box
-        rounded_rect(outer_l, outer_w, shell_h, corner_r);
+        union() {
+            // Outer box
+            rounded_rect(outer_l, outer_w, shell_h, corner_r);
+
+            // --- L-BRACKET MOUNTING TABS (4 corners, inside) ---
+            for (fb = [1, -1]) {
+                for (side = [1, -1]) {
+                    translate([
+                        fb * (inner_l/2 - bracket_tab_w/2 - bracket_inset),
+                        side * (inner_w/2 - bracket_tab_d),
+                        bracket_z
+                    ])
+                        cube([bracket_tab_w, bracket_tab_d, bracket_tab_h]);
+                }
+            }
+        }
 
         // Hollow (open bottom)
         translate([0, 0, -0.1])
             rounded_rect(inner_l, inner_w, shell_h - wall + 0.1, corner_r);
 
         // --- WHEEL ARCHES (4 corners) ---
-        // 3" tall x 3" wide wheels — need full clearance
+        // 2.5" diameter x 1" wide tires — measured 2026-03-19
         for (side = [1, -1]) {
             for (fb = [1, -1]) {
-                // Arch: semicircle (wheel_r tall) x wheel_w+6mm deep into/past wall
+                // Arch: wheel_r radius x (wheel_w + 6mm clearance) deep
                 translate([fb * wx, side * (wy - wheel_w/2 - 3), 0])
                     hull() {
                         cylinder(r=wheel_r, h=wheel_arch_h, $fn=48);
                         translate([0, side * (wheel_w + 6), 0])
                             cylinder(r=wheel_r, h=wheel_arch_h, $fn=48);
                     }
+            }
+        }
+
+        // --- L-BRACKET SCREW HOLES (through the tabs) ---
+        for (fb = [1, -1]) {
+            for (side = [1, -1]) {
+                translate([
+                    fb * (inner_l/2 - bracket_tab_w/2 - bracket_inset),
+                    side * (inner_w/2 - bracket_tab_d/2),
+                    bracket_z - 0.1
+                ])
+                    cylinder(d=bracket_hole_d, h=bracket_tab_h + 0.2, $fn=24);
             }
         }
 
@@ -139,9 +178,12 @@ module shell() {
 color("#2a2a2a") shell();
 
 // Info
-echo(str("=== ESCORT BOT SHELL v3 ==="));
+echo(str("=== ESCORT BOT SHELL v4 — MEASURED ==="));
 echo(str("Outer: ", outer_l, " x ", outer_w, " x ", shell_h, " mm"));
 echo(str("Inner: ", inner_l, " x ", inner_w, " mm"));
-echo(str("Wheel arch: ", wheel_r*2, "mm wide x ", wheel_arch_h, "mm tall"));
-echo(str("Wheel assumed: 3 inches (76.2mm) diameter"));
+echo(str("Wheel: ", wheel_d, "mm dia x ", wheel_w, "mm wide (MEASURED)"));
+echo(str("Wheel arch: ", wheel_r*2, "mm arc x ", wheel_arch_h, "mm tall"));
+echo(str("Tire gap: ", tire_gap, "mm | Axle-to-axle: ", tire_gap + wheel_d, "mm"));
+echo(str("Wheel center offset (wx): ", wx, "mm from center"));
+echo(str("L-bracket holes: ", bracket_hole_d, "mm at Z=", bracket_z, "mm"));
 echo(str("Wall: ", wall, "mm | Tol: ", tol, "mm/side"));

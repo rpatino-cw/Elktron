@@ -3693,8 +3693,8 @@ function loadShell() {
           const cBox = new THREE.Box3().setFromObject(chassisGroup);
           const cSize = cBox.getSize(new THREE.Vector3());
           console.log(`Shell: chassis size = ${cSize.x.toFixed(3)} x ${cSize.y.toFixed(3)} x ${cSize.z.toFixed(3)}`);
-          sclX = (cSize.x * 0.88) / stlW;
-          sclZ = (cSize.z * 0.55) / stlD;
+          sclX = (cSize.x * 0.82) / stlW;
+          sclZ = (cSize.z * 0.35) / stlD;
           sclY = sclX;
         } else {
           console.warn('Shell: chassisGroup not ready, using fallback scale');
