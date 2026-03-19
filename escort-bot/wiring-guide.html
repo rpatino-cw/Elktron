@@ -1353,11 +1353,48 @@ function buildDiagram(type){
         c+=`<text x="${ox+bw+6}" y="${cy+3}" text-anchor="start" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.15)">${rp[1]}</text>`;
       }
     }
+    // Component cards with wire paths back to Pi
+    const leftCards=[
+      {name:'I2C LCD',sub:'0x27',color:'#3498db',pins:[{pin:3,c:'#3498db'},{pin:5,c:'#2ecc71'},{pin:4,c:'#dc2626'},{pin:14,c:'#4a5168'}]},
+      {name:'PTZ Board',sub:'0x40',color:'#2ecc71',pins:[{pin:3,c:'#3498db'},{pin:5,c:'#2ecc71'},{pin:2,c:'#dc2626'},{pin:20,c:'#4a5168'}]},
+      {name:'L298N',sub:'Motor Driver',color:'#4260f5',pins:[{pin:11,c:'#2741E7'},{pin:18,c:'#4260f5'},{pin:15,c:'#e67e22'},{pin:16,c:'#f1c40f'},{pin:6,c:'#4a5168'}]},
+    ];
+    const rightCards=[
+      {name:'HC-SR04',sub:'Ultrasonic',color:'#8e44ad',pins:[{pin:22,c:'#8e44ad'},{pin:37,c:'#a855f7'},{pin:2,c:'#dc2626'},{pin:9,c:'#4a5168'}]},
+      {name:'Camera',sub:'CSI Ribbon',color:'#9b59b6',pins:[]},
+      {name:'Anker 10K',sub:'USB-C',color:'#78909c',pins:[]},
+      {name:'Battery',sub:'2\u00d718650',color:'#dc2626',pins:[]},
+    ];
+    const cardW=90,cardGap=6;
+    function drawCard(card,x,baseY,del){
+      const ph=card.pins.length>0?card.pins.length*10+4:0;
+      const ch=30+ph;
+      let s=`<rect x="${x}" y="${baseY}" width="${cardW}" height="${ch}" rx="5" fill="rgba(10,14,26,.4)" stroke="${card.color}" stroke-width="1.2" class="stagger" style="--del:${del}s"/>`;
+      s+=`<text x="${x+cardW/2}" y="${baseY+13}" text-anchor="middle" font-family="var(--font)" font-weight="800" font-size="8" fill="${card.color}">${card.name}</text>`;
+      s+=`<text x="${x+cardW/2}" y="${baseY+23}" text-anchor="middle" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.3)">${card.sub}</text>`;
+      if(!card.pins.length) s+=`<text x="${x+cardW/2}" y="${baseY+23}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.15)">No GPIO</text>`;
+      card.pins.forEach((p,j)=>{const py=baseY+32+j*10;s+=`<circle cx="${x+8}" cy="${py}" r="2.5" fill="${p.c}" opacity=".7"/>`;s+=`<text x="${x+14}" y="${py+3}" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.45)">Pin ${p.pin}</text>`;});
+      return {svg:s,h:ch};
+    }
+    // Left cards
+    let ly=10;
+    leftCards.forEach((card,i)=>{
+      const d=drawCard(card,4,ly,i*0.2);c+=d.svg;
+      card.pins.forEach((p,j)=>{const pp=pinPos(p.pin);c+=wirePath(4+cardW,ly+32+j*10,pp.x-pinR-1,pp.y,p.c,0.4+i*0.15+j*0.05,false);});
+      ly+=d.h+cardGap;
+    });
+    // Right cards
+    const rcx=ox+bw+80;let ry=10;
+    rightCards.forEach((card,i)=>{
+      const d=drawCard(card,rcx,ry,0.6+i*0.2);c+=d.svg;
+      card.pins.forEach((p,j)=>{const pp=pinPos(p.pin);c+=wirePath(pp.x+pinR+1,pp.y,rcx,ry+32+j*10,p.c,0.7+i*0.15+j*0.05,false);});
+      ry+=d.h+cardGap;
+    });
     // Legend
-    c+=`<rect x="80" y="300" width="540" height="36" rx="6" fill="rgba(10,14,26,.3)" stroke="rgba(255,255,255,.06)" stroke-width="1" class="stagger" style="--del:1s"/>`;
-    c+=`<text x="100" y="315" font-family="var(--mono)" font-size="7" font-weight="700" fill="rgba(255,255,255,.4)" class="stagger" style="--del:1.1s">\u25CB = BREADBOARD SPLIT (2 devices share 1 pin via breadboard row)</text>`;
-    c+=`<text x="100" y="328" font-family="var(--mono)" font-size="6.5" fill="rgba(255,255,255,.25)" class="stagger" style="--del:1.2s">Pin 2 (5V): HC-SR04 + PTZ \u2022 Pin 3 (SDA): LCD + PTZ \u2022 Pin 5 (SCL): LCD + PTZ \u2022 14/40 pins used</text>`;
-    return mkSvg(700,345,c);
+    c+=`<rect x="4" y="300" width="${rcx+cardW}" height="36" rx="6" fill="rgba(10,14,26,.3)" stroke="rgba(255,255,255,.06)" stroke-width="1" class="stagger" style="--del:1s"/>`;
+    c+=`<text x="20" y="315" font-family="var(--mono)" font-size="7" font-weight="700" fill="rgba(255,255,255,.4)" class="stagger" style="--del:1.1s">\u25CB = BREADBOARD SPLIT (2 devices share 1 pin via breadboard row)</text>`;
+    c+=`<text x="20" y="328" font-family="var(--mono)" font-size="6.5" fill="rgba(255,255,255,.25)" class="stagger" style="--del:1.2s">Pin 2 (5V): HC-SR04 + PTZ \u2022 Pin 3 (SDA): LCD + PTZ \u2022 Pin 5 (SCL): LCD + PTZ \u2022 14/40 pins used</text>`;
+    return mkSvg(rcx+cardW+8,345,c);
   }
   default: return null;
   }
