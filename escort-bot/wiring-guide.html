@@ -1300,7 +1300,7 @@ function buildDiagram(type){
   case 'full-pinmap': {
     const usedPins=[2,3,4,5,6,9,11,14,15,16,18,20,22,37];
     // === LAYOUT: Pi (left) → Breadboard (center) → Components (right) → Peripherals (far right) ===
-    const W=960,H=580;
+    const W=960,H=640;
     // --- Pi Header (left) ---
     const ox=10,oy=20,bw=120,bh=270,pinR=4,pinGap=12.5,colGap=16,padX=18,padTop=20;
     let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="7" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
@@ -1336,30 +1336,93 @@ function buildDiagram(type){
     // --- CSI + USB-C labels on Pi ---
     c+=`<text x="${ox+bw/2}" y="${oy+bh+14}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(155,89,182,.5)">CSI \u2192 Camera</text>`;
     c+=`<text x="${ox+bw/2}" y="${oy+bh+24}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(120,144,156,.5)">USB-C \u2192 Anker 10K</text>`;
-    // --- Breadboard (center) ---
-    const bbx=240,bby=14,bbw=120,bbh=120;
+    // --- Breadboard (center) — 30 rows x 4 cols (a-d) x 2 sides ---
+    const bbx=230,bby=8,holeR=2,holeGap=8,colGap_bb=8;
+    const bbCols=4,bbRowCount=30,chanGap=12;
+    const bbPadX=14,bbPadTop=20;
+    const bbw=bbPadX*2+bbCols*colGap_bb+chanGap+bbCols*colGap_bb;
+    const bbh=bbPadTop+bbRowCount*holeGap+10;
+    // Board
     c+=`<rect x="${bbx}" y="${bby}" width="${bbw}" height="${bbh}" rx="5" fill="rgba(212,165,116,.06)" stroke="#d4a574" stroke-width="1.2" class="stagger" style="--del:0.2s"/>`;
-    c+=`<text x="${bbx+bbw/2}" y="${bby+13}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="7.5" fill="#d4a574" letter-spacing=".06em">BREADBOARD</text>`;
-    c+=`<text x="${bbx+bbw/2}" y="${bby+22}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(212,165,116,.4)">I2C + POWER BUS</text>`;
-    const busRows=[
-      {pin:3,label:'SDA BUS',c:'#3498db'},
-      {pin:5,label:'SCL BUS',c:'#2ecc71'},
-      {pin:2,label:'5V BUS',c:'#dc2626'},
-    ];
-    const busStartY=bby+32,busH=20,busGap=6;
+    c+=`<text x="${bbx+bbw/2}" y="${bby+13}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="7" fill="#d4a574" letter-spacing=".06em">BREADBOARD (30\u00d74\u00d72)</text>`;
+    // Center channel line
+    const chanX=bbx+bbPadX+bbCols*colGap_bb+chanGap/2;
+    c+=`<line x1="${chanX}" y1="${bby+bbPadTop-2}" x2="${chanX}" y2="${bby+bbPadTop+bbRowCount*holeGap}" stroke="rgba(212,165,116,.15)" stroke-width="1"/>`;
+    // Column labels: a b c d | e f g h
+    const colLabels=['a','b','c','d','e','f','g','h'];
+    for(let ci_=0;ci_<8;ci_++){
+      const isRight=ci_>=4;
+      const cx_=bbx+bbPadX+(isRight?(ci_-4)*colGap_bb+bbCols*colGap_bb+chanGap:ci_*colGap_bb);
+      c+=`<text x="${cx_}" y="${bby+bbPadTop-5}" text-anchor="middle" font-family="var(--mono)" font-size="4" fill="rgba(212,165,116,.3)">${colLabels[ci_]}</text>`;
+    }
+    // Row assignments — which rows are used and what's in them
+    const rowUse={
+      1:{label:'SDA BUS',c:'#3498db',holes:{a:'Pi Pin3',b:'LCD SDA',c:'PTZ SDA'}},
+      2:{label:'SCL BUS',c:'#2ecc71',holes:{a:'Pi Pin5',b:'LCD SCL',c:'PTZ SCL'}},
+      3:{label:'5V BUS',c:'#dc2626',holes:{a:'Pi Pin2',b:'PTZ VCC',c:'SR04 VCC'}},
+      // HC-SR04 plugged directly into rows 5-8
+      5:{label:'SR04 VCC',c:'#dc2626',holes:{e:'SR04 pin1'},sr04:true},
+      6:{label:'SR04 TRIG',c:'#8e44ad',holes:{e:'SR04 pin2',f:'Pi Pin22'}},
+      7:{label:'SR04 ECHO',c:'#a855f7',holes:{e:'SR04 pin3',f:'1k\u03A9\u2192R8'}},
+      8:{label:'SR04 GND',c:'#4a5168',holes:{e:'SR04 pin4',f:'Pi Pin9'}},
+      // Voltage divider junction
+      9:{label:'DIVIDER',c:'#a855f7',holes:{e:'1k\u03A9 out',f:'2k\u03A9\u2192GND',g:'Pi Pin37'}},
+    };
+    // Bus positions for wiring (rows 1,2,3)
     const busPositions={};
-    busRows.forEach((bus,i)=>{
-      const by_=busStartY+i*(busH+busGap);
-      busPositions[bus.pin]={x:bbx,y:by_+busH/2,right:bbx+bbw};
-      c+=`<rect x="${bbx+8}" y="${by_}" width="${bbw-16}" height="${busH}" rx="3" fill="rgba(${bus.c==='#dc2626'?'220,38,38':bus.c==='#3498db'?'52,152,219':'46,204,113'},.08)" stroke="${bus.c}" stroke-width=".8" stroke-dasharray="3 2" class="stagger" style="--del:${0.3+i*0.1}s"/>`;
-      for(let h=0;h<5;h++){c+=`<circle cx="${bbx+22+h*18}" cy="${by_+busH/2}" r="2.5" fill="rgba(0,0,0,.3)" stroke="${bus.c}" stroke-width=".6" opacity=".6"/>`;}
-      c+=`<text x="${bbx+bbw/2}" y="${by_-2}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="${bus.c}" opacity=".7">${bus.label}</text>`;
+    busPositions[3]={x:bbx,y:bby+bbPadTop+0*holeGap,right:bbx+bbw}; // row 1 = SDA
+    busPositions[5]={x:bbx,y:bby+bbPadTop+1*holeGap,right:bbx+bbw}; // row 2 = SCL
+    busPositions[2]={x:bbx,y:bby+bbPadTop+2*holeGap,right:bbx+bbw}; // row 3 = 5V
+    // Draw all 30 rows x 8 holes
+    for(let r=0;r<bbRowCount;r++){
+      const ry=bby+bbPadTop+r*holeGap;
+      const rowNum=r+1;
+      const ru=rowUse[rowNum];
+      // Row number label
+      c+=`<text x="${bbx+5}" y="${ry+3}" text-anchor="start" font-family="var(--mono)" font-size="4" fill="rgba(212,165,116,${ru?'.5':'.15'})">${rowNum}</text>`;
+      // 8 holes (4 left + 4 right)
+      for(let ci_=0;ci_<8;ci_++){
+        const isRight=ci_>=4;
+        const cx_=bbx+bbPadX+(isRight?(ci_-4)*colGap_bb+bbCols*colGap_bb+chanGap:ci_*colGap_bb);
+        const colLetter=colLabels[ci_];
+        const isUsed=ru&&ru.holes&&ru.holes[colLetter];
+        const fillColor=isUsed?ru.c:'rgba(0,0,0,.2)';
+        const strokeColor=ru?ru.c:'rgba(212,165,116,.15)';
+        c+=`<circle cx="${cx_}" cy="${ry}" r="${holeR}" fill="${isUsed?fillColor:'rgba(0,0,0,.2)'}" stroke="${strokeColor}" stroke-width="${isUsed?'.8':'.4'}" opacity="${isUsed?'.9':'.3'}"/>`;
+      }
+      // Row label on right side (only for used rows)
+      if(ru){
+        c+=`<text x="${bbx+bbw+4}" y="${ry+3}" text-anchor="start" font-family="var(--mono)" font-size="4.5" font-weight="700" fill="${ru.c}" opacity=".6">${ru.label}</text>`;
+      }
+    }
+    // HC-SR04 chip outline spanning rows 5-8 on e-column
+    const sr04y1=bby+bbPadTop+4*holeGap-4,sr04y2=bby+bbPadTop+7*holeGap+4;
+    const sr04x=bbx+bbPadX+bbCols*colGap_bb+chanGap;
+    c+=`<rect x="${sr04x-5}" y="${sr04y1}" width="10" height="${sr04y2-sr04y1}" rx="2" fill="rgba(142,68,173,.08)" stroke="#8e44ad" stroke-width=".6" stroke-dasharray="2 1" class="stagger" style="--del:0.5s"/>`;
+    c+=`<text x="${sr04x}" y="${sr04y1-3}" text-anchor="middle" font-family="var(--mono)" font-size="4" font-weight="700" fill="#8e44ad" opacity=".5">HC-SR04</text>`;
+    // Voltage divider: resistor symbols between rows 7→9 and 9→GND
+    const r7y=bby+bbPadTop+6*holeGap,r9y=bby+bbPadTop+8*holeGap;
+    const rdx=sr04x+colGap_bb;
+    c+=`<line x1="${rdx}" y1="${r7y}" x2="${rdx}" y2="${r9y}" stroke="#a855f7" stroke-width="1" stroke-dasharray="2 2" opacity=".4"/>`;
+    c+=`<text x="${rdx+6}" y="${(r7y+r9y)/2+2}" font-family="var(--mono)" font-size="3.5" fill="#a855f7" opacity=".5">1k\u03A9</text>`;
+    // Wire from row 5 VCC to 5V bus (row 3)
+    const r5y=bby+bbPadTop+4*holeGap,r3y=bby+bbPadTop+2*holeGap;
+    c+=`<line x1="${sr04x}" y1="${r5y}" x2="${sr04x}" y2="${r3y}" stroke="#dc2626" stroke-width="1" stroke-dasharray="2 1" opacity=".3"/>`;
+    c+=`<text x="${sr04x+6}" y="${(r5y+r3y)/2+2}" font-family="var(--mono)" font-size="3.5" fill="#dc2626" opacity=".4">jumper to 5V bus</text>`;
+    // Pi → Breadboard bus wires (rows 1-3)
+    [{pin:3,row:0},{pin:5,row:1},{pin:2,row:2}].forEach((bus,i)=>{
+      const pp=pinPos(bus.pin);
+      const by_=bby+bbPadTop+bus.row*holeGap;
+      c+=wirePath(pp.x+pinR+1,pp.y,bbx+bbPadX,by_,rowUse[bus.row+1].c,0.4+i*0.15,false);
     });
-    // Pi → Breadboard wires
-    busRows.forEach((bus,i)=>{
-      const pp=pinPos(bus.pin),bp=busPositions[bus.pin];
-      c+=wirePath(pp.x+pinR+1,pp.y,bp.x+8,bp.y,bus.c,0.4+i*0.15,false);
-    });
+    // HC-SR04 TRIG wire: row 6 col f → Pi Pin 22
+    const r6y=bby+bbPadTop+5*holeGap;
+    c+=wirePath(pinPos(22).x+pinR+1,pinPos(22).y,bbx+bbPadX+colGap_bb+bbCols*colGap_bb+chanGap,r6y,'#8e44ad',0.6,false);
+    // HC-SR04 GND wire: row 8 col f → Pi Pin 9
+    const r8y=bby+bbPadTop+7*holeGap;
+    c+=wirePath(pinPos(9).x+pinR+1,pinPos(9).y,bbx+bbPadX+colGap_bb+bbCols*colGap_bb+chanGap,r8y,'#4a5168',0.65,false);
+    // ECHO divider output: row 9 col g → Pi Pin 37
+    c+=wirePath(pinPos(37).x+pinR+1,pinPos(37).y,bbx+bbPadX+2*colGap_bb+bbCols*colGap_bb+chanGap,r9y,'#a855f7',0.7,false);
     // --- Component Cards (right side) ---
     const rcx=440,cardW=110,cardGap=6;
     const components=[
@@ -1377,9 +1440,11 @@ function buildDiagram(type){
         {direct:6,label:'GND',c:'#4a5168'},
         {label:'+12V \u2190 Battery',c:'#dc2626'},{label:'GND \u2190 Battery',c:'#555'}
       ]},
-      {name:'HC-SR04',sub:'Ultrasonic',color:'#8e44ad',wires:[
-        {bus:2,label:'5V',c:'#dc2626'},{direct:9,label:'GND',c:'#4a5168'},
-        {direct:22,label:'TRIG (GPIO25)',c:'#8e44ad'},{direct:37,label:'ECHO (divider)',c:'#a855f7'}
+      {name:'HC-SR04',sub:'On Breadboard',color:'#8e44ad',wires:[
+        {label:'VCC → BB row3 (5V bus)',c:'#dc2626'},
+        {label:'TRIG → BB row6 → Pi Pin22',c:'#8e44ad'},
+        {label:'ECHO → BB row7 → divider → Pi Pin37',c:'#a855f7'},
+        {label:'GND → BB row8 → Pi Pin9',c:'#4a5168'}
       ]},
       {name:'Camera',sub:'Arducam IMX708',color:'#9b59b6',wires:[
         {label:'CSI ribbon \u2190 Pi',c:'#9b59b6'}
@@ -1431,7 +1496,7 @@ function buildDiagram(type){
       c+=wirePath(rcx+cardW,l298nTopY+30+mi*20,mx,m.y+20,motorColor,1.1+mi*0.1,false);
     });
     // --- Voltage divider callout (under HC-SR04 area) ---
-    const vdx=440,vdy=360;
+    const vdx=440,vdy=510;
     c+=`<rect x="${vdx}" y="${vdy}" width="180" height="28" rx="4" fill="rgba(168,85,247,.06)" stroke="rgba(168,85,247,.2)" stroke-width=".8" class="stagger" style="--del:1.3s"/>`;
     c+=`<text x="${vdx+8}" y="${vdy+12}" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="#a855f7" class="stagger" style="--del:1.35s">\u26A0 ECHO VOLTAGE DIVIDER</text>`;
     c+=`<text x="${vdx+8}" y="${vdy+22}" font-family="var(--mono)" font-size="5" fill="rgba(168,85,247,.4)" class="stagger" style="--del:1.4s">HC-SR04 ECHO (5V) \u2192 1k\u03A9+2k\u03A9 \u2192 Pi GPIO26 (3.3V)</text>`;
