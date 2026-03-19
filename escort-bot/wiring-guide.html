@@ -1353,13 +1353,13 @@ function buildDiagram(type){
     for(let ci_=0;ci_<8;ci_++){
       const isRight=ci_>=4;
       const cx_=bbx+bbPadX+(isRight?(ci_-4)*colGap_bb+bbCols*colGap_bb+chanGap:ci_*colGap_bb);
-      c+=`<text x="${cx_}" y="${bby+bbPadTop-5}" text-anchor="middle" font-family="var(--mono)" font-size="4" fill="rgba(212,165,116,.3)">${colLabels[ci_]}</text>`;
+      c+=`<text x="${cx_}" y="${bby+bbPadTop-2}" text-anchor="middle" font-family="var(--mono)" font-size="4" fill="rgba(212,165,116,.3)">${colLabels[ci_]}</text>`;
     }
     // Row assignments — which rows are used and what's in them
     const rowUse={
       1:{label:'SDA BUS',c:'#3498db',holes:{a:'Pi Pin3',b:'LCD SDA',c:'PTZ SDA'}},
       2:{label:'SCL BUS',c:'#2ecc71',holes:{a:'Pi Pin5',b:'LCD SCL',c:'PTZ SCL'}},
-      3:{label:'5V BUS',c:'#dc2626',holes:{a:'Pi Pin2',b:'PTZ VCC',c:'SR04 VCC'}},
+      3:{label:'5V BUS',c:'#dc2626',holes:{a:'Pi Pin2',b:'PTZ VCC',c:'SR04 bridge',d:'SR04 bridge'}},
       // HC-SR04 plugged directly into rows 5-8
       5:{label:'SR04 VCC',c:'#dc2626',holes:{e:'SR04 pin1'},sr04:true},
       6:{label:'SR04 TRIG',c:'#8e44ad',holes:{e:'SR04 pin2',f:'Pi Pin22'}},
@@ -1370,9 +1370,10 @@ function buildDiagram(type){
     };
     // Bus positions for wiring (rows 1,2,3)
     const busPositions={};
-    busPositions[3]={x:bbx,y:bby+bbPadTop+0*holeGap,right:bbx+bbw}; // row 1 = SDA
-    busPositions[5]={x:bbx,y:bby+bbPadTop+1*holeGap,right:bbx+bbw}; // row 2 = SCL
-    busPositions[2]={x:bbx,y:bby+bbPadTop+2*holeGap,right:bbx+bbw}; // row 3 = 5V
+    const bbExitX=bbx+bbPadX+3*colGap_bb; // col d = last left-side hole
+    busPositions[3]={x:bbx,y:bby+bbPadTop+0*holeGap,right:bbExitX}; // row 1 = SDA
+    busPositions[5]={x:bbx,y:bby+bbPadTop+1*holeGap,right:bbExitX}; // row 2 = SCL
+    busPositions[2]={x:bbx,y:bby+bbPadTop+2*holeGap,right:bbExitX}; // row 3 = 5V
     // Draw all 30 rows x 8 holes
     for(let r=0;r<bbRowCount;r++){
       const ry=bby+bbPadTop+r*holeGap;
@@ -1403,12 +1404,23 @@ function buildDiagram(type){
     // Voltage divider: resistor symbols between rows 7→9 and 9→GND
     const r7y=bby+bbPadTop+6*holeGap,r9y=bby+bbPadTop+8*holeGap;
     const rdx=sr04x+colGap_bb;
-    c+=`<line x1="${rdx}" y1="${r7y}" x2="${rdx}" y2="${r9y}" stroke="#a855f7" stroke-width="1" stroke-dasharray="2 2" opacity=".4"/>`;
-    c+=`<text x="${rdx+6}" y="${(r7y+r9y)/2+2}" font-family="var(--mono)" font-size="3.5" fill="#a855f7" opacity=".5">1k\u03A9</text>`;
-    // Wire from row 5 VCC to 5V bus (row 3)
+    // 1kΩ resistor: ECHO (row 7) → junction (row 9)
+    c+=`<line x1="${rdx}" y1="${r7y}" x2="${rdx}" y2="${r9y}" stroke="#a855f7" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>`;
+    c+=`<text x="${rdx+6}" y="${(r7y+r9y)/2+2}" font-family="var(--mono)" font-size="3.5" fill="#a855f7" opacity=".6">1k\u03A9</text>`;
+    // 2kΩ resistor: junction (row 9) → GND (row 8, shared with SR04 GND)
+    const r8y_div=bby+bbPadTop+7*holeGap;
+    const rdx2=rdx+colGap_bb; // offset to col g area
+    c+=`<line x1="${rdx}" y1="${r9y}" x2="${rdx}" y2="${r9y+holeGap*1.5}" stroke="#4a5168" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>`;
+    c+=`<text x="${rdx+6}" y="${r9y+holeGap*.8}" font-family="var(--mono)" font-size="3.5" fill="#4a5168" opacity=".6">2k\u03A9\u2192GND</text>`;
+    c+=`<circle cx="${rdx}" cy="${r9y+holeGap*1.5}" r="2" fill="#4a5168" opacity=".5"/>`;
+    c+=`<text x="${rdx+6}" y="${r9y+holeGap*1.5+2}" font-family="var(--mono)" font-size="3" fill="#4a5168" opacity=".4">GND (shared w/ SR04)</text>`;
+    // Cross-channel jumper: row 3 col d (left side, 5V bus) → row 5 col e (right side, SR04 VCC)
     const r5y=bby+bbPadTop+4*holeGap,r3y=bby+bbPadTop+2*holeGap;
-    c+=`<line x1="${sr04x}" y1="${r5y}" x2="${sr04x}" y2="${r3y}" stroke="#dc2626" stroke-width="1" stroke-dasharray="2 1" opacity=".3"/>`;
-    c+=`<text x="${sr04x+6}" y="${(r5y+r3y)/2+2}" font-family="var(--mono)" font-size="3.5" fill="#dc2626" opacity=".4">jumper to 5V bus</text>`;
+    const colD_x=bbx+bbPadX+3*colGap_bb; // col d (last left-side hole)
+    c+=`<line x1="${colD_x}" y1="${r3y}" x2="${sr04x}" y2="${r5y}" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 1.5" opacity=".5"/>`;
+    c+=`<circle cx="${colD_x}" cy="${r3y}" r="2.5" fill="#dc2626" opacity=".6"/>`;
+    c+=`<circle cx="${sr04x}" cy="${r5y}" r="2.5" fill="#dc2626" opacity=".6"/>`;
+    c+=`<text x="${(colD_x+sr04x)/2+4}" y="${(r3y+r5y)/2}" font-family="var(--mono)" font-size="3.5" fill="#dc2626" opacity=".5">5V jumper (cross channel)</text>`;
     // Pi → Breadboard bus wires (rows 1-3)
     [{pin:3,row:0},{pin:5,row:1},{pin:2,row:2}].forEach((bus,i)=>{
       const pp=pinPos(bus.pin);
@@ -1457,7 +1469,9 @@ function buildDiagram(type){
       ]},
     ];
     let cy_=8;
+    const compY={};
     components.forEach((comp,ci)=>{
+      compY[comp.name]=cy_;
       const wireH=comp.wires.length>0?comp.wires.length*10+4:0;
       const ch=28+wireH;
       c+=`<rect x="${rcx}" y="${cy_}" width="${cardW}" height="${ch}" rx="5" fill="rgba(10,14,26,.35)" stroke="${comp.color}" stroke-width="1" class="stagger" style="--del:${0.5+ci*0.1}s"/>`;
@@ -1470,7 +1484,7 @@ function buildDiagram(type){
         c+=`<text x="${rcx+14}" y="${wy+3}" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.45)">${w.label}${isBus?' (bus)':''}</text>`;
         if(isBus){
           const bp=busPositions[w.bus];
-          c+=wirePath(bp.right-8,bp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+          c+=wirePath(bp.right,bp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
         } else if(isDirect){
           const pp=pinPos(w.direct);
           c+=wirePath(pp.x+pinR+1,pp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
@@ -1492,17 +1506,17 @@ function buildDiagram(type){
         c+=`<text x="${mx+cardW/2}" y="${m.y+33+oi*8}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.2)">\u2190 L298N ${o}</text>`;
       });
       // Wire from L298N card right edge to motor box
-      const l298nTopY=168; // approximate L298N card position
+      const l298nTopY=compY['L298N']||164;
       c+=wirePath(rcx+cardW,l298nTopY+30+mi*20,mx,m.y+20,motorColor,1.1+mi*0.1,false);
     });
     // --- Voltage divider callout (under HC-SR04 area) ---
     const vdx=440,vdy=510;
     c+=`<rect x="${vdx}" y="${vdy}" width="180" height="28" rx="4" fill="rgba(168,85,247,.06)" stroke="rgba(168,85,247,.2)" stroke-width=".8" class="stagger" style="--del:1.3s"/>`;
     c+=`<text x="${vdx+8}" y="${vdy+12}" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="#a855f7" class="stagger" style="--del:1.35s">\u26A0 ECHO VOLTAGE DIVIDER</text>`;
-    c+=`<text x="${vdx+8}" y="${vdy+22}" font-family="var(--mono)" font-size="5" fill="rgba(168,85,247,.4)" class="stagger" style="--del:1.4s">HC-SR04 ECHO (5V) \u2192 1k\u03A9+2k\u03A9 \u2192 Pi GPIO26 (3.3V)</text>`;
+    c+=`<text x="${vdx+8}" y="${vdy+22}" font-family="var(--mono)" font-size="5" fill="rgba(168,85,247,.4)" class="stagger" style="--del:1.4s">ECHO (5V) \u2192 [1k\u03A9] \u2192 GPIO26 (3.3V) \u2192 [2k\u03A9] \u2192 GND</text>`;
     // --- Stats bar ---
     c+=`<rect x="4" y="${H-34}" width="${W-8}" height="28" rx="5" fill="rgba(10,14,26,.25)" stroke="rgba(255,255,255,.04)" stroke-width="1" class="stagger" style="--del:1.5s"/>`;
-    c+=`<text x="16" y="${H-17}" font-family="var(--mono)" font-size="6" font-weight="700" fill="rgba(255,255,255,.3)" class="stagger" style="--del:1.55s">14/40 GPIO PINS \u2022 7 COMPONENTS \u2022 3 BREADBOARD BUSES \u2022 11 DIRECT WIRES \u2022 4 MOTOR OUTPUTS \u2022 1 CSI \u2022 1 USB-C \u2022 1 VOLTAGE DIVIDER</text>`;
+    c+=`<text x="16" y="${H-17}" font-family="var(--mono)" font-size="6" font-weight="700" fill="rgba(255,255,255,.3)" class="stagger" style="--del:1.55s">14/40 GPIO PINS \u2022 7 COMPONENTS \u2022 3 BREADBOARD BUSES \u2022 8 DIRECT WIRES \u2022 6 BB-ROUTED \u2022 4 MOTOR OUTPUTS \u2022 1 CSI \u2022 1 USB-C \u2022 1 VOLTAGE DIVIDER</text>`;
     return mkSvg(W,H,c);
   }
   default: return null;
