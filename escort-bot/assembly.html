@@ -1092,6 +1092,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
 // @LOCKED:scene-setup
 // ─── Scene Setup ───────────────────────────────────────────
@@ -3645,6 +3646,149 @@ function createWiringHarness() {
 // See: escort-bot/wiring-diagram.pdf for the complete connection map.
 
 // (Cable spawner code removed — wiring documented in wiring-diagram.pdf)
+
+// ─── Shell Preview (3D-printed enclosure from shell.stl) ──────
+// Loads the actual OpenSCAD-exported STL with wheel arches, sensor holes, vents
+// Toggle via "Shell" button in UI
+let shellMesh = null;
+let shellVisible = false;
+let shellLoaded = false;
+
+const stlLoader = new STLLoader();
+
+function loadShell() {
+  return new Promise((resolve, reject) => {
+    if (shellMesh) { resolve(shellMesh); return; }
+
+    console.log('Shell: starting STL load...');
+    stlLoader.load('shell.stl', (geometry) => {
+      try {
+        console.log('Shell: STL loaded, processing geometry...');
+        geometry.computeVertexNormals();
+        geometry.computeBoundingBox();
+        const bb = geometry.boundingBox;
+        const stlW = bb.max.x - bb.min.x;
+        const stlD = bb.max.y - bb.min.y;
+        console.log(`Shell: STL size = ${stlW.toFixed(1)} x ${stlD.toFixed(1)} mm`);
+
+        // Center the geometry
+        geometry.translate(
+          -(bb.max.x + bb.min.x) / 2,
+          -(bb.max.y + bb.min.y) / 2,
+          -(bb.max.z + bb.min.z) / 2
+        );
+
+        const shellMat = new THREE.MeshStandardMaterial({
+          color: 0x2a2a2a, roughness: 0.35, metalness: 0.4,
+          transparent: true, opacity: 0.6, side: THREE.DoubleSide,
+        });
+
+        const mesh = new THREE.Mesh(geometry, shellMat);
+        mesh.name = 'Shell_Preview';
+
+        // Scale to match chassis GLB bounding box
+        let sclX = 1/60, sclY = 1/60, sclZ = 1/60;
+        if (chassisGroup) {
+          chassisGroup.updateMatrixWorld(true);
+          const cBox = new THREE.Box3().setFromObject(chassisGroup);
+          const cSize = cBox.getSize(new THREE.Vector3());
+          console.log(`Shell: chassis size = ${cSize.x.toFixed(3)} x ${cSize.y.toFixed(3)} x ${cSize.z.toFixed(3)}`);
+          sclX = (cSize.x * 0.88) / stlW;
+          sclZ = (cSize.z * 0.55) / stlD;
+          sclY = sclX;
+        } else {
+          console.warn('Shell: chassisGroup not ready, using fallback scale');
+        }
+        mesh.scale.set(sclX, sclY, sclZ);
+        mesh.rotation.x = -Math.PI / 2;
+
+        const shellH = 105 * sclY;
+        mesh.position.x = chassisGroup ? chassisCenterX : 0;
+        mesh.position.y = shellH / 2;
+        mesh.position.z = chassisGroup ? chassisCenterZ : 0;
+        console.log(`Shell: scale=${sclX.toFixed(4)}, pos=(${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+
+        shellMesh = mesh;
+        shellLoaded = true;
+        resolve(mesh);
+      } catch (e) {
+        console.error('Shell: error in load callback:', e);
+        reject(e);
+      }
+    },
+    (progress) => { console.log('Shell: loading...', progress.loaded, 'bytes'); },
+    (err) => { console.error('Shell STL load error:', err); reject(err); });
+  });
+}
+
+async function toggleShell() {
+  const btn = document.getElementById('shell-toggle');
+  if (!shellLoaded) {
+    if (btn) btn.textContent = 'Loading...';
+    try {
+      await loadShell();
+    } catch (e) {
+      console.error('Shell toggle failed:', e);
+      if (btn) btn.textContent = 'Shell Error';
+      return;
+    }
+  }
+  shellVisible = !shellVisible;
+  if (shellVisible) {
+    scene.add(shellMesh);
+  } else {
+    scene.remove(shellMesh);
+  }
+  if (btn) {
+    btn.textContent = shellVisible ? 'Hide Shell' : 'Show Shell';
+    btn.style.borderColor = shellVisible ? '#8e44ad' : 'rgba(255,255,255,0.15)';
+  }
+}
+
+// Opacity slider for shell
+function setShellOpacity(val) {
+  if (shellMesh) shellMesh.material.opacity = val;
+}
+
+// Add shell toggle button + opacity slider to UI
+document.addEventListener('DOMContentLoaded', () => {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `
+    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
+  `;
+
+  const btn = document.createElement('button');
+  btn.id = 'shell-toggle';
+  btn.textContent = 'Show Shell';
+  btn.title = 'Toggle 3D-printed shell preview (loaded from shell.stl)';
+  btn.style.cssText = `
+    padding: 10px 20px; border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(42,42,42,0.9); color: #ccc; font-family: monospace;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.05em;
+    cursor: pointer; border-radius: 6px; backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  `;
+  btn.addEventListener('click', toggleShell);
+
+  const slider = document.createElement('input');
+  slider.type = 'range'; slider.min = '0.1'; slider.max = '1'; slider.step = '0.05'; slider.value = '0.6';
+  slider.style.cssText = `width: 120px; accent-color: #8e44ad; display: none;`;
+  slider.addEventListener('input', () => setShellOpacity(parseFloat(slider.value)));
+
+  // Show slider only when shell is visible
+  const origToggle = toggleShell;
+  const patchedToggle = async () => {
+    await origToggle();
+    slider.style.display = shellVisible ? '' : 'none';
+  };
+  btn.removeEventListener('click', toggleShell);
+  btn.addEventListener('click', patchedToggle);
+
+  wrap.appendChild(slider);
+  wrap.appendChild(btn);
+  document.body.appendChild(wrap);
+});
 
 // @LOCKED:assembly-steps
 // ─── Assembly Steps ────────────────────────────────────────
