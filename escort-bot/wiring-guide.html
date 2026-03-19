@@ -1346,7 +1346,7 @@ function buildDiagram(type){
       }
     }
     // --- Breadboard (center) ---
-    const bbx=210,bby=10,bbw=100,bbh=265;
+    const bbx=210,bby=10,bbw=100,bbh=110;
     const bbRowGap=10,bbRows=3,bbPadTop=30;
     // Board outline — tan breadboard color
     c+=`<rect x="${bbx}" y="${bby}" width="${bbw}" height="${bbh}" rx="5" fill="rgba(212,165,116,.06)" stroke="#d4a574" stroke-width="1.2" class="stagger" style="--del:0.2s"/>`;
@@ -1374,36 +1374,11 @@ function buildDiagram(type){
       // Row label
       c+=`<text x="${bbx+bbw/2}" y="${by_-2}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="${bus.c}" opacity=".7">${bus.label}</text>`;
     });
-    // Non-shared pins section label
-    const directY=busStartY+busRows.length*(busH+busGap)+8;
-    c+=`<line x1="${bbx+10}" y1="${directY}" x2="${bbx+bbw-10}" y2="${directY}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`;
-    c+=`<text x="${bbx+bbw/2}" y="${directY+12}" text-anchor="middle" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.2)">DIRECT WIRES</text>`;
-    c+=`<text x="${bbx+bbw/2}" y="${directY+22}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.12)">(no breadboard needed)</text>`;
-    // List direct-wired pins
-    const directPins=[
-      {pin:4,label:'5V \u2192 LCD',c:'#dc2626'},{pin:6,label:'GND \u2192 L298N',c:'#4a5168'},
-      {pin:9,label:'GND \u2192 HC-SR04',c:'#4a5168'},{pin:11,label:'IN1 \u2192 L298N',c:'#2741E7'},
-      {pin:14,label:'GND \u2192 LCD',c:'#4a5168'},{pin:15,label:'IN3 \u2192 L298N',c:'#e67e22'},
-      {pin:16,label:'IN4 \u2192 L298N',c:'#f1c40f'},{pin:18,label:'IN2 \u2192 L298N',c:'#4260f5'},
-      {pin:20,label:'GND \u2192 PTZ',c:'#4a5168'},{pin:22,label:'TRIG \u2192 HC-SR04',c:'#8e44ad'},
-      {pin:37,label:'ECHO \u2192 HC-SR04',c:'#a855f7'},
-    ];
-    directPins.forEach((dp,i)=>{
-      const dy=directY+34+i*10;
-      c+=`<circle cx="${bbx+14}" cy="${dy}" r="2" fill="${dp.c}" opacity=".6"/>`;
-      c+=`<text x="${bbx+20}" y="${dy+3}" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.3)">Pin ${dp.pin}: ${dp.label}</text>`;
-    });
     // --- Wires: Pi → Breadboard bus rows (shared pins) ---
     busRows.forEach((bus,i)=>{
       const pp=pinPos(bus.pin);
       const bp=busPositions[bus.pin];
       c+=wirePath(pp.x+pinR+1,pp.y,bp.x+6,bp.y,bus.c,0.4+i*0.15,false);
-    });
-    // --- Wires: Pi → right side direct (non-shared pins) ---
-    directPins.forEach((dp,i)=>{
-      const pp=pinPos(dp.pin);
-      // Short tick mark from pin to show it's allocated
-      c+=`<line x1="${pp.x+pinR+1}" y1="${pp.y}" x2="${pp.x+pinR+8}" y2="${pp.y}" stroke="${dp.c}" stroke-width="1.5" stroke-linecap="round" opacity=".4" class="stagger" style="--del:${0.6+i*0.04}s"/>`;
     });
     // --- Component Cards (right side) ---
     const rcx=340;
@@ -1446,10 +1421,13 @@ function buildDiagram(type){
         const isBus=w.bus!==undefined;
         c+=`<circle cx="${rcx+7}" cy="${wy}" r="2" fill="${w.c}" opacity=".6"/>`;
         c+=`<text x="${rcx+12}" y="${wy+3}" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.4)">${w.label}${isBus?' (bus)':''}</text>`;
-        // Wire from breadboard/Pi to card
+        // Wire from breadboard bus or direct from Pi pin to card
         if(isBus){
           const bp=busPositions[w.bus];
           c+=wirePath(bp.right-6,bp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+        } else if(w.direct!==undefined){
+          const pp=pinPos(w.direct);
+          c+=wirePath(pp.x+pinR+1,pp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
         }
       });
       cy_+=ch+cardGap;
