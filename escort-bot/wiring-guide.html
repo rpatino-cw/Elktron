@@ -1387,9 +1387,14 @@ function buildDiagram(type){
         const cx_=bbx+bbPadX+(isRight?(ci_-4)*colGap_bb+bbCols*colGap_bb+chanGap:ci_*colGap_bb);
         const colLetter=colLabels[ci_];
         const isUsed=ru&&ru.holes&&ru.holes[colLetter];
-        const fillColor=isUsed?ru.c:'rgba(0,0,0,.2)';
-        const strokeColor=ru?ru.c:'rgba(212,165,116,.15)';
-        c+=`<circle cx="${cx_}" cy="${ry}" r="${holeR}" fill="${isUsed?fillColor:'rgba(0,0,0,.2)'}" stroke="${strokeColor}" stroke-width="${isUsed?'.8':'.4'}" opacity="${isUsed?'.9':'.3'}"/>`;
+        if(isUsed){
+          // Active hole — large, colored, with glow ring
+          c+=`<circle cx="${cx_}" cy="${ry}" r="3.5" fill="${ru.c}" opacity=".15"/>`;
+          c+=`<circle cx="${cx_}" cy="${ry}" r="${holeR+.5}" fill="${ru.c}" stroke="${ru.c}" stroke-width=".6" opacity=".85"/>`;
+        } else {
+          // Empty hole — subtle square cutout
+          c+=`<rect x="${cx_-1}" y="${ry-1}" width="2" height="2" rx=".4" fill="rgba(0,0,0,.15)" stroke="rgba(212,165,116,${ru?'.12':'.06'})" stroke-width=".3"/>`;
+        }
       }
       // Row label on right side (only for used rows)
       if(ru){
