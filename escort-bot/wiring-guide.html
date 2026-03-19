@@ -1796,75 +1796,218 @@ function initPico2(){
   pico2Initialized=true;
   const wrap=document.getElementById('pico2Diagram');
   if(!wrap)return;
+
+  // === FULL SYSTEM WIRING DIAGRAM (mirrors Pi 5 full-pinmap) ===
   const usedPins=[1,2,3,4,5,6,7,8,9,10,36,38,40];
+  const W=960,H=700;
+  // --- Pico 2 Header (left) ---
+  const ox=10,oy=20,bw=120,bh=300,pinR=4,pinGap=13.5,colGap=80,padX=18,padTop=22;
+  let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="7" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
+  c+=`<text x="${ox+bw/2}" y="${oy+13}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="7" fill="rgba(255,255,255,.5)" letter-spacing=".08em">PICO 2 (RP2350)</text>`;
+  c+=`<rect x="${ox+bw/2-16}" y="${oy-5}" width="32" height="10" rx="3" fill="#555" stroke="#777" stroke-width=".6"/>`;
+  c+=`<text x="${ox+bw/2}" y="${oy+1}" text-anchor="middle" font-family="var(--mono)" font-size="3.5" fill="rgba(255,255,255,.3)">USB-C</text>`;
+
   const pinUse={
-    1:{label:'SDA',c:'#3498db'},2:{label:'SCL',c:'#2ecc71'},
+    1:{label:'SDA',c:'#3498db',bb:true},2:{label:'SCL',c:'#2ecc71',bb:true},
     3:{label:'GND',c:'#4a5168'},4:{label:'IN1',c:'#2741E7'},
     5:{label:'IN2',c:'#4260f5'},6:{label:'IN3',c:'#e67e22'},
     7:{label:'IN4',c:'#f1c40f'},8:{label:'GND',c:'#4a5168'},
     9:{label:'TRIG',c:'#8e44ad'},10:{label:'ECHO',c:'#a855f7'},
     36:{label:'3V3',c:'#f57c00'},38:{label:'GND',c:'#4a5168'},
-    40:{label:'5V',c:'#dc2626'},
+    40:{label:'5V',c:'#dc2626',bb:true},
   };
 
-  const W=600,H=460;
-  const ox=180,oy=20,bw=240,bh=310,pinR=4,pinGap=14,colGap=200,padX=20,padTop=24;
-  let c=`<rect x="${ox}" y="${oy}" width="${bw}" height="${bh}" rx="7" fill="var(--bg-board)" stroke="#3a4260" stroke-width="1.5"/>`;
-  c+=`<text x="${ox+bw/2}" y="${oy+15}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="9" fill="rgba(255,255,255,.5)" letter-spacing=".08em">RASPBERRY PI PICO 2</text>`;
-  // USB connector at top
-  c+=`<rect x="${ox+bw/2-18}" y="${oy-6}" width="36" height="12" rx="3" fill="#555" stroke="#777" stroke-width=".8"/>`;
-  c+=`<text x="${ox+bw/2}" y="${oy+1}" text-anchor="middle" font-family="var(--mono)" font-size="4" fill="rgba(255,255,255,.3)">USB-C</text>`;
-
-  // Draw 40 pins (20 per side, vertical DIP layout)
-  for(let i=0;i<PICO2_PINS.length;i+=2){
-    const row=i/2;
-    const cy_=oy+padTop+row*pinGap;
-    const lp=PICO2_PINS[i],rp=PICO2_PINS[i+1];
-    const lx_=ox+padX,rx_=ox+bw-padX;
-    const lUsed=usedPins.includes(lp[0]),rUsed=usedPins.includes(rp[0]);
-
-    // Pin circles
-    c+=`<circle cx="${lx_}" cy="${cy_}" r="${pinR}" fill="${lUsed?PIN_COLORS[lp[2]]||'#43a047':'var(--pin-inactive)'}" ${lUsed?'class="pin-active" style="--glow-color:'+(PIN_COLORS[lp[2]]||'#43a047')+'"':'opacity=".3"'}/>`;
-    c+=`<circle cx="${rx_}" cy="${cy_}" r="${pinR}" fill="${rUsed?PIN_COLORS[rp[2]]||'#43a047':'var(--pin-inactive)'}" ${rUsed?'class="pin-active" style="--glow-color:'+(PIN_COLORS[rp[2]]||'#43a047')+'"':'opacity=".3"'}/>`;
-
-    // Pin numbers
-    c+=`<text x="${lx_-pinR-3}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="6" font-weight="600" fill="${lUsed?'#fff':'rgba(255,255,255,.18)'}">${lp[0]}</text>`;
-    c+=`<text x="${rx_+pinR+3}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="6" font-weight="600" fill="${rUsed?'#fff':'rgba(255,255,255,.18)'}">${rp[0]}</text>`;
-
-    // Pin function labels (outside)
-    const pul=pinUse[lp[0]],pur=pinUse[rp[0]];
-    if(pul&&lUsed){
-      c+=`<text x="${ox-8}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="7" font-weight="700" fill="${pul.c}">${pul.label}</text>`;
-    } else {
-      c+=`<text x="${ox-8}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.12)">${lp[1]}</text>`;
-    }
-    if(pur&&rUsed){
-      c+=`<text x="${ox+bw+8}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="7" font-weight="700" fill="${pur.c}">${pur.label}</text>`;
-    } else {
-      c+=`<text x="${ox+bw+8}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.12)">${rp[1]}</text>`;
-    }
-
-    // Pin name labels (inside board)
-    c+=`<text x="${lx_+pinR+4}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,${lUsed?'.35':'.1'})">${lp[1]}</text>`;
-    c+=`<text x="${rx_-pinR-4}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,${rUsed?'.35':'.1'})">${rp[1]}</text>`;
+  function pPinPos(physPin){
+    const idx=PICO2_PINS.findIndex(p=>p[0]===physPin);
+    const row=Math.floor(idx/2);const isRight=idx%2===1;
+    return {x:ox+(isRight?padX+colGap:padX), y:oy+padTop+row*pinGap};
   }
 
-  // Component labels with lines pointing to pins
-  const comps=[
-    {pins:[1,2],label:'I2C LCD + PTZ',c:'#3498db',side:'left',y:oy+padTop},
-    {pins:[4,5,6,7],label:'L298N Motor Driver',c:'#4260f5',side:'left',y:oy+padTop+1.5*pinGap},
-    {pins:[9,10],label:'HC-SR04 Ultrasonic',c:'#8e44ad',side:'left',y:oy+padTop+4*pinGap},
-    {pins:[40],label:'5V (VBUS)',c:'#dc2626',side:'right',y:oy+padTop+19*pinGap},
-    {pins:[36],label:'3V3 OUT',c:'#f57c00',side:'right',y:oy+padTop+17*pinGap},
+  // Render all 40 pins
+  for(let i=0;i<PICO2_PINS.length;i+=2){
+    const row=i/2,cy_=oy+padTop+row*pinGap;
+    const lp=PICO2_PINS[i],rp=PICO2_PINS[i+1];
+    const lx_=ox+padX,rx_=ox+padX+colGap;
+    const lUsed=usedPins.includes(lp[0]),rUsed=usedPins.includes(rp[0]);
+    c+=`<circle cx="${lx_}" cy="${cy_}" r="${pinR}" fill="${lUsed?PIN_COLORS[lp[2]]||'#43a047':'var(--pin-inactive)'}" ${lUsed?'class="pin-active" style="--glow-color:'+(PIN_COLORS[lp[2]]||'#43a047')+'"':'opacity=".3"'}/>`;
+    c+=`<circle cx="${rx_}" cy="${cy_}" r="${pinR}" fill="${rUsed?PIN_COLORS[rp[2]]||'#43a047':'var(--pin-inactive)'}" ${rUsed?'class="pin-active" style="--glow-color:'+(PIN_COLORS[rp[2]]||'#43a047')+'"':'opacity=".3"'}/>`;
+    c+=`<text x="${lx_-pinR-2}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="5.5" font-weight="600" fill="${lUsed?'#fff':'rgba(255,255,255,.18)'}">${lp[0]}</text>`;
+    c+=`<text x="${rx_+pinR+2}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="5.5" font-weight="600" fill="${rUsed?'#fff':'rgba(255,255,255,.18)'}">${rp[0]}</text>`;
+    const pu=pinUse[rp[0]],pul=pinUse[lp[0]];
+    c+=pu&&rUsed?`<text x="${ox+bw+4}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="6" font-weight="700" fill="${pu.c}">${pu.label}</text>`:`<text x="${ox+bw+4}" y="${cy_+3}" text-anchor="start" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.1)">${rp[1]}</text>`;
+    c+=pul&&lUsed?`<text x="${ox-4}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="6" font-weight="700" fill="${pul.c}">${pul.label}</text>`:`<text x="${ox-4}" y="${cy_+3}" text-anchor="end" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.1)">${lp[1]}</text>`;
+  }
+
+  // --- Breadboard (center) ---
+  const bbx=230,bby=8,holeR2=1.8,holeGap2=10,colGap_bb2=10;
+  const bbCols2=4,bbRowCount2=20,chanGap2=14;
+  const bbPadX2=14,bbPadTop2=20;
+  const bbw2=bbPadX2*2+bbCols2*colGap_bb2+chanGap2+bbCols2*colGap_bb2;
+  const bbh2=bbPadTop2+bbRowCount2*holeGap2+10;
+  c+=`<rect x="${bbx}" y="${bby}" width="${bbw2}" height="${bbh2}" rx="5" fill="rgba(212,165,116,.06)" stroke="#d4a574" stroke-width="1.2" class="stagger" style="--del:0.2s"/>`;
+  c+=`<text x="${bbx+bbw2/2}" y="${bby+13}" text-anchor="middle" font-family="var(--mono)" font-weight="700" font-size="7" fill="#d4a574" letter-spacing=".06em">BREADBOARD</text>`;
+  const chanX2=bbx+bbPadX2+bbCols2*colGap_bb2+chanGap2/2;
+  c+=`<line x1="${chanX2}" y1="${bby+bbPadTop2-2}" x2="${chanX2}" y2="${bby+bbPadTop2+bbRowCount2*holeGap2}" stroke="rgba(212,165,116,.15)" stroke-width="1"/>`;
+  const colLabels2=['a','b','c','d','e','f','g','h'];
+  for(let ci_=0;ci_<8;ci_++){
+    const isR=ci_>=4;
+    const cx_=bbx+bbPadX2+(isR?(ci_-4)*colGap_bb2+bbCols2*colGap_bb2+chanGap2:ci_*colGap_bb2);
+    c+=`<text x="${cx_}" y="${bby+bbPadTop2-2}" text-anchor="middle" font-family="var(--mono)" font-size="4" fill="rgba(212,165,116,.3)">${colLabels2[ci_]}</text>`;
+  }
+  const rowUse2={
+    1:{label:'SDA BUS',c:'#3498db',holes:{a:'Pico Pin1',b:'LCD SDA',c:'PTZ SDA'}},
+    2:{label:'SCL BUS',c:'#2ecc71',holes:{a:'Pico Pin2',b:'LCD SCL',c:'PTZ SCL'}},
+    3:{label:'5V BUS',c:'#dc2626',holes:{a:'Pico Pin40',b:'PTZ VCC',c:'SR04 bridge',d:'SR04 bridge'}},
+    5:{label:'SR04 VCC',c:'#dc2626',holes:{e:'SR04 pin1'},sr04:true},
+    6:{label:'SR04 TRIG',c:'#8e44ad',holes:{e:'SR04 pin2',f:'Pico Pin9'}},
+    7:{label:'SR04 ECHO',c:'#a855f7',holes:{e:'SR04 pin3',f:'1k\u03A9'}},
+    8:{label:'SR04 GND',c:'#4a5168',holes:{e:'SR04 pin4',f:'Pico Pin8'}},
+    9:{label:'DIVIDER',c:'#a855f7',holes:{e:'1k\u03A9 out',f:'2k\u03A9\u2192GND',g:'Pico Pin10'}},
+  };
+  const bbExitX2=bbx+bbPadX2+3*colGap_bb2;
+  const busPos2={};
+  busPos2[1]={x:bbx,y:bby+bbPadTop2+0*holeGap2,right:bbExitX2};
+  busPos2[2]={x:bbx,y:bby+bbPadTop2+1*holeGap2,right:bbExitX2};
+  busPos2[40]={x:bbx,y:bby+bbPadTop2+2*holeGap2,right:bbExitX2};
+  // Draw holes
+  for(let r=0;r<bbRowCount2;r++){
+    const ry=bby+bbPadTop2+r*holeGap2;
+    const rowNum=r+1;const ru=rowUse2[rowNum];
+    c+=`<text x="${bbx+5}" y="${ry+3}" text-anchor="start" font-family="var(--mono)" font-size="4" fill="rgba(212,165,116,${ru?'.5':'.15'})">${rowNum}</text>`;
+    for(let ci_=0;ci_<8;ci_++){
+      const isR=ci_>=4;
+      const cx_=bbx+bbPadX2+(isR?(ci_-4)*colGap_bb2+bbCols2*colGap_bb2+chanGap2:ci_*colGap_bb2);
+      const colLetter=colLabels2[ci_];
+      const isUsed=ru&&ru.holes&&ru.holes[colLetter];
+      if(isUsed){
+        c+=`<circle cx="${cx_}" cy="${ry}" r="${holeR2}" fill="${ru.c}" stroke="#fff" stroke-width=".5" opacity=".9"/>`;
+      } else {
+        c+=`<circle cx="${cx_}" cy="${ry}" r="1.2" fill="rgba(0,0,0,.25)" opacity="${ru?'.4':'.15'}"/>`;
+      }
+    }
+    if(ru) c+=`<text x="${bbx+bbw2+4}" y="${ry+3}" text-anchor="start" font-family="var(--mono)" font-size="4.5" font-weight="700" fill="${ru.c}" opacity=".6">${ru.label}</text>`;
+  }
+  // HC-SR04 chip outline
+  const sr04y1_=bby+bbPadTop2+4*holeGap2-4,sr04y2_=bby+bbPadTop2+7*holeGap2+4;
+  const sr04x_=bbx+bbPadX2+bbCols2*colGap_bb2+chanGap2;
+  c+=`<rect x="${sr04x_-5}" y="${sr04y1_}" width="10" height="${sr04y2_-sr04y1_}" rx="2" fill="rgba(142,68,173,.08)" stroke="#8e44ad" stroke-width=".6" stroke-dasharray="2 1"/>`;
+  c+=`<text x="${sr04x_}" y="${sr04y1_-3}" text-anchor="middle" font-family="var(--mono)" font-size="4" font-weight="700" fill="#8e44ad" opacity=".5">HC-SR04</text>`;
+  // Voltage divider lines
+  const r7y_=bby+bbPadTop2+6*holeGap2,r9y_=bby+bbPadTop2+8*holeGap2;
+  const rdx_=sr04x_+colGap_bb2;
+  c+=`<line x1="${rdx_}" y1="${r7y_}" x2="${rdx_}" y2="${r9y_}" stroke="#a855f7" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>`;
+  c+=`<text x="${rdx_+6}" y="${(r7y_+r9y_)/2+2}" font-family="var(--mono)" font-size="3.5" fill="#a855f7" opacity=".6">1k\u03A9</text>`;
+  c+=`<line x1="${rdx_}" y1="${r9y_}" x2="${rdx_}" y2="${r9y_+holeGap2*1.5}" stroke="#4a5168" stroke-width="1.2" stroke-dasharray="2 2" opacity=".5"/>`;
+  c+=`<text x="${rdx_+6}" y="${r9y_+holeGap2*.8}" font-family="var(--mono)" font-size="3.5" fill="#4a5168" opacity=".6">2k\u03A9\u2192GND</text>`;
+  // Cross-channel jumper (5V bus row 3 → SR04 VCC row 5)
+  const r5y_=bby+bbPadTop2+4*holeGap2,r3y_=bby+bbPadTop2+2*holeGap2;
+  const colD_x_=bbx+bbPadX2+3*colGap_bb2;
+  c+=`<line x1="${colD_x_}" y1="${r3y_}" x2="${sr04x_}" y2="${r5y_}" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="3 1.5" opacity=".5"/>`;
+  c+=`<circle cx="${colD_x_}" cy="${r3y_}" r="2.5" fill="#dc2626" opacity=".6"/>`;
+  c+=`<circle cx="${sr04x_}" cy="${r5y_}" r="2.5" fill="#dc2626" opacity=".6"/>`;
+  c+=`<text x="${(colD_x_+sr04x_)/2+4}" y="${(r3y_+r5y_)/2}" font-family="var(--mono)" font-size="3.5" fill="#dc2626" opacity=".5">5V jumper</text>`;
+
+  // --- Pico → Breadboard bus wires ---
+  [{pin:1,row:0,c:'#3498db'},{pin:2,row:1,c:'#2ecc71'},{pin:40,row:2,c:'#dc2626'}].forEach((bus,i)=>{
+    const pp=pPinPos(bus.pin);
+    const by_=bby+bbPadTop2+bus.row*holeGap2;
+    c+=wirePath(pp.x+pinR+1,pp.y,bbx+bbPadX2,by_,bus.c,0.4+i*0.15,false);
+  });
+  // Pico → BB: TRIG (Pin 9 → row 6 col f)
+  const r6y_=bby+bbPadTop2+5*holeGap2;
+  const bbColF=bbx+bbPadX2+colGap_bb2+bbCols2*colGap_bb2+chanGap2;
+  c+=wirePath(pPinPos(9).x+pinR+1,pPinPos(9).y,bbColF,r6y_,'#8e44ad',0.6,false);
+  // Pico → BB: GND (Pin 8 → row 8 col f)
+  const r8y_=bby+bbPadTop2+7*holeGap2;
+  c+=wirePath(pPinPos(8).x+pinR+1,pPinPos(8).y,bbColF,r8y_,'#4a5168',0.65,false);
+  // Pico → BB: ECHO divider (Pin 10 → row 9 col g)
+  const bbColG=bbx+bbPadX2+2*colGap_bb2+bbCols2*colGap_bb2+chanGap2;
+  c+=wirePath(pPinPos(10).x+pinR+1,pPinPos(10).y,bbColG,r9y_,'#a855f7',0.7,false);
+
+  // --- Component Cards (right side) ---
+  const rcx=440,cardW=110,cardGap=6;
+  const comps2=[
+    {name:'I2C LCD',sub:'addr 0x27',color:'#3498db',wires:[
+      {bus:1,label:'SDA',c:'#3498db'},{bus:2,label:'SCL',c:'#2ecc71'},
+      {direct:40,label:'5V (VBUS)',c:'#dc2626'},{direct:3,label:'GND',c:'#4a5168'}
+    ]},
+    {name:'PTZ Board',sub:'addr 0x40',color:'#2ecc71',wires:[
+      {bus:1,label:'SDA',c:'#3498db'},{bus:2,label:'SCL',c:'#2ecc71'},
+      {bus:40,label:'5V',c:'#dc2626'},{direct:38,label:'GND',c:'#4a5168'}
+    ]},
+    {name:'L298N',sub:'Motor Driver',color:'#4260f5',wires:[
+      {direct:4,label:'IN1 (GP2)',c:'#2741E7'},{direct:5,label:'IN2 (GP3)',c:'#4260f5'},
+      {direct:6,label:'IN3 (GP4)',c:'#e67e22'},{direct:7,label:'IN4 (GP5)',c:'#f1c40f'},
+      {direct:3,label:'GND',c:'#4a5168'},
+      {label:'+12V \u2190 Battery',c:'#dc2626'},{label:'GND \u2190 Battery',c:'#555'}
+    ]},
+    {name:'HC-SR04',sub:'On Breadboard',color:'#8e44ad',wires:[
+      {bbRow:4,label:'VCC (row 5 → 5V bus)',c:'#dc2626'},
+      {bbRow:5,label:'TRIG (row 6 → Pin 9)',c:'#8e44ad'},
+      {bbRow:6,label:'ECHO (row 7 → divider)',c:'#a855f7'},
+      {bbRow:7,label:'GND (row 8 → Pin 8)',c:'#4a5168'}
+    ]},
+    {name:'Battery',sub:'2\u00d718650 7.4V',color:'#dc2626',wires:[
+      {label:'RED (+) \u2192 L298N +12V',c:'#dc2626'},{label:'BLK (\u2212) \u2192 L298N GND',c:'#555'}
+    ]},
   ];
+  let cy2_=8;
+  const compY2={};
+  comps2.forEach((comp,ci)=>{
+    compY2[comp.name]=cy2_;
+    const wireH=comp.wires.length>0?comp.wires.length*10+4:0;
+    const ch=28+wireH;
+    c+=`<rect x="${rcx}" y="${cy2_}" width="${cardW}" height="${ch}" rx="5" fill="rgba(10,14,26,.35)" stroke="${comp.color}" stroke-width="1" class="stagger" style="--del:${0.5+ci*0.1}s"/>`;
+    c+=`<text x="${rcx+cardW/2}" y="${cy2_+13}" text-anchor="middle" font-family="var(--font)" font-weight="800" font-size="8" fill="${comp.color}">${comp.name}</text>`;
+    c+=`<text x="${rcx+cardW/2}" y="${cy2_+22}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.25)">${comp.sub}</text>`;
+    comp.wires.forEach((w,wi)=>{
+      const wy=cy2_+30+wi*10;
+      const isBus=w.bus!==undefined,isDirect=w.direct!==undefined;
+      c+=`<circle cx="${rcx+8}" cy="${wy}" r="2.5" fill="${w.c}" opacity=".7"/>`;
+      c+=`<text x="${rcx+14}" y="${wy+3}" font-family="var(--mono)" font-size="5.5" fill="rgba(255,255,255,.45)">${w.label}${isBus?' (bus)':''}</text>`;
+      if(isBus){
+        const bp=busPos2[w.bus];
+        if(bp) c+=wirePath(bp.right,bp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+      } else if(isDirect){
+        const pp=pPinPos(w.direct);
+        c+=wirePath(pp.x+pinR+1,pp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+      } else if(w.bbRow!==undefined){
+        const bby_=bby+bbPadTop2+w.bbRow*holeGap2;
+        const bbRX=bbx+bbPadX2+3*colGap_bb2+bbCols2*colGap_bb2+chanGap2;
+        c+=wirePath(bbRX,bby_,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+      }
+    });
+    cy2_+=ch+cardGap;
+  });
 
-  // Legend box
-  c+=`<rect x="10" y="${H-60}" width="${W-20}" height="50" rx="5" fill="rgba(10,14,26,.25)" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`;
-  c+=`<text x="20" y="${H-38}" font-family="var(--mono)" font-size="7" font-weight="700" fill="rgba(255,255,255,.3)">13/40 PINS USED \u2022 I2C (GP0-1) \u2022 MOTORS (GP2-5) \u2022 ULTRASONIC (GP6-7) \u2022 POWER (VBUS+3V3+GND)</text>`;
-  c+=`<text x="20" y="${H-22}" font-family="var(--mono)" font-size="6" fill="rgba(255,255,255,.2)">Same 3.3V logic as Pi 5 \u2022 Same I2C protocol \u2022 Voltage divider still required on ECHO pin</text>`;
+  // --- Motor boxes ---
+  const mx=620,motorColor='#60a5fa';
+  [{name:'LEFT MOTORS',sub:'FL + RL',y:140,outs:['OUT1','OUT2']},
+   {name:'RIGHT MOTORS',sub:'FR + RR',y:200,outs:['OUT3','OUT4']}].forEach((m,mi)=>{
+    c+=`<rect x="${mx}" y="${m.y}" width="${cardW}" height="42" rx="5" fill="rgba(10,14,26,.25)" stroke="${motorColor}" stroke-width=".8" stroke-dasharray="4 2"/>`;
+    c+=`<text x="${mx+cardW/2}" y="${m.y+14}" text-anchor="middle" font-family="var(--font)" font-weight="700" font-size="7" fill="${motorColor}">${m.name}</text>`;
+    c+=`<text x="${mx+cardW/2}" y="${m.y+24}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(96,165,250,.35)">${m.sub}</text>`;
+    m.outs.forEach((o,oi)=>{
+      c+=`<text x="${mx+cardW/2}" y="${m.y+33+oi*8}" text-anchor="middle" font-family="var(--mono)" font-size="5" fill="rgba(255,255,255,.2)">\u2190 L298N ${o}</text>`;
+    });
+    const l298nY=compY2['L298N']||136;
+    c+=wirePath(rcx+cardW,l298nY+30+mi*20,mx,m.y+20,motorColor,1.1+mi*0.1,false);
+  });
 
-  const svg=mkSvg(W,H,c);
-  wrap.appendChild(svg);
+  // --- Voltage divider callout ---
+  c+=`<rect x="440" y="420" width="180" height="28" rx="4" fill="rgba(168,85,247,.06)" stroke="rgba(168,85,247,.2)" stroke-width=".8"/>`;
+  c+=`<text x="448" y="432" font-family="var(--mono)" font-size="5.5" font-weight="700" fill="#a855f7">\u26A0 ECHO VOLTAGE DIVIDER</text>`;
+  c+=`<text x="448" y="442" font-family="var(--mono)" font-size="5" fill="rgba(168,85,247,.4)">ECHO (5V) \u2192 [1k\u03A9] \u2192 GP7 (3.3V) \u2192 [2k\u03A9] \u2192 GND</text>`;
+
+  // --- Note: no camera on Pico ---
+  c+=`<rect x="440" y="460" width="180" height="22" rx="4" fill="rgba(120,144,156,.06)" stroke="rgba(120,144,156,.2)" stroke-width=".8"/>`;
+  c+=`<text x="448" y="474" font-family="var(--mono)" font-size="5" fill="rgba(120,144,156,.5)">Camera + USB-C: Pi 5 only (skip for Pico test)</text>`;
+
+  // --- Stats bar ---
+  c+=`<rect x="4" y="${H-34}" width="${W-8}" height="28" rx="5" fill="rgba(10,14,26,.25)" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`;
+  c+=`<text x="16" y="${H-17}" font-family="var(--mono)" font-size="6" font-weight="700" fill="rgba(255,255,255,.3)">13/40 PINS \u2022 5 COMPONENTS \u2022 3 BB BUSES \u2022 5 DIRECT \u2022 6 BB-ROUTED \u2022 4 MOTOR OUTPUTS \u2022 1 VOLTAGE DIVIDER \u2022 SAME 3.3V LOGIC AS PI 5</text>`;
+
+  wrap.appendChild(mkSvg(W,H,c));
 }
 
 setMode(currentMode);
