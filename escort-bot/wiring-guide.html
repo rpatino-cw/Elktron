@@ -1458,10 +1458,10 @@ function buildDiagram(type){
         {label:'+12V \u2190 Battery',c:'#dc2626'},{label:'GND \u2190 Battery',c:'#555'}
       ]},
       {name:'HC-SR04',sub:'On Breadboard',color:'#8e44ad',wires:[
-        {label:'VCC → BB row3 (5V bus)',c:'#dc2626'},
-        {label:'TRIG → BB row6 → Pi Pin22',c:'#8e44ad'},
-        {label:'ECHO → BB row7 → divider → Pi Pin37',c:'#a855f7'},
-        {label:'GND → BB row8 → Pi Pin9',c:'#4a5168'}
+        {bbRow:4,label:'VCC (row 5 → 5V bus)',c:'#dc2626'},
+        {bbRow:5,label:'TRIG (row 6 → Pi Pin22)',c:'#8e44ad'},
+        {bbRow:6,label:'ECHO (row 7 → divider)',c:'#a855f7'},
+        {bbRow:7,label:'GND (row 8 → Pi Pin9)',c:'#4a5168'}
       ]},
       {name:'Camera',sub:'Arducam IMX708',color:'#9b59b6',wires:[
         {label:'CSI ribbon \u2190 Pi',c:'#9b59b6'}
@@ -1493,6 +1493,11 @@ function buildDiagram(type){
         } else if(isDirect){
           const pp=pinPos(w.direct);
           c+=wirePath(pp.x+pinR+1,pp.y,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
+        } else if(w.bbRow!==undefined){
+          // Wire from breadboard row (right side, col h area) to component card
+          const bby_=bby+bbPadTop+w.bbRow*holeGap;
+          const bbRightX=bbx+bbPadX+3*colGap_bb+bbCols*colGap_bb+chanGap; // col h
+          c+=wirePath(bbRightX,bby_,rcx,wy,w.c,0.7+ci*0.1+wi*0.05,false);
         }
       });
       cy_+=ch+cardGap;
