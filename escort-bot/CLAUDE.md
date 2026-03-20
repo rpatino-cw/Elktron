@@ -11,10 +11,10 @@ The bot is built on the **LK-COKOINO 4WD chassis** (CKK0011) — a basic 4-wheel
 
 **Key components:**
 - **Compute:** Raspberry Pi 5 (4GB or 8GB). Must run **Raspberry Pi OS Bookworm Lite 64-bit** — the only OS that supports Pi 5 + provides lgpio + picamera2 + Python 3.11. See `PI-SETUP.md` for full flashing and first-boot guide. **Claude Code (CLI) is installed on the Pi** — enables on-device AI-assisted development, live debugging, and iterating on motor/sensor/camera code directly on the hardware.
-- **Motors:** 4x TT DC motors driven by a **single L298N dual H-bridge** motor driver (one board handles all 4 motors — no second driver needed). The 4 motors wire as 2 parallel pairs: left pair (FL+RL) to Channel A (OUT1/OUT2), right pair (FR+RR) to Channel B (OUT3/OUT4). Differential (tank) steering — left pair and right pair controlled independently. GPIO pins: IN1=GPIO17 (Pin 11), IN2=GPIO24 (Pin 18), IN3=GPIO22 (Pin 15), IN4=GPIO23 (Pin 16). GND → Pin 6. Full wiring in `WIRING.md`.
+- **Motors:** 4x TT DC motors driven by a **single L298N dual H-bridge** motor driver (one board handles all 4 motors — no second driver needed). The 4 motors wire as 2 parallel pairs: left pair (FL+RL) to Channel A (OUT1/OUT2), right pair (FR+RR) to Channel B (OUT3/OUT4). Differential (tank) steering — left pair and right pair controlled independently. GPIO pins: IN1=GPIO17 (Pin 11), IN2=GPIO22 (Pin 15), IN3=GPIO5 (Pin 29), IN4=GPIO6 (Pin 31). GND → Pin 6. **Updated 2026-03-20 per GPIO_Current.csv.** Full wiring in `WIRING.md`.
 - **Camera:** Arducam 120-degree wide-angle autofocus (IMX708), connected via CSI ribbon cable. Used for both person detection (FOLLOW mode) and rack scanning (SCAN mode).
 - **Pan/Tilt:** Arducam B0283 pan/tilt platform with PTZ controller board (I2C addr 0x40, 12-bit PWM). Connected via SDA (GPIO 2, Pin 3) and SCL (GPIO 3, Pin 5) — shared I2C bus with LCD (addr 0x27) via breadboard splitter. VCC → Pin 2 (5V, breadboard-shared with HC-SR04), GND → Pin 20. Controlled by `pan_tilt.py`. The tilt servo sweeps -60 to +60 degrees for rack scans.
-- **Ultrasonic:** HC-SR04 — TRIG on GPIO 25 (Pin 22), ECHO on GPIO 26 (Pin 37). VCC → Pin 2 (5V, breadboard-shared with PTZ), GND → Pin 9. Provides obstacle avoidance — bot stops if anything is within 30cm. **Critical:** ECHO pin is 5V; Pi 5 GPIO is 3.3V tolerant. A voltage divider (1kΩ + 2kΩ resistors) is required or use HC-SR04P (3.3V version).
+- **Ultrasonic:** HC-SR04 — TRIG on GPIO 23 (Pin 16), ECHO on GPIO 24 (Pin 18). **Updated 2026-03-20 per GPIO_Current.csv.** VCC → Pin 2 (5V, breadboard-shared with PTZ), GND → Pin 9. Provides obstacle avoidance — bot stops if anything is within 30cm. **Critical:** ECHO pin is 5V; Pi 5 GPIO is 3.3V tolerant. A voltage divider (1kΩ + 2kΩ resistors) is required or use HC-SR04P (3.3V version).
 - **Power:** Dual power — USB-C power bank (5V/3A, e.g. Anker 10K) for the Pi, separate 7.4V battery pack (2x 18650) for motors through Freenove Smart Car Board. Inline USB-C power switch for clean on/off. Right-angle USB-C adapter to keep cable flush. Backup power bank + 2 spare 18650s for hot-swap during demo. Never power the Pi from the Smart Car Board's 5V regulator.
 - **Mast:** ~3-4 ft PVC pipe (1 inch Schedule 40) mounted vertically on the chassis to raise the camera to mid-rack height. PVC T-connector attaches to chassis. This is critical — without height the camera can only see the bottom few rack units.
 
@@ -40,6 +40,12 @@ escort-bot/
 ├── requirements.txt       # picamera2, opencv-python, gpiozero, numpy, lgpio, Pillow
 ├── WIRING.md              # GPIO pin map, L298N wiring, HC-SR04 voltage divider, test commands
 ├── PI-SETUP.md            # Complete Pi 5 OS flashing + first boot + troubleshooting guide
+├── assets/
+│   ├── GPIO_ref.png       # GPIO pinout reference photo (physical pin layout)
+│   ├── GPIO_Current.csv   # Current GPIO pin assignments (exported from Numbers spreadsheet)
+│   ├── IMG_1130.png       # Hardware photo
+│   ├── door-open-phase.png        # Escort workflow diagram
+│   └── scan-verification.png      # Scan verification diagram
 ├── scans/                 # Output dir — one subfolder per rack scan with JPEG frames
 ├── models/                # Detection model files (YOLOv8n — switched from MobileNet SSD)
 │   └── yolov8n.pt         # YOLOv8n weights (auto-downloaded by ultralytics)

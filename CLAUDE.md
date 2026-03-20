@@ -108,6 +108,9 @@ hackathon/
 │   ├── PI-SETUP.md                    # Pi 5 OS flashing + first boot guide (Bookworm Lite 64-bit)
 │   ├── Soldier.glb                    # 3D model (GLB) used in simulation
 │   ├── assets/
+│   │   ├── GPIO_ref.png               # GPIO pinout reference photo
+│   │   ├── GPIO_Current.csv           # Current GPIO pin assignments (from Numbers)
+│   │   ├── IMG_1130.png               # Hardware photo
 │   │   ├── door-open-phase.png        # Escort workflow diagram
 │   │   └── scan-verification.png      # Scan verification diagram
 │   ├── showcase.html                  # Escort bot scope page (CSS animations, no Three.js)

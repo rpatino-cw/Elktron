@@ -1071,6 +1071,9 @@
     <button id="btn-edit">Edit</button>
     <button id="btn-edit-save" style="display:none">Save Positions</button>
     <button id="btn-wire" style="display:none">Wire</button>
+    <button id="shell-toggle" style="display:none">Show Shell</button>
+    <button id="btn-monitor-toggle" style="display:none">Monitor / Terminal</button>
+    <input id="shell-opacity" type="range" min="0.1" max="1" step="0.05" value="0.6" style="width:80px; accent-color:var(--accent); display:none; vertical-align:middle;">
   </div>
 </div>
 
@@ -1204,7 +1207,7 @@ ground.position.y = -0.01;
 ground.receiveShadow = true;
 scene.add(ground);
 // @END-LOCKED:scene-setup
-
+window._scene = scene; window._camera = camera; window._renderer = renderer;
 // ─── Slow Auto-Rotate (cinematic orbit) ──────────────────
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.3; // Very slow — full circle ~2 min
@@ -3642,6 +3645,54 @@ function createWiringHarness() {
 }
 // @END-LOCKED:component-builders
 
+// ─── Override PVC Mast — match real MECCANIXITY pipe (B0D8GRDPJM) ──────
+// 50mm OD, 45mm ID, 350mm long, black PVC, 2.4mm wall
+// Overrides locked createPVCMast which used wrong color/dimensions
+createPVCMast = function() {
+  const group = new THREE.Group(); group.name = 'pvc-mast';
+
+  // Real dims in scene units (mmToScene ≈ 0.0157 from chassis ratio)
+  const mmToScene = 0.0157;
+  const outerR = (50 / 2) * mmToScene;   // 25mm OD radius
+  const innerR = (45 / 2) * mmToScene;   // 22.5mm ID radius
+  const pipeH  = 350 * mmToScene;        // 350mm → 5.495
+
+  const pipeMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1a1a, roughness: 0.3, metalness: 0.15
+  });
+
+  // Outer cylinder
+  const outer = new THREE.Mesh(
+    new THREE.CylinderGeometry(outerR, outerR, pipeH, 24),
+    pipeMat
+  );
+  outer.castShadow = true;
+  outer.position.y = pipeH / 2;
+
+  // Inner bore (slightly visible at top/bottom)
+  const boreMat = new THREE.MeshStandardMaterial({
+    color: 0x0a0a0a, roughness: 0.8, side: THREE.BackSide
+  });
+  const bore = new THREE.Mesh(
+    new THREE.CylinderGeometry(innerR, innerR, pipeH + 0.01, 24),
+    boreMat
+  );
+  bore.position.y = pipeH / 2;
+
+  // Top rim ring (visible edge)
+  const rimGeo = new THREE.RingGeometry(innerR, outerR, 24);
+  const rimMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.4 });
+  const topRim = new THREE.Mesh(rimGeo, rimMat);
+  topRim.rotation.x = -Math.PI / 2;
+  topRim.position.y = pipeH;
+
+  group.add(outer);
+  group.add(bore);
+  group.add(topRim);
+
+  return group;
+};
+
 // ─── Cable Spawner REMOVED — replaced by standalone PDF wiring diagram ──
 // See: escort-bot/wiring-diagram.pdf for the complete connection map.
 
@@ -3686,27 +3737,30 @@ function loadShell() {
         const mesh = new THREE.Mesh(geometry, shellMat);
         mesh.name = 'Shell_Preview';
 
-        // Scale to match chassis GLB bounding box
-        let sclX = 1/60, sclY = 1/60, sclZ = 1/60;
+        // Scale: derive mm→scene ratio from chassis (real chassis ≈ 255mm long)
+        const CHASSIS_REAL_MM = 255;
+        let mmToScene = 1 / 60; // fallback
         if (chassisGroup) {
           chassisGroup.updateMatrixWorld(true);
           const cBox = new THREE.Box3().setFromObject(chassisGroup);
           const cSize = cBox.getSize(new THREE.Vector3());
           console.log(`Shell: chassis size = ${cSize.x.toFixed(3)} x ${cSize.y.toFixed(3)} x ${cSize.z.toFixed(3)}`);
-          sclX = (cSize.x * 0.82) / stlW;
-          sclZ = (cSize.z * 0.35) / stlD;
-          sclY = sclX;
+          mmToScene = cSize.x / CHASSIS_REAL_MM;
+          console.log(`Shell: mmToScene = ${mmToScene.toFixed(6)} (from chassis width ${cSize.x.toFixed(3)} / ${CHASSIS_REAL_MM}mm)`);
         } else {
           console.warn('Shell: chassisGroup not ready, using fallback scale');
         }
-        mesh.scale.set(sclX, sclY, sclZ);
+        // Uniform scale — STL is in mm, convert to scene units
+        const shellScale = mmToScene;
+        mesh.scale.set(shellScale, shellScale, shellScale);
         mesh.rotation.x = -Math.PI / 2;
 
-        const shellH = 105 * sclY;
+        // Position: center on chassis, bottom at ground (or just above wheels)
+        const shellH_scene = 177.8 * shellScale; // panel_h in mm → scene units
         mesh.position.x = chassisGroup ? chassisCenterX : 0;
-        mesh.position.y = shellH / 2;
+        mesh.position.y = shellH_scene / 2;
         mesh.position.z = chassisGroup ? chassisCenterZ : 0;
-        console.log(`Shell: scale=${sclX.toFixed(4)}, pos=(${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
+        console.log(`Shell: scale=${shellScale.toFixed(6)}, pos=(${mesh.position.x.toFixed(2)}, ${mesh.position.y.toFixed(2)}, ${mesh.position.z.toFixed(2)})`);
 
         shellMesh = mesh;
         shellLoaded = true;
@@ -3741,7 +3795,7 @@ async function toggleShell() {
   }
   if (btn) {
     btn.textContent = shellVisible ? 'Hide Shell' : 'Show Shell';
-    btn.style.borderColor = shellVisible ? '#8e44ad' : 'rgba(255,255,255,0.15)';
+    btn.classList.toggle('edit-active', shellVisible);
   }
 }
 
@@ -3750,45 +3804,22 @@ function setShellOpacity(val) {
   if (shellMesh) shellMesh.material.opacity = val;
 }
 
-// Add shell toggle button + opacity slider to UI
-document.addEventListener('DOMContentLoaded', () => {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = `
-    position: fixed; bottom: 20px; right: 20px; z-index: 9999;
-    display: flex; flex-direction: column; gap: 6px; align-items: flex-end;
-  `;
-
-  const btn = document.createElement('button');
-  btn.id = 'shell-toggle';
-  btn.textContent = 'Show Shell';
-  btn.title = 'Toggle 3D-printed shell preview (loaded from shell.stl)';
-  btn.style.cssText = `
-    padding: 10px 20px; border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(42,42,42,0.9); color: #ccc; font-family: monospace;
-    font-size: 13px; font-weight: 600; letter-spacing: 0.05em;
-    cursor: pointer; border-radius: 6px; backdrop-filter: blur(8px);
-    transition: all 0.2s;
-  `;
-  btn.addEventListener('click', toggleShell);
-
-  const slider = document.createElement('input');
-  slider.type = 'range'; slider.min = '0.1'; slider.max = '1'; slider.step = '0.05'; slider.value = '0.6';
-  slider.style.cssText = `width: 120px; accent-color: #8e44ad; display: none;`;
-  slider.addEventListener('input', () => setShellOpacity(parseFloat(slider.value)));
-
-  // Show slider only when shell is visible
-  const origToggle = toggleShell;
-  const patchedToggle = async () => {
-    await origToggle();
-    slider.style.display = shellVisible ? '' : 'none';
-  };
-  btn.removeEventListener('click', toggleShell);
-  btn.addEventListener('click', patchedToggle);
-
-  wrap.appendChild(slider);
-  wrap.appendChild(btn);
-  document.body.appendChild(wrap);
-});
+// Wire up shell toggle button + opacity slider (buttons already in HTML)
+{
+  const btn = document.getElementById('shell-toggle');
+  const slider = document.getElementById('shell-opacity');
+  if (btn) {
+    btn.addEventListener('click', async () => {
+      await toggleShell();
+      slider.style.display = shellVisible ? 'inline-block' : 'none';
+      btn.textContent = shellVisible ? 'Hide Shell' : 'Show Shell';
+      btn.classList.toggle('edit-active', shellVisible);
+    });
+  }
+  if (slider) {
+    slider.addEventListener('input', () => setShellOpacity(parseFloat(slider.value)));
+  }
+}
 
 // @LOCKED:assembly-steps
 // ─── Assembly Steps ────────────────────────────────────────
@@ -4026,13 +4057,13 @@ const assemblySteps = [
   {
     name: 'PVC Camera Mast',
     number: '10',
-    desc: '3-4 ft Schedule 40 PVC pipe. Raises the camera to mid-rack height (~21U). T-connector attaches to upper plate. Zip ties secure wiring.',
-    simple: 'A tall plastic pipe that holds the camera up high — like a selfie stick for the robot. Without it, the camera would only see people\'s feet. The pipe gets it up to chest height.',
+    desc: 'MECCANIXITY 2" black PVC rigid tube (50mm OD, 45mm ID, 350mm). Mounts vertically on chassis to raise the pan-tilt camera above the shell.',
+    simple: 'A sturdy black plastic pipe that holds the camera up high above the shell. Without it, the camera would be trapped inside — this gets it up where it can see people and racks.',
     specs: [
-      { label: 'Height', value: '3-4 ft' },
-      { label: 'Diameter', value: '1 inch' },
-      { label: 'Material', value: 'PVC Sch 40' },
-      { label: 'Mount', value: 'T-connector' },
+      { label: 'Length', value: '350mm (14")' },
+      { label: 'OD / ID', value: '50mm / 45mm' },
+      { label: 'Material', value: 'Black PVC' },
+      { label: 'Wall', value: '2.4mm' },
     ],
     create: createPVCMast,
     yOffset: 4,
@@ -4584,6 +4615,33 @@ function stopTerminalSequence() {
   terminalCharIndex = 0;
 }
 // @END-LOCKED:state-and-animation
+
+// Override animatePartIn — the locked version clones materials and toggles
+// transparent on/off, which corrupts the Three.js render pass sorting and
+// causes black boxes after step 6.  This version just slides parts in
+// from above without touching materials at all.
+animatePartIn = function(partGroup, fromY, duration = 1200) {
+  return new Promise(resolve => {
+    isAnimating = true;
+    const targetY = partGroup.position.y;
+    partGroup.position.y = targetY + (fromY || 2);
+    scene.add(partGroup);
+
+    const startTime = performance.now();
+    function tick(now) {
+      const t = Math.min((now - startTime) / duration, 1);
+      partGroup.position.y = targetY + (fromY || 2) * (1 - easeOutQuart(t));
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        partGroup.position.y = targetY;
+        isAnimating = false;
+        resolve();
+      }
+    }
+    requestAnimationFrame(tick);
+  });
+};
 
 // @LOCKED:pi-setup-quest
 // ─── Pi Setup Quest — Interactive Terminal Guide ─────────────
@@ -7217,10 +7275,13 @@ function editSavePositions() {
   const data = {};
   const all = [...assembledParts];
   if (piGroup) all.push(piGroup);
+  if (shellMesh) all.push(shellMesh);
   all.forEach(g => {
     if (!g.name) return;
-    const p = g.position, r = g.rotation;
-    data[g.name] = { pos: [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4)], rot: [+r.x.toFixed(4), +r.y.toFixed(4), +r.z.toFixed(4)] };
+    const p = g.position, r = g.rotation, s = g.scale;
+    const entry = { pos: [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4)], rot: [+r.x.toFixed(4), +r.y.toFixed(4), +r.z.toFixed(4)] };
+    if (g === shellMesh) entry.scl = [+s.x.toFixed(6), +s.y.toFixed(6), +s.z.toFixed(6)];
+    data[g.name] = entry;
   });
   const code = '// POSITION OVERRIDES — paste into assembly.html\nconst EDIT_POSITIONS = ' + JSON.stringify(data, null, 2) + ';\n';
   navigator.clipboard.writeText(code).then(() => editToast('Copied to clipboard')).catch(() => { console.log(code); editToast('Logged to console'); });
@@ -7281,54 +7342,125 @@ document.getElementById('btn-edit').addEventListener('click', toggleEditMode);
 document.getElementById('btn-edit-save').addEventListener('click', editSavePositions);
 // @END-LOCKED:event-listeners-edit-mode
 
+// ─── Shell Edit Mode Patch ──────────────────────────────────────────────
+// Makes shell selectable in edit mode + adds S key for scale
+// Uses bubble phase (not capture) to avoid blocking button clicks
+{
+  const shellRay = new THREE.Raycaster(); // reuse single instance
+  renderer.domElement.addEventListener('pointerup', (e) => {
+    if (!editMode || !shellMesh || !shellVisible) return;
+    // Only handle clicks on the canvas, not UI elements
+    if (e.target !== renderer.domElement) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    shellRay.setFromCamera(mouse, camera);
+    const hits = shellRay.intersectObject(shellMesh, true);
+    if (hits.length > 0) {
+      editSelect(shellMesh);
+    }
+  }); // bubble phase — doesn't block buttons
+
+  // S key for scale mode
+  document.addEventListener('keydown', (e) => {
+    if (editMode && (e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey) {
+      tCtrl.setMode('scale');
+    }
+  });
+}
+
+// ─── Patch: Save Positions exports scale for ALL non-default-scaled parts ──
+document.getElementById('btn-edit-save').addEventListener('click', function(e) {
+  e.stopImmediatePropagation();
+  const data = {};
+  const all = [...assembledParts];
+  if (piGroup) all.push(piGroup);
+  if (shellMesh) all.push(shellMesh);
+  all.forEach(g => {
+    if (!g.name) return;
+    const p = g.position, r = g.rotation, s = g.scale;
+    const entry = { pos: [+p.x.toFixed(4), +p.y.toFixed(4), +p.z.toFixed(4)],
+                    rot: [+r.x.toFixed(4), +r.y.toFixed(4), +r.z.toFixed(4)] };
+    if (Math.abs(s.x - 1) > 0.001 || Math.abs(s.y - 1) > 0.001 || Math.abs(s.z - 1) > 0.001)
+      entry.scl = [+s.x.toFixed(6), +s.y.toFixed(6), +s.z.toFixed(6)];
+    data[g.name] = entry;
+  });
+  const code = 'const SAVED_POSITIONS = ' + JSON.stringify(data, null, 2) + ';\n';
+  navigator.clipboard.writeText(code).then(() => editToast('Copied (with scale)')).catch(() => { console.log(code); editToast('Logged to console'); });
+}, true); // capture phase — fires before the locked handler
+
 // ─── Saved Part Positions — baked-in overrides, auto-applied after each step ──
 // Export via Edit Mode → Save Positions → paste here. Parts matched by group.name.
 // Come back anytime: Edit Mode → move part → Save Positions → paste updated data.
 const SAVED_POSITIONS = {
   "chassis-glb": {
-    "pos": [0.0019, 0.5312, 0.0019],
-    "rot": [0, 0, 0]
+    "pos": [0.0019, 0.5279, 0.0125],
+    "rot": [0, 0, 0],
+    "scl": [2.105633, 2.105633, 2.105633]
   },
   "raspberry-pi-5": {
-    "pos": [1.2937, 1.2791, -0.023],
+    "pos": [0.1985, 1.0331, -0.0049],
+    "rot": [0, 0, 0],
+    "scl": [0.85, 0.85, 0.85]
+  },
+  "sd-card-step": {
+    "pos": [0, 0, 0],
     "rot": [0, 0, 0]
   },
   "power-bank": {
-    "pos": [0.6827, 1.1395, 0.0153],
-    "rot": [0, 0.004, 0]
-  },
-  "l298n-driver": {
-    "pos": [-0.0815, 1.2887, 0.0033],
-    "rot": [0, 0, 0]
+    "pos": [1.3591, 1.623, 0.0065],
+    "rot": [0, 1.5653, 0],
+    "scl": [0.6, 0.6, 0.6]
   },
   "pi-switch": {
-    "pos": [0.4433, 1.3253, 0.0222],
-    "rot": [3.1416, -1.5555, 3.1416]
+    "pos": [1.3477, 1.4413, -0.66],
+    "rot": [-1.5797, -0.0158, 0.0492],
+    "scl": [0.6, 0.6, 0.6]
+  },
+  "l298n-driver": {
+    "pos": [1.3744, 1.1877, -0.0116],
+    "rot": [0, 0, 0],
+    "scl": [0.6, 0.6, 0.6]
   },
   "hc-sr04": {
-    "pos": [-1.7205, 0.4168, 0.0175],
-    "rot": [3.1416, -1.5356, 3.1416]
+    "pos": [-1.5353, 0.9622, -0.0015],
+    "rot": [-1.5713, 0.043, 1.5695],
+    "scl": [1.5, 1.5, 1.5]
   },
   "battery-pack": {
     "pos": [1.9837, 0.7969, -0.0076],
-    "rot": [1.5788, -0.0023, 1.5667]
+    "rot": [1.5788, -0.0023, 1.5667],
+    "scl": [0.6, 0.6, 0.6]
   },
   "pvc-mast": {
-    "pos": [-0.8812, 0.7733, 0],
+    "pos": [1.1251, 3.0616, 0.0194],
     "rot": [0, 0, 0]
   },
   "pan-tilt-camera": {
-    "pos": [-0.9306, 4.7745, 0],
+    "pos": [1.0953, 8.5769, 0],
+    "rot": [0, 0, 0],
+    "scl": [0.6, 0.6, 0.6]
+  },
+  "shell-assembly-step": {
+    "pos": [0, 0, 0],
     "rot": [0, 0, 0]
+  },
+  "Shell_Preview": {
+    "pos": [0.3194, 1.6575, 0.0183],
+    "rot": [-1.5708, 0, 3.1395],
+    "scl": [0.015686, 0.015686, 0.015686]
   }
 };
 
-// Auto-apply saved positions after a part is added to the scene
+// Auto-apply saved positions (+ optional scale) after a part is added to the scene
 function applySavedPosition(part) {
   const saved = SAVED_POSITIONS[part.name];
   if (!saved) return;
   part.position.set(saved.pos[0], saved.pos[1], saved.pos[2]);
   part.rotation.set(saved.rot[0], saved.rot[1], saved.rot[2]);
+  if (saved.scl) part.scale.set(saved.scl[0], saved.scl[1], saved.scl[2]);
 }
 
 // Hook: apply saved positions whenever assembledParts grows
@@ -8235,6 +8367,19 @@ setTimeout(() => {
 animate();
 // @END-LOCKED:animate-and-init
 
+// Fix: EffectComposer + UnrealBloomPass causes black boxes with transparent
+// materials (known Three.js issue). Bypass entirely — CSS vignette below
+// replaces the shader vignette with zero WebGL cost.
+composer.render = function() { renderer.render(scene, camera); };
+
+// CSS vignette overlay — replaces the ShaderPass vignette removed by the composer bypass
+(function addCSSVignette() {
+  const v = document.createElement('div');
+  v.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;' +
+    'background:radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.3) 100%)';
+  document.body.appendChild(v);
+})();
+
 // ─── Pre-load Pan-Tilt Camera GLB ────────────────────────────
 // Replaces the procedural createPanTiltCamera with a Meshy AI GLB model.
 let panTiltGLB = null;
@@ -8248,7 +8393,9 @@ gltfLoader.load('../glb/Meshy_AI_ArduCam_180_Degree_Pa_0317142235_generate.glb',
   const center = box.getCenter(new THREE.Vector3());
   const size = box.getSize(new THREE.Vector3());
   const maxDim = Math.max(size.x, size.y, size.z);
-  const targetSize = 0.6; // Slightly larger than procedural version for detail
+  // True scale: Arducam B0283 is ~65mm tall (largest dim). mmToScene ≈ 0.0157
+  const realMaxMM = 65; // tallest dimension of B0283 pan-tilt + camera
+  const targetSize = realMaxMM * 0.0157; // ≈ 1.02 scene units
   const scale = targetSize / maxDim;
   panTiltGLB.scale.setScalar(scale);
 
@@ -8280,6 +8427,13 @@ gltfLoader.load('../glb/Meshy_AI_ArduCam_180_Degree_Pa_0317142235_generate.glb',
 }, undefined, (error) => {
   console.warn('Pan-tilt GLB failed to load:', error.message);
 });
+
+// Patch the PVC Camera Mast step to use the corrected createPVCMast override
+(function patchPVCMastStep() {
+  const step = assemblySteps.find(s => s.name === 'PVC Camera Mast');
+  if (!step) return;
+  step.create = createPVCMast; // now points to the override (black, real dims)
+})();
 
 // Patch the Pan-Tilt + Camera assembly step to use the GLB
 (function patchPanTiltStep() {
@@ -8375,223 +8529,114 @@ gltfLoader.load('../glb/Meshy_AI_HC_SR04_0317143003_generate.glb', (gltf) => {
   };
 })();
 
-// ─── Insert Mounting & Fastening step (before Wiring Harness) ─────
-(function insertMountingStep() {
-  const insertIndex = assemblySteps.findIndex(s => s.name === 'Wiring Harness');
-  if (insertIndex === -1) return;
-
-  assemblySteps.splice(insertIndex, 0, {
-    name: 'Mounting & Fastening',
-    number: String(insertIndex + 1).padStart(2, '0'),
-    desc: 'Secure every component to the chassis with proper fasteners. Pi 5 on M2.5 brass standoffs, L298N and HC-SR04 on M3/M2 screws through chassis mounting holes, 18650 battery holder bolted to frame, PVC mast clamped with hose clamps through plate holes. Power bank held with velcro straps for easy swap.',
-    simple: 'Now we bolt and strap everything down tight so nothing rattles loose when the robot drives. Each part has its own kind of fastener — brass standoffs for the computer, steel screws for the motor driver and sensors, and straps for the battery pack.',
-    specs: [
-      { label: 'Pi 5', value: '4× M2.5 brass standoffs + screws' },
-      { label: 'L298N', value: 'M3 standoffs into chassis holes' },
-      { label: 'HC-SR04', value: 'M2 screws through board holes' },
-      { label: '18650 Pack', value: 'M3 screws into frame holes' },
-      { label: 'Power Bank', value: 'Velcro straps (hot-swap ready)' },
-      { label: 'PVC Mast', value: 'Hose clamps + bolts through plate' },
-    ],
-    create: async function() {
-      const group = new THREE.Group();
-      group.name = 'mounting-fastening';
-
-      // Ghost chassis plate — semi-transparent to show mounting context
-      const plateGeo = new THREE.BoxGeometry(3.2, 0.08, 2.4);
-      const ghostMat = new THREE.MeshStandardMaterial({
-        color: 0x2a2e38, roughness: 0.55, metalness: 0.7,
-        transparent: true, opacity: 0.25,
-      });
-      const plate = new THREE.Mesh(plateGeo, ghostMat);
-      plate.receiveShadow = true;
-      group.add(plate);
-
-      // Materials
-      const brassM = new THREE.MeshStandardMaterial({ color: 0xc0a050, roughness: 0.3, metalness: 0.85 });
-      const steelM = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.3, metalness: 0.9 });
-      const clampM = new THREE.MeshStandardMaterial({ color: 0x6a6a6a, roughness: 0.4, metalness: 0.8 });
-      const velcroM = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.95, metalness: 0.0 });
-      const glowM = new THREE.MeshStandardMaterial({
-        color: 0xff6600, roughness: 0.5, metalness: 0.2,
-        emissive: 0xff3300, emissiveIntensity: 0.3,
-      });
-
-      // Mount points: [x, y, z, type]
-      const mounts = [
-        // Pi 5 — M2.5 standoffs (upper right area)
-        [0.4, 0.05, -0.4, 'standoff'], [0.4, 0.05, 0.0, 'standoff'],
-        [0.9, 0.05, -0.4, 'standoff'], [0.9, 0.05, 0.0, 'standoff'],
-        // L298N — M3 screws (rear center)
-        [-0.8, 0.05, -0.5, 'screw'], [-0.8, 0.05, 0.5, 'screw'],
-        // 18650 holder — M3 screws (frame)
-        [1.2, -0.05, -0.8, 'screw'], [1.2, -0.05, 0.8, 'screw'],
-        // HC-SR04 — M2 screws (front)
-        [-1.4, 0.05, -0.2, 'screw'], [-1.4, 0.05, 0.2, 'screw'],
-      ];
-
-      // Orange highlight rings at each mount point
-      const ringGeo = new THREE.TorusGeometry(0.06, 0.015, 8, 16);
-      mounts.forEach(m => {
-        const ring = new THREE.Mesh(ringGeo, glowM);
-        ring.position.set(m[0], m[1], m[2]);
-        ring.rotation.x = Math.PI / 2;
-        group.add(ring);
-      });
-
-      // M2.5 brass standoffs (Pi 5)
-      const soGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.12, 8);
-      const shGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.02, 8);
-      mounts.filter(m => m[3] === 'standoff').forEach(m => {
-        const so = new THREE.Mesh(soGeo, brassM);
-        so.position.set(m[0], m[1] + 0.06, m[2]);
-        so.castShadow = true;
-        group.add(so);
-        const hd = new THREE.Mesh(shGeo, steelM);
-        hd.position.set(m[0], m[1] + 0.13, m[2]);
-        group.add(hd);
-      });
-
-      // M3/M2 screws (L298N, 18650, HC-SR04)
-      const scGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.08, 8);
-      const hxGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.02, 6);
-      mounts.filter(m => m[3] === 'screw').forEach(m => {
-        const sc = new THREE.Mesh(scGeo, steelM);
-        sc.position.set(m[0], m[1] + 0.04, m[2]);
-        sc.castShadow = true;
-        group.add(sc);
-        const hx = new THREE.Mesh(hxGeo, steelM);
-        hx.position.set(m[0], m[1] + 0.09, m[2]);
-        group.add(hx);
-      });
-
-      // Velcro straps for power bank
-      const strapGeo = new THREE.BoxGeometry(0.8, 0.02, 0.12);
-      [-0.3, 0.3].forEach(z => {
-        const strap = new THREE.Mesh(strapGeo, velcroM);
-        strap.position.set(-0.1, 0.06, z);
-        group.add(strap);
-      });
-
-      // Hose clamp rings for PVC mast
-      const clGeo = new THREE.TorusGeometry(0.08, 0.015, 8, 24);
-      [0.15, 0.05].forEach(y => {
-        const cl = new THREE.Mesh(clGeo, clampM);
-        cl.position.set(-1.2, y, 0);
-        cl.rotation.x = Math.PI / 2;
-        group.add(cl);
-      });
-
-      return group;
-    },
-    yOffset: 2.5,
-    cameraTarget: { x: 0, y: 0.5, z: 0 },
-  });
-
-  // Remove Wiring Harness step (no longer needed)
-  const wiringIdx = assemblySteps.findIndex(s => s.name === 'Wiring Harness');
-  if (wiringIdx !== -1) assemblySteps.splice(wiringIdx, 1);
-
-  // Renumber all steps from insertion point
-  for (let i = insertIndex; i < assemblySteps.length; i++) {
+// ─── Remove steps that are no longer in the assembly flow ─────
+(function pruneSteps() {
+  const removeNames = [
+    'Wiring Harness', 'HDMI Monitor', 'Power On',
+    'AINOPE USB-C Cable', 'Pi Setup Quest',
+  ];
+  for (const name of removeNames) {
+    const idx = assemblySteps.findIndex(s => s.name === name);
+    if (idx !== -1) assemblySteps.splice(idx, 1);
+  }
+  // Renumber all steps
+  for (let i = 0; i < assemblySteps.length; i++) {
     assemblySteps[i].number = String(i + 1).padStart(2, '0');
   }
-
-  // Net step count: +1 mounting, -1 wiring = same 15 dots as original
-  console.log('Mounting step inserted, Wiring Harness removed. Total:', assemblySteps.length);
+  console.log('Pruned assembly steps. Total:', assemblySteps.length);
 })();
 
-// ─── Patch Pi Setup Quest → Software Showcase (auto-play) ────────
-(function patchSoftwareShowcase() {
-  const step = assemblySteps.find(s => s.name === 'Pi Setup Quest');
-  if (!step) return;
+// ─── Add Shell as final assembly step ─────
+// Shell loads on-demand in animateIn (needs chassisGroup to be ready for correct scale)
 
-  step.name = 'Software Showcase';
-  step.desc = 'The software powering the escort bot. YOLOv8n for person detection, picamera2 for the IMX708 camera, gpiozero + lgpio for motor and servo control, and a PID steering loop — all running on Python 3.11 on the Pi 5.';
-  step.simple = 'This is the robot\'s brain! It uses AI to see people, Python to think, and special libraries to control the motors and camera. Watch the screen to see everything that makes the robot work.';
-  step.specs = [
-    { label: 'Detection', value: 'YOLOv8n (Ultralytics)' },
-    { label: 'Camera', value: 'picamera2 + IMX708 120°' },
-    { label: 'GPIO', value: 'gpiozero + lgpio (Pi 5)' },
-    { label: 'Steering', value: 'PID controller (P+I+D+FF)' },
-    { label: 'Language', value: 'Python 3.11 (Bookworm)' },
-    { label: 'Scan', value: 'JPEG sweep, 5° tilt steps' },
-  ];
+(function addShellStep() {
+  assemblySteps.push({
+    name: '3D-Printed Shell',
+    number: String(assemblySteps.length + 1).padStart(2, '0'),
+    desc: 'The custom 3D-printed shell snaps over the chassis. Designed in OpenSCAD with Cybertruck slope, Testarossa side vents, honeycomb front grille, HC-SR04 sensor eyes, and a scored rear door with flush finger pull.',
+    simple: 'The robot\'s armor! A custom 3D-printed shell that protects all the electronics and gives the bot its aggressive look. It slides on from the top and attaches with screws through the built-in mounting tabs.',
+    specs: [
+      { label: 'Material', value: 'PLA / PETG' },
+      { label: 'Design', value: 'OpenSCAD parametric' },
+      { label: 'Features', value: 'Vents, grille, sensor holes' },
+      { label: 'Mount', value: '6-point screw tabs' },
+    ],
+    create: () => {
+      const g = new THREE.Group();
+      g.name = 'shell-assembly-step';
+      return g;
+    },
+    yOffset: 0,
+    cameraTarget: { x: 0, y: 1.5, z: 0 },
+    animateIn: (part) => {
+      return new Promise(async resolve => {
+        scene.add(part);
 
-  // Showcase lines — auto-typed on the small monitor terminal
-  const SHOWCASE_LINES = [
-    { text: 'pi@escortbot:~ $ cat /etc/escort-bot/stack.yml', color: 'white', delay: 60 },
-    { text: '', color: 'white', delay: 100 },
-    { text: '─── ESCORT BOT v1.0 ── Software Stack ───', color: '#ffcc44', delay: 80 },
-    { text: '', color: 'white', delay: 60 },
-    { text: 'BRAIN:', color: '#44ccdd', delay: 50 },
-    { text: '  python:     3.11 (Bookworm aarch64)', color: '#44dd66', delay: 35 },
-    { text: '  main.py:    327 lines — FOLLOW / SCAN / IDLE', color: '#44dd66', delay: 35 },
-    { text: '', color: 'white', delay: 40 },
-    { text: 'VISION:', color: '#44ccdd', delay: 50 },
-    { text: '  yolov8n:    Ultralytics — person detection', color: '#44dd66', delay: 35 },
-    { text: '  picamera2:  IMX708 wide-angle 120° autofocus', color: '#44dd66', delay: 35 },
-    { text: '  opencv:     frame processing + bounding boxes', color: '#44dd66', delay: 35 },
-    { text: '', color: 'white', delay: 40 },
-    { text: 'MOTION:', color: '#44ccdd', delay: 50 },
-    { text: '  gpiozero:   Motor, Servo, DistanceSensor', color: '#44dd66', delay: 35 },
-    { text: '  lgpio:      Pi 5 native GPIO (replaces RPi.GPIO)', color: '#44dd66', delay: 35 },
-    { text: '  PID:        lateral + distance — proportional steering', color: '#44dd66', delay: 35 },
-    { text: '', color: 'white', delay: 40 },
-    { text: 'SENSORS:', color: '#44ccdd', delay: 50 },
-    { text: '  ultrasonic: HC-SR04 — obstacle avoidance < 30cm', color: '#44dd66', delay: 35 },
-    { text: '  pan-tilt:   MG90S servos — rack scan sweep', color: '#44dd66', delay: 35 },
-    { text: '', color: 'white', delay: 40 },
-    { text: 'SCAN:', color: '#44ccdd', delay: 50 },
-    { text: '  mode:       bottom-to-top tilt sweep, 5° steps', color: '#44dd66', delay: 35 },
-    { text: '  output:     JPEG frames → scans/{timestamp}/', color: '#44dd66', delay: 35 },
-    { text: '', color: 'white', delay: 80 },
-    { text: 'pi@escortbot:~ $ systemctl status escort-bot', color: 'white', delay: 60 },
-    { text: '● escort-bot.service — active (running)', color: '#44dd66', delay: 50 },
-    { text: '  Main PID: 1847 (python3 main.py)', color: '#a0b0a0', delay: 30 },
-    { text: '  Memory: 412M | CPU: 23.1%', color: '#a0b0a0', delay: 30 },
-    { text: '', color: 'white', delay: 60 },
-    { text: 'pi@escortbot:~ $ █', color: 'white', delay: 0 },
-  ];
+        // Load shell now (chassis GLB is ready → correct scale)
+        try { await loadShell(); } catch(e) { console.warn('Shell load failed:', e); }
+        if (!shellMesh) { resolve(); return; }
 
-  // Override create — just return an empty group (no interactive terminal)
-  step.create = () => {
-    const g = new THREE.Group();
-    g.name = 'software-showcase-step';
-    return g;
-  };
+        // Apply saved position/scale/rotation if available
+        applySavedPosition(shellMesh);
 
-  // Override animateIn — zoom to monitor, then auto-play showcase on small terminal
-  step.animateIn = (part) => {
-    return new Promise(resolve => {
-      scene.add(part);
-      isAnimating = true;
+        // Same path as toggle button — just add to scene
+        shellVisible = true;
+        scene.add(shellMesh);
 
-      // Zoom camera to monitor
-      animateCameraTarget({ x: 0.2, y: 2.55, z: -0.45 });
-
-      _pendingTimeouts.push(setTimeout(() => {
-        // Clear small terminal and inject showcase lines
-        if (typeof terminalLines !== 'undefined') {
-          terminalLines.length = 0;
-          terminalLines.push({ text: '', color: 'white' });
-        }
-        if (typeof BOOT_LINES !== 'undefined') {
-          SHOWCASE_LINES.forEach(line => BOOT_LINES.push(line));
-          if (typeof terminalLineIndex !== 'undefined') {
-            terminalLineIndex = BOOT_LINES.length - SHOWCASE_LINES.length;
-            terminalCharIndex = 0;
-            bootTickAccum = 0;
-          }
-        }
-        isAnimating = false;
+        // Show buttons
+        const shellBtn = document.getElementById('shell-toggle');
+        if (shellBtn) { shellBtn.textContent = 'Hide Shell'; shellBtn.classList.add('edit-active'); shellBtn.style.display = ''; }
+        const slider = document.getElementById('shell-opacity');
+        if (slider) slider.style.display = 'inline-block';
+        const monBtn = document.getElementById('btn-monitor-toggle');
+        if (monBtn) monBtn.style.display = '';
         resolve();
-      }, 1200));
-    });
-  };
-
-  console.log('Pi Setup Quest patched → Software Showcase (auto-play)');
+      });
+    },
+  });
 })();
+
+// ─── Reorder final steps: Shell → PVC Mast → Pan-Tilt + Camera ─────
+(function reorderFinalSteps() {
+  const desiredOrder = ['3D-Printed Shell', 'PVC Camera Mast', 'Pan-Tilt + Camera'];
+  for (const name of desiredOrder) {
+    const idx = assemblySteps.findIndex(s => s.name === name);
+    if (idx !== -1) {
+      const [step] = assemblySteps.splice(idx, 1);
+      assemblySteps.push(step);
+    }
+  }
+  // Renumber
+  for (let i = 0; i < assemblySteps.length; i++) {
+    assemblySteps[i].number = String(i + 1).padStart(2, '0');
+  }
+  console.log('Final step order:', assemblySteps.map(s => s.name).join(' → '));
+})();
+
+// ─── Monitor / Terminal toggle button ─────
+(function wireMonitorToggle() {
+  const btn = document.getElementById('btn-monitor-toggle');
+  if (!btn) return;
+  let monitorShown = false;
+  btn.addEventListener('click', () => {
+    if (!monitorGroup) return;
+    monitorShown = !monitorShown;
+    if (monitorShown) {
+      startMonitorEntrance();
+      if (hdmiCableGroup) hdmiCableGroup.visible = true;
+      btn.textContent = 'Hide Monitor';
+      btn.classList.add('edit-active');
+    } else {
+      monitorGroup.visible = false;
+      monitorGroup.scale.set(0, 0, 0);
+      if (hdmiCableGroup) hdmiCableGroup.visible = false;
+      btn.textContent = 'Monitor / Terminal';
+      btn.classList.remove('edit-active');
+    }
+  });
+})();
+
+// (Software Showcase removed)
 
 // ─── Auto-start: cinematic first step on page load ───────────
 // Waits for chassis GLB to load, then triggers step 01 automatically
@@ -8623,15 +8668,7 @@ gltfLoader.load('../glb/Meshy_AI_HC_SR04_0317143003_generate.glb', (gltf) => {
         part.position.set(tx, startY, tz);
         if (saved && saved.rot) part.rotation.set(saved.rot[0], saved.rot[1], saved.rot[2]);
 
-        // Start with opacity 0 for a fade-in
-        part.traverse(child => {
-          if (child.isMesh) {
-            child.material = child.material.clone();
-            child.material.transparent = true;
-            child.material.opacity = 0;
-          }
-        });
-
+        // No material manipulation — just slide in from above
         scene.add(part);
 
         // Stop auto-rotate during entrance, resume after
@@ -8644,25 +8681,10 @@ gltfLoader.load('../glb/Meshy_AI_HC_SR04_0317143003_generate.glb', (gltf) => {
           const eased = 1 - Math.pow(1 - t, 4);
           part.position.y = startY + (ty - startY) * eased;
 
-          // Fade in during first 60%
-          const fadeT = Math.min(t / 0.6, 1);
-          const fadeEased = 1 - Math.pow(1 - fadeT, 3);
-          part.traverse(child => {
-            if (child.isMesh) {
-              child.material.opacity = fadeEased;
-            }
-          });
-
           if (t < 1) {
             requestAnimationFrame(tick);
           } else {
             part.position.y = ty;
-            part.traverse(child => {
-              if (child.isMesh) {
-                child.material.opacity = 1;
-                child.material.transparent = false;
-              }
-            });
             isAnimating = false;
             controls.autoRotate = true;
             // Restore original animateIn for step-back/redo
