@@ -1,1937 +1,1151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elktron — Dashboard</title>
-  <meta name="theme-color" content="#fafbfd">
-  <link rel="stylesheet" href="../design-system.css">
+  <title>Elktron — Escort Bot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    html {
-      font-family: var(--font-sans);
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      color-scheme: light;
+    /* ── Tokens ─────────────────────────────────────────────── */
+    :root {
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+
+      /* Dark (default) */
+      --bg:        #080a10;
+      --surface:   #0d0f18;
+      --raised:    #131620;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.13);
+      --t1: #e4e6f0;
+      --t2: #8890b0;
+      --t3: #484e6a;
+      --accent:  #4264ff;
+      --green:   #10b981;
+      --amber:   #f59e0b;
+      --red:     #ef4444;
+      --cyan:    #22d3ee;
+      --green-muted: rgba(16,185,129,0.10);
+      --amber-muted: rgba(245,158,11,0.10);
+      --red-muted:   rgba(239,68,68,0.10);
+      --accent-muted: rgba(66,100,255,0.10);
+    }
+
+    html.light {
+      --bg:        #f1f3f8;
+      --surface:   #ffffff;
+      --raised:    #f8f9fc;
+      --border:    rgba(0,0,0,0.08);
+      --border-hi: rgba(0,0,0,0.14);
+      --t1: #111827;
+      --t2: #4b5563;
+      --t3: #9ca3af;
+      --green-muted: rgba(16,185,129,0.08);
+      --amber-muted: rgba(245,158,11,0.08);
+      --red-muted:   rgba(239,68,68,0.08);
+      --accent-muted: rgba(66,100,255,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--t1);
       -webkit-font-smoothing: antialiased;
     }
 
-    body { min-height: 100vh; display: flex; flex-direction: column; padding-top: 44px; }
+    body { display: flex; flex-direction: column; }
 
-    /* ─── Noise overlay for depth ────────────────────────────── */
-    body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(74,158,255,0.04), transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ─── Nav ─────────────────────────────────────────────── */
+    /* ── Nav ─────────────────────────────────────────────────── */
     nav {
-      height: 52px;
+      height: 46px;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px;
-      background: rgba(250,251,253,0.85);
-      backdrop-filter: blur(20px) saturate(1.2);
-      -webkit-backdrop-filter: blur(20px) saturate(1.2);
-      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
       position: sticky; top: 0; z-index: 100;
     }
 
-    .nav-left { display: flex; align-items: center; gap: 14px; }
+    .nav-l, .nav-r { display: flex; align-items: center; gap: 14px; }
+    .nav-c { display: flex; align-items: center; gap: 20px; }
 
-    .nav-logo {
-      font-size: 14px; font-weight: 800;
-      letter-spacing: -0.3px;
+    .wordmark {
+      font-family: var(--mono);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--t1);
       display: flex; align-items: center; gap: 8px;
-      color: var(--text-primary);
     }
 
-    .nav-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--status-success);
-      box-shadow: 0 0 6px rgba(52,211,153,0.5);
-      animation: pulse 2.5s ease-in-out infinite;
+    .status-led {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.35; }
-    }
+    .status-led.offline { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .status-led.connecting { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
 
-    .nav-divider {
-      width: 1px; height: 18px;
-      background: var(--border-subtle);
-    }
+    @keyframes led-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .status-led.live { animation: led-pulse 2s ease-in-out infinite; }
 
-    .nav-status {
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 0.1em;
-      color: var(--text-tertiary);
-      padding: 3px 8px;
-      background: rgba(10,14,26,0.03);
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-    }
+    .nav-divider { width: 1px; height: 16px; background: var(--border-hi); }
 
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-
-    .nav-time {
-      font-family: var(--font-mono);
-      font-size: 11px; font-weight: 500;
-      color: var(--text-tertiary);
-      letter-spacing: 0.03em;
-    }
-
-    .conn-badge {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 3px 8px; border-radius: 4px;
+    .sys-stat {
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 500;
+      color: var(--t3);
       display: flex; align-items: center; gap: 5px;
     }
 
-    .conn-badge.connected {
-      background: var(--status-success-muted);
-      color: var(--status-success);
-      border: 1px solid rgba(52,211,153,0.15);
+    .sys-stat .lbl {
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
     }
 
-    .conn-badge.disconnected {
-      background: var(--status-error-muted);
-      color: var(--status-error);
-      border: 1px solid rgba(248,113,113,0.15);
+    .sys-stat .val { color: var(--t2); }
+    .sys-stat .val.warn { color: var(--amber); }
+    .sys-stat .val.crit { color: var(--red); }
+
+    .nav-clock {
+      font-family: var(--mono);
+      font-size: 11px; font-weight: 500;
+      color: var(--t2); letter-spacing: 0.05em;
     }
 
-    .conn-dot {
-      width: 4px; height: 4px; border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* ─── Dashboard Grid ─────────────────────────────────── */
-    .dashboard {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      grid-template-rows: auto auto auto;
-      gap: 1px;
-      background: rgba(10,14,26,0.015);
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ─── Panel Base ─────────────────────────────────────── */
-    .panel {
-      background: var(--bg-surface);
-      padding: 20px;
-      display: flex; flex-direction: column;
-      min-height: 300px;
-      position: relative;
-      overflow: hidden;
-      opacity: 0;
-      animation: panelIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      contain: content;
-    }
-
-    .panel--wide,
-    .panel--full {
-      content-visibility: auto;
-      contain-intrinsic-size: auto 300px;
-    }
-
-    .panel::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(10,14,26,0.04) 30%, rgba(10,14,26,0.04) 70%, transparent);
-    }
-
-    .panel--wide { grid-column: span 2; }
-    .panel--full { grid-column: 1 / -1; }
-
-    .panel-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
-      flex-shrink: 0;
-    }
-
-    .panel-title {
-      font-size: 13px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--text-primary);
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .panel-title-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-    }
-
-    .panel-badge {
+    /* connection badge */
+    .conn {
+      font-family: var(--mono);
       font-size: 9px; font-weight: 700;
       letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 3px 8px; border-radius: 4px;
+      padding: 3px 10px; border-radius: 3px;
+      display: flex; align-items: center; gap: 5px;
     }
 
-    .badge-green { background: var(--status-success-muted); color: var(--status-success); border: 1px solid rgba(52,211,153,0.12); }
-    .badge-blue { background: var(--glow-soft); color: var(--accent-primary); border: 1px solid rgba(74,158,255,0.12); }
-    .badge-amber { background: var(--status-warning-muted); color: var(--status-warning); border: 1px solid rgba(251,191,36,0.12); }
-    .badge-red { background: var(--status-error-muted); color: var(--status-error); border: 1px solid rgba(248,113,113,0.12); }
-    .badge-dim { background: rgba(10,14,26,0.02); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+    .conn.connected    { background: var(--green-muted); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
+    .conn.disconnected { background: var(--red-muted);   color: var(--red);   border: 1px solid rgba(239,68,68,.2); }
+    .conn.connecting   { background: var(--amber-muted); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
 
-    .panel-body { flex: 1; display: flex; flex-direction: column; }
-
-    /* ─── Shared ─────────────────────────────────────────── */
-    .stat-val {
-      font-family: var(--font-mono);
-      font-size: 12px; font-weight: 600;
-      color: var(--text-primary);
+    /* theme toggle */
+    .theme-btn {
+      width: 28px; height: 28px; border-radius: 5px;
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--t2); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: border-color .2s, color .2s;
     }
+    .theme-btn:hover { border-color: var(--border-hi); color: var(--t1); }
 
-    .stat-val.green { color: var(--status-success); }
-    .stat-val.amber { color: var(--status-warning); }
-    .stat-val.red { color: var(--status-error); }
-    .stat-val.blue { color: var(--accent-primary-hover); }
-
-    .progress-track {
-      width: 100%; height: 3px;
-      background: rgba(10,14,26,0.04);
-      border-radius: 2px;
-      overflow: hidden;
-      margin: 6px 0;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: var(--accent-primary);
-      transition: width 0.3s ease;
-      position: relative;
-    }
-
-    .progress-fill::after {
-      content: '';
-      position: absolute; right: 0; top: -1px; bottom: -1px;
-      width: 20px;
-      background: linear-gradient(90deg, transparent, currentColor);
-      opacity: 0.4;
-      border-radius: 0 2px 2px 0;
-    }
-
-    .progress-fill.green { background: var(--status-success); color: var(--status-success); }
-    .progress-fill.amber { background: var(--status-warning); color: var(--status-warning); }
-    .progress-fill.blue { background: var(--accent-primary); color: var(--accent-primary); }
-
-    /* ─── Phase Display (shared) ─────────────────────────── */
-    .phase-display {
-      font-size: 20px; font-weight: 800;
-      letter-spacing: -0.4px;
-      color: var(--text-primary);
-      text-transform: capitalize;
-      line-height: 1.2;
-      transition: opacity 0.2s ease;
-    }
-
-    .phase-sub {
-      font-size: 11px; font-weight: 500;
-      color: var(--text-tertiary);
-      margin-top: 2px;
-      margin-bottom: 16px;
-      letter-spacing: 0.01em;
-    }
-
-    /* ─── Footer Row (shared) ────────────────────────────── */
-    .panel-footer {
-      display: flex; gap: 0;
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid var(--border-subtle);
-    }
-
-    .footer-stat {
+    /* ── Grid ────────────────────────────────────────────────── */
+    .grid {
       flex: 1;
-      display: flex; flex-direction: column; align-items: center;
-      padding: 0 8px;
-      position: relative;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      grid-template-rows: 1fr auto auto;
+      gap: 1px;
+      background: var(--border);
+      min-height: 0;
     }
 
-    .footer-stat + .footer-stat::before {
-      content: '';
-      position: absolute; left: 0; top: 2px; bottom: 2px;
-      width: 1px;
-      background: var(--border-subtle);
+    /* ── Panel base ──────────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
     }
 
-    .footer-val {
-      font-family: var(--font-mono);
-      font-size: 13px; font-weight: 700;
-      color: var(--text-primary);
-      letter-spacing: -0.3px;
-    }
+    .panel--full { grid-column: 1 / -1; }
+    .panel--escort { grid-column: 1; grid-row: 1 / 3; }
+    .panel--camera { grid-column: 2; grid-row: 1; min-height: 300px; }
+    .panel--dd     { grid-column: 2; grid-row: 2; }
 
-    .footer-label {
-      font-size: 9px; font-weight: 600;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-top: 3px;
-    }
-
-    /* ─── Panel 1: Arm Status ────────────────────────────── */
-    .gripper-visual {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 14px;
-      padding: 8px 12px;
-      background: var(--bg-elevated);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-    }
-
-    .gripper-icon {
-      width: 28px; height: 22px;
-      position: relative;
-      display: flex; align-items: flex-end; justify-content: center; gap: 2px;
+    .ph {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px 0;
       flex-shrink: 0;
     }
 
-    .gripper-finger {
-      width: 5px; height: 14px;
-      background: var(--text-tertiary);
-      border-radius: 2px;
-      transition: transform 0.3s, background 0.3s;
+    .ph-title {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--t3);
+      display: flex; align-items: center; gap: 7px;
     }
 
-    .gripper-finger.left { transform-origin: top right; }
-    .gripper-finger.right { transform-origin: top left; }
+    .ph-dot { width: 4px; height: 4px; border-radius: 50%; }
 
-    .gripper-open .gripper-finger.left { transform: rotate(-15deg); }
-    .gripper-open .gripper-finger.right { transform: rotate(15deg); }
-
-    .gripper-closed .gripper-finger.left { transform: rotate(0deg); background: var(--status-success); }
-    .gripper-closed .gripper-finger.right { transform: rotate(0deg); background: var(--status-success); }
-
-    .gripper-text {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      transition: color 0.3s ease;
-    }
-
-    .gripper-text.open { color: var(--text-tertiary); }
-    .gripper-text.closed { color: var(--status-success); }
-    .gripper-text.holding { color: var(--accent-primary-hover); }
-
-    .joints-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-bottom: 14px;
-    }
-
-    .joint-cell {
-      background: var(--bg-elevated);
-      border-radius: var(--radius-sm);
-      padding: 10px;
-      border: 1px solid var(--border-subtle);
-      transition: border-color 0.3s;
-    }
-
-    .joint-cell:hover {
-      border-color: rgba(10,14,26,0.06);
-    }
-
-    .joint-name {
+    .badge {
+      font-family: var(--mono);
       font-size: 8px; font-weight: 700;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-tertiary);
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px;
+    }
+
+    .badge-green  { background: var(--green-muted);  color: var(--green);  border: 1px solid rgba(16,185,129,.15); }
+    .badge-blue   { background: var(--accent-muted); color: var(--accent); border: 1px solid rgba(66,100,255,.15); }
+    .badge-amber  { background: var(--amber-muted);  color: var(--amber);  border: 1px solid rgba(245,158,11,.15); }
+    .badge-red    { background: var(--red-muted);    color: var(--red);    border: 1px solid rgba(239,68,68,.15); }
+    .badge-dim    { background: transparent; color: var(--t3); border: 1px solid var(--border); }
+
+    /* ── Escort Panel ────────────────────────────────────────── */
+    .escort-body { flex: 1; display: flex; flex-direction: column; padding: 16px; }
+
+    .mode-row {
+      display: flex; align-items: baseline; gap: 10px;
       margin-bottom: 4px;
     }
 
-    .joint-angle {
-      font-family: var(--font-mono);
-      font-size: 16px; font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.5px;
-      transition: color 0.15s ease;
+    .mode-val {
+      font-family: var(--mono);
+      font-size: 28px; font-weight: 700;
+      letter-spacing: -0.5px; text-transform: uppercase;
+      color: var(--t1);
     }
 
-    .joint-angle::after {
-      content: '\00B0';
-      font-size: 10px; color: var(--text-tertiary);
-      margin-left: 1px;
+    .mode-sub {
+      font-size: 11px; color: var(--t3);
+      margin-bottom: 20px; line-height: 1.4;
     }
 
-    /* ─── Panel 2: Escort Bot ────────────────────────────── */
-    .escort-vendor-card {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
+    /* offline state */
+    .offline-block {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      border: 1px dashed var(--border-hi);
+      border-radius: 6px; margin-bottom: 16px;
+    }
+
+    .offline-label {
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    .offline-sub {
+      font-size: 10px; color: var(--t3); opacity: .6;
+    }
+
+    /* vendor card */
+    .vendor-card {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
       padding: 12px 14px;
       margin-bottom: 12px;
     }
 
-    .escort-vendor-name {
-      font-size: 13px; font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 2px;
+    .vendor-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--t1); margin-bottom: 2px;
     }
 
-    .escort-vendor-ticket {
-      font-size: 10px; font-weight: 500;
-      color: var(--text-tertiary);
-      letter-spacing: 0.03em;
+    .vendor-ticket {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--t3);
     }
 
-    .escort-auth {
+    .vendor-auth {
+      font-family: var(--mono);
       font-size: 9px; font-weight: 700;
       letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--status-warning);
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border-subtle);
+      color: var(--amber);
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid var(--border);
     }
 
-    .scan-progress-label {
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--text-tertiary);
+    /* scan progress */
+    .scan-hdr {
       display: flex; justify-content: space-between;
-      margin-bottom: 4px;
-      text-transform: uppercase;
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--t3); margin-bottom: 5px;
     }
 
-    .escort-alert {
-      background: var(--status-warning-muted);
-      border: 1px solid rgba(251,191,36,0.15);
-      border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      font-size: 10px; font-weight: 600;
-      color: var(--status-warning);
-      margin-top: 8px;
-      display: none;
-      letter-spacing: 0.02em;
+    .track {
+      width: 100%; height: 3px;
+      background: var(--raised); border-radius: 2px; overflow: hidden;
+      margin-bottom: 14px;
     }
 
-    .escort-alert.visible { display: block; }
-
-    .escort-alert.cleared {
-      background: var(--status-success-muted);
-      border-color: rgba(52,211,153,0.15);
-      color: var(--status-success);
+    .fill {
+      height: 100%; border-radius: 2px;
+      background: var(--green);
+      transition: width .4s ease;
     }
 
-    /* ─── Panel 3: Camera Feeds ──────────────────────────── */
-    .camera-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      flex: 1;
+    /* alert */
+    .alert {
+      padding: 10px 12px; border-radius: 5px;
+      font-size: 11px; font-weight: 500;
+      margin-bottom: 12px; display: none;
     }
 
-    .camera-feed {
-      background: var(--bg-elevated);
-      border-radius: var(--radius-sm);
-      border: 1px solid rgba(10,14,26,0.06);
-      position: relative;
-      overflow: hidden;
-      min-height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .alert.visible { display: block; }
+    .alert.warn { background: var(--amber-muted); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+    .alert.ok   { background: var(--green-muted); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
+
+    /* footer stats */
+    .stat-row {
+      display: flex; margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
     }
 
-    .camera-feed-label {
-      position: absolute; top: 8px; left: 10px;
-      font-size: 8px; font-weight: 700;
+    .stat-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      position: relative; padding: 0 8px;
+    }
+
+    .stat-cell + .stat-cell::before {
+      content: ''; position: absolute; left: 0; top: 3px; bottom: 3px;
+      width: 1px; background: var(--border);
+    }
+
+    .stat-v {
+      font-family: var(--mono);
+      font-size: 14px; font-weight: 700;
+      color: var(--t1); letter-spacing: -0.3px;
+    }
+
+    .stat-l {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 600;
       letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-tertiary);
-      z-index: 2;
+      color: var(--t3); margin-top: 3px;
     }
 
-    .camera-feed-rec {
-      position: absolute; top: 8px; right: 10px;
-      display: flex; align-items: center; gap: 4px;
-      font-size: 8px; font-weight: 800;
-      color: var(--status-error);
-      letter-spacing: 0.06em;
-      z-index: 2;
+    /* ── Camera Panel ────────────────────────────────────────── */
+    .cam-wrap {
+      position: absolute; inset: 0;
+      background: #050608;
+    }
+
+    .cam-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transform: rotate(180deg);
+      display: block;
+    }
+
+    .cam-hdr {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 10px 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 2; pointer-events: none;
+    }
+
+    .cam-label {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      display: flex; align-items: center; gap: 6px;
     }
 
     .rec-dot {
-      width: 4px; height: 4px; border-radius: 50%;
-      background: var(--status-error);
-      animation: pulse 1s ease-in-out infinite;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 5px var(--red);
     }
 
-    .camera-static {
+    @keyframes rec-blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+    .rec-dot { animation: rec-blink 1.4s ease-in-out infinite; }
+
+    .cam-offline {
       position: absolute; inset: 0;
-      background:
-        repeating-linear-gradient(
-          0deg,
-          rgba(10,14,26,0.03) 0px,
-          rgba(10,14,26,0.03) 1px,
-          transparent 1px,
-          transparent 3px
-        );
-      animation: staticScroll 0.4s linear infinite;
-      opacity: 0.5;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px;
     }
 
-    @keyframes staticScroll {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(3px); }
-    }
-
-    .camera-placeholder {
-      font-size: 9px; font-weight: 600;
-      color: var(--text-tertiary);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      z-index: 1;
-    }
-
-    /* ─── Hero Panel ──────────────────────────────────────── */
-    .panel--hero {
-      min-height: 220px;
-      background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(250,251,253,1) 100%);
-    }
-
-    .panel--hero .panel-title {
-      font-size: 15px;
-    }
-
-    .hero-split {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 24px;
-      flex: 1;
-      align-items: start;
-    }
-
-    .hero-left { display: flex; flex-direction: column; }
-
-    .hero-phase {
-      font-size: 32px !important;
-      font-weight: 800;
-      letter-spacing: -0.8px;
-    }
-
-    .hero-camera {
-      min-height: 180px;
-      border-radius: var(--radius-sm);
-    }
-
-    @media (max-width: 768px) {
-      .hero-split { grid-template-columns: 1fr; }
-      .hero-camera { min-height: 140px; }
-      .hero-phase { font-size: 24px !important; }
-    }
-
-    /* ─── Panel: Drive & Detection ─────────────────────────── */
-    .drive-detection-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-      flex: 1;
-    }
-
-    .dd-section-title {
+    .cam-offline-lbl {
+      font-family: var(--mono);
       font-size: 9px; font-weight: 700;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-bottom: 10px;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
     }
 
-    .motor-bars {
-      display: flex; flex-direction: column; gap: 8px;
+    /* scanline overlay for dark mode */
+    html.dark .cam-wrap::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 1;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+    }
+
+    /* ── Drive & Detection Panel ─────────────────────────────── */
+    .dd-body {
+      flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px;
+    }
+
+    .dd-section { display: flex; flex-direction: column; gap: 8px; }
+
+    .dd-label {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--t3);
     }
 
     .motor-row {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; gap: 10px;
     }
 
-    .motor-label {
-      font-size: 10px; font-weight: 600;
-      color: var(--text-secondary);
-      width: 20px; flex-shrink: 0;
+    .motor-id {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700; color: var(--t3);
+      width: 10px; flex-shrink: 0;
     }
 
-    .motor-bar-track {
-      flex: 1; height: 6px;
-      background: rgba(10,14,26,0.04);
-      border-radius: 3px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .motor-bar-fill {
-      height: 100%; border-radius: 3px;
-      background: var(--accent-primary);
-      transition: width 0.15s ease;
-      position: absolute; top: 0;
-    }
-
-    .motor-bar-fill.reverse { background: var(--status-warning); }
-
-    .motor-val {
-      font-family: var(--font-mono);
-      font-size: 10px; font-weight: 600;
-      color: var(--text-primary);
-      width: 36px; text-align: right;
-    }
-
-    .dd-stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-    }
-
-    .dd-stat {
-      background: rgba(10,14,26,0.015);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-sm);
-      padding: 8px 10px;
-    }
-
-    .dd-stat-label {
-      font-size: 8px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-bottom: 2px;
-    }
-
-    .dd-stat-val {
-      font-family: var(--font-mono);
-      font-size: 13px; font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    .dd-stat-val.green { color: var(--status-success); }
-    .dd-stat-val.amber { color: var(--status-warning); }
-
-    .steering-indicator {
-      display: flex; align-items: center; justify-content: center;
-      gap: 4px; margin-top: 10px;
-      font-size: 11px; font-weight: 700;
-      color: var(--text-secondary);
-    }
-
-    .steering-arrow {
-      font-size: 16px; color: var(--accent-primary);
-      transition: opacity 0.15s;
-    }
-
-    .steering-arrow.dim { opacity: 0.15; }
-
-    @media (max-width: 900px) {
-      .drive-detection-layout { grid-template-columns: 1fr; }
-    }
-
-    /* ─── Panel 4: Scan Timeline ──────────────────────────── */
-    .scan-timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      position: relative;
-      padding-left: 20px;
-    }
-
-    .scan-timeline::before {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 4px;
-      bottom: 4px;
-      width: 1px;
-      background: var(--border-subtle);
-    }
-
-    .timeline-empty {
-      text-align: center;
-      padding: 24px 0;
-      color: var(--text-tertiary);
-      font-size: 11px;
-      letter-spacing: 0.04em;
-    }
-
-    .timeline-item {
-      position: relative;
-      padding: 12px 0 16px;
-      border-bottom: 1px solid rgba(10,14,26,0.03);
-      opacity: 0;
-      animation: rowIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .timeline-item:last-child { border-bottom: none; }
-
-    .timeline-dot {
-      position: absolute;
-      left: -20px;
-      top: 16px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      border: 2px solid var(--bg-surface);
-    }
-
-    .timeline-dot.clean { background: var(--status-success); }
-    .timeline-dot.flagged { background: var(--status-error); }
-
-    .timeline-meta {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .timeline-time {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--text-tertiary);
-    }
-
-    .scan-result {
-      font-size: 9px; font-weight: 800;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 2px 7px; border-radius: 3px;
-      display: inline-block;
-    }
-
-    .scan-result.clean {
-      background: var(--status-success-muted);
-      color: var(--status-success);
-    }
-
-    .scan-result.flagged {
-      background: var(--status-error-muted);
-      color: var(--status-error);
-    }
-
-    .timeline-vendor {
-      font-weight: 600; font-size: 13px;
-      color: var(--text-primary);
-    }
-
-    .timeline-detail {
-      font-size: 11px;
-      color: var(--text-tertiary);
-      margin-top: 2px;
-      line-height: 1.5;
-    }
-
-    .timeline-detail .stat-val {
-      font-size: 11px;
-    }
-
-    .timeline-flags {
-      margin-top: 6px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .timeline-flag {
-      font-size: 9px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 3px;
-      background: var(--status-warning-muted);
-      color: var(--status-warning);
-      border: 1px solid rgba(251,191,36,0.12);
-    }
-
-    /* ─── Panel 5: Training Console ──────────────────────── */
-    .training-layout {
-      display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;
-    }
-
-    .training-left { flex: 1; min-width: 180px; }
-
-    .training-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      flex: 2.5; min-width: 280px;
-    }
-
-    .training-stat-cell {
-      background: var(--bg-elevated);
-      border-radius: var(--radius-sm);
-      padding: 14px 12px;
-      border: 1px solid var(--border-subtle);
-      text-align: center;
-      transition: border-color 0.3s;
-    }
-
-    .training-stat-cell:hover {
-      border-color: rgba(10,14,26,0.06);
-    }
-
-    .training-stat-val {
-      font-family: var(--font-mono);
-      font-size: 18px; font-weight: 800;
-      color: var(--text-primary);
-      letter-spacing: -0.5px;
-    }
-
-    .training-stat-label {
-      font-size: 8px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-tertiary);
-      margin-top: 4px;
-    }
-
-    .training-actions {
-      display: flex; gap: 6px;
-      margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid var(--border-subtle);
-    }
-
-    .btn {
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 8px 14px; border-radius: var(--radius-sm);
-      border: 1px solid var(--border-subtle);
-      background: rgba(10,14,26,0.02);
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .motor-track {
+      flex: 1; height: 5px;
+      background: var(--raised); border-radius: 2px;
       position: relative; overflow: hidden;
     }
 
-    .btn:hover {
-      border-color: rgba(74,158,255,0.3);
-      color: var(--accent-primary);
-      background: rgba(74,158,255,0.06);
+    .motor-track::before {
+      content: ''; position: absolute;
+      left: 50%; top: 0; bottom: 0; width: 1px;
+      background: var(--border-hi);
     }
 
-    .btn:focus-visible {
-      outline: 2px solid var(--accent-primary);
-      outline-offset: 2px;
+    .motor-fill {
+      position: absolute; top: 0; bottom: 0; border-radius: 2px;
+      background: var(--accent);
+      transition: width .12s, left .12s;
     }
 
-    .btn:active {
-      transform: scale(0.97);
+    .motor-fill.rev { background: var(--amber); }
+
+    .motor-pct {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 600; color: var(--t2);
+      width: 36px; text-align: right; flex-shrink: 0;
     }
 
-    .btn--primary {
-      background: rgba(74,158,255,0.12);
-      color: var(--accent-primary);
-      border-color: rgba(74,158,255,0.2);
+    .steer-val {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 600; color: var(--t3);
+      text-align: center; letter-spacing: 0.06em; text-transform: uppercase;
     }
 
-    .btn--primary:hover {
-      background: rgba(74,158,255,0.2);
-      border-color: rgba(74,158,255,0.35);
-      color: var(--accent-primary-hover);
+    .det-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
     }
 
-    .btn:disabled, .btn[disabled] {
-      opacity: 0.3;
-      cursor: not-allowed;
-      pointer-events: none;
+    .det-cell {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 10px;
     }
 
-    .btn--active {
-      background: rgba(52,211,153,0.12);
-      color: var(--status-success);
-      border-color: rgba(52,211,153,0.25);
-      animation: btnPulse 2s ease-in-out infinite;
+    .det-cell-lbl {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--t3); margin-bottom: 4px;
     }
 
-    @keyframes btnPulse {
-      0%, 100% { box-shadow: none; }
-      50% { box-shadow: 0 0 12px rgba(52,211,153,0.15); }
+    .det-cell-val {
+      font-family: var(--mono);
+      font-size: 14px; font-weight: 700; color: var(--t1);
     }
 
-    /* ─── Responsive ─────────────────────────────────────── */
-    @media (max-width: 1024px) {
-      .dashboard { grid-template-columns: 1fr 1fr; }
-      .panel--wide { grid-column: span 2; }
-      .panel--full { grid-column: 1 / -1; }
+    .det-cell-val.green { color: var(--green); }
+    .det-cell-val.amber { color: var(--amber); }
+    .det-cell-val.dim   { color: var(--t3); }
+
+    .offline-row {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--t3);
+      padding: 10px 0; text-align: center;
+      border: 1px dashed var(--border-hi);
+      border-radius: 5px;
     }
 
-    @media (max-width: 640px) {
-      .dashboard { grid-template-columns: 1fr; }
-      .panel--wide, .panel--full { grid-column: span 1; }
-      .panel { padding: 16px; min-height: 260px; }
-      .joints-grid { grid-template-columns: repeat(2, 1fr); }
-      .training-stats { grid-template-columns: repeat(2, 1fr); }
-      .camera-grid { grid-template-columns: 1fr; }
-      nav { padding: 0 14px; }
-      .nav-status { display: none; }
-      .btn { min-height: 44px; padding: 10px 14px; }
-      .training-actions { flex-wrap: wrap; }
-    }
+    /* ── Scan Log Panel ──────────────────────────────────────── */
+    .scan-body { padding: 0 16px 16px; flex: 1; overflow-y: auto; }
 
-    /* ─── Animations ─────────────────────────────────────── */
-
-    /* Panel load stagger */
-    @keyframes panelIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .panel:nth-child(1) { animation-delay: 0.05s; }
-    .panel:nth-child(2) { animation-delay: 0.1s; }
-    .panel:nth-child(3) { animation-delay: 0.15s; }
-    .panel:nth-child(4) { animation-delay: 0.22s; }
-    .panel:nth-child(5) { animation-delay: 0.28s; }
-
-    /* Nav slide in */
-    @keyframes navIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    nav {
-      animation: navIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Badge transition */
-    .panel-badge {
-      transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-    }
-
-    .joint-angle.updated {
-      color: var(--accent-primary-hover);
-    }
-
-    .phase-display.changing {
-      opacity: 0.5;
-    }
-
-    /* Escort alert slide-in */
-    @keyframes alertSlide {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .escort-alert.visible {
-      animation: alertSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Vendor card appear */
-    @keyframes cardAppear {
-      from { opacity: 0; transform: scale(0.97); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .escort-vendor-card.appearing {
-      animation: cardAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    /* Progress bar glow pulse when active */
-    @keyframes barGlow {
-      0%, 100% { box-shadow: none; }
-      50% { box-shadow: 0 0 8px currentColor; }
-    }
-
-    .progress-fill.active {
-      animation: barGlow 2s ease-in-out infinite;
-    }
-
-    .progress-fill {
-      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .btn::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(circle at var(--rx, 50%) var(--ry, 50%), rgba(10,14,26,0.06) 0%, transparent 60%);
+    .scan-row {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 14px; align-items: start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
       opacity: 0;
-      transition: opacity 0.4s ease;
-      pointer-events: none;
+      animation: rowIn .35s ease forwards;
     }
 
-    .btn:active::after {
-      opacity: 1;
-      transition: opacity 0s;
-    }
-
-    /* Connection badge pulse on state change */
-    @keyframes connFlash {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-
-    .conn-badge.flash {
-      animation: connFlash 0.3s ease;
-    }
-
-    /* Timeline stagger on initial load */
     @keyframes rowIn {
-      from { opacity: 0; transform: translateX(-6px); }
-      to { opacity: 1; transform: translateX(0); }
+      from { opacity:0; transform: translateX(-3px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    .scan-row:last-child { border-bottom: none; }
+
+    .scan-dot {
+      width: 8px; height: 8px; border-radius: 50%; margin-top: 4px;
+    }
+    .scan-dot.clean   { background: var(--green); box-shadow: 0 0 4px var(--green); }
+    .scan-dot.flagged { background: var(--red);   box-shadow: 0 0 4px var(--red); }
+
+    .scan-vendor {
+      font-size: 12px; font-weight: 600; color: var(--t1); margin-bottom: 3px;
+    }
+
+    .scan-meta {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--t3); margin-bottom: 5px;
+    }
+
+    .scan-flags { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .scan-flag {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 600;
+      padding: 2px 6px; border-radius: 3px;
+      background: var(--amber-muted); color: var(--amber);
+      border: 1px solid rgba(245,158,11,.12);
+    }
+
+    .scan-right { text-align: right; }
+
+    .scan-result {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 7px; border-radius: 3px;
+    }
+
+    .scan-result.clean   { background: var(--green-muted); color: var(--green); }
+    .scan-result.flagged { background: var(--red-muted);   color: var(--red);   }
+
+    .scan-time {
+      font-family: var(--mono);
+      font-size: 9px; color: var(--t3); margin-top: 4px;
+    }
+
+    .scan-empty {
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--t3); padding: 24px 0; text-align: center;
+    }
+
+    /* ── Gamepad ─────────────────────────────────────────────── */
+    .gp-btn {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 3px;
+      display: flex; align-items: center; gap: 5px;
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--t3);
+      transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .gp-btn.active {
+      background: var(--accent-muted);
+      border-color: rgba(66,100,255,.3);
+      color: var(--accent);
+    }
+
+    .gp-btn.active .gp-icon { color: var(--accent); }
+
+    .gp-icon { font-size: 11px; }
+
+    /* deadman indicator */
+    .dm-bar {
+      height: 2px; border-radius: 1px; margin-top: 4px;
+      background: var(--raised);
+      overflow: hidden;
+    }
+
+    .dm-fill {
+      height: 100%; border-radius: 1px;
+      background: var(--green);
+      width: 0%;
+      transition: width .08s;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .panel--escort, .panel--camera, .panel--dd { grid-column: 1; grid-row: auto; }
+      .panel--camera { min-height: 240px; }
+      .nav-c { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition-duration: 0.01ms !important; }
-      .panel { opacity: 1; }
-      .timeline-item { opacity: 1; }
-    }
-
-    /* ─── Accessibility ─────────────────────────────────────── */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    .skip-link {
-      position: absolute;
-      top: -100%;
-      left: 0;
-      z-index: 9999;
-      padding: 8px 16px;
-      background: var(--accent-primary);
-      color: var(--text-inverse);
-      font-size: 12px;
-      font-weight: 700;
-      border-radius: var(--radius-sm);
-      text-decoration: none;
-    }
-
-    .skip-link:focus {
-      top: 8px;
-      left: 8px;
+      *, *::before, *::after { animation: none !important; }
+      .scan-row { opacity: 1; }
     }
   </style>
 </head>
 <body>
-<nav id="fc-hub-nav" style="position:fixed;top:0;left:0;right:0;height:44px;background:rgba(250,251,253,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(10,14,26,0.06);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:99999;font-family:system-ui,sans-serif;"><a href="../index.html" style="color:rgba(10,14,26,0.7);text-decoration:none;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Hub</a><span style="font-size:10px;color:rgba(10,14,26,0.3);letter-spacing:0.12em;text-transform:uppercase;font-family:system-ui,sans-serif;">Dashboard</span></nav>
-  <a href="#main-content" class="skip-link">Skip to content</a>
 
-  <!-- NAV -->
-  <nav aria-label="Elktron dashboard navigation">
-    <div class="nav-left">
-      <div class="nav-logo">
-        <div class="nav-dot" id="nav-dot"></div>
-        Elktron
-      </div>
-      <div class="nav-divider"></div>
-      <div class="nav-status" id="nav-status">MOCK DATA</div>
+<!-- ── Nav ─────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-l">
+    <div class="wordmark">
+      <div class="status-led live" id="led"></div>
+      ELKTRON
     </div>
-    <div class="nav-right">
-      <div class="nav-time" id="nav-time">--:--:--</div>
-      <div class="conn-badge disconnected" id="conn-badge" aria-live="polite">
-        <div class="conn-dot"></div>
-        <span id="conn-text">Disconnected</span>
-      </div>
+    <div class="nav-divider"></div>
+    <div class="wordmark" style="color:var(--t3);font-size:10px">ESCORT BOT</div>
+  </div>
+
+  <div class="nav-c">
+    <div class="sys-stat">
+      <span class="lbl">CPU</span>
+      <span class="val" id="s-cpu">—</span>
     </div>
-  </nav>
+    <div class="sys-stat">
+      <span class="lbl">MEM</span>
+      <span class="val" id="s-mem">—</span>
+    </div>
+    <div class="sys-stat">
+      <span class="lbl">TEMP</span>
+      <span class="val" id="s-temp">—</span>
+    </div>
+    <div class="sys-stat">
+      <span class="lbl">UP</span>
+      <span class="val" id="s-up">—</span>
+    </div>
+  </div>
 
-  <!-- DASHBOARD GRID -->
-  <main class="dashboard" role="main" id="main-content">
-    <h1 class="sr-only">Elktron Dashboard</h1>
+  <div class="nav-r">
+    <div class="nav-clock" id="clock">--:--:--</div>
+    <div class="gp-btn" id="gp-badge" title="Xbox controller">
+      <span class="gp-icon">🎮</span>
+      <span id="gp-text">No Controller</span>
+    </div>
+    <div class="conn connecting" id="conn-badge">
+      <span id="conn-text">Connecting</span>
+    </div>
+    <button class="theme-btn" id="theme-btn" title="Toggle theme">☀</button>
+  </div>
+</nav>
 
-    <!-- Panel 1: HERO — Escort Bot (full width) -->
-    <div class="panel panel--hero panel--full">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <div class="panel-title-dot" style="background:var(--status-success)"></div>
-          Escort Bot
-        </h2>
-        <div class="panel-badge badge-dim" id="escort-badge">Idle</div>
+<!-- ── Dashboard Grid ───────────────────────────────────────── -->
+<div class="grid">
+
+  <!-- Escort Status ─────────────────────────────────────────── -->
+  <div class="panel panel--escort">
+    <div class="ph">
+      <div class="ph-title">
+        <div class="ph-dot" style="background:var(--green)"></div>
+        Escort Bot
       </div>
-      <div class="panel-body">
-        <div class="hero-split">
-          <div class="hero-left">
-            <div class="phase-display hero-phase" id="escort-phase" aria-live="polite">Idle</div>
-            <div class="phase-sub" id="escort-sub" aria-live="polite">Standing by at charging bay</div>
-
-            <div class="escort-vendor-card" id="escort-vendor" style="display:none">
-              <div class="escort-vendor-name" id="escort-vendor-name">--</div>
-              <div class="escort-vendor-ticket" id="escort-vendor-ticket">--</div>
-              <div class="escort-auth" id="escort-auth">Authorized: --</div>
-            </div>
-
-            <div id="escort-scan-section" style="display:none">
-              <div class="scan-progress-label">
-                <span>Rack Scan</span>
-                <span id="escort-scan-pct">0%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill green" id="escort-scan-bar" style="width:0%"></div>
-              </div>
-            </div>
-
-            <div class="escort-alert" id="escort-alert" aria-live="assertive"></div>
-          </div>
-          <div class="hero-right">
-            <div class="camera-feed hero-camera">
-              <div class="camera-feed-label">Escort Cam</div>
-              <div class="camera-feed-rec"><div class="rec-dot"></div> Live</div>
-              <img id="escort-cam-feed" src="http://escort-bot.local:5000/video_feed"
-                   style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;z-index:1;"
-                   onerror="this.style.display='none'">
-              <div class="camera-static"></div>
-              <div class="camera-placeholder">No Signal</div>
-            </div>
-          </div>
-        </div>
-        <div class="panel-footer">
-          <div class="footer-stat"><div class="footer-val" id="escort-loc">--</div><div class="footer-label">Location</div></div>
-          <div class="footer-stat"><div class="footer-val" id="escort-bat">--%</div><div class="footer-label">Battery</div></div>
-          <div class="footer-stat"><div class="footer-val" id="escort-nodes">0</div><div class="footer-label">Nodes</div></div>
-        </div>
-      </div>
+      <div class="badge badge-dim" id="escort-badge">OFFLINE</div>
     </div>
 
-    <!-- Panel 2: Arm Status -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <div class="panel-title-dot" style="background:var(--status-success)"></div>
-          SO-ARM101
-        </h2>
-        <div class="panel-badge badge-green" id="arm-badge">Ready</div>
-      </div>
-      <div class="panel-body">
-        <div class="phase-display" id="arm-phase" aria-live="polite">Idle</div>
-        <div class="phase-sub" id="arm-phase-sub" aria-live="polite">Waiting for command</div>
+    <div class="escort-body">
+      <div id="escort-online" style="display:none; flex:1; flex-direction:column">
+        <div class="mode-row">
+          <div class="mode-val" id="mode-val">—</div>
+        </div>
+        <div class="mode-sub" id="mode-sub">—</div>
 
-        <div class="gripper-visual" id="gripper-visual">
-          <div class="gripper-icon gripper-open" id="gripper-icon">
-            <div class="gripper-finger left"></div>
-            <div class="gripper-finger right"></div>
+        <div class="vendor-card" id="vendor-card" style="display:none">
+          <div class="vendor-name" id="vendor-name">—</div>
+          <div class="vendor-ticket" id="vendor-ticket">—</div>
+          <div class="vendor-auth" id="vendor-auth">—</div>
+        </div>
+
+        <div id="scan-section" style="display:none">
+          <div class="scan-hdr">
+            <span>Rack Scan</span>
+            <span id="scan-pct">0%</span>
           </div>
-          <span class="gripper-text open" id="gripper-text">Open</span>
+          <div class="track"><div class="fill" id="scan-fill" style="width:0%"></div></div>
         </div>
 
-        <div class="joints-grid" id="joints-grid">
-          <div class="joint-cell"><div class="joint-name">Base</div><div class="joint-angle" id="j-base">0.0</div></div>
-          <div class="joint-cell"><div class="joint-name">Shoulder</div><div class="joint-angle" id="j-shoulder">0.0</div></div>
-          <div class="joint-cell"><div class="joint-name">Elbow</div><div class="joint-angle" id="j-elbow">0.0</div></div>
-          <div class="joint-cell"><div class="joint-name">Wrist P</div><div class="joint-angle" id="j-wrist-p">0.0</div></div>
-          <div class="joint-cell"><div class="joint-name">Wrist R</div><div class="joint-angle" id="j-wrist-r">0.0</div></div>
-          <div class="joint-cell"><div class="joint-name">Wrist Y</div><div class="joint-angle" id="j-wrist-y">0.0</div></div>
-        </div>
+        <div class="alert" id="alert-box"></div>
+      </div>
 
-        <div class="panel-footer">
-          <div class="footer-stat"><div class="footer-val" id="arm-torque">--</div><div class="footer-label">Torque</div></div>
-          <div class="footer-stat"><div class="footer-val" id="arm-temp">--</div><div class="footer-label">Temp</div></div>
-          <div class="footer-stat"><div class="footer-val" id="arm-acc">--</div><div class="footer-label">Accuracy</div></div>
-          <div class="footer-stat"><div class="footer-val" id="arm-cycles">0</div><div class="footer-label">Cycles</div></div>
+      <!-- Shown when escort hardware is offline -->
+      <div id="escort-offline" class="offline-block">
+        <div class="offline-label">No Escort Signal</div>
+        <div class="offline-sub">Waiting for bot to come online</div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-cell">
+          <div class="stat-v" id="f-loc">—</div>
+          <div class="stat-l">Location</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-v" id="f-bat">—</div>
+          <div class="stat-l">Battery</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-v" id="f-nodes">—</div>
+          <div class="stat-l">Nodes</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Panel 3: Camera — Wrist Cam only (Escort Cam moved to hero) -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <div class="panel-title-dot" style="background:var(--status-error)"></div>
-          Camera Feeds
-        </h2>
-        <div class="panel-badge badge-dim">2 Sources</div>
+  <!-- Camera ─────────────────────────────────────────────────── -->
+  <div class="panel panel--camera">
+    <div class="cam-wrap">
+      <img class="cam-img" id="cam-img" src="/video_feed"
+           onerror="document.getElementById('cam-no').style.display='flex';this.style.display='none'">
+      <div class="cam-offline" id="cam-no" style="display:none">
+        <div class="cam-offline-lbl">No Signal</div>
       </div>
-      <div class="panel-body">
-        <div class="camera-feed" style="flex:1;min-height:200px">
-          <div class="camera-feed-label">Wrist Cam</div>
-          <div class="camera-feed-rec"><div class="rec-dot"></div> Live</div>
-          <div class="camera-static"></div>
-          <div class="camera-placeholder">No Signal</div>
+      <div class="cam-hdr">
+        <div class="cam-label">
+          <div class="rec-dot"></div>
+          IMX708 Wide · Live
         </div>
+        <div class="cam-label">640×480</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drive & Detection ─────────────────────────────────────── -->
+  <div class="panel panel--dd">
+    <div class="ph">
+      <div class="ph-title">
+        <div class="ph-dot" style="background:var(--accent)"></div>
+        Drive &amp; Detection
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="badge badge-dim" id="teleop-badge" style="display:none">TELEOP</div>
+        <div class="badge badge-dim" id="dd-badge">OFFLINE</div>
       </div>
     </div>
 
-    <!-- Panel: Drive & Detection -->
-    <div class="panel panel--full">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <div class="panel-title-dot" style="background:var(--accent-primary)"></div>
-          Drive & Detection
-        </h2>
-        <div class="panel-badge badge-dim" id="dd-badge">Stopped</div>
-      </div>
-      <div class="panel-body">
-        <div class="drive-detection-layout">
-          <!-- Differential Drive -->
-          <div>
-            <div class="dd-section-title">Differential Drive</div>
-            <div class="motor-bars">
-              <div class="motor-row">
-                <span class="motor-label">L</span>
-                <div class="motor-bar-track">
-                  <div class="motor-bar-fill" id="dd-motor-l-bar" style="width:0%;left:50%"></div>
-                </div>
-                <span class="motor-val" id="dd-motor-l">0%</span>
-              </div>
-              <div class="motor-row">
-                <span class="motor-label">R</span>
-                <div class="motor-bar-track">
-                  <div class="motor-bar-fill" id="dd-motor-r-bar" style="width:0%;left:50%"></div>
-                </div>
-                <span class="motor-val" id="dd-motor-r">0%</span>
-              </div>
-            </div>
-            <div class="steering-indicator">
-              <span class="steering-arrow dim" id="dd-arrow-l">&larr;</span>
-              <span id="dd-steer-label">Stopped</span>
-              <span class="steering-arrow dim" id="dd-arrow-r">&rarr;</span>
-            </div>
+    <div class="dd-body">
+      <!-- shown when connected -->
+      <div id="dd-online" style="display:none">
+        <div class="dd-section">
+          <div class="dd-label">Motors</div>
+          <div class="motor-row">
+            <span class="motor-id">L</span>
+            <div class="motor-track"><div class="motor-fill" id="ml-fill" style="width:0%;left:50%"></div></div>
+            <span class="motor-pct" id="ml-val">0%</span>
           </div>
-          <!-- YOLO Detection -->
-          <div>
-            <div class="dd-section-title">YOLOv8n Detection</div>
-            <div class="dd-stat-grid">
-              <div class="dd-stat">
-                <div class="dd-stat-label">Confidence</div>
-                <div class="dd-stat-val green" id="dd-yolo-conf">--</div>
-              </div>
-              <div class="dd-stat">
-                <div class="dd-stat-label">FPS</div>
-                <div class="dd-stat-val" id="dd-yolo-fps">--</div>
-              </div>
-              <div class="dd-stat">
-                <div class="dd-stat-label">Detections</div>
-                <div class="dd-stat-val" id="dd-yolo-det">0</div>
-              </div>
-              <div class="dd-stat">
-                <div class="dd-stat-label">Model</div>
-                <div class="dd-stat-val" id="dd-yolo-model">YOLOv8n</div>
-              </div>
-            </div>
+          <div class="motor-row">
+            <span class="motor-id">R</span>
+            <div class="motor-track"><div class="motor-fill" id="mr-fill" style="width:0%;left:50%"></div></div>
+            <span class="motor-pct" id="mr-val">0%</span>
           </div>
-          <!-- Camera Config -->
-          <div>
-            <div class="dd-section-title">Camera</div>
-            <div class="dd-stat-grid">
-              <div class="dd-stat">
-                <div class="dd-stat-label">Resolution</div>
-                <div class="dd-stat-val" id="dd-cam-res">640x360</div>
-              </div>
-              <div class="dd-stat">
-                <div class="dd-stat-label">Stream</div>
-                <div class="dd-stat-val green" id="dd-cam-stream">--</div>
-              </div>
-              <div class="dd-stat">
-                <div class="dd-stat-label">Sensor</div>
-                <div class="dd-stat-val" id="dd-cam-sensor">IMX708</div>
-              </div>
-              <div class="dd-stat">
-                <div class="dd-stat-label">FOV</div>
-                <div class="dd-stat-val" id="dd-cam-fov">120&deg;</div>
-              </div>
+          <div class="steer-val" id="steer">—</div>
+          <div class="dm-bar" id="dm-bar" style="display:none">
+            <div class="dm-fill" id="dm-fill"></div>
+          </div>
+          <div class="steer-val" id="dm-label" style="display:none;color:var(--green);font-size:8px">RT — DEAD MAN ACTIVE</div>
+        </div>
+
+        <div class="dd-section">
+          <div class="dd-label">Person Detection</div>
+          <div class="det-grid">
+            <div class="det-cell">
+              <div class="det-cell-lbl">Confidence</div>
+              <div class="det-cell-val" id="det-conf">—</div>
+            </div>
+            <div class="det-cell">
+              <div class="det-cell-lbl">FPS</div>
+              <div class="det-cell-val" id="det-fps">—</div>
+            </div>
+            <div class="det-cell">
+              <div class="det-cell-lbl">Targets</div>
+              <div class="det-cell-val" id="det-targets">—</div>
+            </div>
+            <div class="det-cell">
+              <div class="det-cell-lbl">Model</div>
+              <div class="det-cell-val dim" id="det-model">—</div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- offline state -->
+      <div class="offline-row" id="dd-offline">BOT OFFLINE — NO TELEMETRY</div>
     </div>
+  </div>
 
-    <!-- Panel 4: Scan Timeline -->
-    <div class="panel panel--wide">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <div class="panel-title-dot" style="background:var(--status-warning)"></div>
-          Scan Timeline
-        </h2>
-        <div class="panel-badge badge-dim" id="scan-count">0 Scans</div>
+  <!-- Scan Log ──────────────────────────────────────────────── -->
+  <div class="panel panel--full">
+    <div class="ph" style="padding-bottom:12px">
+      <div class="ph-title">
+        <div class="ph-dot" style="background:var(--amber)"></div>
+        Vendor Scan Log
       </div>
-      <div class="panel-body">
-        <div class="scan-timeline" id="scan-tbody">
-          <div class="timeline-empty">Waiting for scan data...</div>
-        </div>
-      </div>
+      <div class="badge badge-dim" id="scan-count">0 Records</div>
     </div>
-
-    <!-- Panel 5: Training Console -->
-    <div class="panel panel--full">
-      <div class="panel-header">
-        <h2 class="panel-title">
-          <div class="panel-title-dot" style="background:var(--accent-primary)"></div>
-          Training Console
-        </h2>
-        <div class="panel-badge badge-blue" id="training-badge">Idle</div>
-      </div>
-      <div class="panel-body">
-        <div class="training-layout">
-          <div class="training-left">
-            <div class="phase-display" id="training-stage" aria-live="polite">Idle</div>
-            <div class="phase-sub" id="training-sub" aria-live="polite">No active training session</div>
-            <div id="training-progress-section" style="display:none">
-              <div class="scan-progress-label">
-                <span id="training-progress-label">Progress</span>
-                <span id="training-progress-pct">0%</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill" id="training-progress-bar" style="width:0%"></div>
-              </div>
-            </div>
-          </div>
-          <div class="training-stats">
-            <div class="training-stat-cell"><div class="training-stat-val" id="t-episodes">0</div><div class="training-stat-label">Episodes</div></div>
-            <div class="training-stat-cell"><div class="training-stat-val" id="t-loss">--</div><div class="training-stat-label">Loss</div></div>
-            <div class="training-stat-cell"><div class="training-stat-val" id="t-gpu">--</div><div class="training-stat-label">GPU</div></div>
-            <div class="training-stat-cell"><div class="training-stat-val" id="t-cost">$0</div><div class="training-stat-label">Cost</div></div>
-          </div>
-        </div>
-        <div class="training-actions">
-          <button class="btn btn--primary" id="btn-record">Start Recording</button>
-          <button class="btn" id="btn-upload">Upload Data</button>
-          <button class="btn" id="btn-train">Train Model</button>
-          <button class="btn" id="btn-deploy">Deploy</button>
-        </div>
-      </div>
+    <div class="scan-body" id="scan-list">
+      <div class="scan-empty">No scan records on disk.</div>
     </div>
+  </div>
 
-  </main>
+</div><!-- /grid -->
 
-  <footer style="text-align:center;padding:20px 16px 28px;font-size:9px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-tertiary);opacity:0.5">
-    Elktron &middot; CoreWeave Hackathon 2026
-  </footer>
+<script>
+const $ = id => document.getElementById(id);
 
-  <script>
-  // ── Animation Helpers (must be defined before connect) ─────
+// ── Theme ─────────────────────────────────────────────────────
+const html = document.documentElement;
+const saved = localStorage.getItem('theme') || 'dark';
+html.className = saved;
+$('theme-btn').textContent = saved === 'dark' ? '☀' : '☾';
 
-  const lastJointVals = {};
-  const flashingJoints = new Set();
-  let flashClearTimer = 0;
+$('theme-btn').addEventListener('click', () => {
+  const next = html.className === 'dark' ? 'light' : 'dark';
+  html.className = next;
+  $('theme-btn').textContent = next === 'dark' ? '☀' : '☾';
+  localStorage.setItem('theme', next);
+});
 
-  function updateJointWithFlash(id, val) {
-    const el = document.getElementById(id);
-    const formatted = val.toFixed(1);
-    if (lastJointVals[id] !== formatted) {
-      el.textContent = formatted;
-      el.classList.add('updated');
-      flashingJoints.add(el);
-      lastJointVals[id] = formatted;
-    }
-  }
-
-  // Batch-clear all joint flashes once per frame instead of 6 setTimeouts per tick
-  function clearJointFlashes() {
-    if (flashingJoints.size > 0) {
-      flashingJoints.forEach(el => el.classList.remove('updated'));
-      flashingJoints.clear();
-    }
-    flashClearTimer = 0;
-  }
-
-  function scheduleFlashClear() {
-    if (!flashClearTimer) {
-      flashClearTimer = setTimeout(clearJointFlashes, 200);
-    }
-  }
-
-  function setPhaseWithFade(elId, newText) {
-    const el = document.getElementById(elId);
-    if (el.textContent !== newText) {
-      el.classList.add('changing');
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          el.textContent = newText;
-          el.classList.remove('changing');
-        }, 100);
-      });
-    }
-  }
-
-  function flashConnBadge() {
-    DOM.connBadge.classList.remove('flash');
-    void DOM.connBadge.offsetWidth;
-    DOM.connBadge.classList.add('flash');
-  }
-
-  // rAF-throttled DOM update queue — per-type so no messages are dropped
-  const pendingByType = {};
-  let rafId = 0;
-
-  function scheduleUpdate(data) {
-    pendingByType[data.type] = data;
-    if (!rafId) {
-      rafId = requestAnimationFrame(flushUpdates);
-    }
-  }
-
-  function flushUpdates() {
-    rafId = 0;
-    for (const type in pendingByType) {
-      handleMessageDirect(pendingByType[type]);
-      delete pendingByType[type];
-    }
-  }
-
-  // Button ripple position tracking
-  document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('mousedown', (e) => {
-      const rect = btn.getBoundingClientRect();
-      btn.style.setProperty('--rx', ((e.clientX - rect.left) / rect.width * 100) + '%');
-      btn.style.setProperty('--ry', ((e.clientY - rect.top) / rect.height * 100) + '%');
-    });
+// ── Clock ─────────────────────────────────────────────────────
+function tick() {
+  $('clock').textContent = new Date().toLocaleTimeString([], {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
   });
+}
+setInterval(tick, 1000); tick();
 
-  // ── WebSocket Connection ────────────────────────────────────
-  const WS_URL = `ws://${location.hostname || 'localhost'}:8888/ws`;
-  let ws = null;
-  let reconnectTimer = null;
-  let demoMode = false;
-  let demoInterval = null;
+// ── WebSocket ─────────────────────────────────────────────────
+let ws = null, retryTimer = null;
 
-  function connect() {
-    let wsTimeout = setTimeout(() => {
-      // WS didn't connect in 2s — fall back to demo mode
-      try { ws.close(); } catch(e) {}
-      startDemoMode();
-    }, 2000);
+function connect() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
 
-    try {
-      ws = new WebSocket(WS_URL);
-    } catch(e) {
-      clearTimeout(wsTimeout);
-      startDemoMode();
-      return;
-    }
-
-    ws.onopen = () => {
-      clearTimeout(wsTimeout);
-      setConnected(true);
-      if (reconnectTimer) { clearInterval(reconnectTimer); reconnectTimer = null; }
-    };
-
-    ws.onclose = () => {
-      clearTimeout(wsTimeout);
-      if (demoMode) return;
-      setConnected(false);
-      if (!reconnectTimer) {
-        reconnectTimer = setTimeout(() => {
-          reconnectTimer = null;
-          startDemoMode();
-        }, 2000);
-      }
-    };
-
-    ws.onerror = () => {
-      clearTimeout(wsTimeout);
-      ws.close();
-    };
-
-    ws.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === 'scan_history') {
-          handleMessage(data);
-        } else {
-          scheduleUpdate(data);
-        }
-      } catch(err) {}
-    };
-  }
-
-  // ── Standalone Demo Mode (no server needed) ────────────────
-  function startDemoMode() {
-    if (demoMode) return;
-    demoMode = true;
-
-    DOM.connBadge.className = 'conn-badge connected';
-    DOM.connText.textContent = 'Demo';
-    DOM.navDot.style.background = 'var(--accent-primary)';
-    DOM.navStatus.textContent = 'DEMO MODE';
-    DOM.navStatus.style.color = 'var(--accent-primary)';
-    flashConnBadge();
-
-    // Seed scan history
-    const now = Date.now();
-    const mockScans = [
-      { id:'scan-001', timestamp: new Date(now - 3*3600000).toISOString(), vendor:'TechCo Field Eng.', ticket:'INC-40821', rack:'CAB-B3', authorized_ru:'RU-24', result:'clean', unauthorized:0, nodes_scanned:5, flags:['RU-22 PSU amber'], duration_s:285 },
-      { id:'scan-002', timestamp: new Date(now - 7*3600000).toISOString(), vendor:'NetServ Inc.', ticket:'INC-40798', rack:'CAB-A2', authorized_ru:'RU-16', result:'clean', unauthorized:0, nodes_scanned:8, flags:[], duration_s:340 },
-      { id:'scan-003', timestamp: new Date(now - 26*3600000).toISOString(), vendor:'DataLink Corp.', ticket:'INC-40712', rack:'CAB-B1', authorized_ru:'RU-30', result:'flagged', unauthorized:1, nodes_scanned:6, flags:['RU-29 unauthorized contact','RU-30 optic swapped'], duration_s:410 },
-    ];
-    updateScanLog(mockScans);
-
-    const start = performance.now() / 1000;
-
-    demoInterval = setInterval(() => {
-      const t = (performance.now() / 1000) - start;
-      scheduleUpdate(demoArmState(t));
-      scheduleUpdate(demoEscortState(t));
-      scheduleUpdate(demoDriveDetection(t));
-      scheduleUpdate(demoTrainingState(t));
-    }, 100); // 10 Hz
-  }
-
-  function demoArmState(t) {
-    const cycle = t % 12;
-    let phase = 'idle', gripper = 'open', optic = false, joints = [0,0,0,0,0,0];
-
-    if (cycle < 2) {
-      phase = 'idle';
-    } else if (cycle < 4) {
-      phase = 'reaching';
-      const p = (cycle - 2) / 2;
-      joints = [-40*p, -3*p, -2*p, 5*Math.sin(p*Math.PI)*2, 0, 0];
-    } else if (cycle < 5) {
-      phase = 'gripping'; gripper = 'closing';
-      joints = [-40, -3, -2, 0, 0, 0];
-    } else if (cycle < 5.5) {
-      phase = 'gripping'; gripper = 'closed'; optic = true;
-      joints = [-40, -3, -2, 0, 0, 0];
-    } else if (cycle < 8) {
-      phase = 'transiting'; optic = true; gripper = 'closed';
-      const p = (cycle - 5.5) / 2.5;
-      joints = [-40+88*p, -3+6*p, -2+4*p, 3*Math.sin(p*Math.PI), 0, 0];
-    } else if (cycle < 9) {
-      phase = 'inserting'; optic = true; gripper = 'closed';
-      joints = [48, 3, 2, 0, 0, 0];
-    } else if (cycle < 9.5) {
-      phase = 'releasing'; gripper = 'open';
-      joints = [48, 3, 2, 0, 0, 0];
-    } else {
-      phase = 'retracting';
-      const p = (cycle - 9.5) / 2.5;
-      joints = [48*(1-p), 3*(1-p), 2*(1-p), 0, 0, 0];
-    }
-
-    joints = joints.map(j => +(j + (Math.random()-0.5)*0.6).toFixed(1));
-
-    return {
-      type: 'arm', phase, gripper, holding_optic: optic,
-      joints: { base:joints[0], shoulder:joints[1], elbow:joints[2], wrist_pitch:joints[3], wrist_roll:joints[4], wrist_yaw:joints[5] },
-      torque_avg: +(12 + (Math.random()-0.5)*2).toFixed(1),
-      temp_c: +(38 + (Math.random()-0.5)*6).toFixed(1),
-      cycle_count: Math.floor(t / 12),
-      accuracy_mm: +(0.8 + (Math.random()-0.5)*0.2).toFixed(2),
-    };
-  }
-
-  function demoEscortState(t) {
-    const cycle = t % 30;
-    let phase='idle', location='charging_bay', vendor=null, scan_pct=0, alert=null;
-
-    if (cycle < 3) { phase='idle'; }
-    else if (cycle < 5) { phase='dispatched'; location='aisle_a'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; }
-    else if (cycle < 12) { phase='escorting'; location='aisle_a'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; }
-    else if (cycle < 14) { phase='arrived'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; }
-    else if (cycle < 20) { phase='scanning'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; scan_pct=Math.min(100, Math.floor(((cycle-14)/6)*100)); }
-    else if (cycle < 22) {
-      phase='monitoring'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; scan_pct=100;
-      if (cycle > 20.5 && cycle < 21.5) alert={ru:'RU-25',type:'brief_contact',status:'checking'};
-      else if (cycle >= 21.5) alert={ru:'RU-25',type:'brief_contact',status:'cleared'};
-    }
-    else if (cycle < 24) { phase='verified'; location='CAB-B3'; vendor={name:'TechCo Field Eng.',ticket:'INC-40821'}; scan_pct=100; }
-    else { phase='returning'; location='aisle_a'; }
-
-    return {
-      type:'escort', phase, location, vendor, target_rack:'CAB-B3', authorized_ru:'RU-24',
-      scan_progress: scan_pct, alert,
-      battery_pct: Math.max(20, 95 - Math.floor(t/10)),
-      nodes_scanned: Math.min(5, Math.floor(scan_pct/20)),
-    };
-  }
-
-  function demoDriveDetection(t) {
-    const cycle = t % 30;
-    let motorL = 0, motorR = 0, conf = 0, fps = 0, det = 0, streaming = false;
-
-    if (cycle < 3) {
-      // Idle — no motors, no detection
-    } else if (cycle < 5) {
-      // Dispatched — straight drive
-      motorL = 60; motorR = 60;
-      conf = 0.82; fps = 18; det = 1; streaming = true;
-    } else if (cycle < 12) {
-      // Following — slight steering corrections
-      const wobble = Math.sin(t * 2) * 15;
-      motorL = Math.round(55 + wobble);
-      motorR = Math.round(55 - wobble);
-      conf = +(0.75 + Math.random() * 0.1).toFixed(2);
-      fps = +(17 + Math.random() * 4).toFixed(1);
-      det = 1; streaming = true;
-    } else if (cycle < 14) {
-      // Arriving — slowing down
-      motorL = 25; motorR = 25;
-      conf = 0.88; fps = 19; det = 1; streaming = true;
-    } else if (cycle < 22) {
-      // Scanning/monitoring — stationary
-      motorL = 0; motorR = 0;
-      conf = +(0.7 + Math.random() * 0.15).toFixed(2);
-      fps = +(18 + Math.random() * 3).toFixed(1);
-      det = Math.floor(Math.random() * 3); streaming = true;
-    } else if (cycle < 24) {
-      // Verified — still
-      motorL = 0; motorR = 0;
-      conf = 0.91; fps = 20; det = 1; streaming = true;
-    } else {
-      // Returning — reverse turn then straight
-      const p = (cycle - 24) / 6;
-      if (p < 0.3) { motorL = -40; motorR = 40; }
-      else { motorL = 55; motorR = 55; }
-      conf = 0.78; fps = 18; det = 0; streaming = true;
-    }
-
-    return {
-      type: 'drive_detection',
-      motor_l: motorL, motor_r: motorR,
-      yolo_conf: conf, yolo_fps: +fps, yolo_detections: det, yolo_model: 'YOLOv8n',
-      cam_resolution: '640x360', cam_stream: streaming, cam_sensor: 'IMX708', cam_fov: 120,
-    };
-  }
-
-  function demoTrainingState(t) {
-    const stageCycle = Math.floor(t / 60) % 4;
-    const stages = ['idle','recording','uploading','training'];
-    const stage = stages[stageCycle];
-    const episodes = Math.floor(t / 15) % 50;
-    let progress = 0;
-    if (stage === 'recording') progress = (t % 60) / 60 * 100;
-    else if (stage === 'uploading') progress = Math.min(100, (t % 60) / 30 * 100);
-    else if (stage === 'training') progress = Math.min(100, (t % 60) / 50 * 100);
-
-    return {
-      type:'training', stage, episodes_recorded: episodes,
-      current_progress: +progress.toFixed(1), model:'ACT-v1', policy:'act',
-      last_loss: +(0.15 - 0.001*Math.min(episodes,40) + (Math.random()-0.5)*0.01).toFixed(4),
-      gpu: stage === 'training' ? 'A100-80G' : null,
-      cost_so_far: +(episodes * 0.12).toFixed(2),
-    };
-  }
-
-  function setConnected(ok) {
-    if (ok) {
-      DOM.connBadge.className = 'conn-badge connected';
-      DOM.connText.textContent = 'Connected';
-      DOM.navDot.style.background = 'var(--status-success)';
-    } else {
-      DOM.connBadge.className = 'conn-badge disconnected';
-      DOM.connText.textContent = 'Disconnected';
-      DOM.navDot.style.background = 'var(--status-error)';
-    }
-    flashConnBadge();
-  }
-
-  // ── Message Router ──────────────────────────────────────────
-  function handleMessage(data) {
-    handleMessageDirect(data);
-  }
-
-  function handleMessageDirect(data) {
-    switch (data.type) {
-      case 'arm': updateArm(data); break;
-      case 'escort': updateEscort(data); break;
-      case 'drive_detection': updateDriveDetection(data); break;
-      case 'training': updateTraining(data); break;
-      case 'scan_history': updateScanLog(data.scans); break;
-      case 'status': updateHardwareStatus(data); break;
-    }
-  }
-
-  // ── Cached DOM refs (avoid getElementById on every tick) ────
-  const $ = id => document.getElementById(id);
-  const DOM = {
-    armPhase: $('arm-phase'), armPhaseSub: $('arm-phase-sub'), armBadge: $('arm-badge'),
-    gripperIcon: $('gripper-icon'), gripperText: $('gripper-text'),
-    armTorque: $('arm-torque'), armTemp: $('arm-temp'), armAcc: $('arm-acc'), armCycles: $('arm-cycles'),
-    escortPhase: $('escort-phase'), escortSub: $('escort-sub'), escortBadge: $('escort-badge'),
-    escortVendor: $('escort-vendor'), escortVendorName: $('escort-vendor-name'),
-    escortVendorTicket: $('escort-vendor-ticket'), escortAuth: $('escort-auth'),
-    escortScanSection: $('escort-scan-section'), escortScanPct: $('escort-scan-pct'),
-    escortScanBar: $('escort-scan-bar'), escortAlert: $('escort-alert'),
-    escortLoc: $('escort-loc'), escortBat: $('escort-bat'), escortNodes: $('escort-nodes'),
-    scanCount: $('scan-count'), scanTbody: $('scan-tbody'),
-    trainingStage: $('training-stage'), trainingSub: $('training-sub'), trainingBadge: $('training-badge'),
-    trainingProgressSection: $('training-progress-section'), trainingProgressPct: $('training-progress-pct'),
-    trainingProgressBar: $('training-progress-bar'), trainingProgressLabel: $('training-progress-label'),
-    tEpisodes: $('t-episodes'), tLoss: $('t-loss'), tGpu: $('t-gpu'), tCost: $('t-cost'),
-    navStatus: $('nav-status'),
-    connBadge: $('conn-badge'), connText: $('conn-text'), navDot: $('nav-dot'), navTime: $('nav-time'),
-    btnRecord: $('btn-record'), btnUpload: $('btn-upload'), btnTrain: $('btn-train'), btnDeploy: $('btn-deploy'),
-    ddBadge: $('dd-badge'),
-    ddMotorL: $('dd-motor-l'), ddMotorLBar: $('dd-motor-l-bar'),
-    ddMotorR: $('dd-motor-r'), ddMotorRBar: $('dd-motor-r-bar'),
-    ddArrowL: $('dd-arrow-l'), ddArrowR: $('dd-arrow-r'), ddSteerLabel: $('dd-steer-label'),
-    ddYoloConf: $('dd-yolo-conf'), ddYoloFps: $('dd-yolo-fps'),
-    ddYoloDet: $('dd-yolo-det'), ddYoloModel: $('dd-yolo-model'),
-    ddCamRes: $('dd-cam-res'), ddCamStream: $('dd-cam-stream'),
-    ddCamSensor: $('dd-cam-sensor'), ddCamFov: $('dd-cam-fov'),
+  ws.onopen = () => {
+    setBadge('connected', 'Connected');
+    $('led').className = 'status-led live';
+    clearTimeout(retryTimer);
   };
 
-  // ── Arm Panel ───────────────────────────────────────────────
-  const phaseDescriptions = {
-    idle: 'Waiting for command',
-    reaching: 'Moving to optic tray',
-    gripping: 'Closing gripper on optic',
-    transiting: 'Carrying optic to switch',
-    inserting: 'Seating optic into port',
-    releasing: 'Opening gripper',
-    retracting: 'Returning to home position',
+  ws.onclose = () => {
+    setBadge('connecting', 'Reconnecting');
+    $('led').className = 'status-led connecting';
+    retryTimer = setTimeout(connect, 3000);
   };
 
-  function updateArm(d) {
-    setPhaseWithFade('arm-phase', d.phase);
-    DOM.armPhaseSub.textContent = phaseDescriptions[d.phase] || d.phase;
+  ws.onerror = () => ws.close();
 
-    if (d.phase === 'idle') {
-      DOM.armBadge.textContent = 'Ready';
-      DOM.armBadge.className = 'panel-badge badge-green';
-    } else if (d.phase === 'inserting') {
-      DOM.armBadge.textContent = 'Inserting';
-      DOM.armBadge.className = 'panel-badge badge-amber';
-    } else {
-      DOM.armBadge.textContent = 'Active';
-      DOM.armBadge.className = 'panel-badge badge-blue';
-    }
-
-    updateJointWithFlash('j-base', d.joints.base);
-    updateJointWithFlash('j-shoulder', d.joints.shoulder);
-    updateJointWithFlash('j-elbow', d.joints.elbow);
-    updateJointWithFlash('j-wrist-p', d.joints.wrist_pitch);
-    updateJointWithFlash('j-wrist-r', d.joints.wrist_roll);
-    updateJointWithFlash('j-wrist-y', d.joints.wrist_yaw);
-    scheduleFlashClear();
-
-    if (d.gripper === 'closed' || d.gripper === 'closing') {
-      DOM.gripperIcon.className = 'gripper-icon gripper-closed';
-      if (d.holding_optic) {
-        DOM.gripperText.textContent = 'Holding Optic';
-        DOM.gripperText.className = 'gripper-text holding';
-      } else {
-        DOM.gripperText.textContent = 'Closed';
-        DOM.gripperText.className = 'gripper-text closed';
-      }
-    } else {
-      DOM.gripperIcon.className = 'gripper-icon gripper-open';
-      DOM.gripperText.textContent = 'Open';
-      DOM.gripperText.className = 'gripper-text open';
-    }
-
-    DOM.armTorque.textContent = d.torque_avg;
-    DOM.armTemp.textContent = d.temp_c + '\u00B0';
-    DOM.armAcc.textContent = '\u00B1' + d.accuracy_mm;
-    DOM.armCycles.textContent = d.cycle_count;
-  }
-
-  // ── Escort Panel ────────────────────────────────────────────
-  const escortDescs = {
-    idle: 'Standing by at charging bay',
-    dispatched: 'Dispatched \u2014 heading to vendor',
-    escorting: 'Walking vendor to assigned rack',
-    arrived: 'At rack \u2014 opening door',
-    scanning: 'Scanning rack nodes top to bottom',
-    monitoring: 'Watching for unauthorized contact',
-    verified: 'Work verified \u2014 no issues',
-    returning: 'Returning to charging bay',
+  ws.onmessage = e => {
+    try { route(JSON.parse(e.data)); } catch(_) {}
   };
+}
 
-  function updateEscort(d) {
-    setPhaseWithFade('escort-phase', d.phase.replace('_', ' '));
-    DOM.escortSub.textContent = escortDescs[d.phase] || d.phase;
+function setBadge(cls, txt) {
+  const el = $('conn-badge');
+  el.className = 'conn ' + cls;
+  $('conn-text').textContent = txt;
+}
 
-    if (d.phase === 'idle') { DOM.escortBadge.textContent = 'Idle'; DOM.escortBadge.className = 'panel-badge badge-dim'; }
-    else if (d.phase === 'scanning') { DOM.escortBadge.textContent = 'Scanning'; DOM.escortBadge.className = 'panel-badge badge-amber'; }
-    else if (d.phase === 'monitoring') { DOM.escortBadge.textContent = 'Monitoring'; DOM.escortBadge.className = 'panel-badge badge-blue'; }
-    else if (d.phase === 'verified') { DOM.escortBadge.textContent = 'Verified'; DOM.escortBadge.className = 'panel-badge badge-green'; }
-    else { DOM.escortBadge.textContent = 'Active'; DOM.escortBadge.className = 'panel-badge badge-blue'; }
+function route(d) {
+  if (d.type === 'system')       applySystem(d);
+  if (d.type === 'escort')       applyEscort(d);
+  if (d.type === 'drive_detection') applyDD(d);
+  if (d.type === 'scan_history') renderScans(d.scans);
+  if (d.type === 'status')       applyStatus(d);
+}
 
-    if (d.vendor) {
-      const wasHidden = DOM.escortVendor.style.display === 'none';
-      DOM.escortVendor.style.display = '';
-      if (wasHidden) {
-        DOM.escortVendor.classList.remove('appearing');
-        void DOM.escortVendor.offsetWidth;
-        DOM.escortVendor.classList.add('appearing');
-      }
-      DOM.escortVendorName.textContent = d.vendor.name;
-      DOM.escortVendorTicket.textContent = d.vendor.ticket;
-      DOM.escortAuth.textContent = 'Authorized: ' + d.target_rack + ' / ' + d.authorized_ru + ' only';
-    } else {
-      DOM.escortVendor.style.display = 'none';
-      DOM.escortVendor.classList.remove('appearing');
+// ── System Stats ──────────────────────────────────────────────
+function applySystem(d) {
+  setText('s-cpu',  d.cpu_pct != null ? d.cpu_pct.toFixed(1) + '%' : '—',
+          d.cpu_pct > 85 ? 'crit' : d.cpu_pct > 65 ? 'warn' : '');
+  setText('s-mem',  d.mem_pct != null ? d.mem_pct.toFixed(1) + '%' : '—',
+          d.mem_pct > 85 ? 'crit' : d.mem_pct > 65 ? 'warn' : '');
+  setText('s-temp', d.temp_c  != null ? d.temp_c.toFixed(1) + '°C' : '—',
+          d.temp_c > 75 ? 'crit' : d.temp_c > 60 ? 'warn' : '');
+  $('s-up').textContent = d.uptime_s != null ? fmtUptime(d.uptime_s) : '—';
+}
+
+function setText(id, txt, cls) {
+  const el = $(id);
+  el.textContent = txt;
+  el.className = 'val' + (cls ? ' ' + cls : '');
+}
+
+function fmtUptime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+// ── Escort Panel ──────────────────────────────────────────────
+const escortDescs = {
+  idle:       'Standing by at charging bay',
+  dispatched: 'Dispatched — heading to vendor pickup',
+  escorting:  'Escorting vendor to assigned rack',
+  arrived:    'Arrived at rack',
+  scanning:   'Scanning rack nodes',
+  monitoring: 'Monitoring for unauthorized contact',
+  verified:   'Work complete — no violations detected',
+  returning:  'Returning to charging bay',
+};
+
+function applyEscort(d) {
+  $('escort-online').style.display  = 'flex';
+  $('escort-offline').style.display = 'none';
+
+  $('mode-val').textContent = d.phase.replace(/_/g, ' ').toUpperCase();
+  $('mode-sub').textContent = escortDescs[d.phase] || d.phase;
+
+  const b = $('escort-badge');
+  if      (d.phase === 'idle')       { b.textContent = 'IDLE';       b.className = 'badge badge-dim'; }
+  else if (d.phase === 'scanning')   { b.textContent = 'SCANNING';   b.className = 'badge badge-amber'; }
+  else if (d.phase === 'monitoring') { b.textContent = 'MONITORING'; b.className = 'badge badge-blue'; }
+  else if (d.phase === 'verified')   { b.textContent = 'VERIFIED';   b.className = 'badge badge-green'; }
+  else                               { b.textContent = 'ACTIVE';     b.className = 'badge badge-green'; }
+
+  if (d.vendor) {
+    $('vendor-card').style.display = '';
+    $('vendor-name').textContent   = d.vendor.name;
+    $('vendor-ticket').textContent = d.vendor.ticket;
+    $('vendor-auth').textContent   = `AUTH: ${d.target_rack} / ${d.authorized_ru}`;
+  } else {
+    $('vendor-card').style.display = 'none';
+  }
+
+  if (d.scan_progress > 0) {
+    $('scan-section').style.display = '';
+    $('scan-pct').textContent        = d.scan_progress + '%';
+    $('scan-fill').style.width       = d.scan_progress + '%';
+  } else {
+    $('scan-section').style.display = 'none';
+  }
+
+  const ab = $('alert-box');
+  if (d.alert) {
+    ab.className = 'alert visible ' + (d.alert.status === 'cleared' ? 'ok' : 'warn');
+    ab.textContent = d.alert.status === 'checking'
+      ? `⚠ ${d.alert.ru}: Contact detected — verifying…`
+      : `✓ ${d.alert.ru}: Cleared — no unauthorized change`;
+  } else {
+    ab.className = 'alert';
+  }
+
+  $('f-loc').textContent   = (d.location || '—').replace(/_/g, ' ');
+  $('f-bat').textContent   = d.battery_pct != null ? d.battery_pct + '%' : '—';
+  $('f-nodes').textContent = d.nodes_scanned ?? '—';
+}
+
+// ── Drive & Detection ─────────────────────────────────────────
+function applyDD(d) {
+  $('dd-online').style.display  = '';
+  $('dd-offline').style.display = 'none';
+
+  setMotor('ml', d.motor_l);
+  setMotor('mr', d.motor_r);
+
+  const stopped = d.motor_l === 0 && d.motor_r === 0;
+  const diff    = d.motor_l - d.motor_r;
+  $('steer').textContent = stopped ? 'STOPPED'
+    : Math.abs(diff) < 8 ? 'STRAIGHT'
+    : diff > 0 ? 'TURNING RIGHT' : 'TURNING LEFT';
+
+  const b = $('dd-badge');
+  b.textContent = stopped ? 'STOPPED' : 'DRIVING';
+  b.className   = 'badge ' + (stopped ? 'badge-dim' : 'badge-green');
+
+  const conf = $('det-conf');
+  conf.textContent = d.yolo_conf != null ? d.yolo_conf.toFixed(2) : '—';
+  conf.className   = 'det-cell-val ' + (d.yolo_conf >= .6 ? 'green' : d.yolo_conf > 0 ? 'amber' : '');
+
+  $('det-fps').textContent     = d.yolo_fps     != null ? d.yolo_fps.toFixed(1)     : '—';
+  $('det-targets').textContent = d.yolo_detections ?? '—';
+  $('det-model').textContent   = d.yolo_model   || '—';
+}
+
+function setMotor(id, pct) {
+  const abs = Math.abs(pct || 0);
+  const rev = pct < 0;
+  const fill = $(id + '-fill');
+  fill.style.width      = (abs / 2) + '%';
+  fill.style.left       = rev ? (50 - abs / 2) + '%' : '50%';
+  fill.classList.toggle('rev', rev);
+  $(id + '-val').textContent = (pct > 0 ? '+' : '') + (pct || 0) + '%';
+}
+
+// ── Status ────────────────────────────────────────────────────
+function applyStatus(d) {
+  if (!d.escort_connected) {
+    $('escort-online').style.display  = 'none';
+    $('escort-offline').style.display = 'flex';
+    $('escort-badge').textContent = 'OFFLINE';
+    $('escort-badge').className   = 'badge badge-dim';
+    $('dd-online').style.display  = 'none';
+    $('dd-offline').style.display = '';
+    $('dd-badge').textContent = 'OFFLINE';
+  }
+}
+
+// ── Scan Log ──────────────────────────────────────────────────
+function renderScans(scans) {
+  $('scan-count').textContent = scans.length + ' Record' + (scans.length !== 1 ? 's' : '');
+
+  if (!scans.length) {
+    $('scan-list').innerHTML = '<div class="scan-empty">No scan records on disk.</div>';
+    return;
+  }
+
+  $('scan-list').innerHTML = '';
+  scans.forEach((s, i) => {
+    const dt  = new Date(s.timestamp);
+    const ts  = dt.toLocaleDateString([], { month: 'short', day: 'numeric' })
+              + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dur = `${Math.floor(s.duration_s / 60)}m ${s.duration_s % 60}s`;
+    const flags = (s.flags || []).map(f =>
+      `<span class="scan-flag">${esc(f)}</span>`).join('');
+
+    const row = document.createElement('div');
+    row.className = 'scan-row';
+    row.style.animationDelay = (i * 0.06) + 's';
+    row.innerHTML = `
+      <div class="scan-dot ${s.result}"></div>
+      <div>
+        <div class="scan-vendor">${esc(s.vendor)} <span style="font-weight:400;color:var(--t3)">/ ${esc(s.ticket)}</span></div>
+        <div class="scan-meta">${esc(s.rack)} · ${esc(s.authorized_ru)} · ${s.nodes_scanned} nodes · ${dur}</div>
+        ${flags ? '<div class="scan-flags">' + flags + '</div>' : ''}
+      </div>
+      <div class="scan-right">
+        <div class="scan-result ${s.result}">${s.result.toUpperCase()}</div>
+        <div class="scan-time">${ts}</div>
+      </div>`;
+    $('scan-list').appendChild(row);
+  });
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// ── Gamepad / Xbox Teleop ─────────────────────────────────────
+const DEADZONE   = 0.12;   // ignore stick noise below this
+const SEND_HZ    = 30;     // max commands/sec to server
+const SEND_MS    = 1000 / SEND_HZ;
+
+let gpIndex      = null;   // index of the connected gamepad
+let gpLastSend   = 0;      // timestamp of last WS send
+let gpActive     = false;  // dead-man held?
+let gpAnimId     = null;
+
+function deadzone(v) {
+  return Math.abs(v) < DEADZONE ? 0 : v;
+}
+
+function arcadeDrive(fwd, turn) {
+  // Differential drive: left = fwd + turn, right = fwd - turn, clamped
+  const l = Math.max(-1, Math.min(1, fwd + turn));
+  const r = Math.max(-1, Math.min(1, fwd - turn));
+  return { l, r };
+}
+
+function gpLoop() {
+  gpAnimId = requestAnimationFrame(gpLoop);
+
+  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = gpIndex !== null ? gamepads[gpIndex] : null;
+  if (!gp) return;
+
+  // Left stick Y  = forward/backward  (axes[1], inverted — up is negative)
+  // Right stick X = turn              (axes[2])
+  const fwd  = -deadzone(gp.axes[1]);
+  const turn =  deadzone(gp.axes[2]);
+
+  // Right trigger (RT) = buttons[7] — dead-man switch
+  const rt = gp.buttons[7] ? gp.buttons[7].value : 0;
+  gpActive = rt > 0.1;
+
+  // Update dead-man bar
+  $('dm-bar').style.display   = '';
+  $('dm-label').style.display = '';
+  $('dm-fill').style.width    = (rt * 100) + '%';
+
+  const now = performance.now();
+  const { l, r } = arcadeDrive(fwd, turn);
+
+  // Only send when dead-man is held; send stop when released
+  if (gpActive) {
+    if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
+      gpLastSend = now;
     }
-
-    if (d.scan_progress > 0) {
-      DOM.escortScanSection.style.display = '';
-      DOM.escortScanPct.textContent = d.scan_progress + '%';
-      DOM.escortScanBar.style.width = d.scan_progress + '%';
-      DOM.escortScanBar.classList.toggle('active', d.scan_progress < 100);
-    } else {
-      DOM.escortScanSection.style.display = 'none';
-      DOM.escortScanBar.classList.remove('active');
+    // Update motor bars live
+    setMotorLocal(l, r);
+  } else {
+    // Dead-man released — send stop once, clear bars
+    if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+      gpLastSend = now;
     }
-
-    if (d.alert) {
-      DOM.escortAlert.classList.add('visible');
-      DOM.escortAlert.classList.toggle('cleared', d.alert.status === 'cleared');
-      DOM.escortAlert.textContent = d.alert.status === 'checking'
-        ? d.alert.ru + ': Contact detected \u2014 verifying...'
-        : d.alert.ru + ': Cleared \u2014 no state change';
-    } else {
-      DOM.escortAlert.classList.remove('visible', 'cleared');
-    }
-
-    DOM.escortLoc.textContent = d.location.replace('_', ' ');
-    DOM.escortBat.textContent = d.battery_pct + '%';
-    DOM.escortNodes.textContent = d.nodes_scanned;
+    setMotorLocal(0, 0);
   }
 
-  // ── Drive & Detection Panel ────────────────────────────────
-  function updateDriveDetection(d) {
-    // Motor bars — center-out (50% = zero, left = reverse, right = forward)
-    function setMotorBar(barEl, valEl, pct) {
-      const abs = Math.abs(pct);
-      const isReverse = pct < 0;
-      barEl.style.width = (abs / 2) + '%';
-      barEl.style.left = isReverse ? (50 - abs / 2) + '%' : '50%';
-      barEl.classList.toggle('reverse', isReverse);
-      valEl.textContent = (pct > 0 ? '+' : '') + pct + '%';
-    }
-
-    setMotorBar(DOM.ddMotorLBar, DOM.ddMotorL, d.motor_l);
-    setMotorBar(DOM.ddMotorRBar, DOM.ddMotorR, d.motor_r);
-
-    // Steering indicator
-    const diff = d.motor_l - d.motor_r;
-    const stopped = d.motor_l === 0 && d.motor_r === 0;
-    DOM.ddArrowL.classList.toggle('dim', diff >= 0);
-    DOM.ddArrowR.classList.toggle('dim', diff <= 0);
-    DOM.ddSteerLabel.textContent = stopped ? 'Stopped' :
-      Math.abs(diff) < 10 ? 'Straight' :
-      diff > 0 ? 'Right' : 'Left';
-
-    // Badge
-    if (stopped) { DOM.ddBadge.textContent = 'Stopped'; DOM.ddBadge.className = 'panel-badge badge-dim'; }
-    else { DOM.ddBadge.textContent = 'Driving'; DOM.ddBadge.className = 'panel-badge badge-green'; }
-
-    // YOLO stats
-    DOM.ddYoloConf.textContent = d.yolo_conf.toFixed(2);
-    DOM.ddYoloConf.className = 'dd-stat-val ' + (d.yolo_conf >= 0.6 ? 'green' : 'amber');
-    DOM.ddYoloFps.textContent = d.yolo_fps.toFixed(1);
-    DOM.ddYoloDet.textContent = d.yolo_detections;
-    DOM.ddYoloModel.textContent = d.yolo_model || 'YOLOv8n';
-
-    // Camera
-    DOM.ddCamRes.textContent = d.cam_resolution || '640x360';
-    DOM.ddCamStream.textContent = d.cam_stream ? 'Active' : 'Off';
-    DOM.ddCamStream.className = 'dd-stat-val ' + (d.cam_stream ? 'green' : '');
-    DOM.ddCamSensor.textContent = d.cam_sensor || 'IMX708';
-    DOM.ddCamFov.textContent = (d.cam_fov || 120) + '\u00B0';
+  // Show/hide TELEOP badge
+  const tb = $('teleop-badge');
+  if (gpActive && (Math.abs(l) > 0.01 || Math.abs(r) > 0.01)) {
+    tb.style.display = '';
+    tb.className = 'badge badge-blue';
+    tb.textContent = 'TELEOP';
+    $('dd-badge').textContent = 'DRIVING';
+    $('dd-badge').className   = 'badge badge-green';
+    $('steer').textContent = Math.abs(l - r) < 0.08 ? 'STRAIGHT'
+      : l > r ? 'TURNING RIGHT' : 'TURNING LEFT';
+  } else {
+    tb.style.display = 'none';
   }
+}
 
-  // ── Scan Timeline Panel ────────────────────────────────────
-  function updateScanLog(scans) {
-    DOM.scanCount.textContent = scans.length + ' Scans';
-    DOM.scanTbody.innerHTML = '';
-
-    scans.forEach((s, i) => {
-      const item = document.createElement('div');
-      item.className = 'timeline-item';
-      item.style.animationDelay = (0.35 + i * 0.1) + 's';
-
-      const dt = new Date(s.timestamp);
-      const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const dateStr = dt.toLocaleDateString([], { month: 'short', day: 'numeric' });
-      const durMin = Math.floor(s.duration_s / 60);
-      const durSec = s.duration_s % 60;
-
-      const flagsHtml = s.flags.length > 0
-        ? '<div class="timeline-flags">' + s.flags.map(f => '<span class="timeline-flag">' + escapeHtml(f) + '</span>').join('') + '</div>'
-        : '';
-
-      item.innerHTML = `
-        <div class="timeline-dot ${s.result}"></div>
-        <div class="timeline-meta">
-          <span class="timeline-time">${dateStr} ${timeStr}</span>
-          <span class="scan-result ${s.result}">${s.result}</span>
-        </div>
-        <div class="timeline-vendor">${escapeHtml(s.vendor)} &mdash; ${escapeHtml(s.ticket)}</div>
-        <div class="timeline-detail">
-          <span class="stat-val">${escapeHtml(s.rack)}</span> &middot;
-          ${escapeHtml(s.authorized_ru)} &middot;
-          ${s.nodes_scanned} nodes &middot;
-          ${durMin}m ${durSec}s
-        </div>
-        ${flagsHtml}
-      `;
-      DOM.scanTbody.appendChild(item);
-    });
+function setMotorLocal(l, r) {
+  // Show online panel when gamepad active even if escort not connected
+  if (gpIndex !== null) {
+    $('dd-online').style.display  = '';
+    $('dd-offline').style.display = 'none';
   }
+  setMotor('ml', Math.round(l * 100));
+  setMotor('mr', Math.round(r * 100));
+}
 
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+window.addEventListener('gamepadconnected', e => {
+  gpIndex = e.gamepad.index;
+  $('gp-badge').classList.add('active');
+  $('gp-text').textContent = e.gamepad.id.includes('Xbox')
+    ? 'Xbox' : 'Gamepad ' + (gpIndex + 1);
+  if (!gpAnimId) gpLoop();
+});
+
+window.addEventListener('gamepaddisconnected', e => {
+  if (e.gamepad.index === gpIndex) {
+    gpIndex = null;
+    $('gp-badge').classList.remove('active');
+    $('gp-text').textContent = 'No Controller';
+    $('dm-bar').style.display   = 'none';
+    $('dm-label').style.display = 'none';
+    $('teleop-badge').style.display = 'none';
+    if (ws && ws.readyState === 1)
+      ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+    if (gpAnimId) { cancelAnimationFrame(gpAnimId); gpAnimId = null; }
   }
+});
 
-  // ── Training Panel ──────────────────────────────────────────
-  const trainingDescs = {
-    idle: 'No active training session',
-    recording: 'Recording teleoperation episodes',
-    uploading: 'Uploading recordings to cloud',
-    training: 'Training ACT policy on cloud GPU',
-  };
-
-  function updateTraining(d) {
-    setPhaseWithFade('training-stage', d.stage);
-    DOM.trainingSub.textContent = trainingDescs[d.stage] || d.stage;
-
-    if (d.stage === 'idle') { DOM.trainingBadge.textContent = 'Idle'; DOM.trainingBadge.className = 'panel-badge badge-dim'; }
-    else if (d.stage === 'recording') { DOM.trainingBadge.textContent = 'Recording'; DOM.trainingBadge.className = 'panel-badge badge-green'; }
-    else if (d.stage === 'uploading') { DOM.trainingBadge.textContent = 'Uploading'; DOM.trainingBadge.className = 'panel-badge badge-amber'; }
-    else if (d.stage === 'training') { DOM.trainingBadge.textContent = 'Training'; DOM.trainingBadge.className = 'panel-badge badge-blue'; }
-
-    if (d.stage !== 'idle') {
-      DOM.trainingProgressSection.style.display = '';
-      DOM.trainingProgressPct.textContent = Math.round(d.current_progress) + '%';
-      DOM.trainingProgressBar.style.width = d.current_progress + '%';
-      DOM.trainingProgressBar.classList.add('active');
-      DOM.trainingProgressLabel.textContent =
-        d.stage === 'recording' ? 'Recording' : d.stage === 'uploading' ? 'Upload' : 'Training';
-      // Color the bar per stage
-      DOM.trainingProgressBar.className = 'progress-fill active ' +
-        (d.stage === 'recording' ? 'green' : d.stage === 'uploading' ? 'amber' : 'blue');
-    } else {
-      DOM.trainingProgressSection.style.display = 'none';
-      DOM.trainingProgressBar.classList.remove('active');
-    }
-
-    DOM.tEpisodes.textContent = d.episodes_recorded;
-    DOM.tLoss.textContent = d.last_loss.toFixed(4);
-    DOM.tGpu.textContent = d.gpu || '--';
-    DOM.tCost.textContent = '$' + d.cost_so_far.toFixed(2);
-
-    // Button states per stage
-    DOM.btnRecord.disabled = d.stage !== 'idle' && d.stage !== 'recording';
-    DOM.btnUpload.disabled = d.stage !== 'idle';
-    DOM.btnTrain.disabled = d.stage !== 'idle';
-    DOM.btnDeploy.disabled = d.stage !== 'idle';
-
-    DOM.btnRecord.classList.toggle('btn--active', d.stage === 'recording');
-    DOM.btnRecord.textContent = d.stage === 'recording' ? 'Recording...' : 'Start Recording';
-    DOM.btnTrain.classList.toggle('btn--active', d.stage === 'training');
-    DOM.btnTrain.textContent = d.stage === 'training' ? 'Training...' : 'Train Model';
-  }
-
-  // ── Hardware Status ────────────────────────────────────────
-  function updateHardwareStatus(d) {
-    DOM.navStatus.textContent = d.mock_mode ? 'MOCK DATA' : 'LIVE HARDWARE';
-    DOM.navStatus.style.color = d.mock_mode ? '' : 'var(--status-success)';
-  }
-
-  // ── Clock ───────────────────────────────────────────────────
-  function updateClock() {
-    DOM.navTime.textContent =
-      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  }
-  setInterval(updateClock, 1000);
-  updateClock();
-
-  // ── Button placeholders ─────────────────────────────────────
-  function sendCommand(target, action, params = {}) {
-    if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({ target, action, params }));
-    }
-    DOM.navStatus.textContent = action.toUpperCase().replace('_', ' ');
-  }
-
-  DOM.btnRecord.addEventListener('click', () => sendCommand('arm', 'start_recording', { task: 'optic_seating' }));
-  DOM.btnUpload.addEventListener('click', () => sendCommand('arm', 'upload_data'));
-  DOM.btnTrain.addEventListener('click', () => sendCommand('arm', 'start_training', { device: 'mps' }));
-  DOM.btnDeploy.addEventListener('click', () => sendCommand('arm', 'deploy'));
-
-  // ── Init ────────────────────────────────────────────────────
-  connect();
-  </script>
+connect();
+</script>
 </body>
 </html>

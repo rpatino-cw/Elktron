@@ -5,24 +5,95 @@ Falls back to mock data when hardware is not connected.
 """
 
 import asyncio
+import io as _io_mod
 import json
 import logging
 import math
-import random
 import time
+import threading
+import psutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from arm import arm
 from escort import escort
 
+# ── Camera (picamera2 hardware MJPEG stream) ─────────────────
+import io as _io
+
+class _FrameBuffer(_io.BufferedIOBase):
+    """Output sink for MJPEGEncoder — stores latest encoded frame."""
+    def __init__(self):
+        self.frame: bytes = b""
+        self.event = threading.Event()
+
+    def write(self, buf):
+        self.frame = bytes(buf)
+        self.event.set()
+        self.event.clear()
+        return len(buf)
+
+_cam = None
+_frame_buf = _FrameBuffer()
+
+def _init_camera():
+    global _cam
+    try:
+        from picamera2 import Picamera2
+        from picamera2.encoders import MJPEGEncoder
+        from picamera2.outputs import FileOutput
+        from libcamera import Transform
+        _cam = Picamera2()
+        config = _cam.create_video_configuration(
+            main={"size": (640, 480)},
+            transform=Transform(hflip=1, vflip=1),  # 180° rotation
+            controls={"FrameRate": 30},
+        )
+        _cam.configure(config)
+        encoder = MJPEGEncoder(2_000_000)  # 2 Mbps — slightly lower quality, much less CPU
+        _cam.start_recording(encoder, FileOutput(_frame_buf))
+        logger.info("Camera started (IMX708 wide, hardware MJPEG)")
+    except Exception as e:
+        logger.warning(f"Camera unavailable: {e}")
+        _cam = None
+
+async def _mjpeg_frames():
+    """Async generator: stream hardware-encoded MJPEG frames to client."""
+    loop = asyncio.get_event_loop()
+    while _cam is not None:
+        await loop.run_in_executor(None, _frame_buf.event.wait, 0.1)
+        jpg = _frame_buf.frame
+        if jpg:
+            yield (
+                b"--frame\r\nContent-Type: image/jpeg\r\n\r\n"
+                + jpg
+                + b"\r\n"
+            )
+
 logger = logging.getLogger("elktron.server")
+
+# ── Motor teleop ──────────────────────────────────────────────
+
+_robot = None
+
+def _init_motors():
+    global _robot
+    try:
+        from gpiozero import Robot
+        # Pin order per gpio_test.py: gpiozero Robot(left=(fwd,bwd), right=(fwd,bwd))
+        # L298N wiring (GPIO_Current.csv): IN2=22(L-fwd), IN1=17(L-bwd), IN4=6(R-fwd), IN3=5(R-bwd)
+        _robot = Robot(left=(22, 17), right=(6, 5))
+        _robot.stop()
+        logger.info("Motors ready — gpiozero Robot (L=(22,17) R=(6,5))")
+    except Exception as e:
+        logger.warning(f"Motors unavailable: {e}")
+        _robot = None
 
 # ── Hardware lifecycle ────────────────────────────────────────
 
@@ -39,9 +110,21 @@ async def lifespan(app):
         logger.info(f"Hardware mode — arm:{arm_ok} escort:{escort_ok}")
     else:
         logger.info("No hardware detected — running in mock mode")
+    _init_camera()
+    _init_motors()
     yield
     # Shutdown
     arm.disconnect()
+    global _robot
+    if _robot:
+        _robot.stop()
+        _robot.close()
+        _robot = None
+    global _cam
+    if _cam:
+        _cam.stop_recording()
+        _cam.close()
+        _cam = None
 
 app = FastAPI(title="Elktron Dashboard", lifespan=lifespan)
 
@@ -51,6 +134,20 @@ ROOT = Path(__file__).parent.parent
 @app.get("/")
 async def index():
     return FileResponse(ROOT / "index.html")
+
+@app.get("/design-system.css")
+async def design_system():
+    return FileResponse(ROOT / "../design-system.css", media_type="text/css")
+
+@app.get("/video_feed")
+async def video_feed():
+    """MJPEG camera stream from the Pi Camera Module 3 Wide."""
+    if _cam is None:
+        return {"error": "camera not available"}
+    return StreamingResponse(
+        _mjpeg_frames(),
+        media_type="multipart/x-mixed-replace; boundary=frame",
+    )
 
 
 # ── REST endpoints ────────────────────────────────────────────
@@ -69,221 +166,23 @@ async def get_status():
         "mock_mode": USE_MOCK,
     }
 
-# ── Mock Data Generators ────────────────────────────────────
+# ── Real System Stats ────────────────────────────────────────
 
-def mock_arm_state(t: float) -> dict:
-    """Simulate SO-ARM101 joint angles + gripper cycling through a pick sequence."""
-    cycle = t % 12  # 12-second loop
-    phase = "idle"
-    gripper = "open"
-    optic = False
-
-    # Simulate a pick-place cycle
-    if cycle < 2:
-        phase = "idle"
-        joints = [0, 0, 0, 0, 0, 0]
-    elif cycle < 4:
-        phase = "reaching"
-        p = (cycle - 2) / 2
-        joints = [
-            -40 * p,
-            -3 * p,
-            -2 * p,
-            5 * math.sin(p * math.pi) * 2,
-            0,
-            0,
-        ]
-    elif cycle < 5:
-        phase = "gripping"
-        gripper = "closing"
-        joints = [-40, -3, -2, 0, 0, 0]
-    elif cycle < 5.5:
-        phase = "gripping"
-        gripper = "closed"
-        optic = True
-        joints = [-40, -3, -2, 0, 0, 0]
-    elif cycle < 8:
-        phase = "transiting"
-        p = (cycle - 5.5) / 2.5
-        optic = True
-        gripper = "closed"
-        joints = [
-            -40 + 88 * p,
-            -3 + 6 * p,
-            -2 + 4 * p,
-            3 * math.sin(p * math.pi),
-            0,
-            0,
-        ]
-    elif cycle < 9:
-        phase = "inserting"
-        optic = True
-        gripper = "closed"
-        joints = [48, 3, 2, 0, 0, 0]
-    elif cycle < 9.5:
-        phase = "releasing"
-        gripper = "open"
-        optic = False
-        joints = [48, 3, 2, 0, 0, 0]
-    else:
-        phase = "retracting"
-        p = (cycle - 9.5) / 2.5
-        joints = [48 * (1 - p), 3 * (1 - p), 2 * (1 - p), 0, 0, 0]
-
-    # Add slight noise for realism
-    joints = [round(j + random.uniform(-0.3, 0.3), 1) for j in joints]
-
+def system_stats() -> dict:
+    """Real Pi system telemetry — CPU, memory, temperature, uptime."""
+    try:
+        temp = round(float(
+            Path("/sys/class/thermal/thermal_zone0/temp").read_text()
+        ) / 1000, 1)
+    except Exception:
+        temp = None
     return {
-        "type": "arm",
-        "phase": phase,
-        "gripper": gripper,
-        "holding_optic": optic,
-        "joints": {
-            "base": joints[0],
-            "shoulder": joints[1],
-            "elbow": joints[2],
-            "wrist_pitch": joints[3],
-            "wrist_roll": joints[4],
-            "wrist_yaw": joints[5],
-        },
-        "torque_avg": round(12 + random.uniform(-1, 1), 1),
-        "temp_c": round(38 + random.uniform(-2, 3), 1),
-        "cycle_count": int(t / 12),
-        "accuracy_mm": round(0.8 + random.uniform(-0.1, 0.1), 2),
-    }
-
-
-def mock_escort_state(t: float) -> dict:
-    """Simulate escort bot cycling through a vendor escort sequence."""
-    cycle = t % 30  # 30-second loop
-    phase = "idle"
-    scan_pct = 0
-    alert = None
-
-    if cycle < 3:
-        phase = "idle"
-        location = "charging_bay"
-        vendor = None
-    elif cycle < 5:
-        phase = "dispatched"
-        location = "aisle_a"
-        vendor = {"name": "TechCo Field Eng.", "ticket": "INC-40821"}
-    elif cycle < 12:
-        phase = "escorting"
-        location = "aisle_a"
-        vendor = {"name": "TechCo Field Eng.", "ticket": "INC-40821"}
-    elif cycle < 14:
-        phase = "arrived"
-        location = "CAB-B3"
-        vendor = {"name": "TechCo Field Eng.", "ticket": "INC-40821"}
-    elif cycle < 20:
-        phase = "scanning"
-        location = "CAB-B3"
-        vendor = {"name": "TechCo Field Eng.", "ticket": "INC-40821"}
-        scan_pct = min(100, int(((cycle - 14) / 6) * 100))
-    elif cycle < 22:
-        phase = "monitoring"
-        location = "CAB-B3"
-        vendor = {"name": "TechCo Field Eng.", "ticket": "INC-40821"}
-        scan_pct = 100
-        if 20.5 < cycle < 21.5:
-            alert = {"ru": "RU-25", "type": "brief_contact", "status": "checking"}
-        elif 21.5 <= cycle < 22:
-            alert = {"ru": "RU-25", "type": "brief_contact", "status": "cleared"}
-    elif cycle < 24:
-        phase = "verified"
-        location = "CAB-B3"
-        vendor = {"name": "TechCo Field Eng.", "ticket": "INC-40821"}
-        scan_pct = 100
-    else:
-        phase = "returning"
-        location = "aisle_a"
-        vendor = None
-
-    return {
-        "type": "escort",
-        "phase": phase,
-        "location": location,
-        "vendor": vendor,
-        "target_rack": "CAB-B3",
-        "authorized_ru": "RU-24",
-        "scan_progress": scan_pct,
-        "alert": alert,
-        "battery_pct": max(20, 95 - int(t / 10)),
-        "nodes_scanned": min(5, int(scan_pct / 20)),
-    }
-
-
-MOCK_SCANS = [
-    {
-        "id": "scan-001",
-        "timestamp": (datetime.now() - timedelta(hours=3)).isoformat(),
-        "vendor": "TechCo Field Eng.",
-        "ticket": "INC-40821",
-        "rack": "CAB-B3",
-        "authorized_ru": "RU-24",
-        "result": "clean",
-        "unauthorized": 0,
-        "nodes_scanned": 5,
-        "flags": ["RU-22 PSU amber"],
-        "duration_s": 285,
-    },
-    {
-        "id": "scan-002",
-        "timestamp": (datetime.now() - timedelta(hours=7)).isoformat(),
-        "vendor": "NetServ Inc.",
-        "ticket": "INC-40798",
-        "rack": "CAB-A2",
-        "authorized_ru": "RU-16",
-        "result": "clean",
-        "unauthorized": 0,
-        "nodes_scanned": 8,
-        "flags": [],
-        "duration_s": 340,
-    },
-    {
-        "id": "scan-003",
-        "timestamp": (datetime.now() - timedelta(days=1, hours=2)).isoformat(),
-        "vendor": "DataLink Corp.",
-        "ticket": "INC-40712",
-        "rack": "CAB-B1",
-        "authorized_ru": "RU-30",
-        "result": "flagged",
-        "unauthorized": 1,
-        "nodes_scanned": 6,
-        "flags": ["RU-29 unauthorized contact — not resolved", "RU-30 optic swapped"],
-        "duration_s": 410,
-    },
-]
-
-
-def mock_training_state(t: float) -> dict:
-    """Simulate training pipeline state."""
-    # Cycle through states over time
-    stage_cycle = int(t / 60) % 4
-    stages = ["idle", "recording", "uploading", "training"]
-    stage = stages[stage_cycle]
-
-    episodes = int(t / 15) % 50
-    if stage == "recording":
-        progress = (t % 60) / 60 * 100
-    elif stage == "uploading":
-        progress = min(100, (t % 60) / 30 * 100)
-    elif stage == "training":
-        progress = min(100, (t % 60) / 50 * 100)
-    else:
-        progress = 0
-
-    return {
-        "type": "training",
-        "stage": stage,
-        "episodes_recorded": episodes,
-        "current_progress": round(progress, 1),
-        "model": "ACT-v1",
-        "policy": "act",
-        "last_loss": round(0.15 - 0.001 * min(episodes, 40) + random.uniform(-0.005, 0.005), 4),
-        "gpu": "A100-80G" if stage == "training" else None,
-        "cost_so_far": round(episodes * 0.12, 2),
+        "type": "system",
+        "cpu_pct":  round(psutil.cpu_percent(interval=None), 1),
+        "mem_pct":  round(psutil.virtual_memory().percent, 1),
+        "temp_c":   temp,
+        "uptime_s": int(time.time() - psutil.boot_time()),
+        "cam_active": _cam is not None,
     }
 
 
@@ -292,53 +191,49 @@ def mock_training_state(t: float) -> dict:
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
-    start = time.time()
 
-    # Send scan history once on connect
-    scans = escort.load_scan_history() if not USE_MOCK else MOCK_SCANS
-    await ws.send_json({"type": "scan_history", "scans": scans})
+    # Real scan history from disk only — no mock data
+    await ws.send_json({"type": "scan_history", "scans": escort.load_scan_history()})
 
-    # Send initial hardware status
+    # Hardware connection status
     await ws.send_json({
         "type": "status",
-        "arm_connected": arm.connected,
         "escort_connected": escort.connected,
-        "mock_mode": USE_MOCK,
+        "cam_active": _cam is not None,
     })
 
-    try:
-        while True:
-            t = time.time() - start
+    async def recv_loop():
+        """Process incoming commands immediately as they arrive — no polling delay."""
+        try:
+            async for msg in ws.iter_json():
+                await handle_ws_command(msg)
+        except WebSocketDisconnect:
+            pass
+        except Exception:
+            pass
 
-            if USE_MOCK:
-                await ws.send_json(mock_arm_state(t))
-                await ws.send_json(mock_escort_state(t))
-            else:
-                # Real hardware state
-                if arm.connected:
-                    arm_state = arm.get_state()
-                    await ws.send_json(arm_state.model_dump())
-                else:
-                    await ws.send_json(mock_arm_state(t))
-
+    async def send_loop():
+        """Push telemetry at 1 Hz — independent of receive."""
+        try:
+            while True:
+                await ws.send_json(system_stats())
                 if escort.connected:
                     escort_state = await escort.poll_state()
                     await ws.send_json(escort_state.model_dump())
-                else:
-                    await ws.send_json(mock_escort_state(t))
+                await asyncio.sleep(1.0)
+        except Exception:
+            pass
 
-            await ws.send_json(mock_training_state(t))
+    recv_task = asyncio.create_task(recv_loop())
+    send_task = asyncio.create_task(send_loop())
 
-            # Check for incoming commands from frontend
-            try:
-                data = await asyncio.wait_for(ws.receive_json(), timeout=0.09)
-                await handle_ws_command(data)
-            except asyncio.TimeoutError:
-                pass
-
-            await asyncio.sleep(0.01)  # ~10Hz with the timeout above
-    except WebSocketDisconnect:
-        pass
+    # Run until either task ends (disconnect / error)
+    done, pending = await asyncio.wait(
+        [recv_task, send_task],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+    for t in pending:
+        t.cancel()
 
 
 async def handle_ws_command(data: dict):
@@ -351,6 +246,15 @@ async def handle_ws_command(data: dict):
         arm.handle_command(action, **params)
     elif target == "escort":
         await escort.handle_command(action, **params)
+    elif target == "teleop":
+        if _robot is None:
+            return
+        if action == "drive":
+            l = max(-1.0, min(1.0, float(params.get("l", 0.0))))
+            r = max(-1.0, min(1.0, float(params.get("r", 0.0))))
+            _robot.value = (l, r)
+        elif action == "stop":
+            _robot.stop()
     else:
         logger.warning(f"Unknown command target: {target}")
 

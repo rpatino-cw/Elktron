@@ -96,12 +96,12 @@ def drive_mode():
     import termios
 
     robot = Robot(
-        left=(LEFT_FORWARD, LEFT_BACKWARD),
-        right=(RIGHT_FORWARD, RIGHT_BACKWARD),
+        left=(LEFT_BACKWARD, LEFT_FORWARD),
+        right=(RIGHT_BACKWARD, RIGHT_FORWARD),
     )
     sensor = DistanceSensor(echo=ULTRASONIC_ECHO, trigger=ULTRASONIC_TRIG, max_distance=4)
 
-    speed = 0.5
+    speed = 1.0
     print("=== Drive Mode ===")
     print("  W = forward    S = backward")
     print("  A = left        D = right")
@@ -130,10 +130,10 @@ def drive_mode():
                 robot.backward(speed)
                 sys.stdout.write(f"\r  BWD {speed:.1f} | {dist:.0f}cm          \r")
             elif ch == "a":
-                robot.left(speed)
+                robot.right(speed)
                 sys.stdout.write(f"\r  LEFT {speed:.1f} | {dist:.0f}cm         \r")
             elif ch == "d":
-                robot.right(speed)
+                robot.left(speed)
                 sys.stdout.write(f"\r  RIGHT {speed:.1f} | {dist:.0f}cm        \r")
             elif ch == " ":
                 robot.stop()

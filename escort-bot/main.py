@@ -3,7 +3,7 @@
 Elktron Escort Bot — Person-Following Robot + Rack Scanner
 Hackathon March 2026 | CoreWeave DCT
 
-Pi 5 + LK-COKOINO 4WD + OpenCV DNN MobileNet SSD v2 + Arducam 120° Wide
+Pi 5 + LK-COKOINO 4WD + YOLO11n (ultralytics) + Arducam IMX708 Wide
 Follows a vendor on the DC floor, stops at racks to scan top-to-bottom.
 
 Modes:
@@ -18,19 +18,16 @@ import argparse
 import numpy as np
 import cv2
 from datetime import datetime
-from picamera2 import Picamera2
 from gpiozero import Robot, DistanceSensor
 from pan_tilt import PanTilt
 from pid import PIDController
 
 # ─── CONFIG ────────────────────────────────────────────────────────
-MODEL_PATH = "models/ssd_mobilenet_v2.pb"
-CONFIG_PATH = "models/ssd_mobilenet_v2.pbtxt"
-PERSON_CLASS_ID = 1          # COCO class 1 = person (OpenCV DNN uses 1-indexed)
+MODEL_NAME = "yolo11n.pt"    # smallest ultralytics model — auto-downloads on first run
+INFER_SIZE = 320             # input resolution — half of 640 = 4× faster, enough for follow
 CONFIDENCE_THRESHOLD = 0.5   # Min detection confidence
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
-INPUT_SIZE = (300, 300)      # MobileNet SSD input size
 
 # Motor GPIO pins (BCM) — single L298N drives all 4 motors as 2 parallel pairs
 # Channel A (OUT1/OUT2): FL+RL in parallel — left pair
@@ -75,24 +72,30 @@ MODE_IDLE = "IDLE"
 
 # ─── SETUP ─────────────────────────────────────────────────────────
 
+STREAM_URL = "http://localhost:8888/video_feed"
+
 def init_camera():
-    """Initialize Pi Camera with picamera2."""
-    cam = Picamera2()
-    config = cam.create_preview_configuration(
-        main={"size": (FRAME_WIDTH, FRAME_HEIGHT), "format": "RGB888"}
-    )
-    cam.configure(config)
-    cam.start()
-    time.sleep(1)  # warm-up
-    return cam
+    """Connect to the dashboard MJPEG stream instead of opening picamera2 directly.
+    This lets the dashboard server and main.py share the camera without conflict."""
+    cap = cv2.VideoCapture(STREAM_URL)
+    if not cap.isOpened():
+        raise RuntimeError(
+            f"Cannot connect to camera stream at {STREAM_URL}\n"
+            "Make sure the dashboard server is running: sudo systemctl start elktron"
+        )
+    print(f"[Camera] Connected to MJPEG stream at {STREAM_URL}")
+    return cap
 
 
-def init_detector(model_path, config_path):
-    """Load MobileNet SSD via OpenCV DNN."""
-    net = cv2.dnn.readNetFromTensorflow(model_path, config_path)
-    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-    return net
+def init_detector():
+    """Load YOLO11n — auto-downloads ~5MB on first run."""
+    from ultralytics import YOLO
+    model = YOLO(MODEL_NAME)
+    # Warm-up pass so first real frame isn't slow
+    dummy = np.zeros((FRAME_HEIGHT, FRAME_WIDTH, 3), dtype=np.uint8)
+    model(dummy, imgsz=INFER_SIZE, classes=[0], verbose=False)
+    print(f"[Detector] YOLO11n ready (imgsz={INFER_SIZE}, person-only)")
+    return model
 
 
 def init_robot():
@@ -104,34 +107,25 @@ def init_robot():
 
 # ─── DETECTION ─────────────────────────────────────────────────────
 
-def detect_person(frame, net):
+def detect_person(frame, model):
     """
-    Run OpenCV DNN inference on a frame.
+    Run YOLO11n inference on a frame.
     Returns the largest person bounding box as (x, y, w, h) in pixels,
-    or None if no person detected.
+    or None if no person detected above CONFIDENCE_THRESHOLD.
     """
-    blob = cv2.dnn.blobFromImage(frame, size=INPUT_SIZE, swapRB=True, crop=False)
-    net.setInput(blob)
-    detections = net.forward()
+    results = model(frame, imgsz=INFER_SIZE, classes=[0],
+                    conf=CONFIDENCE_THRESHOLD, verbose=False)
 
     best_box = None
     best_area = 0
 
-    for i in range(detections.shape[2]):
-        class_id = int(detections[0, 0, i, 1])
-        confidence = detections[0, 0, i, 2]
-
-        if class_id == PERSON_CLASS_ID and confidence >= CONFIDENCE_THRESHOLD:
-            x = int(detections[0, 0, i, 3] * FRAME_WIDTH)
-            y = int(detections[0, 0, i, 4] * FRAME_HEIGHT)
-            x2 = int(detections[0, 0, i, 5] * FRAME_WIDTH)
-            y2 = int(detections[0, 0, i, 6] * FRAME_HEIGHT)
-            w = x2 - x
-            h = y2 - y
-            area = w * h
-            if area > best_area:
-                best_area = area
-                best_box = (x, y, w, h)
+    for box in results[0].boxes:
+        x1, y1, x2, y2 = map(int, box.xyxy[0])
+        w, h = x2 - x1, y2 - y1
+        area = w * h
+        if area > best_area:
+            best_area = area
+            best_box = (x1, y1, w, h)
 
     return best_box
 
@@ -204,7 +198,10 @@ def run_scan(camera, pan_tilt, scan_id):
     def capture_at_position(tilt_angle):
         """Callback: grab a frame and save it."""
         time.sleep(0.2)  # let servo settle
-        frame = camera.capture_array()
+        ret, frame = camera.read()
+        if not ret:
+            print(f"  [WARN] Frame grab failed at {tilt_angle}°, skipping")
+            return
         filename = f"rack_{tilt_angle:+04d}deg.jpg"
         filepath = os.path.join(scan_dir, filename)
 
@@ -249,7 +246,7 @@ def main():
 
     print("[Elktron] Initializing escort bot...")
     camera = init_camera()
-    net = init_detector(MODEL_PATH, CONFIG_PATH)
+    net = init_detector()
     robot, sonar = init_robot()
     pan_tilt = PanTilt(simulate=args.simulate)
     os.makedirs(SCAN_OUTPUT_DIR, exist_ok=True)
@@ -269,7 +266,7 @@ def main():
         scan_id = datetime.now().strftime("scan_%Y%m%d_%H%M%S")
         run_scan(camera, pan_tilt, scan_id)
         pan_tilt.cleanup()
-        camera.stop()
+        camera.release()
         return
 
     # State tracking
@@ -288,7 +285,11 @@ def main():
 
     try:
         while True:
-            frame = camera.capture_array()
+            ret, frame = camera.read()
+            if not ret:
+                print("[WARN] Stream frame drop, retrying...")
+                time.sleep(0.05)
+                continue
             now = time.time()
             dt = now - last_time
             last_time = now
@@ -365,7 +366,7 @@ def main():
     finally:
         robot.stop()
         pan_tilt.cleanup()
-        camera.stop()
+        camera.release()
         print(f"[Elktron] {scan_count} rack scans completed this session.")
 
 
