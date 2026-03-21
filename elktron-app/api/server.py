@@ -5,7 +5,6 @@ Falls back to mock data when hardware is not connected.
 """
 
 import asyncio
-import io as _io_mod
 import json
 import logging
 import math
@@ -24,49 +23,174 @@ from fastapi.staticfiles import StaticFiles
 from arm import arm
 from escort import escort
 
-# ── Camera (picamera2 hardware MJPEG stream) ─────────────────
-import io as _io
+logger = logging.getLogger("elktron.server")
 
-class _FrameBuffer(_io.BufferedIOBase):
-    """Output sink for MJPEGEncoder — stores latest encoded frame."""
+# ── Camera + YOLO Detection ───────────────────────────────────
+import cv2 as _cv2
+import numpy as _np
+
+_cam         = None
+_cam_running = False
+_cam_thread  = None
+
+class _FrameBuffer:
+    """Thread-safe frame store for the MJPEG stream."""
     def __init__(self):
         self.frame: bytes = b""
         self.event = threading.Event()
 
-    def write(self, buf):
-        self.frame = bytes(buf)
+    def put(self, jpg: bytes):
+        self.frame = jpg
         self.event.set()
         self.event.clear()
-        return len(buf)
 
-_cam = None
 _frame_buf = _FrameBuffer()
 
+# ── YOLO detection state ───────────────────────────────────────
+_det_enabled    = False
+_det_model      = None
+_det_model_name = "yolov8n"
+# Absolute path — model lives in escort-bot/, server runs from elktron-app/api/
+_MODEL_PATH     = Path(__file__).parent.parent.parent / "escort-bot" / "yolov8n.pt"
+_det_lock       = threading.Lock()
+_det_state: dict = {
+    "active":      False,
+    "yolo_conf":   None,
+    "yolo_fps":    0.0,
+    "yolo_detections": 0,
+    "yolo_model":  "yolov8n",
+}
+
+def _load_yolo():
+    """Load YOLOv8n from the escort-bot model path in a background thread."""
+    global _det_model
+    try:
+        from ultralytics import YOLO
+        logger.info(f"Loading YOLO from {_MODEL_PATH}")
+        _det_model = YOLO(str(_MODEL_PATH))
+        # Warm-up pass so first inference isn't slow
+        dummy = _np.zeros((640, 640, 3), dtype=_np.uint8)
+        _det_model(dummy, classes=[0], verbose=False)
+        logger.info(f"YOLOv8n ready ({_MODEL_PATH})")
+    except Exception as e:
+        logger.warning(f"YOLO load failed: {e}")
+        _det_model = None
+
+
+def _camera_loop():
+    """
+    Software capture loop. Runs in a daemon thread.
+    - When detection OFF: pass-through JPEG (fast, ~75% quality)
+    - When detection ON:  run YOLO11n, draw boxes, push annotated JPEG
+    """
+    global _cam_running, _det_enabled, _det_model, _det_state
+
+    fps_ema    = 0.0
+    alpha      = 0.15
+    t_last     = time.time()
+    t_det_last = 0.0
+    DET_MIN_MS = 0.2   # max 5 FPS for YOLO inference
+
+    while _cam_running:
+        if _cam is None:
+            time.sleep(0.1)
+            continue
+
+        try:
+            frame = _cam.capture_array()   # RGB888 from picamera2
+
+            t_now  = time.time()
+            dt     = max(t_now - t_last, 1e-6)
+            t_last = t_now
+            fps_ema = fps_ema * (1 - alpha) + (1.0 / dt) * alpha
+
+            # Explicit channel swap (avoids cvtColor on non-contiguous arrays)
+            bgr = _np.ascontiguousarray(frame[:, :, ::-1])
+            # Camera is physically mounted 180° — flip to correct orientation
+            bgr = _cv2.flip(bgr, -1)
+
+            if _det_enabled and _det_model is not None and (t_now - t_det_last) >= DET_MIN_MS:
+                t_det_last = t_now
+                rgb = bgr[:, :, ::-1]  # BGR→RGB for YOLO
+                results = _det_model(rgb, classes=[0], conf=0.35, verbose=False)
+                boxes   = results[0].boxes
+                n       = len(boxes)
+                best_conf = float(boxes.conf.max()) if n > 0 else 0.0
+
+                for box in boxes:
+                    x1, y1, x2, y2 = map(int, box.xyxy[0])
+                    c = float(box.conf[0])
+                    _cv2.rectangle(bgr, (x1, y1), (x2, y2), (0, 220, 80), 3)
+                    _cv2.rectangle(bgr, (x1, max(y1 - 24, 0)), (x1 + 130, y1), (0, 220, 80), -1)
+                    _cv2.putText(bgr, f"person {c:.0%}", (x1 + 4, max(y1 - 6, 14)),
+                                 _cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 0, 0), 2)
+
+                # HUD: status bar
+                hud = f"YOLO: {n} person{'s' if n != 1 else ''}  {fps_ema:.1f}fps"
+                _cv2.rectangle(bgr, (0, 0), (280, 28), (0, 0, 0), -1)
+                _cv2.putText(bgr, hud, (6, 20),
+                             _cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 220, 80), 2)
+
+                # Only write active=True if detection is still enabled (guard against
+                # _det_enabled being cleared while YOLO inference was in-flight)
+                with _det_lock:
+                    if _det_enabled:
+                        _det_state = {
+                            "active":          True,
+                            "yolo_conf":       round(best_conf, 2) if n > 0 else None,
+                            "yolo_fps":        round(fps_ema, 1),
+                            "yolo_detections": n,
+                            "yolo_model":      _det_model_name,
+                        }
+
+                ok, jpg = _cv2.imencode(".jpg", bgr, [_cv2.IMWRITE_JPEG_QUALITY, 70])
+
+            elif _det_enabled and _det_model is None:
+                # Model still loading — show indicator
+                _cv2.rectangle(bgr, (0, 0), (220, 28), (0, 0, 0), -1)
+                _cv2.putText(bgr, "YOLO: LOADING...", (6, 20),
+                             _cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 180, 255), 2)
+                ok, jpg = _cv2.imencode(".jpg", bgr, [_cv2.IMWRITE_JPEG_QUALITY, 75])
+
+            else:
+                with _det_lock:
+                    _det_state["active"]   = False
+                    _det_state["yolo_fps"] = round(fps_ema, 1)
+
+                ok, jpg = _cv2.imencode(".jpg", bgr, [_cv2.IMWRITE_JPEG_QUALITY, 75])
+
+            if ok:
+                _frame_buf.put(bytes(jpg.tobytes()))
+
+        except Exception as e:
+            logger.error(f"Camera loop error: {e}")
+            time.sleep(0.05)
+
+
 def _init_camera():
-    global _cam
+    global _cam, _cam_running, _cam_thread
     try:
         from picamera2 import Picamera2
-        from picamera2.encoders import MJPEGEncoder
-        from picamera2.outputs import FileOutput
-        from libcamera import Transform
         _cam = Picamera2()
-        config = _cam.create_video_configuration(
-            main={"size": (640, 480)},
-            transform=Transform(hflip=1, vflip=1),  # 180° rotation
-            controls={"FrameRate": 30},
+        config = _cam.create_preview_configuration(
+            main={"size": (640, 480), "format": "RGB888"},
         )
         _cam.configure(config)
-        encoder = MJPEGEncoder(2_000_000)  # 2 Mbps — slightly lower quality, much less CPU
-        _cam.start_recording(encoder, FileOutput(_frame_buf))
-        logger.info("Camera started (IMX708 wide, hardware MJPEG)")
+        _cam.start()
+        time.sleep(1)   # warm-up — first few frames from ISP are underexposed
+        _cam_running = True
+        _cam_thread = threading.Thread(target=_camera_loop, daemon=True, name="cam-loop")
+        _cam_thread.start()
+        logger.info("Camera started — software MJPEG + optional YOLO overlay")
     except Exception as e:
         logger.warning(f"Camera unavailable: {e}")
         _cam = None
 
+
 async def _mjpeg_frames():
-    """Async generator: stream hardware-encoded MJPEG frames to client."""
+    """Async generator: yield MJPEG boundary frames to the client."""
     loop = asyncio.get_event_loop()
-    while _cam is not None:
+    while _cam is not None and _cam_running:
         await loop.run_in_executor(None, _frame_buf.event.wait, 0.1)
         jpg = _frame_buf.frame
         if jpg:
@@ -76,17 +200,14 @@ async def _mjpeg_frames():
                 + b"\r\n"
             )
 
-logger = logging.getLogger("elktron.server")
 
 # ── Motor teleop ──────────────────────────────────────────────
-
 _robot = None
 
 def _init_motors():
     global _robot
     try:
         from gpiozero import Robot
-        # Pin order per gpio_test.py: gpiozero Robot(left=(fwd,bwd), right=(fwd,bwd))
         # L298N wiring (GPIO_Current.csv): IN2=22(L-fwd), IN1=17(L-bwd), IN4=6(R-fwd), IN3=5(R-bwd)
         _robot = Robot(left=(22, 17), right=(6, 5))
         _robot.stop()
@@ -95,15 +216,14 @@ def _init_motors():
         logger.warning(f"Motors unavailable: {e}")
         _robot = None
 
-# ── Hardware lifecycle ────────────────────────────────────────
 
+# ── Hardware lifecycle ────────────────────────────────────────
 USE_MOCK = True  # Set False when hardware is connected
 
 @asynccontextmanager
 async def lifespan(app):
-    global USE_MOCK
-    # Startup: try connecting to real hardware
-    arm_ok = arm.connect()
+    global USE_MOCK, _cam_running
+    arm_ok    = arm.connect()
     escort_ok = await escort.connect()
     if arm_ok or escort_ok:
         USE_MOCK = False
@@ -121,14 +241,15 @@ async def lifespan(app):
         _robot.close()
         _robot = None
     global _cam
+    _cam_running = False
     if _cam:
-        _cam.stop_recording()
+        _cam.stop()
         _cam.close()
         _cam = None
 
+
 app = FastAPI(title="Elktron Dashboard", lifespan=lifespan)
 
-# Serve frontend
 ROOT = Path(__file__).parent.parent
 
 @app.get("/")
@@ -141,7 +262,7 @@ async def design_system():
 
 @app.get("/video_feed")
 async def video_feed():
-    """MJPEG camera stream from the Pi Camera Module 3 Wide."""
+    """MJPEG stream — clean or YOLO-annotated depending on detection toggle."""
     if _cam is None:
         return {"error": "camera not available"}
     return StreamingResponse(
@@ -154,22 +275,21 @@ async def video_feed():
 
 @app.get("/api/scans")
 async def get_scans():
-    """Return scan history from disk."""
     return escort.load_scan_history()
 
 @app.get("/api/status")
 async def get_status():
-    """Quick health check with hardware status."""
     return {
-        "arm_connected": arm.connected,
+        "arm_connected":    arm.connected,
         "escort_connected": escort.connected,
-        "mock_mode": USE_MOCK,
+        "mock_mode":        USE_MOCK,
+        "det_enabled":      _det_enabled,
     }
 
-# ── Real System Stats ────────────────────────────────────────
+
+# ── Real System Stats ─────────────────────────────────────────
 
 def system_stats() -> dict:
-    """Real Pi system telemetry — CPU, memory, temperature, uptime."""
     try:
         temp = round(float(
             Path("/sys/class/thermal/thermal_zone0/temp").read_text()
@@ -177,33 +297,29 @@ def system_stats() -> dict:
     except Exception:
         temp = None
     return {
-        "type": "system",
-        "cpu_pct":  round(psutil.cpu_percent(interval=None), 1),
-        "mem_pct":  round(psutil.virtual_memory().percent, 1),
-        "temp_c":   temp,
-        "uptime_s": int(time.time() - psutil.boot_time()),
+        "type":      "system",
+        "cpu_pct":   round(psutil.cpu_percent(interval=None), 1),
+        "mem_pct":   round(psutil.virtual_memory().percent, 1),
+        "temp_c":    temp,
+        "uptime_s":  int(time.time() - psutil.boot_time()),
         "cam_active": _cam is not None,
     }
 
 
-# ── WebSocket endpoint ──────────────────────────────────────
+# ── WebSocket endpoint ────────────────────────────────────────
 
 @app.websocket("/ws")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
 
-    # Real scan history from disk only — no mock data
     await ws.send_json({"type": "scan_history", "scans": escort.load_scan_history()})
-
-    # Hardware connection status
     await ws.send_json({
-        "type": "status",
+        "type":             "status",
         "escort_connected": escort.connected,
-        "cam_active": _cam is not None,
+        "cam_active":       _cam is not None,
     })
 
     async def recv_loop():
-        """Process incoming commands immediately as they arrive — no polling delay."""
         try:
             async for msg in ws.iter_json():
                 await handle_ws_command(msg)
@@ -213,13 +329,28 @@ async def websocket_endpoint(ws: WebSocket):
             pass
 
     async def send_loop():
-        """Push telemetry at 1 Hz — independent of receive."""
         try:
             while True:
                 await ws.send_json(system_stats())
+
                 if escort.connected:
                     escort_state = await escort.poll_state()
                     await ws.send_json(escort_state.model_dump())
+
+                # Always push detection telemetry so the panel updates
+                with _det_lock:
+                    det = dict(_det_state)
+                await ws.send_json({
+                    "type":            "drive_detection",
+                    "det_active":      det["active"],
+                    "yolo_conf":       det["yolo_conf"],
+                    "yolo_fps":        det["yolo_fps"],
+                    "yolo_detections": det["yolo_detections"],
+                    "yolo_model":      det["yolo_model"],
+                    "motor_l":         0,
+                    "motor_r":         0,
+                })
+
                 await asyncio.sleep(1.0)
         except Exception:
             pass
@@ -227,7 +358,6 @@ async def websocket_endpoint(ws: WebSocket):
     recv_task = asyncio.create_task(recv_loop())
     send_task = asyncio.create_task(send_loop())
 
-    # Run until either task ends (disconnect / error)
     done, pending = await asyncio.wait(
         [recv_task, send_task],
         return_when=asyncio.FIRST_COMPLETED,
@@ -244,8 +374,10 @@ async def handle_ws_command(data: dict):
 
     if target == "arm":
         arm.handle_command(action, **params)
+
     elif target == "escort":
         await escort.handle_command(action, **params)
+
     elif target == "teleop":
         if _robot is None:
             return
@@ -255,6 +387,19 @@ async def handle_ws_command(data: dict):
             _robot.value = (l, r)
         elif action == "stop":
             _robot.stop()
+
+    elif target == "detection":
+        global _det_enabled
+        if action == "toggle":
+            _det_enabled = bool(params.get("enabled", not _det_enabled))
+            if not _det_enabled:
+                with _det_lock:
+                    _det_state["active"] = False
+            if _det_enabled and _det_model is None:
+                # Load YOLO in background so the toggle doesn't block
+                threading.Thread(target=_load_yolo, daemon=True, name="yolo-load").start()
+            logger.info(f"YOLO detection {'ON' if _det_enabled else 'OFF'}")
+
     else:
         logger.warning(f"Unknown command target: {target}")
 

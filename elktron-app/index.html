@@ -570,6 +570,24 @@
 
     .gp-icon { font-size: 11px; }
 
+    /* drive mode toggle */
+    .drive-mode-btn {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 3px; cursor: pointer;
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--t3); transition: background .15s, color .15s;
+    }
+    .drive-mode-btn.tank {
+      background: var(--accent-muted);
+      border-color: rgba(66,100,255,.3);
+      color: var(--accent);
+    }
+
+    .kb-hint {
+      font-size: 8px; color: var(--t3); margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+
     /* deadman indicator */
     .dm-bar {
       height: 2px; border-radius: 1px; margin-top: 4px;
@@ -753,11 +771,19 @@
           <div class="dm-bar" id="dm-bar" style="display:none">
             <div class="dm-fill" id="dm-fill"></div>
           </div>
-          <div class="steer-val" id="dm-label" style="display:none;color:var(--green);font-size:8px">RT — DEAD MAN ACTIVE</div>
+          <div class="steer-val" id="dm-label" style="display:none;color:var(--green);font-size:8px"></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+            <span style="font-size:9px;color:var(--t3)">Mode</span>
+            <button class="drive-mode-btn" id="drive-mode-btn">ARCADE</button>
+          </div>
+          <div class="kb-hint" id="kb-hint">WASD / Arrows · SPACE = Dead Man</div>
         </div>
 
         <div class="dd-section">
-          <div class="dd-label">Person Detection</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="dd-label" style="margin-bottom:0">Person Detection</div>
+            <button class="drive-mode-btn" id="yolo-btn" style="font-size:8px">YOLO OFF</button>
+          </div>
           <div class="det-grid">
             <div class="det-cell">
               <div class="det-cell-lbl">Confidence</div>
@@ -962,13 +988,14 @@ function applyDD(d) {
   b.textContent = stopped ? 'STOPPED' : 'DRIVING';
   b.className   = 'badge ' + (stopped ? 'badge-dim' : 'badge-green');
 
-  const conf = $('det-conf');
-  conf.textContent = d.yolo_conf != null ? d.yolo_conf.toFixed(2) : '—';
-  conf.className   = 'det-cell-val ' + (d.yolo_conf >= .6 ? 'green' : d.yolo_conf > 0 ? 'amber' : '');
-
-  $('det-fps').textContent     = d.yolo_fps     != null ? d.yolo_fps.toFixed(1)     : '—';
-  $('det-targets').textContent = d.yolo_detections ?? '—';
-  $('det-model').textContent   = d.yolo_model   || '—';
+  if (yoloActive) {
+    const conf = $('det-conf');
+    conf.textContent = d.yolo_conf != null ? d.yolo_conf.toFixed(2) : '—';
+    conf.className   = 'det-cell-val ' + (d.yolo_conf >= .6 ? 'green' : d.yolo_conf > 0 ? 'amber' : '');
+    $('det-fps').textContent     = d.yolo_fps        != null ? d.yolo_fps.toFixed(1)  : '—';
+    $('det-targets').textContent = d.yolo_detections ?? '—';
+    $('det-model').textContent   = d.yolo_model || '—';
+  }
 }
 
 function setMotor(id, pct) {
@@ -1036,25 +1063,128 @@ function esc(s) {
   return d.innerHTML;
 }
 
-// ── Gamepad / Xbox Teleop ─────────────────────────────────────
+// ── Gamepad / Xbox + Keyboard Teleop ──────────────────────────
 const DEADZONE   = 0.12;   // ignore stick noise below this
 const SEND_HZ    = 30;     // max commands/sec to server
 const SEND_MS    = 1000 / SEND_HZ;
 
 let gpIndex      = null;   // index of the connected gamepad
-let gpLastSend   = 0;      // timestamp of last WS send
-let gpActive     = false;  // dead-man held?
+let gpLastSend   = 0;
+let gpActive     = false;
 let gpAnimId     = null;
+
+let driveMode    = 'arcade'; // 'arcade' | 'tank'
+
+// ── Keyboard state ─────────────────────────────────────────────
+const keys = {};
+let kbLastSend = 0;
+let kbAnimId   = null;
+
+window.addEventListener('keydown', e => {
+  const tracked = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',
+                   'w','a','s','d','W','A','S','D',' '];
+  if (tracked.includes(e.key)) e.preventDefault();
+  keys[e.key] = true;
+  if (!kbAnimId) kbAnimId = requestAnimationFrame(kbLoop);
+});
+
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  const anyMove = ['w','s','a','d','W','S','A','D',
+                   'ArrowUp','ArrowDown','ArrowLeft','ArrowRight']
+                    .some(k => keys[k]);
+  if (!keys[' '] || !anyMove) {
+    if (kbAnimId) { cancelAnimationFrame(kbAnimId); kbAnimId = null; }
+    sendTeleopStop();
+    applyMotorLocal(0, 0);
+    $('teleop-badge').style.display = 'none';
+    if (gpIndex === null) {
+      $('dm-fill').style.width = '0%';
+    }
+  }
+});
+
+function sendTeleopStop() {
+  if (ws && ws.readyState === 1)
+    ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+}
 
 function deadzone(v) {
   return Math.abs(v) < DEADZONE ? 0 : v;
 }
 
+// Arcade (differential): positive turn = turn right
 function arcadeDrive(fwd, turn) {
-  // Differential drive: left = fwd + turn, right = fwd - turn, clamped
-  const l = Math.max(-1, Math.min(1, fwd + turn));
-  const r = Math.max(-1, Math.min(1, fwd - turn));
+  const l = Math.max(-1, Math.min(1, fwd - turn));
+  const r = Math.max(-1, Math.min(1, fwd + turn));
   return { l, r };
+}
+
+// Tank: left stick/keys = left motor, right stick/keys = right motor
+function tankDrive(leftY, rightY) {
+  return {
+    l: Math.max(-1, Math.min(1, leftY)),
+    r: Math.max(-1, Math.min(1, rightY))
+  };
+}
+
+function getGpDrive(gp) {
+  if (driveMode === 'tank') {
+    // axes[1] = left stick Y, axes[3] = right stick Y (both inverted)
+    return tankDrive(-deadzone(gp.axes[1]), -deadzone(gp.axes[3]));
+  } else {
+    const fwd  = -deadzone(gp.axes[1]);
+    const turn =  deadzone(gp.axes[2]);
+    return arcadeDrive(fwd, turn);
+  }
+}
+
+function getKbDrive() {
+  if (driveMode === 'tank') {
+    // W/S = left motor, Up/Down = right motor
+    const l = (keys['w']||keys['W'] ? 1 : 0) - (keys['s']||keys['S'] ? 1 : 0);
+    const r = (keys['ArrowUp'] ? 1 : 0) - (keys['ArrowDown'] ? 1 : 0);
+    return tankDrive(l, r);
+  } else {
+    const fwd  = (keys['w']||keys['W']||keys['ArrowUp']    ? 1 : 0)
+               - (keys['s']||keys['S']||keys['ArrowDown']  ? 1 : 0);
+    const turn = (keys['d']||keys['D']||keys['ArrowRight'] ? 1 : 0)
+               - (keys['a']||keys['A']||keys['ArrowLeft']  ? 1 : 0);
+    return arcadeDrive(fwd * 0.8, turn * 0.65);
+  }
+}
+
+function kbLoop() {
+  kbAnimId = requestAnimationFrame(kbLoop);
+
+  const spaceHeld = !!keys[' '];
+  const { l, r } = getKbDrive();
+  const moving = Math.abs(l) > 0.01 || Math.abs(r) > 0.01;
+  const now = performance.now();
+
+  // Dead-man bar (keyboard) — only show when no gamepad connected
+  if (gpIndex === null) {
+    $('dm-bar').style.display   = '';
+    $('dm-label').style.display = '';
+    $('dm-fill').style.width    = spaceHeld ? '100%' : '0%';
+    $('dm-label').textContent   = 'SPACE — DEAD MAN';
+  }
+
+  if (spaceHeld && moving) {
+    if (now - kbLastSend >= SEND_MS && ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
+      kbLastSend = now;
+    }
+    applyMotorLocal(l, r);
+    updateTeleopBadge(l, r);
+  } else {
+    if (now - kbLastSend >= SEND_MS) {
+      sendTeleopStop();
+      kbLastSend = now;
+    }
+    applyMotorLocal(0, 0);
+    $('teleop-badge').style.display = 'none';
+  }
 }
 
 function gpLoop() {
@@ -1064,43 +1194,40 @@ function gpLoop() {
   const gp = gpIndex !== null ? gamepads[gpIndex] : null;
   if (!gp) return;
 
-  // Left stick Y  = forward/backward  (axes[1], inverted — up is negative)
-  // Right stick X = turn              (axes[2])
-  const fwd  = -deadzone(gp.axes[1]);
-  const turn =  deadzone(gp.axes[2]);
+  const { l, r } = getGpDrive(gp);
 
   // Right trigger (RT) = buttons[7] — dead-man switch
   const rt = gp.buttons[7] ? gp.buttons[7].value : 0;
   gpActive = rt > 0.1;
 
-  // Update dead-man bar
+  // Dead-man bar
   $('dm-bar').style.display   = '';
   $('dm-label').style.display = '';
   $('dm-fill').style.width    = (rt * 100) + '%';
+  $('dm-label').textContent   = 'RT — DEAD MAN ACTIVE';
 
   const now = performance.now();
-  const { l, r } = arcadeDrive(fwd, turn);
 
-  // Only send when dead-man is held; send stop when released
   if (gpActive) {
     if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
       gpLastSend = now;
     }
-    // Update motor bars live
-    setMotorLocal(l, r);
+    applyMotorLocal(l, r);
+    updateTeleopBadge(l, r);
   } else {
-    // Dead-man released — send stop once, clear bars
     if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+      sendTeleopStop();
       gpLastSend = now;
     }
-    setMotorLocal(0, 0);
+    applyMotorLocal(0, 0);
+    $('teleop-badge').style.display = 'none';
   }
+}
 
-  // Show/hide TELEOP badge
+function updateTeleopBadge(l, r) {
   const tb = $('teleop-badge');
-  if (gpActive && (Math.abs(l) > 0.01 || Math.abs(r) > 0.01)) {
+  if (Math.abs(l) > 0.01 || Math.abs(r) > 0.01) {
     tb.style.display = '';
     tb.className = 'badge badge-blue';
     tb.textContent = 'TELEOP';
@@ -1113,15 +1240,29 @@ function gpLoop() {
   }
 }
 
-function setMotorLocal(l, r) {
-  // Show online panel when gamepad active even if escort not connected
-  if (gpIndex !== null) {
+function applyMotorLocal(l, r) {
+  if (gpIndex !== null || kbAnimId !== null) {
     $('dd-online').style.display  = '';
     $('dd-offline').style.display = 'none';
   }
   setMotor('ml', Math.round(l * 100));
   setMotor('mr', Math.round(r * 100));
 }
+
+// ── Drive mode toggle ──────────────────────────────────────────
+$('drive-mode-btn').addEventListener('click', () => {
+  driveMode = driveMode === 'arcade' ? 'tank' : 'arcade';
+  const btn = $('drive-mode-btn');
+  if (driveMode === 'tank') {
+    btn.textContent = 'TANK';
+    btn.classList.add('tank');
+    $('kb-hint').textContent = 'W/S = Left · ↑/↓ = Right · SPACE = Dead Man';
+  } else {
+    btn.textContent = 'ARCADE';
+    btn.classList.remove('tank');
+    $('kb-hint').textContent = 'WASD / Arrows · SPACE = Dead Man';
+  }
+});
 
 window.addEventListener('gamepadconnected', e => {
   gpIndex = e.gamepad.index;
@@ -1139,10 +1280,31 @@ window.addEventListener('gamepaddisconnected', e => {
     $('dm-bar').style.display   = 'none';
     $('dm-label').style.display = 'none';
     $('teleop-badge').style.display = 'none';
-    if (ws && ws.readyState === 1)
-      ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+    sendTeleopStop();
     if (gpAnimId) { cancelAnimationFrame(gpAnimId); gpAnimId = null; }
   }
+});
+
+// ── YOLO Detection Toggle ──────────────────────────────────────
+let yoloActive = false;
+
+$('yolo-btn').addEventListener('click', () => {
+  yoloActive = !yoloActive;
+  const btn = $('yolo-btn');
+  if (yoloActive) {
+    btn.textContent = 'YOLO ON';
+    btn.classList.add('tank');
+  } else {
+    btn.textContent = 'YOLO OFF';
+    btn.classList.remove('tank');
+    // Clear detection display when turned off
+    $('det-conf').textContent = '—';
+    $('det-fps').textContent  = '—';
+    $('det-targets').textContent = '—';
+    $('det-model').textContent   = '—';
+  }
+  if (ws && ws.readyState === 1)
+    ws.send(JSON.stringify({ target: 'detection', action: 'toggle', params: { enabled: yoloActive } }));
 });
 
 connect();
