@@ -523,6 +523,106 @@
       .hero-phase { font-size: 24px !important; }
     }
 
+    /* ─── Panel: Drive & Detection ─────────────────────────── */
+    .drive-detection-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      flex: 1;
+    }
+
+    .dd-section-title {
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 10px;
+    }
+
+    .motor-bars {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+
+    .motor-row {
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .motor-label {
+      font-size: 10px; font-weight: 600;
+      color: var(--text-secondary);
+      width: 20px; flex-shrink: 0;
+    }
+
+    .motor-bar-track {
+      flex: 1; height: 6px;
+      background: rgba(10,14,26,0.04);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .motor-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: var(--accent-primary);
+      transition: width 0.15s ease;
+      position: absolute; top: 0;
+    }
+
+    .motor-bar-fill.reverse { background: var(--status-warning); }
+
+    .motor-val {
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 600;
+      color: var(--text-primary);
+      width: 36px; text-align: right;
+    }
+
+    .dd-stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .dd-stat {
+      background: rgba(10,14,26,0.015);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+    }
+
+    .dd-stat-label {
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 2px;
+    }
+
+    .dd-stat-val {
+      font-family: var(--font-mono);
+      font-size: 13px; font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .dd-stat-val.green { color: var(--status-success); }
+    .dd-stat-val.amber { color: var(--status-warning); }
+
+    .steering-indicator {
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; margin-top: 10px;
+      font-size: 11px; font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .steering-arrow {
+      font-size: 16px; color: var(--accent-primary);
+      transition: opacity 0.15s;
+    }
+
+    .steering-arrow.dim { opacity: 0.15; }
+
+    @media (max-width: 900px) {
+      .drive-detection-layout { grid-template-columns: 1fr; }
+    }
+
     /* ─── Panel 4: Scan Timeline ──────────────────────────── */
     .scan-timeline {
       display: flex;
@@ -1038,6 +1138,90 @@
       </div>
     </div>
 
+    <!-- Panel: Drive & Detection -->
+    <div class="panel panel--full">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <div class="panel-title-dot" style="background:var(--accent-primary)"></div>
+          Drive & Detection
+        </h2>
+        <div class="panel-badge badge-dim" id="dd-badge">Stopped</div>
+      </div>
+      <div class="panel-body">
+        <div class="drive-detection-layout">
+          <!-- Differential Drive -->
+          <div>
+            <div class="dd-section-title">Differential Drive</div>
+            <div class="motor-bars">
+              <div class="motor-row">
+                <span class="motor-label">L</span>
+                <div class="motor-bar-track">
+                  <div class="motor-bar-fill" id="dd-motor-l-bar" style="width:0%;left:50%"></div>
+                </div>
+                <span class="motor-val" id="dd-motor-l">0%</span>
+              </div>
+              <div class="motor-row">
+                <span class="motor-label">R</span>
+                <div class="motor-bar-track">
+                  <div class="motor-bar-fill" id="dd-motor-r-bar" style="width:0%;left:50%"></div>
+                </div>
+                <span class="motor-val" id="dd-motor-r">0%</span>
+              </div>
+            </div>
+            <div class="steering-indicator">
+              <span class="steering-arrow dim" id="dd-arrow-l">&larr;</span>
+              <span id="dd-steer-label">Stopped</span>
+              <span class="steering-arrow dim" id="dd-arrow-r">&rarr;</span>
+            </div>
+          </div>
+          <!-- YOLO Detection -->
+          <div>
+            <div class="dd-section-title">YOLOv8n Detection</div>
+            <div class="dd-stat-grid">
+              <div class="dd-stat">
+                <div class="dd-stat-label">Confidence</div>
+                <div class="dd-stat-val green" id="dd-yolo-conf">--</div>
+              </div>
+              <div class="dd-stat">
+                <div class="dd-stat-label">FPS</div>
+                <div class="dd-stat-val" id="dd-yolo-fps">--</div>
+              </div>
+              <div class="dd-stat">
+                <div class="dd-stat-label">Detections</div>
+                <div class="dd-stat-val" id="dd-yolo-det">0</div>
+              </div>
+              <div class="dd-stat">
+                <div class="dd-stat-label">Model</div>
+                <div class="dd-stat-val" id="dd-yolo-model">YOLOv8n</div>
+              </div>
+            </div>
+          </div>
+          <!-- Camera Config -->
+          <div>
+            <div class="dd-section-title">Camera</div>
+            <div class="dd-stat-grid">
+              <div class="dd-stat">
+                <div class="dd-stat-label">Resolution</div>
+                <div class="dd-stat-val" id="dd-cam-res">640x360</div>
+              </div>
+              <div class="dd-stat">
+                <div class="dd-stat-label">Stream</div>
+                <div class="dd-stat-val green" id="dd-cam-stream">--</div>
+              </div>
+              <div class="dd-stat">
+                <div class="dd-stat-label">Sensor</div>
+                <div class="dd-stat-val" id="dd-cam-sensor">IMX708</div>
+              </div>
+              <div class="dd-stat">
+                <div class="dd-stat-label">FOV</div>
+                <div class="dd-stat-val" id="dd-cam-fov">120&deg;</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Panel 4: Scan Timeline -->
     <div class="panel panel--wide">
       <div class="panel-header">
@@ -1264,6 +1448,7 @@
       const t = (performance.now() / 1000) - start;
       scheduleUpdate(demoArmState(t));
       scheduleUpdate(demoEscortState(t));
+      scheduleUpdate(demoDriveDetection(t));
       scheduleUpdate(demoTrainingState(t));
     }, 100); // 10 Hz
   }
@@ -1337,6 +1522,54 @@
     };
   }
 
+  function demoDriveDetection(t) {
+    const cycle = t % 30;
+    let motorL = 0, motorR = 0, conf = 0, fps = 0, det = 0, streaming = false;
+
+    if (cycle < 3) {
+      // Idle — no motors, no detection
+    } else if (cycle < 5) {
+      // Dispatched — straight drive
+      motorL = 60; motorR = 60;
+      conf = 0.82; fps = 18; det = 1; streaming = true;
+    } else if (cycle < 12) {
+      // Following — slight steering corrections
+      const wobble = Math.sin(t * 2) * 15;
+      motorL = Math.round(55 + wobble);
+      motorR = Math.round(55 - wobble);
+      conf = +(0.75 + Math.random() * 0.1).toFixed(2);
+      fps = +(17 + Math.random() * 4).toFixed(1);
+      det = 1; streaming = true;
+    } else if (cycle < 14) {
+      // Arriving — slowing down
+      motorL = 25; motorR = 25;
+      conf = 0.88; fps = 19; det = 1; streaming = true;
+    } else if (cycle < 22) {
+      // Scanning/monitoring — stationary
+      motorL = 0; motorR = 0;
+      conf = +(0.7 + Math.random() * 0.15).toFixed(2);
+      fps = +(18 + Math.random() * 3).toFixed(1);
+      det = Math.floor(Math.random() * 3); streaming = true;
+    } else if (cycle < 24) {
+      // Verified — still
+      motorL = 0; motorR = 0;
+      conf = 0.91; fps = 20; det = 1; streaming = true;
+    } else {
+      // Returning — reverse turn then straight
+      const p = (cycle - 24) / 6;
+      if (p < 0.3) { motorL = -40; motorR = 40; }
+      else { motorL = 55; motorR = 55; }
+      conf = 0.78; fps = 18; det = 0; streaming = true;
+    }
+
+    return {
+      type: 'drive_detection',
+      motor_l: motorL, motor_r: motorR,
+      yolo_conf: conf, yolo_fps: +fps, yolo_detections: det, yolo_model: 'YOLOv8n',
+      cam_resolution: '640x360', cam_stream: streaming, cam_sensor: 'IMX708', cam_fov: 120,
+    };
+  }
+
   function demoTrainingState(t) {
     const stageCycle = Math.floor(t / 60) % 4;
     const stages = ['idle','recording','uploading','training'];
@@ -1378,6 +1611,7 @@
     switch (data.type) {
       case 'arm': updateArm(data); break;
       case 'escort': updateEscort(data); break;
+      case 'drive_detection': updateDriveDetection(data); break;
       case 'training': updateTraining(data); break;
       case 'scan_history': updateScanLog(data.scans); break;
       case 'status': updateHardwareStatus(data); break;
@@ -1404,6 +1638,14 @@
     navStatus: $('nav-status'),
     connBadge: $('conn-badge'), connText: $('conn-text'), navDot: $('nav-dot'), navTime: $('nav-time'),
     btnRecord: $('btn-record'), btnUpload: $('btn-upload'), btnTrain: $('btn-train'), btnDeploy: $('btn-deploy'),
+    ddBadge: $('dd-badge'),
+    ddMotorL: $('dd-motor-l'), ddMotorLBar: $('dd-motor-l-bar'),
+    ddMotorR: $('dd-motor-r'), ddMotorRBar: $('dd-motor-r-bar'),
+    ddArrowL: $('dd-arrow-l'), ddArrowR: $('dd-arrow-r'), ddSteerLabel: $('dd-steer-label'),
+    ddYoloConf: $('dd-yolo-conf'), ddYoloFps: $('dd-yolo-fps'),
+    ddYoloDet: $('dd-yolo-det'), ddYoloModel: $('dd-yolo-model'),
+    ddCamRes: $('dd-cam-res'), ddCamStream: $('dd-cam-stream'),
+    ddCamSensor: $('dd-cam-sensor'), ddCamFov: $('dd-cam-fov'),
   };
 
   // ── Arm Panel ───────────────────────────────────────────────
@@ -1522,6 +1764,49 @@
     DOM.escortLoc.textContent = d.location.replace('_', ' ');
     DOM.escortBat.textContent = d.battery_pct + '%';
     DOM.escortNodes.textContent = d.nodes_scanned;
+  }
+
+  // ── Drive & Detection Panel ────────────────────────────────
+  function updateDriveDetection(d) {
+    // Motor bars — center-out (50% = zero, left = reverse, right = forward)
+    function setMotorBar(barEl, valEl, pct) {
+      const abs = Math.abs(pct);
+      const isReverse = pct < 0;
+      barEl.style.width = (abs / 2) + '%';
+      barEl.style.left = isReverse ? (50 - abs / 2) + '%' : '50%';
+      barEl.classList.toggle('reverse', isReverse);
+      valEl.textContent = (pct > 0 ? '+' : '') + pct + '%';
+    }
+
+    setMotorBar(DOM.ddMotorLBar, DOM.ddMotorL, d.motor_l);
+    setMotorBar(DOM.ddMotorRBar, DOM.ddMotorR, d.motor_r);
+
+    // Steering indicator
+    const diff = d.motor_l - d.motor_r;
+    const stopped = d.motor_l === 0 && d.motor_r === 0;
+    DOM.ddArrowL.classList.toggle('dim', diff >= 0);
+    DOM.ddArrowR.classList.toggle('dim', diff <= 0);
+    DOM.ddSteerLabel.textContent = stopped ? 'Stopped' :
+      Math.abs(diff) < 10 ? 'Straight' :
+      diff > 0 ? 'Right' : 'Left';
+
+    // Badge
+    if (stopped) { DOM.ddBadge.textContent = 'Stopped'; DOM.ddBadge.className = 'panel-badge badge-dim'; }
+    else { DOM.ddBadge.textContent = 'Driving'; DOM.ddBadge.className = 'panel-badge badge-green'; }
+
+    // YOLO stats
+    DOM.ddYoloConf.textContent = d.yolo_conf.toFixed(2);
+    DOM.ddYoloConf.className = 'dd-stat-val ' + (d.yolo_conf >= 0.6 ? 'green' : 'amber');
+    DOM.ddYoloFps.textContent = d.yolo_fps.toFixed(1);
+    DOM.ddYoloDet.textContent = d.yolo_detections;
+    DOM.ddYoloModel.textContent = d.yolo_model || 'YOLOv8n';
+
+    // Camera
+    DOM.ddCamRes.textContent = d.cam_resolution || '640x360';
+    DOM.ddCamStream.textContent = d.cam_stream ? 'Active' : 'Off';
+    DOM.ddCamStream.className = 'dd-stat-val ' + (d.cam_stream ? 'green' : '');
+    DOM.ddCamSensor.textContent = d.cam_sensor || 'IMX708';
+    DOM.ddCamFov.textContent = (d.cam_fov || 120) + '\u00B0';
   }
 
   // ── Scan Timeline Panel ────────────────────────────────────

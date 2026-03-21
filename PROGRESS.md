@@ -310,6 +310,12 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 
 ## What's Next
 
+### REMINDERS — Hackathon Pre-Demo (March 21-22)
+- [ ] **Configure differential driving on Pi** — test tank steering (L/R independent motor control), tune turn radius for DC aisles, verify forward/reverse/pivot logic in `main.py`
+- [ ] **Configure YOLOv8n on Pi** — confirm model loads from correct path, set confidence threshold (currently 0.78), test detection at DC floor lighting conditions, measure actual FPS
+- [ ] **Wire camera feed to dashboard** — Parth's MJPEG stream from Pi API server → dashboard escort cam panel + new Drive & Detection panel
+- [ ] **Drive & Detection panel added to dashboard** — shows L/R motor speeds, YOLO confidence/FPS/detections, camera stream status (added 2026-03-21)
+
 ### Critical Path — Bot Must Move (March 18)
 1. [x] Wire L298N control pins → Pi GPIO — **Done 3/16** (signals verified)
 2. [ ] **FIX: Connect Pi 5V → L298N +5V logic pin** (remove regulator jumper first) — ROOT CAUSE of motors not spinning

@@ -1308,6 +1308,7 @@ function createChassisPlateLower() {
   return group;
 }
 // @END-LOCKED:materials
+matWheelHub.color.set(0x2255cc); // blue rims
 
 // @LOCKED:geometry-builders
 function createMotorSet() {
@@ -3646,15 +3647,16 @@ function createWiringHarness() {
 // @END-LOCKED:component-builders
 
 // ─── Override PVC Mast — match real MECCANIXITY pipe (B0D8GRDPJM) ──────
-// 50mm OD, 45mm ID, 350mm long, black PVC, 2.4mm wall
+// 32mm OD, 27.2mm ID, 350mm long, black PVC, 2.4mm wall
+// MECCANIXITY B0D8GRDPJM — ordered 2026-03-20
 // Overrides locked createPVCMast which used wrong color/dimensions
 createPVCMast = function() {
   const group = new THREE.Group(); group.name = 'pvc-mast';
 
   // Real dims in scene units (mmToScene ≈ 0.0157 from chassis ratio)
   const mmToScene = 0.0157;
-  const outerR = (50 / 2) * mmToScene;   // 25mm OD radius
-  const innerR = (45 / 2) * mmToScene;   // 22.5mm ID radius
+  const outerR = (32 / 2) * mmToScene;   // 16mm OD radius
+  const innerR = (27.2 / 2) * mmToScene; // 13.6mm ID radius
   const pipeH  = 350 * mmToScene;        // 350mm → 5.495
 
   const pipeMat = new THREE.MeshStandardMaterial({
@@ -5117,6 +5119,63 @@ async function prevStep() {
   }
 }
 // @END-LOCKED:explode-collapse
+
+// Override toggleExplode — locked version ignores shell and destroys SAVED_POSITIONS on collapse
+(function patchExplode() {
+  const origPositions = new Map(); // cache pre-explode positions
+
+  toggleExplode = function() {
+    if (isAnimating || assembledParts.length === 0) return;
+    isExploded = !isExploded;
+    isAnimating = true;
+
+    // Collect all parts including shell
+    const allParts = [...assembledParts];
+    if (shellMesh && shellMesh.parent) allParts.push(shellMesh);
+
+    if (isExploded) {
+      // Save current positions before exploding
+      origPositions.clear();
+      allParts.forEach(p => origPositions.set(p, p.position.y));
+    }
+
+    const startTime = performance.now();
+    const duration = 800;
+
+    const targets = allParts.map((part, i) => ({
+      part,
+      startY: part.position.y,
+      endY: isExploded
+        ? part.position.y + (i + 1) * 1.5  // offset from current position
+        : (origPositions.get(part) ?? part.position.y), // restore original
+    }));
+
+    function tick(now) {
+      const t = Math.min((now - startTime) / duration, 1);
+      const e = easeOutQuart(t);
+      targets.forEach(({ part, startY, endY }) => {
+        part.position.y = startY + (endY - startY) * e;
+      });
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        // On collapse, re-apply saved positions to fix any drift
+        if (!isExploded) {
+          assembledParts.forEach(p => applySavedPosition(p));
+          if (shellMesh) applySavedPosition(shellMesh);
+        }
+        isAnimating = false;
+      }
+    }
+    requestAnimationFrame(tick);
+
+    document.getElementById('btn-explode').textContent = isExploded ? 'Collapse' : 'Explode';
+  };
+})();
+
+// Hide Edit button (dev-only, not for demo)
+document.getElementById('btn-edit').style.display = 'none';
+document.getElementById('btn-edit-save').style.display = 'none';
 
 // ─── Fullscreen Interactive Terminal ──────────────────────
 
@@ -7439,7 +7498,7 @@ const SAVED_POSITIONS = {
     "rot": [0, 0, 0]
   },
   "pan-tilt-camera": {
-    "pos": [1.0953, 8.5769, 0],
+    "pos": [1.0953, 8.5614, 0],
     "rot": [0, 0, 0],
     "scl": [0.6, 0.6, 0.6]
   },
@@ -8433,6 +8492,13 @@ gltfLoader.load('../glb/Meshy_AI_ArduCam_180_Degree_Pa_0317142235_generate.glb',
   const step = assemblySteps.find(s => s.name === 'PVC Camera Mast');
   if (!step) return;
   step.create = createPVCMast; // now points to the override (black, real dims)
+  step.desc = 'MECCANIXITY black PVC rigid tube (32mm OD, 27.2mm ID, 350mm). Mounts vertically on chassis to raise the pan-tilt camera above the shell.';
+  step.specs = [
+    { label: 'Length', value: '350mm (14")' },
+    { label: 'OD / ID', value: '32mm / 27.2mm' },
+    { label: 'Material', value: 'Black PVC' },
+    { label: 'Wall', value: '2.4mm' },
+  ];
 })();
 
 // Patch the Pan-Tilt + Camera assembly step to use the GLB
@@ -8452,6 +8518,13 @@ gltfLoader.load('../glb/Meshy_AI_ArduCam_180_Degree_Pa_0317142235_generate.glb',
       });
     }
     return panTiltGLB;
+  };
+  // Show monitor toggle at final step
+  const origAnimateIn = step.animateIn;
+  step.animateIn = async function(part) {
+    if (origAnimateIn) await origAnimateIn(part);
+    const monBtn = document.getElementById('btn-monitor-toggle');
+    if (monBtn) monBtn.style.display = '';
   };
 })();
 
@@ -8529,6 +8602,17 @@ gltfLoader.load('../glb/Meshy_AI_HC_SR04_0317143003_generate.glb', (gltf) => {
   };
 })();
 
+// Move monitor above shell (MONITOR_BASE_Y=2.8 is const in locked region, shell top ≈ 2.8)
+const MONITOR_Y_OVERRIDE = 4.5;
+const _origUpdateMonitorFloat = updateMonitorFloat;
+updateMonitorFloat = function(elapsed) {
+  _origUpdateMonitorFloat(elapsed);
+  if (monitorGroup && monitorGroup.visible) {
+    monitorGroup.position.y = MONITOR_Y_OVERRIDE + Math.sin(elapsed * MONITOR_FLOAT_SPEED) * MONITOR_FLOAT_AMP;
+  }
+};
+if (monitorGroup) monitorGroup.position.y = MONITOR_Y_OVERRIDE;
+
 // ─── Remove steps that are no longer in the assembly flow ─────
 (function pruneSteps() {
   const removeNames = [
@@ -8588,8 +8672,7 @@ gltfLoader.load('../glb/Meshy_AI_HC_SR04_0317143003_generate.glb', (gltf) => {
         if (shellBtn) { shellBtn.textContent = 'Hide Shell'; shellBtn.classList.add('edit-active'); shellBtn.style.display = ''; }
         const slider = document.getElementById('shell-opacity');
         if (slider) slider.style.display = 'inline-block';
-        const monBtn = document.getElementById('btn-monitor-toggle');
-        if (monBtn) monBtn.style.display = '';
+        // Monitor button shown at final step, not here
         resolve();
       });
     },

@@ -536,10 +536,10 @@
         <text x="215" y="32" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">ECHO</text>
         <text x="236" y="32" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">GND</text>
 
-        <!-- ═══ Voltage divider mini breadboard ═══ -->
-        <rect x="254" y="60" width="46" height="20" rx="2" fill="#fff3e0" stroke="#d4a017" stroke-width="1"/>
-        <text x="277" y="72" text-anchor="middle" font-size="5" fill="#9e7700" font-family="IBM Plex Mono,monospace" font-weight="700">V.DIVIDER</text>
-        <text x="277" y="78" text-anchor="middle" font-size="3.5" fill="#9e7700" font-family="IBM Plex Mono,monospace">1k+2k &bull; 5V&rarr;3.3V</text>
+        <!-- ═══ Voltage divider (inline on cable) ═══ -->
+        <rect x="254" y="60" width="46" height="20" rx="2" fill="#fff3e0" stroke="#d4a017" stroke-width="1" stroke-dasharray="3,2"/>
+        <text x="277" y="72" text-anchor="middle" font-size="5" fill="#9e7700" font-family="IBM Plex Mono,monospace" font-weight="700">V.DIV</text>
+        <text x="277" y="78" text-anchor="middle" font-size="3.5" fill="#9e7700" font-family="IBM Plex Mono,monospace">INLINE 1k+2k</text>
 
         <!-- ═══ L298N motor driver ═══ -->
         <rect x="120" y="95" width="80" height="65" rx="3" fill="#c0392b" fill-opacity="0.08" stroke="#c0392b" stroke-width="1.2"/>
@@ -642,7 +642,7 @@
         <!-- G26 (ECHO) → V.DIVIDER → HC-SR04 ECHO -->
         <path d="M 278,140 L 278,80 L 277,80" fill="none" stroke="#2471a3" stroke-width="1" marker-end="url(#ah-b)"/>
         <path d="M 277,60 L 277,55 L 224,55 L 224,56" fill="none" stroke="#2471a3" stroke-width="1" marker-end="url(#ah-b)"/>
-        <text x="250" y="55" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">via V.DIV</text>
+        <text x="250" y="55" font-size="3.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">inline V.DIV</text>
 
         <!-- G25 (TRIG) → HC-SR04 TRIG -->
         <path d="M 293,140 L 293,88 L 245,88 L 245,56 L 200,56" fill="none" stroke="#2471a3" stroke-width="1"/>
@@ -742,7 +742,7 @@
         <text x="35" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">26</text>
         <text x="62" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">37</text>
         <text x="85" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">ECHO</text>
-        <text x="180" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">HC-SR04 (via 1k+2k divider)</text>
+        <text x="180" y="436" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace">HC-SR04 (inline 1k+2k on cable)</text>
         <rect x="255" y="431" width="20" height="5" rx="1" fill="#2471a3"/><text x="280" y="436" font-size="4" fill="#2471a3" font-family="IBM Plex Mono,monospace">blue</text>
 
         <text x="35" y="446" font-size="4.5" fill="#2471a3" font-family="IBM Plex Mono,monospace" font-weight="600">25</text>
@@ -1049,8 +1049,8 @@
   </div>
 
   <div class="label board-label">
-    <span class="name">VOLTAGE DIVIDER</span>
-    <span class="detail">1k + 2k &bull; 5V ECHO &rarr; 3.3V SAFE</span>
+    <span class="name">VOLTAGE DIVIDER (INLINE)</span>
+    <span class="detail">1k + 2k inline on ECHO cable &bull; 5V &rarr; 3.3V SAFE &bull; NO BREADBOARD</span>
   </div>
 
   <div class="label board-label">
@@ -1066,6 +1066,11 @@
   <div class="label board-label">
     <span class="name">I2C LCD SCREEN</span>
     <span class="detail">SDA G2 (Pin 3) &bull; SCL G3 (Pin 5) &bull; 5V &bull; GND &bull; ADDR 0x27</span>
+  </div>
+
+  <div class="label board-label" style="border-left-color:#7d3c98; background:#f9f5fc;">
+    <span class="name" style="color:#7d3c98;">I2C BREADBOARD SPLITTER</span>
+    <span class="detail">SHARED BUS &bull; PTZ 0x40 + LCD 0x27 &bull; SDA G2 (Pin 3) &bull; SCL G3 (Pin 5) &bull; 5V &bull; GND</span>
   </div>
 
   <div class="label board-label" style="border-left-color:#c0392b; background:#fff5f5;">
@@ -1174,7 +1179,7 @@
     <tr><td style="padding:3px 8px;">Left Motor BWD</td><td style="padding:3px 8px;">24</td><td style="padding:3px 8px;">18</td><td style="padding:3px 8px;">L298N IN2</td></tr>
     <tr><td style="padding:3px 8px;">Right Motor FWD</td><td style="padding:3px 8px;">22</td><td style="padding:3px 8px;">15</td><td style="padding:3px 8px;">L298N IN3</td></tr>
     <tr><td style="padding:3px 8px;">Right Motor BWD</td><td style="padding:3px 8px;">23</td><td style="padding:3px 8px;">16</td><td style="padding:3px 8px;">L298N IN4</td></tr>
-    <tr><td style="padding:3px 8px;">Ultrasonic ECHO</td><td style="padding:3px 8px;">26</td><td style="padding:3px 8px;">37</td><td style="padding:3px 8px;">HC-SR04 (via divider)</td></tr>
+    <tr><td style="padding:3px 8px;">Ultrasonic ECHO</td><td style="padding:3px 8px;">26</td><td style="padding:3px 8px;">37</td><td style="padding:3px 8px;">HC-SR04 (inline divider)</td></tr>
     <tr><td style="padding:3px 8px;">Ultrasonic TRIG</td><td style="padding:3px 8px;">25</td><td style="padding:3px 8px;">22</td><td style="padding:3px 8px;">HC-SR04 TRIG</td></tr>
     <tr><td style="padding:3px 8px;">PTZ SDA</td><td style="padding:3px 8px;">2</td><td style="padding:3px 8px;">3</td><td style="padding:3px 8px;">PTZ Board I2C (0x40)</td></tr>
     <tr><td style="padding:3px 8px;">PTZ SCL</td><td style="padding:3px 8px;">3</td><td style="padding:3px 8px;">5</td><td style="padding:3px 8px;">PTZ Board I2C (0x40)</td></tr>
