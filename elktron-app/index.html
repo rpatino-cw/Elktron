@@ -782,7 +782,10 @@
         <div class="dd-section">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div class="dd-label" style="margin-bottom:0">Person Detection</div>
-            <button class="drive-mode-btn" id="yolo-btn" style="font-size:8px">YOLO OFF</button>
+            <div style="display:flex;gap:6px">
+              <button class="drive-mode-btn" id="auto-btn" style="font-size:8px">AUTO OFF</button>
+              <button class="drive-mode-btn" id="yolo-btn" style="font-size:8px">YOLO OFF</button>
+            </div>
           </div>
           <div class="det-grid">
             <div class="det-cell">
@@ -985,8 +988,15 @@ function applyDD(d) {
     : diff > 0 ? 'TURNING RIGHT' : 'TURNING LEFT';
 
   const b = $('dd-badge');
-  b.textContent = stopped ? 'STOPPED' : 'DRIVING';
-  b.className   = 'badge ' + (stopped ? 'badge-dim' : 'badge-green');
+  if (d.follow_active) {
+    b.textContent = stopped ? 'SEARCHING' : 'FOLLOWING';
+    b.className   = 'badge badge-blue';
+  } else {
+    b.textContent = stopped ? 'STOPPED' : 'DRIVING';
+    b.className   = 'badge ' + (stopped ? 'badge-dim' : 'badge-green');
+  }
+
+  if (d.follow_active !== undefined) applyFollowState(d.follow_active);
 
   if (yoloActive) {
     const conf = $('det-conf');
@@ -1284,6 +1294,38 @@ window.addEventListener('gamepaddisconnected', e => {
     if (gpAnimId) { cancelAnimationFrame(gpAnimId); gpAnimId = null; }
   }
 });
+
+// ── Autonomous Follow Toggle ───────────────────────────────────
+let followActive = false;
+
+$('auto-btn').addEventListener('click', () => {
+  followActive = !followActive;
+  const btn = $('auto-btn');
+  if (followActive) {
+    btn.textContent = 'AUTO ON';
+    btn.classList.add('tank');
+    // Auto needs YOLO — turn it on if not already
+    if (!yoloActive) $('yolo-btn').click();
+  } else {
+    btn.textContent = 'AUTO OFF';
+    btn.classList.remove('tank');
+  }
+  if (ws && ws.readyState === 1)
+    ws.send(JSON.stringify({ target: 'follow', action: 'toggle', params: {} }));
+});
+
+function applyFollowState(active) {
+  followActive = active;
+  const btn = $('auto-btn');
+  if (active) {
+    btn.textContent = 'AUTO ON';
+    btn.classList.add('tank');
+    $('teleop-badge').style.display = 'none';
+  } else {
+    btn.textContent = 'AUTO OFF';
+    btn.classList.remove('tank');
+  }
+}
 
 // ── YOLO Detection Toggle ──────────────────────────────────────
 let yoloActive = false;

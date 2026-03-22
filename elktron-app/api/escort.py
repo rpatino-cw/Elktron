@@ -33,7 +33,7 @@ SCANS_DIR = DATA_DIR / "scans"
 LOGS_DIR = DATA_DIR / "logs"
 
 # Escort bot Pi 5 network address
-DEFAULT_BOT_HOST = "escort-bot.local"
+DEFAULT_BOT_HOST = "192.168.3.56"
 DEFAULT_BOT_PORT = 5000
 
 

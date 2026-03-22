@@ -63,12 +63,56 @@ _det_model_name = "yolov8n"
 _MODEL_PATH     = Path(__file__).parent.parent.parent / "escort-bot" / "yolov8n.pt"
 _det_lock       = threading.Lock()
 _det_state: dict = {
-    "active":      False,
-    "yolo_conf":   None,
-    "yolo_fps":    0.0,
+    "active":          False,
+    "yolo_conf":       None,
+    "yolo_fps":        0.0,
     "yolo_detections": 0,
-    "yolo_model":  "yolov8n",
+    "yolo_model":      "yolov8n",
+    "bbox":            None,   # [x1, y1, x2, y2] of best detection
 }
+
+# ── PID Controller ─────────────────────────────────────────────
+class _PID:
+    def __init__(self, kp, ki, kd, max_integral=1.0, max_output=1.0, d_alpha=0.3):
+        self.kp, self.ki, self.kd = kp, ki, kd
+        self.max_integral = max_integral
+        self.max_output   = max_output
+        self.d_alpha      = d_alpha
+        self._integral = self._prev_err = self._d_filtered = 0.0
+        self._first = True
+
+    def update(self, error, dt):
+        p = self.kp * error
+        if dt > 0:
+            self._integral = max(-self.max_integral,
+                                 min(self.max_integral, self._integral + error * dt))
+        i = self.ki * self._integral
+        if dt > 0 and not self._first:
+            raw_d = (error - self._prev_err) / dt
+            self._d_filtered = self.d_alpha * raw_d + (1 - self.d_alpha) * self._d_filtered
+        d = self.kd * self._d_filtered
+        self._prev_err = error
+        self._first    = False
+        return max(-self.max_output, min(self.max_output, p + i + d))
+
+    def reset(self):
+        self._integral = self._prev_err = self._d_filtered = 0.0
+        self._first = True
+
+# ── Autonomous follow state ────────────────────────────────────
+_follow_enabled  = False
+_teleop_until    = 0.0          # timestamp: suppress follow while > time.time()
+_follow_last_t   = [time.time()]
+_event_loop      = None         # set in lifespan, used by camera thread to schedule coroutines
+
+# Tuning — start conservative, adjust on the floor
+_FRAME_W          = 640
+_FRAME_H          = 480
+_FOLLOW_TARGET_AREA = 0.15      # target bbox_area/frame_area (following distance)
+_BASE_SPEED       = 0.45        # max forward speed
+
+_lat_pid  = _PID(kp=1.0, ki=0.05, kd=0.3,  max_integral=0.5, max_output=1.0)
+_dist_pid = _PID(kp=1.2, ki=0.05, kd=0.2,  max_integral=0.5, max_output=_BASE_SPEED)
 
 def _load_yolo():
     """Load YOLOv8n from the escort-bot model path in a background thread."""
@@ -141,6 +185,17 @@ def _camera_loop():
                 _cv2.putText(bgr, hud, (6, 20),
                              _cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 220, 80), 2)
 
+                # Pick largest bbox for follow + store in det_state
+                best_bbox = None
+                if n > 0:
+                    best_idx = int(max(range(n),
+                                      key=lambda i: (
+                                          (boxes.xyxy[i][2] - boxes.xyxy[i][0]) *
+                                          (boxes.xyxy[i][3] - boxes.xyxy[i][1])
+                                      )))
+                    x1b, y1b, x2b, y2b = map(int, boxes.xyxy[best_idx])
+                    best_bbox = [x1b, y1b, x2b, y2b]
+
                 # Only write active=True if detection is still enabled (guard against
                 # _det_enabled being cleared while YOLO inference was in-flight)
                 with _det_lock:
@@ -151,7 +206,38 @@ def _camera_loop():
                             "yolo_fps":        round(fps_ema, 1),
                             "yolo_detections": n,
                             "yolo_model":      _det_model_name,
+                            "bbox":            best_bbox,
                         }
+
+                # ── Autonomous follow ──────────────────────────────
+                if _follow_enabled and time.time() > _teleop_until:
+                    t_now_f = time.time()
+                    dt_f    = max(t_now_f - _follow_last_t[0], 1e-6)
+                    _follow_last_t[0] = t_now_f
+
+                    if best_bbox is not None:
+                        bx1, by1, bx2, by2 = best_bbox
+                        cx = (bx1 + bx2) / 2
+                        bbox_area_ratio = (bx2 - bx1) * (by2 - by1) / (_FRAME_W * _FRAME_H)
+
+                        lateral_err  = (cx - _FRAME_W / 2) / (_FRAME_W / 2)
+                        distance_err = _FOLLOW_TARGET_AREA - bbox_area_ratio
+
+                        turn  = _lat_pid.update(lateral_err, dt_f)
+                        speed = _dist_pid.update(distance_err, dt_f)
+
+                        fl = max(-1.0, min(1.0, speed - turn))
+                        fr = max(-1.0, min(1.0, speed + turn))
+                    else:
+                        # No person — stop and reset PIDs
+                        fl, fr = 0.0, 0.0
+                        _lat_pid.reset()
+                        _dist_pid.reset()
+
+                    if _event_loop is not None:
+                        asyncio.run_coroutine_threadsafe(
+                            _send_drive(fl, fr), _event_loop
+                        )
 
                 ok, jpg = _cv2.imencode(".jpg", bgr, [_cv2.IMWRITE_JPEG_QUALITY, 70])
 
@@ -232,7 +318,8 @@ USE_MOCK = True  # Set False when hardware is connected
 
 @asynccontextmanager
 async def lifespan(app):
-    global USE_MOCK, _cam_running, _drive_client
+    global USE_MOCK, _cam_running, _drive_client, _event_loop
+    _event_loop = asyncio.get_event_loop()
     arm_ok    = arm.connect()
     escort_ok = await escort.connect()
     if arm_ok or escort_ok:
@@ -358,6 +445,7 @@ async def websocket_endpoint(ws: WebSocket):
                     "yolo_model":      det["yolo_model"],
                     "motor_l":         0,
                     "motor_r":         0,
+                    "follow_active":   _follow_enabled,
                 })
 
                 await asyncio.sleep(1.0)
@@ -388,12 +476,28 @@ async def handle_ws_command(data: dict):
         await escort.handle_command(action, **params)
 
     elif target == "teleop":
+        global _teleop_until
         if action == "drive":
             l = max(-1.0, min(1.0, float(params.get("l", 0.0))))
             r = max(-1.0, min(1.0, float(params.get("r", 0.0))))
+            _teleop_until = time.time() + 1.0   # suppress follow for 1s
             await _send_drive(l, r)
         elif action == "stop":
             await _send_drive(0.0, 0.0)
+
+    elif target == "follow":
+        global _follow_enabled
+        if action == "toggle":
+            _follow_enabled = not _follow_enabled
+        elif action == "start":
+            _follow_enabled = True
+        elif action == "stop":
+            _follow_enabled = False
+        if not _follow_enabled:
+            _lat_pid.reset()
+            _dist_pid.reset()
+            await _send_drive(0.0, 0.0)
+        logger.info(f"Autonomous follow {'ON' if _follow_enabled else 'OFF'}")
 
     elif target == "detection":
         global _det_enabled

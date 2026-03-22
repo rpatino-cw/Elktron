@@ -31,8 +31,8 @@ ULTRASONIC_TRIG = 23        # Pin 16
 
 # Motor GPIO pins — L298N (GPIO_Current.csv)
 # IN1=GPIO17 pin11, IN2=GPIO22 pin15, IN3=GPIO5 pin29, IN4=GPIO6 pin31
-MOTOR_LEFT  = (17, 22)      # (forward, backward)
-MOTOR_RIGHT = (5, 6)
+MOTOR_LEFT  = (22, 17)      # (forward, backward)
+MOTOR_RIGHT = (6, 5)
 
 # Watchdog — stop motors if no /drive command received within this window
 WATCHDOG_S = 0.3
@@ -98,7 +98,8 @@ running = True
 # ─── CAMERA + DETECTION THREAD ─────────────────────────────────────
 
 def detection_loop():
-    """Background thread: capture frames, run YOLOv8n, encode JPEG."""
+    """Background thread: capture raw frames and encode JPEG for streaming.
+    YOLO runs on the laptop — Pi just streams clean frames."""
     global latest_frame, running
 
     # --- Camera init ---
@@ -116,14 +117,7 @@ def detection_loop():
         log.error("Camera init failed: %s — streaming disabled", e)
         return
 
-    # --- YOLOv8n model ---
-    model = None
-    try:
-        from ultralytics import YOLO
-        model = YOLO("yolov8n.pt")
-        log.info("YOLOv8n loaded")
-    except Exception as e:
-        log.warning("YOLOv8n load failed: %s — streaming raw frames", e)
+    model = None  # YOLO disabled on Pi — runs on laptop instead
 
     # --- Ultrasonic sensor (optional) ---
     sonar = None
