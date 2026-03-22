@@ -19,20 +19,20 @@
 
 ---
 
-### Joshua Tapia — Robot Arm CV/IK Lead
+### Joshua Tapia — Integration Lead + Robot Arm
 **Title:** Data Center Technician
-**Objective:** Own the SO-101 arm's task execution — from computer vision pipeline to inverse kinematics to end effector design. Make the optic seating demo work.
+**Objective:** Own the end-to-end integration — dashboard, API pipeline, escort bot testing — plus SO-101 arm when hardware is ready. Good with API work.
 
 **Scope:**
+- **Dashboard + API integration** (active as of 3/21) — testing Pi→dashboard pipeline, Xbox controller teleoperation, YOLOv8n + PID following
 - Computer vision pipeline for optic detection
 - Inverse kinematics and motion planning
 - End effector design — gripper for SFP/QSFP optics
 - LeRobot ACT policy training and evaluation
 - Record 50 optic seating demonstrations
 - Arm calibration and servo tuning
-- Risk owner: end effector is the critical unknown
 
-**Hardware:** TBD — uses Romeo's laptop for training, arm kit arrives ~3/18
+**Hardware:** His laptop (dashboard), Pi 5 onsite, arm kit
 
 ---
 
@@ -52,22 +52,23 @@
 
 ---
 
-### Parth Patel — Backend Lead
+### Parth Patel — Pi Setup + Integration Support
 **Title:** Data Center Technician
-**Objective:** Own the dashboard backend and Pi-side API server — build the bridge between robot hardware and the dashboard UI.
+**Objective:** Support onsite integration work alongside Josh. Set up the Pi environment for the team.
 
-**Scope:**
-- **Pi API server** (`escort-bot/api_server.py`) — Flask or FastAPI running on Pi 5, exposes bot state + MJPEG camera stream (CRITICAL — #1 priority)
-- **MJPEG camera pipeline** — stream Pi camera frames with YOLOv8 detection overlays to dashboard
-- FastAPI server improvements (`elktron-app/api/server.py`)
-- Wire `escort.py` to poll real Pi data (code exists, needs Pi server to connect to)
-- Scan report upload endpoint (`POST /api/scans`)
-- Coordinate with Josh on arm endpoints/data for `arm.py`
-- Jira/NetBox data integration (stretch goal — mock data is fine for demo)
+**Actual contributions (as of 3/21):**
+- Pi terminal/CLI setup — installed powerlevel10k, shell tools, developer QoL
+- Onsite support — working with Josh on integration testing
+- Has not written project code (api_server.py, dashboard, etc. were all built by Romeo)
+
+**Scope going forward:**
+- Support Josh on dashboard + API integration testing onsite
+- Help with hardware testing and debugging
+- Jira/NetBox data integration (stretch goal)
 
 **Confirmed:** 2026-03-18 — agreed in `#the-elks-2026`
 
-**Hardware:** Laptop + remote access to Pi 5 via Tailscale (`100.85.225.68`)
+**Hardware:** Laptop + onsite Pi 5 access
 
 ---
 

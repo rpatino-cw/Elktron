@@ -118,9 +118,9 @@ Build with Velocity
 - [x] Escort bot panel — rendering mock escort sequence
 - [x] Rack scan log viewer — rendering 3 mock scan reports
 - [x] Training controls — rendering mock training pipeline
-- [ ] **Pi API server** — Parth building `escort-bot/api_server.py` (CRITICAL blocker)
-- [ ] **MJPEG camera stream** — needs Pi API server first
-- [ ] Wire `escort.py` to poll real Pi data
+- [x] **Pi API server** — `escort-bot/api_server.py` built by Romeo (Flask, MJPEG, YOLOv8n, all endpoints)
+- [x] **MJPEG camera stream** — built into api_server.py `/video_feed` endpoint
+- [ ] Wire `escort.py` to poll real Pi data — Josh + Parth testing onsite (3/21)
 - [ ] Scan upload endpoint (`POST /api/scans`)
 - [ ] Arm serial test (depends on Josh's hardware)
 - [ ] Live hardware connected

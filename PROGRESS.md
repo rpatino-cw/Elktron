@@ -27,7 +27,7 @@ Tracked in `#the-elks-2026` Slack list.
 | 5 | Test escort bot — person detection, floor test, tune steering and speed | **In progress** — detection working, motors blocked (L298N 5V fix needed) | Romeo, Alex | 3/18 |
 | 6 | Build SO-101 arm — assemble, calibrate, install LeRobot | Not started — kit ETA 3/18 | Josh | 3/19 |
 | 7 | Train arm — record 50 demos, train ACT policy | Not started | Josh | 3/21 |
-| 8 | Dashboard integration — live feeds, telemetry, scan log | **Parth confirmed 3/18** — building Pi API server + camera stream | Parth, Romeo | 3/21 |
+| 8 | Dashboard integration — live feeds, telemetry, scan log | **In progress 3/21** — code built by Romeo, Josh + Parth onsite testing/integrating | Josh, Parth | 3/21 |
 | 9 | Demo polish — clean wiring, signage, rehearse | Not started | Talha, Raphael | 3/22 |
 | 10 | Record + submit — 2-3 min video, slides, GitHub | Not started | Talha | 3/25 |
 
@@ -36,9 +36,9 @@ Tracked in `#the-elks-2026` Slack list.
 | Person | Role | Owns |
 |--------|------|------|
 | **Romeo Patino** | Lead — architecture, software, demo story | System design, escort bot software, dashboard frontend, Pi setup |
-| **Joshua Tapia** | Robot arm — CV, positioning, training | SO-101 assembly, calibration, ACT policy, optic seating demo |
+| **Joshua Tapia** | Integration lead + robot arm | Dashboard/API integration, Xbox teleoperation, YOLOv8n+PID, SO-101 arm |
 | **Alex Murillo** | Escort bot hardware lead | Chassis build, wiring, motor/sensor integration, floor testing |
-| **Parth Patel** | Backend lead | FastAPI server, Jira/NetBox data, WebSocket pipeline |
+| **Parth Patel** | Pi setup + integration support | Pi CLI/terminal setup (powerlevel10k, tools), onsite integration testing with Josh |
 | **Talha Shakil** | Media & presentations | Demo video, pitch deck, logo, filming, editing |
 | **Raphael Rodea** | Build crew + logistics | Assembly, parts inventory, batteries, wiring checks, packing, demo day "vendor" |
 | **Andrew Westberg** | Observer | Watching and learning — not on active roster |
@@ -46,6 +46,23 @@ Tracked in `#the-elks-2026` Slack list.
 ---
 
 ## What's Been Done
+
+### Session: 2026-03-21
+
+**Josh + Parth Onsite — Integration Sprint**
+- Josh and Parth onsite at DC, Romeo remote
+- Josh pulled latest repo on Pi
+- **Clarification:** Romeo built all the code (api_server.py, dashboard, main.py, etc.). Parth's contributions so far: Pi terminal/CLI setup (powerlevel10k, shell tools) — has not written project code
+- Josh's plan (from Slack):
+  1. Get dashboard working on his laptop
+  2. Simple Xbox controller teleoperation
+  3. Switch to YOLOv8n + PID person following
+- Josh is good with the API stuff — owns integration
+- Parth supporting Josh onsite
+- Romeo confirmed: code is scaffolded but untested on real hardware — full freedom to refactor if needed
+- Romeo not pushing today — Josh + Parth own the repo, pushing via Claude on Pi
+- `api_server.py` (Pi Flask server) and `elktron-app/` (dashboard) are code-complete — integration/testing phase now
+- Only config change needed: set Pi IP in `elktron-app/api/escort.py` line 36
 
 ### Session: 2026-03-18
 
@@ -310,45 +327,42 @@ The escort bot needs to connect to **Jira** and **NetBox** so it knows what devi
 
 ## What's Next
 
-### REMINDERS — Hackathon Pre-Demo (March 21-22)
-- [ ] **Configure differential driving on Pi** — test tank steering (L/R independent motor control), tune turn radius for DC aisles, verify forward/reverse/pivot logic in `main.py`
-- [ ] **Configure YOLOv8n on Pi** — confirm model loads from correct path, set confidence threshold (currently 0.78), test detection at DC floor lighting conditions, measure actual FPS
-- [ ] **Wire camera feed to dashboard** — Parth's MJPEG stream from Pi API server → dashboard escort cam panel + new Drive & Detection panel
-- [ ] **Drive & Detection panel added to dashboard** — shows L/R motor speeds, YOLO confidence/FPS/detections, camera stream status (added 2026-03-21)
+**See `COUNTDOWN.md` for the full day-by-day sprint plan (March 21-26).**
 
-### Critical Path — Bot Must Move (March 18)
-1. [x] Wire L298N control pins → Pi GPIO — **Done 3/16** (signals verified)
-2. [ ] **FIX: Connect Pi 5V → L298N +5V logic pin** (remove regulator jumper first) — ROOT CAUSE of motors not spinning
-3. [ ] Bench test motors: `python3 motor_test.py` (wheels off ground)
-4. [ ] Wire HC-SR04: VCC→5V, GND, TRIG→GPIO25, ECHO→voltage divider (100Ω + 200Ω)→GPIO24
-5. [ ] Test sonar: `python3 sonar_test.py`
-6. [ ] First follow test: `python3 main.py` with motors + sonar integrated
-7. [ ] Record phone video of bot following person
+### Key Milestones
+- **Friday 3/21:** Josh + Parth onsite — dashboard + bot integration testing
+- **Saturday 3/22:** Josh 3D prints arm parts. Bot PID tuning.
+- **Sunday 3/23:** Bot complete. Arm assembly begins.
+- **Monday 3/24:** **ARM GO/NO-GO GATE.** Escort bot must be done. If arm not working → cut it.
+- **Tuesday 3/25:** **FEATURE FREEZE at noon.** Record demo video. Submit.
+- **Wednesday 3/26:** **DEMO DAY** (11am-2pm PT / 2pm-5pm ET)
 
-### Dashboard Integration (March 18-21) — Parth
-8. [ ] Build Pi API server (`escort-bot/api_server.py`) — Flask or FastAPI, exposes bot state + camera MJPEG
-9. [ ] Wire dashboard `escort.py` to poll real Pi data
-10. [ ] Add scan upload endpoint (`POST /api/scans`)
-11. [ ] Test arm serial connection (depends on Josh having hardware)
+### Current Status (updated 3/21)
 
-### Hardware (March 18-22)
-12. [ ] PVC mast + camera elevation
-13. [ ] Mount HC-SR04 voltage divider breadboard on chassis
-14. [ ] Ensure Pi 5 airflow underneath
-15. [ ] PID tuning for smoother following
+**Escort Bot — Integration Phase (Josh + Parth onsite)**
+- [x] All code built by Romeo (api_server.py, main.py, pan_tilt.py, dashboard)
+- [x] Pi API server done — Flask, MJPEG, YOLOv8n, all endpoints
+- [ ] Dashboard↔Pi connectivity test (set Pi IP in `escort.py` line 36)
+- [ ] Xbox controller teleoperation
+- [ ] YOLOv8n + PID person following on real hardware
+- [ ] L298N 5V logic pin fix (if not already done)
+- [ ] Ultrasonic sensor wired + tested
+- [ ] PVC mast + camera elevation
+- [ ] PID tuning for smooth following
 
-### SO-101 Arm (March 16-19)
-17. [ ] Assemble SO-101 arms when kit arrives (~2-3 hrs)
-18. [ ] Install LeRobot, calibrate servos (~1 hr)
-19. [ ] First autonomous test — keyboard teleop if leader arm not working
+**SO-101 Arm — Parts Just Arrived (3/21)**
+- [ ] Josh received arm parts today
+- [ ] 3D print arm components (3/22)
+- [ ] Assemble arm (~2-3 hrs)
+- [ ] Install LeRobot, calibrate servos (~1 hr)
+- [ ] **GO/NO-GO: Monday 3/24 end of day**
 
-### Final Polish (March 20-22)
-20. [ ] Tune escort bot on DC floor (Kp, speed, thresholds) (~2-4 hrs)
-21. [ ] Record 50 optic seating demonstrations (~1-2 hrs)
-22. [ ] Train ACT policy (~2-4 hrs, runs unattended)
-23. [ ] Evaluate + retrain if needed (~2 hrs)
-24. [ ] Demo polish — clean wiring, signage, camera feeds
-25. [ ] Record 2-3 min demo video
+**Demo / Presentation**
+- [ ] Demo video (2:30 target) — script at `docs/DEMO-SCRIPT.md`
+- [ ] Pitch deck — `pitch-deck.html`
+- [ ] GitHub repo cleanup — README, screenshots
+- [ ] Slides finalized
+- [ ] Submit by end of Tuesday 3/25
 
 ### Completed
 0. [x] Pi 5 desktop env + CLI tools + GUI apps — **Done 3/17**
