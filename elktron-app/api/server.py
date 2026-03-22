@@ -4,6 +4,11 @@ Bridges hardware interfaces (arm + escort bot) to the frontend via WebSocket.
 Falls back to mock data when hardware is not connected.
 """
 
+import sys
+import os
+# Ensure api/ is on sys.path so absolute imports (arm, escort, models) resolve
+sys.path.insert(0, os.path.dirname(__file__))
+
 import asyncio
 import json
 import logging
@@ -11,6 +16,7 @@ import math
 import time
 import threading
 import psutil
+import httpx
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -23,13 +29,16 @@ from fastapi.staticfiles import StaticFiles
 from arm import arm
 from escort import escort
 
+# Pi 5 address — raw camera stream + motor commands
+PI_BASE_URL = "http://192.168.3.56:5000"
+
 logger = logging.getLogger("elktron.server")
 
 # ── Camera + YOLO Detection ───────────────────────────────────
 import cv2 as _cv2
 import numpy as _np
 
-_cam         = None
+_cam         = None   # cv2.VideoCapture pulling from Pi MJPEG stream
 _cam_running = False
 _cam_thread  = None
 
@@ -97,15 +106,16 @@ def _camera_loop():
             continue
 
         try:
-            frame = _cam.capture_array()   # RGB888 from picamera2
+            ret, bgr = _cam.read()   # BGR from cv2.VideoCapture (Pi MJPEG stream)
+            if not ret:
+                time.sleep(0.05)
+                continue
 
             t_now  = time.time()
             dt     = max(t_now - t_last, 1e-6)
             t_last = t_now
             fps_ema = fps_ema * (1 - alpha) + (1.0 / dt) * alpha
 
-            # Explicit channel swap (avoids cvtColor on non-contiguous arrays)
-            bgr = _np.ascontiguousarray(frame[:, :, ::-1])
             # Camera is physically mounted 180° — flip to correct orientation
             bgr = _cv2.flip(bgr, -1)
 
@@ -169,21 +179,18 @@ def _camera_loop():
 
 def _init_camera():
     global _cam, _cam_running, _cam_thread
+    stream_url = f"{PI_BASE_URL}/video_feed"
     try:
-        from picamera2 import Picamera2
-        _cam = Picamera2()
-        config = _cam.create_preview_configuration(
-            main={"size": (640, 480), "format": "RGB888"},
-        )
-        _cam.configure(config)
-        _cam.start()
-        time.sleep(1)   # warm-up — first few frames from ISP are underexposed
+        cap = _cv2.VideoCapture(stream_url)
+        if not cap.isOpened():
+            raise RuntimeError(f"stream not open at {stream_url}")
+        _cam = cap
         _cam_running = True
         _cam_thread = threading.Thread(target=_camera_loop, daemon=True, name="cam-loop")
         _cam_thread.start()
-        logger.info("Camera started — software MJPEG + optional YOLO overlay")
+        logger.info(f"Camera stream connected — {stream_url} (YOLO runs on this machine)")
     except Exception as e:
-        logger.warning(f"Camera unavailable: {e}")
+        logger.warning(f"Camera stream unavailable: {e}")
         _cam = None
 
 
@@ -201,20 +208,23 @@ async def _mjpeg_frames():
             )
 
 
-# ── Motor teleop ──────────────────────────────────────────────
-_robot = None
+# ── Remote motor control (HTTP → Pi) ──────────────────────────
+# Motors live on the Pi. We POST {l, r} to /drive instead of
+# writing GPIO directly — YOLO + PID stay on this machine.
+_drive_client: httpx.AsyncClient | None = None
 
-def _init_motors():
-    global _robot
+async def _send_drive(l: float, r: float) -> None:
+    """Send motor command to Pi. Fire-and-forget — drop on timeout."""
+    if _drive_client is None:
+        return
     try:
-        from gpiozero import Robot
-        # L298N wiring (GPIO_Current.csv): IN2=22(L-fwd), IN1=17(L-bwd), IN4=6(R-fwd), IN3=5(R-bwd)
-        _robot = Robot(left=(22, 17), right=(6, 5))
-        _robot.stop()
-        logger.info("Motors ready — gpiozero Robot (L=(22,17) R=(6,5))")
-    except Exception as e:
-        logger.warning(f"Motors unavailable: {e}")
-        _robot = None
+        await _drive_client.post(
+            f"{PI_BASE_URL}/drive",
+            json={"l": round(l, 3), "r": round(r, 3)},
+            timeout=0.2,
+        )
+    except Exception:
+        pass  # Pi watchdog stops motors if commands dry up
 
 
 # ── Hardware lifecycle ────────────────────────────────────────
@@ -222,7 +232,7 @@ USE_MOCK = True  # Set False when hardware is connected
 
 @asynccontextmanager
 async def lifespan(app):
-    global USE_MOCK, _cam_running
+    global USE_MOCK, _cam_running, _drive_client
     arm_ok    = arm.connect()
     escort_ok = await escort.connect()
     if arm_ok or escort_ok:
@@ -231,20 +241,19 @@ async def lifespan(app):
     else:
         logger.info("No hardware detected — running in mock mode")
     _init_camera()
-    _init_motors()
+    _drive_client = httpx.AsyncClient()
+    logger.info(f"Motor client ready — POSTing drive commands to {PI_BASE_URL}/drive")
     yield
     # Shutdown
     arm.disconnect()
-    global _robot
-    if _robot:
-        _robot.stop()
-        _robot.close()
-        _robot = None
+    await _send_drive(0.0, 0.0)   # safe stop on server exit
+    if _drive_client:
+        await _drive_client.aclose()
+        _drive_client = None
     global _cam
     _cam_running = False
     if _cam:
-        _cam.stop()
-        _cam.close()
+        _cam.release()
         _cam = None
 
 
@@ -379,14 +388,12 @@ async def handle_ws_command(data: dict):
         await escort.handle_command(action, **params)
 
     elif target == "teleop":
-        if _robot is None:
-            return
         if action == "drive":
             l = max(-1.0, min(1.0, float(params.get("l", 0.0))))
             r = max(-1.0, min(1.0, float(params.get("r", 0.0))))
-            _robot.value = (l, r)
+            await _send_drive(l, r)
         elif action == "stop":
-            _robot.stop()
+            await _send_drive(0.0, 0.0)
 
     elif target == "detection":
         global _det_enabled

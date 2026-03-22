@@ -25,9 +25,17 @@ FRAME_HEIGHT = 480
 JPEG_QUALITY = 70
 CONFIDENCE_THRESHOLD = 0.5
 
-# GPIO pins (BCM) — ultrasonic only, motors controlled by main.py
-ULTRASONIC_ECHO = 26
-ULTRASONIC_TRIG = 25
+# GPIO pins (BCM)
+ULTRASONIC_ECHO = 24        # Pin 18
+ULTRASONIC_TRIG = 23        # Pin 16
+
+# Motor GPIO pins — L298N (GPIO_Current.csv)
+# IN1=GPIO17 pin11, IN2=GPIO22 pin15, IN3=GPIO5 pin29, IN4=GPIO6 pin31
+MOTOR_LEFT  = (17, 22)      # (forward, backward)
+MOTOR_RIGHT = (5, 6)
+
+# Watchdog — stop motors if no /drive command received within this window
+WATCHDOG_S = 0.3
 
 # ─── APP ───────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -59,6 +67,28 @@ bot_state = {
     "distance_cm": None,
     "fps": 0.0,
 }
+
+# ─── MOTORS + WATCHDOG ─────────────────────────────────────────────
+_robot = None
+_last_cmd_time = time.time()
+
+def _init_motors():
+    global _robot
+    try:
+        from gpiozero import Robot
+        _robot = Robot(left=MOTOR_LEFT, right=MOTOR_RIGHT)
+        _robot.stop()
+        log.info("Motors ready — L=%s R=%s", MOTOR_LEFT, MOTOR_RIGHT)
+    except Exception as e:
+        log.warning("Motors unavailable: %s", e)
+        _robot = None
+
+def _watchdog_loop():
+    """Stop motors if no /drive command arrives within WATCHDOG_S seconds."""
+    while running:
+        if _robot is not None and (time.time() - _last_cmd_time) > WATCHDOG_S:
+            _robot.stop()
+        time.sleep(0.05)
 
 # ─── FRAME BUFFER ──────────────────────────────────────────────────
 frame_lock = threading.Lock()
@@ -245,17 +275,27 @@ def recall():
     return jsonify({"ok": True})
 
 
+@app.route("/drive", methods=["POST"])
+def drive():
+    """Receive motor command from laptop. Body: {l: float, r: float} in [-1, 1]."""
+    global _last_cmd_time
+    data = request.get_json(silent=True) or {}
+    l = max(-1.0, min(1.0, float(data.get("l", 0.0))))
+    r = max(-1.0, min(1.0, float(data.get("r", 0.0))))
+    _last_cmd_time = time.time()
+    if _robot is not None:
+        _robot.value = (l, r)
+    bot_state["motor_l"] = l
+    bot_state["motor_r"] = r
+    return jsonify({"ok": True})
+
+
 @app.route("/stop", methods=["POST"])
 def stop():
     bot_state["phase"] = "idle"
     log.info("Emergency stop")
-    # If motors are active, stop them
-    try:
-        from gpiozero import Robot
-        robot = Robot(left=(17, 24), right=(22, 23))
-        robot.stop()
-    except Exception:
-        pass
+    if _robot is not None:
+        _robot.stop()
     return jsonify({"ok": True})
 
 
@@ -270,6 +310,11 @@ if __name__ == "__main__":
     log.info("  POST /dispatch   — send bot to rack")
     log.info("  POST /recall     — return to bay")
     log.info("  POST /stop       — emergency stop")
+
+    # Init motors + start watchdog
+    _init_motors()
+    watchdog_thread = threading.Thread(target=_watchdog_loop, daemon=True)
+    watchdog_thread.start()
 
     # Start detection thread
     det_thread = threading.Thread(target=detection_loop, daemon=True)
