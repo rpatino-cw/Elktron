@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ELKTRON | System Initialize</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "tertiary": "#ffb77d",
+                "tertiary-fixed": "#ffdcc3",
+                "secondary-container": "#22496b",
+                "inverse-on-surface": "#313030",
+                "surface-container-highest": "#353534",
+                "on-secondary": "#023353",
+                "on-primary-container": "#00375a",
+                "tertiary-fixed-dim": "#ffb77d",
+                "on-surface-variant": "#bec7d4",
+                "background": "#131313",
+                "on-tertiary-fixed-variant": "#6e3900",
+                "on-tertiary": "#4d2600",
+                "on-primary-fixed": "#001d33",
+                "tertiary-container": "#eb8104",
+                "on-tertiary-container": "#522900",
+                "error": "#ffb4ab",
+                "error-container": "#93000a",
+                "surface-dim": "#131313",
+                "on-error": "#690005",
+                "surface": "#131313",
+                "surface-tint": "#98cbff",
+                "secondary": "#a5caf2",
+                "inverse-surface": "#e5e2e1",
+                "on-background": "#e5e2e1",
+                "surface-variant": "#353534",
+                "on-surface": "#e5e2e1",
+                "secondary-fixed": "#cfe5ff",
+                "surface-container-low": "#1c1b1b",
+                "primary-fixed-dim": "#98cbff",
+                "surface-container-high": "#2a2a2a",
+                "on-tertiary-fixed": "#2f1500",
+                "on-primary": "#003354",
+                "surface-bright": "#3a3939",
+                "inverse-primary": "#00629d",
+                "outline": "#88919d",
+                "on-secondary-container": "#94b9e0",
+                "on-primary-fixed-variant": "#004a77",
+                "on-secondary-fixed": "#001d33",
+                "on-secondary-fixed-variant": "#22496b",
+                "surface-container-lowest": "#0e0e0e",
+                "surface-container": "#201f1f",
+                "primary-container": "#00a3ff",
+                "outline-variant": "#3f4852",
+                "primary": "#98cbff",
+                "on-error-container": "#ffdad6",
+                "secondary-fixed-dim": "#a5caf2",
+                "primary-fixed": "#cfe5ff"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .instrumented-void {
+            background-color: #0e0e0e;
+            background-image: 
+                linear-gradient(rgba(152, 203, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(152, 203, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00a3ff, transparent);
+            position: absolute;
+            top: -2px;
+            left: 0;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest font-body text-on-surface antialiased overflow-hidden">
+<!-- The Instrumented Void Background -->
+<div class="fixed inset-0 instrumented-void flex items-center justify-center">
+<!-- Technical Scanning Element -->
+<div class="absolute inset-0 pointer-events-none opacity-20">
+<div class="w-full h-full bg-[radial-gradient(circle_at_center,_transparent_0%,_#0e0e0e_80%)]"></div>
+</div>
+<!-- Main Loading Canvas -->
+<div class="relative z-10 flex flex-col items-center w-full max-w-2xl px-8">
+<!-- Branding Container -->
+<div class="mb-16 flex flex-col items-center">
+<div class="relative p-6">
+<!-- Corner Brackets -->
+<div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary-container"></div>
+<div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary-container"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary-container"></div>
+<div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary-container"></div>
+<h1 class="font-headline text-7xl font-bold tracking-tighter text-on-surface">
+                        ELK<span class="text-primary-container">TRON</span>
+</h1>
+</div>
+<div class="mt-4 flex items-center gap-4">
+<span class="text-[0.6875rem] font-label tracking-widest text-on-surface-variant uppercase">Command Interface v4.2.0</span>
+<div class="h-px w-8 bg-outline-variant"></div>
+<span class="text-[0.6875rem] font-label tracking-widest text-on-surface-variant uppercase">SO-101 Protocol</span>
+</div>
+</div>
+<!-- Loading Sequence -->
+<div class="w-full space-y-6">
+<!-- Status Feedback -->
+<div class="flex justify-between items-end">
+<div class="space-y-1">
+<p class="font-headline text-sm font-medium text-primary-container tracking-wide flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">settings_suggest</span>
+                            SYSTEM_STATUS: <span class="text-on-surface">BOOT_SEQUENCE</span>
+</p>
+<h2 class="font-headline text-lg text-on-surface min-h-[1.75rem]">
+                            Loading YOLO model...
+                        </h2>
+</div>
+<div class="text-right">
+<span class="font-headline text-3xl font-bold text-primary-container tabular-nums">74%</span>
+</div>
+</div>
+<!-- Progress Bar Core -->
+<div class="relative h-1 w-full bg-surface-container-highest overflow-hidden">
+<!-- Active Fill -->
+<div class="absolute inset-y-0 left-0 bg-primary-container shadow-[0_0_15px_rgba(0,163,255,0.6)] w-[74%]"></div>
+<!-- Glitch/Scan Effect on Bar -->
+<div class="absolute inset-y-0 right-[-10px] w-20 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"></div>
+</div>
+<!-- Telemetry Metadata -->
+<div class="grid grid-cols-3 gap-4 pt-4 border-t border-outline-variant/20">
+<div class="flex flex-col">
+<span class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-tighter">Latency</span>
+<span class="font-headline text-xs font-medium text-on-surface">14ms</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-tighter">Security</span>
+<span class="font-headline text-xs font-medium text-on-surface">AES-256</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-tighter">Uplink</span>
+<span class="font-headline text-xs font-medium text-on-surface">8.4 Gbps</span>
+</div>
+</div>
+</div>
+<!-- Log Stream (Technical Detail) -->
+<div class="mt-12 w-full bg-surface-container p-4 rounded-sm border border-outline-variant/10 font-mono text-[10px] leading-relaxed text-on-surface-variant/60 overflow-hidden h-32 relative">
+<div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-surface-container to-transparent z-10"></div>
+<div class="space-y-1">
+<p>[ 0.0001 ] Initializing ELKTRON core kernels...</p>
+<p>[ 0.0142 ] Handshaking with remote satellite SO-101 (Region: US-EAST)</p>
+<p>[ 0.0389 ] Connecting to SO-101... SUCCESS</p>
+<p>[ 0.0511 ] Initializing camera array [A, B, C, DEPTH]... ACTIVE</p>
+<p>[ 0.1092 ] Loading YOLO model weights (v8-high-precision)...</p>
+<p class="text-primary-container">[ 0.1244 ] TensorRT optimization layer applied</p>
+<p>[ 0.1350 ] Mapping navigation mesh for industrial warehouse layout...</p>
+<p class="text-tertiary">[ 0.1422 ] WARNING: Floor variance detected (+/- 2.1mm)</p>
+<p>[ 0.1588 ] Calibrating LiDAR point cloud visualization...</p>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-surface-container to-transparent z-10"></div>
+</div>
+<!-- System Ready Indicator (Hidden initially, shown at end of sequence) -->
+<div class="mt-8 flex items-center gap-3 py-2 px-4 bg-primary-container/10 border border-primary-container/30 rounded-full opacity-0">
+<span class="w-2 h-2 rounded-full bg-primary-container shadow-[0_0_8px_#00a3ff]"></span>
+<span class="text-xs font-headline font-bold text-primary-container tracking-widest uppercase">Transitioning to Dashboard</span>
+</div>
+</div>
+<!-- Ambient Bottom HUD -->
+<div class="fixed bottom-10 left-10 right-10 flex justify-between items-end border-t border-outline-variant/10 pt-4">
+<div class="flex gap-8">
+<div class="flex flex-col">
+<span class="text-[0.6875rem] font-label text-on-surface-variant">OPERATOR</span>
+<span class="font-headline text-sm font-bold text-on-surface">GUEST_USER_01</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[0.6875rem] font-label text-on-surface-variant">LOCATION</span>
+<span class="font-headline text-sm font-bold text-on-surface">FACILITY_DELTA_9</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-sm">wifi_tethering</span>
+<span class="text-[0.6875rem] font-label text-on-surface-variant tracking-widest">ENCRYPTED TELEMETRY FEED</span>
+</div>
+</div>
+</div>
+<!-- UI Overlay Assets (Visual interest only) -->
+<div class="fixed top-12 right-12 opacity-40">
+<svg class="text-primary-container" height="120" viewbox="0 0 100 100" width="120">
+<circle cx="50" cy="50" fill="none" r="48" stroke="currentColor" stroke-dasharray="4 4" stroke-width="0.5"></circle>
+<circle cx="50" cy="50" fill="none" r="35" stroke="currentColor" stroke-width="1"></circle>
+<path d="M 50 2 L 50 15 M 50 85 L 50 98 M 2 50 L 15 50 M 85 50 L 98 50" stroke="currentColor" stroke-width="1"></path>
+</svg>
+</div>
+</body></html>

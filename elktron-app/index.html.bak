@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elktron — Escort Bot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokens ─────────────────────────────────────────────── */
+    :root {
+      --font: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+
+      /* Dark (default) */
+      --bg:        #080a10;
+      --surface:   #0d0f18;
+      --raised:    #131620;
+      --border:    rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.13);
+      --t1: #e4e6f0;
+      --t2: #8890b0;
+      --t3: #484e6a;
+      --accent:  #4264ff;
+      --green:   #10b981;
+      --amber:   #f59e0b;
+      --red:     #ef4444;
+      --cyan:    #22d3ee;
+      --green-muted: rgba(16,185,129,0.10);
+      --amber-muted: rgba(245,158,11,0.10);
+      --red-muted:   rgba(239,68,68,0.10);
+      --accent-muted: rgba(66,100,255,0.10);
+    }
+
+    html.light {
+      --bg:        #f1f3f8;
+      --surface:   #ffffff;
+      --raised:    #f8f9fc;
+      --border:    rgba(0,0,0,0.08);
+      --border-hi: rgba(0,0,0,0.14);
+      --t1: #111827;
+      --t2: #4b5563;
+      --t3: #9ca3af;
+      --green-muted: rgba(16,185,129,0.08);
+      --amber-muted: rgba(245,158,11,0.08);
+      --red-muted:   rgba(239,68,68,0.08);
+      --accent-muted: rgba(66,100,255,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--t1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body { display: flex; flex-direction: column; }
+
+    /* ── Nav ─────────────────────────────────────────────────── */
+    nav {
+      height: 46px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      position: sticky; top: 0; z-index: 100;
+    }
+
+    .nav-l, .nav-r { display: flex; align-items: center; gap: 14px; }
+    .nav-c { display: flex; align-items: center; gap: 20px; }
+
+    .wordmark {
+      font-family: var(--mono);
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--t1);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .status-led {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+
+    .status-led.offline { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    .status-led.connecting { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+    @keyframes led-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .status-led.live { animation: led-pulse 2s ease-in-out infinite; }
+
+    .nav-divider { width: 1px; height: 16px; background: var(--border-hi); }
+
+    .sys-stat {
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 500;
+      color: var(--t3);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .sys-stat .lbl {
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+
+    .sys-stat .val { color: var(--t2); }
+    .sys-stat .val.warn { color: var(--amber); }
+    .sys-stat .val.crit { color: var(--red); }
+
+    .nav-clock {
+      font-family: var(--mono);
+      font-size: 11px; font-weight: 500;
+      color: var(--t2); letter-spacing: 0.05em;
+    }
+
+    /* connection badge */
+    .conn {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 3px;
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    .conn.connected    { background: var(--green-muted); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
+    .conn.disconnected { background: var(--red-muted);   color: var(--red);   border: 1px solid rgba(239,68,68,.2); }
+    .conn.connecting   { background: var(--amber-muted); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+
+    /* theme toggle */
+    .theme-btn {
+      width: 28px; height: 28px; border-radius: 5px;
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--t2); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      transition: border-color .2s, color .2s;
+    }
+    .theme-btn:hover { border-color: var(--border-hi); color: var(--t1); }
+
+    /* ── Grid ────────────────────────────────────────────────── */
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      grid-template-rows: 1fr auto auto;
+      gap: 1px;
+      background: var(--border);
+      min-height: 0;
+    }
+
+    /* ── Panel base ──────────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .panel--full { grid-column: 1 / -1; }
+    .panel--escort { grid-column: 1; grid-row: 1 / 3; }
+    .panel--camera { grid-column: 2; grid-row: 1; min-height: 300px; }
+    .panel--dd     { grid-column: 2; grid-row: 2; }
+
+    .ph {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px 0;
+      flex-shrink: 0;
+    }
+
+    .ph-title {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--t3);
+      display: flex; align-items: center; gap: 7px;
+    }
+
+    .ph-dot { width: 4px; height: 4px; border-radius: 50%; }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px;
+    }
+
+    .badge-green  { background: var(--green-muted);  color: var(--green);  border: 1px solid rgba(16,185,129,.15); }
+    .badge-blue   { background: var(--accent-muted); color: var(--accent); border: 1px solid rgba(66,100,255,.15); }
+    .badge-amber  { background: var(--amber-muted);  color: var(--amber);  border: 1px solid rgba(245,158,11,.15); }
+    .badge-red    { background: var(--red-muted);    color: var(--red);    border: 1px solid rgba(239,68,68,.15); }
+    .badge-dim    { background: transparent; color: var(--t3); border: 1px solid var(--border); }
+
+    /* ── Escort Panel ────────────────────────────────────────── */
+    .escort-body { flex: 1; display: flex; flex-direction: column; padding: 16px; }
+
+    .mode-row {
+      display: flex; align-items: baseline; gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .mode-val {
+      font-family: var(--mono);
+      font-size: 28px; font-weight: 700;
+      letter-spacing: -0.5px; text-transform: uppercase;
+      color: var(--t1);
+    }
+
+    .mode-sub {
+      font-size: 11px; color: var(--t3);
+      margin-bottom: 20px; line-height: 1.4;
+    }
+
+    /* offline state */
+    .offline-block {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 8px;
+      border: 1px dashed var(--border-hi);
+      border-radius: 6px; margin-bottom: 16px;
+    }
+
+    .offline-label {
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    .offline-sub {
+      font-size: 10px; color: var(--t3); opacity: .6;
+    }
+
+    /* vendor card */
+    .vendor-card {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .vendor-name {
+      font-size: 13px; font-weight: 600;
+      color: var(--t1); margin-bottom: 2px;
+    }
+
+    .vendor-ticket {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--t3);
+    }
+
+    .vendor-auth {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--amber);
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* scan progress */
+    .scan-hdr {
+      display: flex; justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--t3); margin-bottom: 5px;
+    }
+
+    .track {
+      width: 100%; height: 3px;
+      background: var(--raised); border-radius: 2px; overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .fill {
+      height: 100%; border-radius: 2px;
+      background: var(--green);
+      transition: width .4s ease;
+    }
+
+    /* alert */
+    .alert {
+      padding: 10px 12px; border-radius: 5px;
+      font-size: 11px; font-weight: 500;
+      margin-bottom: 12px; display: none;
+    }
+
+    .alert.visible { display: block; }
+    .alert.warn { background: var(--amber-muted); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
+    .alert.ok   { background: var(--green-muted); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
+
+    /* footer stats */
+    .stat-row {
+      display: flex; margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      position: relative; padding: 0 8px;
+    }
+
+    .stat-cell + .stat-cell::before {
+      content: ''; position: absolute; left: 0; top: 3px; bottom: 3px;
+      width: 1px; background: var(--border);
+    }
+
+    .stat-v {
+      font-family: var(--mono);
+      font-size: 14px; font-weight: 700;
+      color: var(--t1); letter-spacing: -0.3px;
+    }
+
+    .stat-l {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--t3); margin-top: 3px;
+    }
+
+    /* ── Camera Panel ────────────────────────────────────────── */
+    .cam-wrap {
+      position: absolute; inset: 0;
+      background: #050608;
+    }
+
+    .cam-img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transform: rotate(180deg);
+      display: block;
+    }
+
+    .cam-hdr {
+      position: absolute; top: 0; left: 0; right: 0;
+      padding: 10px 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 2; pointer-events: none;
+    }
+
+    .cam-label {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .rec-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 5px var(--red);
+    }
+
+    @keyframes rec-blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+    .rec-dot { animation: rec-blink 1.4s ease-in-out infinite; }
+
+    .cam-offline {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 6px;
+    }
+
+    .cam-offline-lbl {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* scanline overlay for dark mode */
+    html.dark .cam-wrap::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 1;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+    }
+
+    /* ── Drive & Detection Panel ─────────────────────────────── */
+    .dd-body {
+      flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px;
+    }
+
+    .dd-section { display: flex; flex-direction: column; gap: 8px; }
+
+    .dd-label {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    .motor-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .motor-id {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700; color: var(--t3);
+      width: 10px; flex-shrink: 0;
+    }
+
+    .motor-track {
+      flex: 1; height: 5px;
+      background: var(--raised); border-radius: 2px;
+      position: relative; overflow: hidden;
+    }
+
+    .motor-track::before {
+      content: ''; position: absolute;
+      left: 50%; top: 0; bottom: 0; width: 1px;
+      background: var(--border-hi);
+    }
+
+    .motor-fill {
+      position: absolute; top: 0; bottom: 0; border-radius: 2px;
+      background: var(--accent);
+      transition: width .12s, left .12s;
+    }
+
+    .motor-fill.rev { background: var(--amber); }
+
+    .motor-pct {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 600; color: var(--t2);
+      width: 36px; text-align: right; flex-shrink: 0;
+    }
+
+    .steer-val {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 600; color: var(--t3);
+      text-align: center; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+
+    .det-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+    }
+
+    .det-cell {
+      background: var(--raised);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 10px;
+    }
+
+    .det-cell-lbl {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--t3); margin-bottom: 4px;
+    }
+
+    .det-cell-val {
+      font-family: var(--mono);
+      font-size: 14px; font-weight: 700; color: var(--t1);
+    }
+
+    .det-cell-val.green { color: var(--green); }
+    .det-cell-val.amber { color: var(--amber); }
+    .det-cell-val.dim   { color: var(--t3); }
+
+    .offline-row {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--t3);
+      padding: 10px 0; text-align: center;
+      border: 1px dashed var(--border-hi);
+      border-radius: 5px;
+    }
+
+    /* ── Scan Log Panel ──────────────────────────────────────── */
+    .scan-body { padding: 0 16px 16px; flex: 1; overflow-y: auto; }
+
+    .scan-row {
+      display: grid;
+      grid-template-columns: 12px 1fr auto;
+      gap: 14px; align-items: start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      opacity: 0;
+      animation: rowIn .35s ease forwards;
+    }
+
+    @keyframes rowIn {
+      from { opacity:0; transform: translateX(-3px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    .scan-row:last-child { border-bottom: none; }
+
+    .scan-dot {
+      width: 8px; height: 8px; border-radius: 50%; margin-top: 4px;
+    }
+    .scan-dot.clean   { background: var(--green); box-shadow: 0 0 4px var(--green); }
+    .scan-dot.flagged { background: var(--red);   box-shadow: 0 0 4px var(--red); }
+
+    .scan-vendor {
+      font-size: 12px; font-weight: 600; color: var(--t1); margin-bottom: 3px;
+    }
+
+    .scan-meta {
+      font-family: var(--mono);
+      font-size: 10px; color: var(--t3); margin-bottom: 5px;
+    }
+
+    .scan-flags { display: flex; flex-wrap: wrap; gap: 4px; }
+
+    .scan-flag {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 600;
+      padding: 2px 6px; border-radius: 3px;
+      background: var(--amber-muted); color: var(--amber);
+      border: 1px solid rgba(245,158,11,.12);
+    }
+
+    .scan-right { text-align: right; }
+
+    .scan-result {
+      font-family: var(--mono);
+      font-size: 8px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 7px; border-radius: 3px;
+    }
+
+    .scan-result.clean   { background: var(--green-muted); color: var(--green); }
+    .scan-result.flagged { background: var(--red-muted);   color: var(--red);   }
+
+    .scan-time {
+      font-family: var(--mono);
+      font-size: 9px; color: var(--t3); margin-top: 4px;
+    }
+
+    .scan-empty {
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--t3); padding: 24px 0; text-align: center;
+    }
+
+    /* ── Gamepad ─────────────────────────────────────────────── */
+    .gp-btn {
+      font-family: var(--mono);
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 3px;
+      display: flex; align-items: center; gap: 5px;
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--t3);
+      transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .gp-btn.active {
+      background: var(--accent-muted);
+      border-color: rgba(66,100,255,.3);
+      color: var(--accent);
+    }
+
+    .gp-btn.active .gp-icon { color: var(--accent); }
+
+    .gp-icon { font-size: 11px; }
+
+    /* drive mode toggle */
+    .drive-mode-btn {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 2px 8px; border-radius: 3px; cursor: pointer;
+      background: var(--raised); border: 1px solid var(--border);
+      color: var(--t3); transition: background .15s, color .15s;
+    }
+    .drive-mode-btn.tank {
+      background: var(--accent-muted);
+      border-color: rgba(66,100,255,.3);
+      color: var(--accent);
+    }
+
+    .kb-hint {
+      font-size: 8px; color: var(--t3); margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    /* deadman indicator */
+    .dm-bar {
+      height: 2px; border-radius: 1px; margin-top: 4px;
+      background: var(--raised);
+      overflow: hidden;
+    }
+
+    .dm-fill {
+      height: 100%; border-radius: 1px;
+      background: var(--green);
+      width: 0%;
+      transition: width .08s;
+    }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .panel--escort, .panel--camera, .panel--dd { grid-column: 1; grid-row: auto; }
+      .panel--camera { min-height: 240px; }
+      .nav-c { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; }
+      .scan-row { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ─────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-l">
+    <div class="wordmark">
+      <div class="status-led live" id="led"></div>
+      ELKTRON
+    </div>
+    <div class="nav-divider"></div>
+    <div class="wordmark" style="color:var(--t3);font-size:10px">ESCORT BOT</div>
+  </div>
+
+  <div class="nav-c">
+    <div class="sys-stat">
+      <span class="lbl">CPU</span>
+      <span class="val" id="s-cpu">—</span>
+    </div>
+    <div class="sys-stat">
+      <span class="lbl">MEM</span>
+      <span class="val" id="s-mem">—</span>
+    </div>
+    <div class="sys-stat">
+      <span class="lbl">TEMP</span>
+      <span class="val" id="s-temp">—</span>
+    </div>
+    <div class="sys-stat">
+      <span class="lbl">UP</span>
+      <span class="val" id="s-up">—</span>
+    </div>
+  </div>
+
+  <div class="nav-r">
+    <div class="nav-clock" id="clock">--:--:--</div>
+    <div class="gp-btn" id="gp-badge" title="Xbox controller">
+      <span class="gp-icon">🎮</span>
+      <span id="gp-text">No Controller</span>
+    </div>
+    <div class="conn connecting" id="conn-badge">
+      <span id="conn-text">Connecting</span>
+    </div>
+    <button class="theme-btn" id="theme-btn" title="Toggle theme">☀</button>
+  </div>
+</nav>
+
+<!-- ── Dashboard Grid ───────────────────────────────────────── -->
+<div class="grid">
+
+  <!-- Escort Status ─────────────────────────────────────────── -->
+  <div class="panel panel--escort">
+    <div class="ph">
+      <div class="ph-title">
+        <div class="ph-dot" style="background:var(--green)"></div>
+        Escort Bot
+      </div>
+      <div class="badge badge-dim" id="escort-badge">OFFLINE</div>
+    </div>
+
+    <div class="escort-body">
+      <div id="escort-online" style="display:none; flex:1; flex-direction:column">
+        <div class="mode-row">
+          <div class="mode-val" id="mode-val">—</div>
+        </div>
+        <div class="mode-sub" id="mode-sub">—</div>
+
+        <div class="vendor-card" id="vendor-card" style="display:none">
+          <div class="vendor-name" id="vendor-name">—</div>
+          <div class="vendor-ticket" id="vendor-ticket">—</div>
+          <div class="vendor-auth" id="vendor-auth">—</div>
+        </div>
+
+        <div id="scan-section" style="display:none">
+          <div class="scan-hdr">
+            <span>Rack Scan</span>
+            <span id="scan-pct">0%</span>
+          </div>
+          <div class="track"><div class="fill" id="scan-fill" style="width:0%"></div></div>
+        </div>
+
+        <div class="alert" id="alert-box"></div>
+      </div>
+
+      <!-- Shown when escort hardware is offline -->
+      <div id="escort-offline" class="offline-block">
+        <div class="offline-label">No Escort Signal</div>
+        <div class="offline-sub">Waiting for bot to come online</div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-cell">
+          <div class="stat-v" id="f-loc">—</div>
+          <div class="stat-l">Location</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-v" id="f-bat">—</div>
+          <div class="stat-l">Battery</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-v" id="f-nodes">—</div>
+          <div class="stat-l">Nodes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera ─────────────────────────────────────────────────── -->
+  <div class="panel panel--camera">
+    <div class="cam-wrap">
+      <img class="cam-img" id="cam-img" src="/video_feed"
+           onerror="document.getElementById('cam-no').style.display='flex';this.style.display='none'">
+      <div class="cam-offline" id="cam-no" style="display:none">
+        <div class="cam-offline-lbl">No Signal</div>
+      </div>
+      <div class="cam-hdr">
+        <div class="cam-label">
+          <div class="rec-dot"></div>
+          IMX708 Wide · Live
+        </div>
+        <div class="cam-label">640×480</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drive & Detection ─────────────────────────────────────── -->
+  <div class="panel panel--dd">
+    <div class="ph">
+      <div class="ph-title">
+        <div class="ph-dot" style="background:var(--accent)"></div>
+        Drive &amp; Detection
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="badge badge-dim" id="teleop-badge" style="display:none">TELEOP</div>
+        <div class="badge badge-dim" id="dd-badge">OFFLINE</div>
+      </div>
+    </div>
+
+    <div class="dd-body">
+      <!-- shown when connected -->
+      <div id="dd-online" style="display:none">
+        <div class="dd-section">
+          <div class="dd-label">Motors</div>
+          <div class="motor-row">
+            <span class="motor-id">L</span>
+            <div class="motor-track"><div class="motor-fill" id="ml-fill" style="width:0%;left:50%"></div></div>
+            <span class="motor-pct" id="ml-val">0%</span>
+          </div>
+          <div class="motor-row">
+            <span class="motor-id">R</span>
+            <div class="motor-track"><div class="motor-fill" id="mr-fill" style="width:0%;left:50%"></div></div>
+            <span class="motor-pct" id="mr-val">0%</span>
+          </div>
+          <div class="steer-val" id="steer">—</div>
+          <div class="dm-bar" id="dm-bar" style="display:none">
+            <div class="dm-fill" id="dm-fill"></div>
+          </div>
+          <div class="steer-val" id="dm-label" style="display:none;color:var(--green);font-size:8px"></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+            <span style="font-size:9px;color:var(--t3)">Mode</span>
+            <button class="drive-mode-btn" id="drive-mode-btn">ARCADE</button>
+          </div>
+          <div class="kb-hint" id="kb-hint">WASD / Arrows · SPACE = Dead Man</div>
+        </div>
+
+        <div class="dd-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="dd-label" style="margin-bottom:0">Person Detection</div>
+            <div style="display:flex;gap:6px">
+              <button class="drive-mode-btn" id="auto-btn" style="font-size:8px">AUTO OFF</button>
+              <button class="drive-mode-btn" id="yolo-btn" style="font-size:8px">YOLO OFF</button>
+            </div>
+          </div>
+          <div class="det-grid">
+            <div class="det-cell">
+              <div class="det-cell-lbl">Confidence</div>
+              <div class="det-cell-val" id="det-conf">—</div>
+            </div>
+            <div class="det-cell">
+              <div class="det-cell-lbl">FPS</div>
+              <div class="det-cell-val" id="det-fps">—</div>
+            </div>
+            <div class="det-cell">
+              <div class="det-cell-lbl">Targets</div>
+              <div class="det-cell-val" id="det-targets">—</div>
+            </div>
+            <div class="det-cell">
+              <div class="det-cell-lbl">Model</div>
+              <div class="det-cell-val dim" id="det-model">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- offline state -->
+      <div class="offline-row" id="dd-offline">BOT OFFLINE — NO TELEMETRY</div>
+    </div>
+  </div>
+
+  <!-- Scan Log ──────────────────────────────────────────────── -->
+  <div class="panel panel--full">
+    <div class="ph" style="padding-bottom:12px">
+      <div class="ph-title">
+        <div class="ph-dot" style="background:var(--amber)"></div>
+        Vendor Scan Log
+      </div>
+      <div class="badge badge-dim" id="scan-count">0 Records</div>
+    </div>
+    <div class="scan-body" id="scan-list">
+      <div class="scan-empty">No scan records on disk.</div>
+    </div>
+  </div>
+
+</div><!-- /grid -->
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Theme ─────────────────────────────────────────────────────
+const html = document.documentElement;
+const saved = localStorage.getItem('theme') || 'dark';
+html.className = saved;
+$('theme-btn').textContent = saved === 'dark' ? '☀' : '☾';
+
+$('theme-btn').addEventListener('click', () => {
+  const next = html.className === 'dark' ? 'light' : 'dark';
+  html.className = next;
+  $('theme-btn').textContent = next === 'dark' ? '☀' : '☾';
+  localStorage.setItem('theme', next);
+});
+
+// ── Clock ─────────────────────────────────────────────────────
+function tick() {
+  $('clock').textContent = new Date().toLocaleTimeString([], {
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+}
+setInterval(tick, 1000); tick();
+
+// ── WebSocket ─────────────────────────────────────────────────
+let ws = null, retryTimer = null;
+
+function connect() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+
+  ws.onopen = () => {
+    setBadge('connected', 'Connected');
+    $('led').className = 'status-led live';
+    clearTimeout(retryTimer);
+  };
+
+  ws.onclose = () => {
+    setBadge('connecting', 'Reconnecting');
+    $('led').className = 'status-led connecting';
+    retryTimer = setTimeout(connect, 3000);
+  };
+
+  ws.onerror = () => ws.close();
+
+  ws.onmessage = e => {
+    try { route(JSON.parse(e.data)); } catch(_) {}
+  };
+}
+
+function setBadge(cls, txt) {
+  const el = $('conn-badge');
+  el.className = 'conn ' + cls;
+  $('conn-text').textContent = txt;
+}
+
+function route(d) {
+  if (d.type === 'system')       applySystem(d);
+  if (d.type === 'escort')       applyEscort(d);
+  if (d.type === 'drive_detection') applyDD(d);
+  if (d.type === 'scan_history') renderScans(d.scans);
+  if (d.type === 'status')       applyStatus(d);
+}
+
+// ── System Stats ──────────────────────────────────────────────
+function applySystem(d) {
+  setText('s-cpu',  d.cpu_pct != null ? d.cpu_pct.toFixed(1) + '%' : '—',
+          d.cpu_pct > 85 ? 'crit' : d.cpu_pct > 65 ? 'warn' : '');
+  setText('s-mem',  d.mem_pct != null ? d.mem_pct.toFixed(1) + '%' : '—',
+          d.mem_pct > 85 ? 'crit' : d.mem_pct > 65 ? 'warn' : '');
+  setText('s-temp', d.temp_c  != null ? d.temp_c.toFixed(1) + '°C' : '—',
+          d.temp_c > 75 ? 'crit' : d.temp_c > 60 ? 'warn' : '');
+  $('s-up').textContent = d.uptime_s != null ? fmtUptime(d.uptime_s) : '—';
+}
+
+function setText(id, txt, cls) {
+  const el = $(id);
+  el.textContent = txt;
+  el.className = 'val' + (cls ? ' ' + cls : '');
+}
+
+function fmtUptime(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+// ── Escort Panel ──────────────────────────────────────────────
+const escortDescs = {
+  idle:       'Standing by at charging bay',
+  dispatched: 'Dispatched — heading to vendor pickup',
+  escorting:  'Escorting vendor to assigned rack',
+  arrived:    'Arrived at rack',
+  scanning:   'Scanning rack nodes',
+  monitoring: 'Monitoring for unauthorized contact',
+  verified:   'Work complete — no violations detected',
+  returning:  'Returning to charging bay',
+};
+
+function applyEscort(d) {
+  $('escort-online').style.display  = 'flex';
+  $('escort-offline').style.display = 'none';
+
+  $('mode-val').textContent = d.phase.replace(/_/g, ' ').toUpperCase();
+  $('mode-sub').textContent = escortDescs[d.phase] || d.phase;
+
+  const b = $('escort-badge');
+  if      (d.phase === 'idle')       { b.textContent = 'IDLE';       b.className = 'badge badge-dim'; }
+  else if (d.phase === 'scanning')   { b.textContent = 'SCANNING';   b.className = 'badge badge-amber'; }
+  else if (d.phase === 'monitoring') { b.textContent = 'MONITORING'; b.className = 'badge badge-blue'; }
+  else if (d.phase === 'verified')   { b.textContent = 'VERIFIED';   b.className = 'badge badge-green'; }
+  else                               { b.textContent = 'ACTIVE';     b.className = 'badge badge-green'; }
+
+  if (d.vendor) {
+    $('vendor-card').style.display = '';
+    $('vendor-name').textContent   = d.vendor.name;
+    $('vendor-ticket').textContent = d.vendor.ticket;
+    $('vendor-auth').textContent   = `AUTH: ${d.target_rack} / ${d.authorized_ru}`;
+  } else {
+    $('vendor-card').style.display = 'none';
+  }
+
+  if (d.scan_progress > 0) {
+    $('scan-section').style.display = '';
+    $('scan-pct').textContent        = d.scan_progress + '%';
+    $('scan-fill').style.width       = d.scan_progress + '%';
+  } else {
+    $('scan-section').style.display = 'none';
+  }
+
+  const ab = $('alert-box');
+  if (d.alert) {
+    ab.className = 'alert visible ' + (d.alert.status === 'cleared' ? 'ok' : 'warn');
+    ab.textContent = d.alert.status === 'checking'
+      ? `⚠ ${d.alert.ru}: Contact detected — verifying…`
+      : `✓ ${d.alert.ru}: Cleared — no unauthorized change`;
+  } else {
+    ab.className = 'alert';
+  }
+
+  $('f-loc').textContent   = (d.location || '—').replace(/_/g, ' ');
+  $('f-bat').textContent   = d.battery_pct != null ? d.battery_pct + '%' : '—';
+  $('f-nodes').textContent = d.nodes_scanned ?? '—';
+}
+
+// ── Drive & Detection ─────────────────────────────────────────
+function applyDD(d) {
+  $('dd-online').style.display  = '';
+  $('dd-offline').style.display = 'none';
+
+  setMotor('ml', d.motor_l);
+  setMotor('mr', d.motor_r);
+
+  const stopped = d.motor_l === 0 && d.motor_r === 0;
+  const diff    = d.motor_l - d.motor_r;
+  $('steer').textContent = stopped ? 'STOPPED'
+    : Math.abs(diff) < 8 ? 'STRAIGHT'
+    : diff > 0 ? 'TURNING RIGHT' : 'TURNING LEFT';
+
+  const b = $('dd-badge');
+  if (d.follow_active) {
+    b.textContent = stopped ? 'SEARCHING' : 'FOLLOWING';
+    b.className   = 'badge badge-blue';
+  } else {
+    b.textContent = stopped ? 'STOPPED' : 'DRIVING';
+    b.className   = 'badge ' + (stopped ? 'badge-dim' : 'badge-green');
+  }
+
+  if (d.follow_active !== undefined) applyFollowState(d.follow_active);
+
+  if (yoloActive) {
+    const conf = $('det-conf');
+    conf.textContent = d.yolo_conf != null ? d.yolo_conf.toFixed(2) : '—';
+    conf.className   = 'det-cell-val ' + (d.yolo_conf >= .6 ? 'green' : d.yolo_conf > 0 ? 'amber' : '');
+    $('det-fps').textContent     = d.yolo_fps        != null ? d.yolo_fps.toFixed(1)  : '—';
+    $('det-targets').textContent = d.yolo_detections ?? '—';
+    $('det-model').textContent   = d.yolo_model || '—';
+  }
+}
+
+function setMotor(id, pct) {
+  const abs = Math.abs(pct || 0);
+  const rev = pct < 0;
+  const fill = $(id + '-fill');
+  fill.style.width      = (abs / 2) + '%';
+  fill.style.left       = rev ? (50 - abs / 2) + '%' : '50%';
+  fill.classList.toggle('rev', rev);
+  $(id + '-val').textContent = (pct > 0 ? '+' : '') + (pct || 0) + '%';
+}
+
+// ── Status ────────────────────────────────────────────────────
+function applyStatus(d) {
+  if (!d.escort_connected) {
+    $('escort-online').style.display  = 'none';
+    $('escort-offline').style.display = 'flex';
+    $('escort-badge').textContent = 'OFFLINE';
+    $('escort-badge').className   = 'badge badge-dim';
+    $('dd-online').style.display  = 'none';
+    $('dd-offline').style.display = '';
+    $('dd-badge').textContent = 'OFFLINE';
+  }
+}
+
+// ── Scan Log ──────────────────────────────────────────────────
+function renderScans(scans) {
+  $('scan-count').textContent = scans.length + ' Record' + (scans.length !== 1 ? 's' : '');
+
+  if (!scans.length) {
+    $('scan-list').innerHTML = '<div class="scan-empty">No scan records on disk.</div>';
+    return;
+  }
+
+  $('scan-list').innerHTML = '';
+  scans.forEach((s, i) => {
+    const dt  = new Date(s.timestamp);
+    const ts  = dt.toLocaleDateString([], { month: 'short', day: 'numeric' })
+              + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dur = `${Math.floor(s.duration_s / 60)}m ${s.duration_s % 60}s`;
+    const flags = (s.flags || []).map(f =>
+      `<span class="scan-flag">${esc(f)}</span>`).join('');
+
+    const row = document.createElement('div');
+    row.className = 'scan-row';
+    row.style.animationDelay = (i * 0.06) + 's';
+    row.innerHTML = `
+      <div class="scan-dot ${s.result}"></div>
+      <div>
+        <div class="scan-vendor">${esc(s.vendor)} <span style="font-weight:400;color:var(--t3)">/ ${esc(s.ticket)}</span></div>
+        <div class="scan-meta">${esc(s.rack)} · ${esc(s.authorized_ru)} · ${s.nodes_scanned} nodes · ${dur}</div>
+        ${flags ? '<div class="scan-flags">' + flags + '</div>' : ''}
+      </div>
+      <div class="scan-right">
+        <div class="scan-result ${s.result}">${s.result.toUpperCase()}</div>
+        <div class="scan-time">${ts}</div>
+      </div>`;
+    $('scan-list').appendChild(row);
+  });
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+
+// ── Gamepad / Xbox + Keyboard Teleop ──────────────────────────
+const DEADZONE   = 0.12;   // ignore stick noise below this
+const SEND_HZ    = 30;     // max commands/sec to server
+const SEND_MS    = 1000 / SEND_HZ;
+
+let gpIndex      = null;   // index of the connected gamepad
+let gpLastSend   = 0;
+let gpActive     = false;
+let gpAnimId     = null;
+
+let driveMode    = 'arcade'; // 'arcade' | 'tank'
+
+// ── Keyboard state ─────────────────────────────────────────────
+const keys = {};
+let kbLastSend = 0;
+let kbAnimId   = null;
+
+window.addEventListener('keydown', e => {
+  const tracked = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',
+                   'w','a','s','d','W','A','S','D',' '];
+  if (tracked.includes(e.key)) e.preventDefault();
+  keys[e.key] = true;
+  if (!kbAnimId) kbAnimId = requestAnimationFrame(kbLoop);
+});
+
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  const anyMove = ['w','s','a','d','W','S','A','D',
+                   'ArrowUp','ArrowDown','ArrowLeft','ArrowRight']
+                    .some(k => keys[k]);
+  if (!keys[' '] || !anyMove) {
+    if (kbAnimId) { cancelAnimationFrame(kbAnimId); kbAnimId = null; }
+    sendTeleopStop();
+    applyMotorLocal(0, 0);
+    $('teleop-badge').style.display = 'none';
+    if (gpIndex === null) {
+      $('dm-fill').style.width = '0%';
+    }
+  }
+});
+
+function sendTeleopStop() {
+  if (ws && ws.readyState === 1)
+    ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+}
+
+function deadzone(v) {
+  return Math.abs(v) < DEADZONE ? 0 : v;
+}
+
+// Arcade (differential): positive turn = turn right
+function arcadeDrive(fwd, turn) {
+  const l = Math.max(-1, Math.min(1, fwd - turn));
+  const r = Math.max(-1, Math.min(1, fwd + turn));
+  return { l, r };
+}
+
+// Tank: left stick/keys = left motor, right stick/keys = right motor
+function tankDrive(leftY, rightY) {
+  return {
+    l: Math.max(-1, Math.min(1, leftY)),
+    r: Math.max(-1, Math.min(1, rightY))
+  };
+}
+
+function getGpDrive(gp) {
+  if (driveMode === 'tank') {
+    // axes[1] = left stick Y, axes[3] = right stick Y (both inverted)
+    return tankDrive(-deadzone(gp.axes[1]), -deadzone(gp.axes[3]));
+  } else {
+    const fwd  = -deadzone(gp.axes[1]);
+    const turn =  deadzone(gp.axes[2]);
+    return arcadeDrive(fwd, turn);
+  }
+}
+
+function getKbDrive() {
+  if (driveMode === 'tank') {
+    // W/S = left motor, Up/Down = right motor
+    const l = (keys['w']||keys['W'] ? 1 : 0) - (keys['s']||keys['S'] ? 1 : 0);
+    const r = (keys['ArrowUp'] ? 1 : 0) - (keys['ArrowDown'] ? 1 : 0);
+    return tankDrive(l, r);
+  } else {
+    const fwd  = (keys['w']||keys['W']||keys['ArrowUp']    ? 1 : 0)
+               - (keys['s']||keys['S']||keys['ArrowDown']  ? 1 : 0);
+    const turn = (keys['d']||keys['D']||keys['ArrowRight'] ? 1 : 0)
+               - (keys['a']||keys['A']||keys['ArrowLeft']  ? 1 : 0);
+    return arcadeDrive(fwd * 0.8, turn * 0.65);
+  }
+}
+
+function kbLoop() {
+  kbAnimId = requestAnimationFrame(kbLoop);
+
+  const spaceHeld = !!keys[' '];
+  const { l, r } = getKbDrive();
+  const moving = Math.abs(l) > 0.01 || Math.abs(r) > 0.01;
+  const now = performance.now();
+
+  // Dead-man bar (keyboard) — only show when no gamepad connected
+  if (gpIndex === null) {
+    $('dm-bar').style.display   = '';
+    $('dm-label').style.display = '';
+    $('dm-fill').style.width    = spaceHeld ? '100%' : '0%';
+    $('dm-label').textContent   = 'SPACE — DEAD MAN';
+  }
+
+  if (spaceHeld && moving) {
+    if (now - kbLastSend >= SEND_MS && ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
+      kbLastSend = now;
+    }
+    applyMotorLocal(l, r);
+    updateTeleopBadge(l, r);
+  } else {
+    if (now - kbLastSend >= SEND_MS) {
+      sendTeleopStop();
+      kbLastSend = now;
+    }
+    applyMotorLocal(0, 0);
+    $('teleop-badge').style.display = 'none';
+  }
+}
+
+function gpLoop() {
+  gpAnimId = requestAnimationFrame(gpLoop);
+
+  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = gpIndex !== null ? gamepads[gpIndex] : null;
+  if (!gp) return;
+
+  const { l, r } = getGpDrive(gp);
+
+  // Right trigger (RT) = buttons[7] — dead-man switch
+  const rt = gp.buttons[7] ? gp.buttons[7].value : 0;
+  gpActive = rt > 0.1;
+
+  // Dead-man bar
+  $('dm-bar').style.display   = '';
+  $('dm-label').style.display = '';
+  $('dm-fill').style.width    = (rt * 100) + '%';
+  $('dm-label').textContent   = 'RT — DEAD MAN ACTIVE';
+
+  const now = performance.now();
+
+  if (gpActive) {
+    if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
+      gpLastSend = now;
+    }
+    applyMotorLocal(l, r);
+    updateTeleopBadge(l, r);
+  } else {
+    if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
+      sendTeleopStop();
+      gpLastSend = now;
+    }
+    applyMotorLocal(0, 0);
+    $('teleop-badge').style.display = 'none';
+  }
+}
+
+function updateTeleopBadge(l, r) {
+  const tb = $('teleop-badge');
+  if (Math.abs(l) > 0.01 || Math.abs(r) > 0.01) {
+    tb.style.display = '';
+    tb.className = 'badge badge-blue';
+    tb.textContent = 'TELEOP';
+    $('dd-badge').textContent = 'DRIVING';
+    $('dd-badge').className   = 'badge badge-green';
+    $('steer').textContent = Math.abs(l - r) < 0.08 ? 'STRAIGHT'
+      : l > r ? 'TURNING RIGHT' : 'TURNING LEFT';
+  } else {
+    tb.style.display = 'none';
+  }
+}
+
+function applyMotorLocal(l, r) {
+  if (gpIndex !== null || kbAnimId !== null) {
+    $('dd-online').style.display  = '';
+    $('dd-offline').style.display = 'none';
+  }
+  setMotor('ml', Math.round(l * 100));
+  setMotor('mr', Math.round(r * 100));
+}
+
+// ── Drive mode toggle ──────────────────────────────────────────
+$('drive-mode-btn').addEventListener('click', () => {
+  driveMode = driveMode === 'arcade' ? 'tank' : 'arcade';
+  const btn = $('drive-mode-btn');
+  if (driveMode === 'tank') {
+    btn.textContent = 'TANK';
+    btn.classList.add('tank');
+    $('kb-hint').textContent = 'W/S = Left · ↑/↓ = Right · SPACE = Dead Man';
+  } else {
+    btn.textContent = 'ARCADE';
+    btn.classList.remove('tank');
+    $('kb-hint').textContent = 'WASD / Arrows · SPACE = Dead Man';
+  }
+});
+
+window.addEventListener('gamepadconnected', e => {
+  gpIndex = e.gamepad.index;
+  $('gp-badge').classList.add('active');
+  $('gp-text').textContent = e.gamepad.id.includes('Xbox')
+    ? 'Xbox' : 'Gamepad ' + (gpIndex + 1);
+  if (!gpAnimId) gpLoop();
+});
+
+window.addEventListener('gamepaddisconnected', e => {
+  if (e.gamepad.index === gpIndex) {
+    gpIndex = null;
+    $('gp-badge').classList.remove('active');
+    $('gp-text').textContent = 'No Controller';
+    $('dm-bar').style.display   = 'none';
+    $('dm-label').style.display = 'none';
+    $('teleop-badge').style.display = 'none';
+    sendTeleopStop();
+    if (gpAnimId) { cancelAnimationFrame(gpAnimId); gpAnimId = null; }
+  }
+});
+
+// ── Autonomous Follow Toggle ───────────────────────────────────
+let followActive = false;
+
+$('auto-btn').addEventListener('click', () => {
+  followActive = !followActive;
+  const btn = $('auto-btn');
+  if (followActive) {
+    btn.textContent = 'AUTO ON';
+    btn.classList.add('tank');
+    // Auto needs YOLO — turn it on if not already
+    if (!yoloActive) $('yolo-btn').click();
+  } else {
+    btn.textContent = 'AUTO OFF';
+    btn.classList.remove('tank');
+  }
+  if (ws && ws.readyState === 1)
+    ws.send(JSON.stringify({ target: 'follow', action: 'toggle', params: {} }));
+});
+
+function applyFollowState(active) {
+  followActive = active;
+  const btn = $('auto-btn');
+  if (active) {
+    btn.textContent = 'AUTO ON';
+    btn.classList.add('tank');
+    $('teleop-badge').style.display = 'none';
+  } else {
+    btn.textContent = 'AUTO OFF';
+    btn.classList.remove('tank');
+  }
+}
+
+// ── YOLO Detection Toggle ──────────────────────────────────────
+let yoloActive = false;
+
+$('yolo-btn').addEventListener('click', () => {
+  yoloActive = !yoloActive;
+  const btn = $('yolo-btn');
+  if (yoloActive) {
+    btn.textContent = 'YOLO ON';
+    btn.classList.add('tank');
+  } else {
+    btn.textContent = 'YOLO OFF';
+    btn.classList.remove('tank');
+    // Clear detection display when turned off
+    $('det-conf').textContent = '—';
+    $('det-fps').textContent  = '—';
+    $('det-targets').textContent = '—';
+    $('det-model').textContent   = '—';
+  }
+  if (ws && ws.readyState === 1)
+    ws.send(JSON.stringify({ target: 'detection', action: 'toggle', params: { enabled: yoloActive } }));
+});
+
+connect();
+</script>
+</body>
+</html>

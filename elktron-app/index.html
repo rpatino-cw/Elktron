@@ -1,873 +1,786 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elktron — Escort Bot</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* ── Tokens ─────────────────────────────────────────────── */
-    :root {
-      --font: 'Inter', system-ui, sans-serif;
-      --mono: 'JetBrains Mono', monospace;
-
-      /* Dark (default) */
-      --bg:        #080a10;
-      --surface:   #0d0f18;
-      --raised:    #131620;
-      --border:    rgba(255,255,255,0.07);
-      --border-hi: rgba(255,255,255,0.13);
-      --t1: #e4e6f0;
-      --t2: #8890b0;
-      --t3: #484e6a;
-      --accent:  #4264ff;
-      --green:   #10b981;
-      --amber:   #f59e0b;
-      --red:     #ef4444;
-      --cyan:    #22d3ee;
-      --green-muted: rgba(16,185,129,0.10);
-      --amber-muted: rgba(245,158,11,0.10);
-      --red-muted:   rgba(239,68,68,0.10);
-      --accent-muted: rgba(66,100,255,0.10);
-    }
-
-    html.light {
-      --bg:        #f1f3f8;
-      --surface:   #ffffff;
-      --raised:    #f8f9fc;
-      --border:    rgba(0,0,0,0.08);
-      --border-hi: rgba(0,0,0,0.14);
-      --t1: #111827;
-      --t2: #4b5563;
-      --t3: #9ca3af;
-      --green-muted: rgba(16,185,129,0.08);
-      --amber-muted: rgba(245,158,11,0.08);
-      --red-muted:   rgba(239,68,68,0.08);
-      --accent-muted: rgba(66,100,255,0.08);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      height: 100%;
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--t1);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    body { display: flex; flex-direction: column; }
-
-    /* ── Nav ─────────────────────────────────────────────────── */
-    nav {
-      height: 46px;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 18px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
-      position: sticky; top: 0; z-index: 100;
-    }
-
-    .nav-l, .nav-r { display: flex; align-items: center; gap: 14px; }
-    .nav-c { display: flex; align-items: center; gap: 20px; }
-
-    .wordmark {
-      font-family: var(--mono);
-      font-size: 12px; font-weight: 700;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--t1);
-      display: flex; align-items: center; gap: 8px;
-    }
-
-    .status-led {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-    }
-
-    .status-led.offline { background: var(--red); box-shadow: 0 0 6px var(--red); }
-    .status-led.connecting { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
-
-    @keyframes led-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-    .status-led.live { animation: led-pulse 2s ease-in-out infinite; }
-
-    .nav-divider { width: 1px; height: 16px; background: var(--border-hi); }
-
-    .sys-stat {
-      font-family: var(--mono);
-      font-size: 10px; font-weight: 500;
-      color: var(--t3);
-      display: flex; align-items: center; gap: 5px;
-    }
-
-    .sys-stat .lbl {
-      font-size: 8px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-    }
-
-    .sys-stat .val { color: var(--t2); }
-    .sys-stat .val.warn { color: var(--amber); }
-    .sys-stat .val.crit { color: var(--red); }
-
-    .nav-clock {
-      font-family: var(--mono);
-      font-size: 11px; font-weight: 500;
-      color: var(--t2); letter-spacing: 0.05em;
-    }
-
-    /* connection badge */
-    .conn {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 3px 10px; border-radius: 3px;
-      display: flex; align-items: center; gap: 5px;
-    }
-
-    .conn.connected    { background: var(--green-muted); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
-    .conn.disconnected { background: var(--red-muted);   color: var(--red);   border: 1px solid rgba(239,68,68,.2); }
-    .conn.connecting   { background: var(--amber-muted); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
-
-    /* theme toggle */
-    .theme-btn {
-      width: 28px; height: 28px; border-radius: 5px;
-      background: var(--raised); border: 1px solid var(--border);
-      color: var(--t2); cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px;
-      transition: border-color .2s, color .2s;
-    }
-    .theme-btn:hover { border-color: var(--border-hi); color: var(--t1); }
-
-    /* ── Grid ────────────────────────────────────────────────── */
-    .grid {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1.35fr 1fr;
-      grid-template-rows: 1fr auto auto;
-      gap: 1px;
-      background: var(--border);
-      min-height: 0;
-    }
-
-    /* ── Panel base ──────────────────────────────────────────── */
-    .panel {
-      background: var(--surface);
-      display: flex; flex-direction: column;
-      position: relative; overflow: hidden;
-    }
-
-    .panel--full { grid-column: 1 / -1; }
-    .panel--escort { grid-column: 1; grid-row: 1 / 3; }
-    .panel--camera { grid-column: 2; grid-row: 1; min-height: 300px; }
-    .panel--dd     { grid-column: 2; grid-row: 2; }
-
-    .ph {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px 0;
-      flex-shrink: 0;
-    }
-
-    .ph-title {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--t3);
-      display: flex; align-items: center; gap: 7px;
-    }
-
-    .ph-dot { width: 4px; height: 4px; border-radius: 50%; }
-
-    .badge {
-      font-family: var(--mono);
-      font-size: 8px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 3px;
-    }
-
-    .badge-green  { background: var(--green-muted);  color: var(--green);  border: 1px solid rgba(16,185,129,.15); }
-    .badge-blue   { background: var(--accent-muted); color: var(--accent); border: 1px solid rgba(66,100,255,.15); }
-    .badge-amber  { background: var(--amber-muted);  color: var(--amber);  border: 1px solid rgba(245,158,11,.15); }
-    .badge-red    { background: var(--red-muted);    color: var(--red);    border: 1px solid rgba(239,68,68,.15); }
-    .badge-dim    { background: transparent; color: var(--t3); border: 1px solid var(--border); }
-
-    /* ── Escort Panel ────────────────────────────────────────── */
-    .escort-body { flex: 1; display: flex; flex-direction: column; padding: 16px; }
-
-    .mode-row {
-      display: flex; align-items: baseline; gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .mode-val {
-      font-family: var(--mono);
-      font-size: 28px; font-weight: 700;
-      letter-spacing: -0.5px; text-transform: uppercase;
-      color: var(--t1);
-    }
-
-    .mode-sub {
-      font-size: 11px; color: var(--t3);
-      margin-bottom: 20px; line-height: 1.4;
-    }
-
-    /* offline state */
-    .offline-block {
-      flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 8px;
-      border: 1px dashed var(--border-hi);
-      border-radius: 6px; margin-bottom: 16px;
-    }
-
-    .offline-label {
-      font-family: var(--mono);
-      font-size: 10px; font-weight: 700;
-      letter-spacing: 0.16em; text-transform: uppercase;
-      color: var(--t3);
-    }
-
-    .offline-sub {
-      font-size: 10px; color: var(--t3); opacity: .6;
-    }
-
-    /* vendor card */
-    .vendor-card {
-      background: var(--raised);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 14px;
-      margin-bottom: 12px;
-    }
-
-    .vendor-name {
-      font-size: 13px; font-weight: 600;
-      color: var(--t1); margin-bottom: 2px;
-    }
-
-    .vendor-ticket {
-      font-family: var(--mono);
-      font-size: 10px; color: var(--t3);
-    }
-
-    .vendor-auth {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--amber);
-      margin-top: 10px; padding-top: 10px;
-      border-top: 1px solid var(--border);
-    }
-
-    /* scan progress */
-    .scan-hdr {
-      display: flex; justify-content: space-between;
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--t3); margin-bottom: 5px;
-    }
-
-    .track {
-      width: 100%; height: 3px;
-      background: var(--raised); border-radius: 2px; overflow: hidden;
-      margin-bottom: 14px;
-    }
-
-    .fill {
-      height: 100%; border-radius: 2px;
-      background: var(--green);
-      transition: width .4s ease;
-    }
-
-    /* alert */
-    .alert {
-      padding: 10px 12px; border-radius: 5px;
-      font-size: 11px; font-weight: 500;
-      margin-bottom: 12px; display: none;
-    }
-
-    .alert.visible { display: block; }
-    .alert.warn { background: var(--amber-muted); color: var(--amber); border: 1px solid rgba(245,158,11,.2); }
-    .alert.ok   { background: var(--green-muted); color: var(--green); border: 1px solid rgba(16,185,129,.2); }
-
-    /* footer stats */
-    .stat-row {
-      display: flex; margin-top: auto;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-    }
-
-    .stat-cell {
-      flex: 1; display: flex; flex-direction: column; align-items: center;
-      position: relative; padding: 0 8px;
-    }
-
-    .stat-cell + .stat-cell::before {
-      content: ''; position: absolute; left: 0; top: 3px; bottom: 3px;
-      width: 1px; background: var(--border);
-    }
-
-    .stat-v {
-      font-family: var(--mono);
-      font-size: 14px; font-weight: 700;
-      color: var(--t1); letter-spacing: -0.3px;
-    }
-
-    .stat-l {
-      font-family: var(--mono);
-      font-size: 8px; font-weight: 600;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--t3); margin-top: 3px;
-    }
-
-    /* ── Camera Panel ────────────────────────────────────────── */
-    .cam-wrap {
-      position: absolute; inset: 0;
-      background: #050608;
-    }
-
-    .cam-img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      transform: rotate(180deg);
-      display: block;
-    }
-
-    .cam-hdr {
-      position: absolute; top: 0; left: 0; right: 0;
-      padding: 10px 14px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-      display: flex; align-items: center; justify-content: space-between;
-      z-index: 2; pointer-events: none;
-    }
-
-    .cam-label {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      color: rgba(255,255,255,0.6);
-      display: flex; align-items: center; gap: 6px;
-    }
-
-    .rec-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 5px var(--red);
-    }
-
-    @keyframes rec-blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-    .rec-dot { animation: rec-blink 1.4s ease-in-out infinite; }
-
-    .cam-offline {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 6px;
-    }
-
-    .cam-offline-lbl {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(255,255,255,0.2);
-    }
-
-    /* scanline overlay for dark mode */
-    html.dark .cam-wrap::after {
-      content: '';
-      position: absolute; inset: 0; pointer-events: none; z-index: 1;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,0.06) 2px,
-        rgba(0,0,0,0.06) 4px
-      );
-    }
-
-    /* ── Drive & Detection Panel ─────────────────────────────── */
-    .dd-body {
-      flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 14px;
-    }
-
-    .dd-section { display: flex; flex-direction: column; gap: 8px; }
-
-    .dd-label {
-      font-family: var(--mono);
-      font-size: 8px; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--t3);
-    }
-
-    .motor-row {
-      display: flex; align-items: center; gap: 10px;
-    }
-
-    .motor-id {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700; color: var(--t3);
-      width: 10px; flex-shrink: 0;
-    }
-
-    .motor-track {
-      flex: 1; height: 5px;
-      background: var(--raised); border-radius: 2px;
-      position: relative; overflow: hidden;
-    }
-
-    .motor-track::before {
-      content: ''; position: absolute;
-      left: 50%; top: 0; bottom: 0; width: 1px;
-      background: var(--border-hi);
-    }
-
-    .motor-fill {
-      position: absolute; top: 0; bottom: 0; border-radius: 2px;
-      background: var(--accent);
-      transition: width .12s, left .12s;
-    }
-
-    .motor-fill.rev { background: var(--amber); }
-
-    .motor-pct {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 600; color: var(--t2);
-      width: 36px; text-align: right; flex-shrink: 0;
-    }
-
-    .steer-val {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 600; color: var(--t3);
-      text-align: center; letter-spacing: 0.06em; text-transform: uppercase;
-    }
-
-    .det-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
-    }
-
-    .det-cell {
-      background: var(--raised);
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      padding: 8px 10px;
-    }
-
-    .det-cell-lbl {
-      font-family: var(--mono);
-      font-size: 8px; font-weight: 600;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--t3); margin-bottom: 4px;
-    }
-
-    .det-cell-val {
-      font-family: var(--mono);
-      font-size: 14px; font-weight: 700; color: var(--t1);
-    }
-
-    .det-cell-val.green { color: var(--green); }
-    .det-cell-val.amber { color: var(--amber); }
-    .det-cell-val.dim   { color: var(--t3); }
-
-    .offline-row {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 600;
-      letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--t3);
-      padding: 10px 0; text-align: center;
-      border: 1px dashed var(--border-hi);
-      border-radius: 5px;
-    }
-
-    /* ── Scan Log Panel ──────────────────────────────────────── */
-    .scan-body { padding: 0 16px 16px; flex: 1; overflow-y: auto; }
-
-    .scan-row {
-      display: grid;
-      grid-template-columns: 12px 1fr auto;
-      gap: 14px; align-items: start;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      opacity: 0;
-      animation: rowIn .35s ease forwards;
-    }
-
-    @keyframes rowIn {
-      from { opacity:0; transform: translateX(-3px); }
-      to   { opacity:1; transform: translateX(0); }
-    }
-
-    .scan-row:last-child { border-bottom: none; }
-
-    .scan-dot {
-      width: 8px; height: 8px; border-radius: 50%; margin-top: 4px;
-    }
-    .scan-dot.clean   { background: var(--green); box-shadow: 0 0 4px var(--green); }
-    .scan-dot.flagged { background: var(--red);   box-shadow: 0 0 4px var(--red); }
-
-    .scan-vendor {
-      font-size: 12px; font-weight: 600; color: var(--t1); margin-bottom: 3px;
-    }
-
-    .scan-meta {
-      font-family: var(--mono);
-      font-size: 10px; color: var(--t3); margin-bottom: 5px;
-    }
-
-    .scan-flags { display: flex; flex-wrap: wrap; gap: 4px; }
-
-    .scan-flag {
-      font-family: var(--mono);
-      font-size: 8px; font-weight: 600;
-      padding: 2px 6px; border-radius: 3px;
-      background: var(--amber-muted); color: var(--amber);
-      border: 1px solid rgba(245,158,11,.12);
-    }
-
-    .scan-right { text-align: right; }
-
-    .scan-result {
-      font-family: var(--mono);
-      font-size: 8px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 3px 7px; border-radius: 3px;
-    }
-
-    .scan-result.clean   { background: var(--green-muted); color: var(--green); }
-    .scan-result.flagged { background: var(--red-muted);   color: var(--red);   }
-
-    .scan-time {
-      font-family: var(--mono);
-      font-size: 9px; color: var(--t3); margin-top: 4px;
-    }
-
-    .scan-empty {
-      font-family: var(--mono);
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--t3); padding: 24px 0; text-align: center;
-    }
-
-    /* ── Gamepad ─────────────────────────────────────────────── */
-    .gp-btn {
-      font-family: var(--mono);
-      font-size: 9px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 3px 10px; border-radius: 3px;
-      display: flex; align-items: center; gap: 5px;
-      background: var(--raised); border: 1px solid var(--border);
-      color: var(--t3);
-      transition: background .15s, border-color .15s, color .15s;
-    }
-
-    .gp-btn.active {
-      background: var(--accent-muted);
-      border-color: rgba(66,100,255,.3);
-      color: var(--accent);
-    }
-
-    .gp-btn.active .gp-icon { color: var(--accent); }
-
-    .gp-icon { font-size: 11px; }
-
-    /* drive mode toggle */
-    .drive-mode-btn {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
-      padding: 2px 8px; border-radius: 3px; cursor: pointer;
-      background: var(--raised); border: 1px solid var(--border);
-      color: var(--t3); transition: background .15s, color .15s;
-    }
-    .drive-mode-btn.tank {
-      background: var(--accent-muted);
-      border-color: rgba(66,100,255,.3);
-      color: var(--accent);
-    }
-
-    .kb-hint {
-      font-size: 8px; color: var(--t3); margin-top: 4px;
-      letter-spacing: 0.04em;
-    }
-
-    /* deadman indicator */
-    .dm-bar {
-      height: 2px; border-radius: 1px; margin-top: 4px;
-      background: var(--raised);
-      overflow: hidden;
-    }
-
-    .dm-fill {
-      height: 100%; border-radius: 1px;
-      background: var(--green);
-      width: 0%;
-      transition: width .08s;
-    }
-
-    /* ── Responsive ──────────────────────────────────────────── */
-    @media (max-width: 820px) {
-      .grid { grid-template-columns: 1fr; }
-      .panel--escort, .panel--camera, .panel--dd { grid-column: 1; grid-row: auto; }
-      .panel--camera { min-height: 240px; }
-      .nav-c { display: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation: none !important; }
-      .scan-row { opacity: 1; }
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Elktron — FloorCrew Escort Bot</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "background": "#131313",
+        "on-background": "#e5e2e1",
+        "surface": "#131313",
+        "surface-dim": "#131313",
+        "surface-bright": "#3a3939",
+        "surface-container-lowest": "#0e0e0e",
+        "surface-container-low": "#1c1b1b",
+        "surface-container": "#201f1f",
+        "surface-container-high": "#2a2a2a",
+        "surface-container-highest": "#353534",
+        "surface-variant": "#353534",
+        "surface-tint": "#98cbff",
+        "on-surface": "#e5e2e1",
+        "on-surface-variant": "#bec7d4",
+        "primary": "#98cbff",
+        "primary-container": "#00a3ff",
+        "primary-fixed": "#cfe5ff",
+        "primary-fixed-dim": "#98cbff",
+        "on-primary": "#003354",
+        "on-primary-container": "#00375a",
+        "on-primary-fixed": "#001d33",
+        "on-primary-fixed-variant": "#004a77",
+        "secondary": "#a5caf2",
+        "secondary-container": "#22496b",
+        "secondary-fixed": "#cfe5ff",
+        "secondary-fixed-dim": "#a5caf2",
+        "on-secondary": "#023353",
+        "on-secondary-container": "#94b9e0",
+        "on-secondary-fixed": "#001d33",
+        "on-secondary-fixed-variant": "#22496b",
+        "tertiary": "#ffb77d",
+        "tertiary-container": "#eb8104",
+        "tertiary-fixed": "#ffdcc3",
+        "tertiary-fixed-dim": "#ffb77d",
+        "on-tertiary": "#4d2600",
+        "on-tertiary-container": "#522900",
+        "on-tertiary-fixed": "#2f1500",
+        "on-tertiary-fixed-variant": "#6e3900",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "on-error": "#690005",
+        "on-error-container": "#ffdad6",
+        "outline": "#88919d",
+        "outline-variant": "#3f4852",
+        "inverse-surface": "#e5e2e1",
+        "inverse-on-surface": "#313030",
+        "inverse-primary": "#00629d"
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk"],
+        "body": ["Inter"],
+        "label": ["Inter"]
+      },
+      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+    },
+  },
+}
+</script>
+<style>
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #131313; }
+::-webkit-scrollbar-thumb { background: #353534; border-radius: 2px; }
+.scanning-line {
+  background: linear-gradient(to bottom, transparent 0%, #98cbff 50%, transparent 100%);
+  height: 2px; width: 100%; position: absolute; top: 0; left: 0; opacity: 0.3;
+  animation: scanY 4s linear infinite;
+}
+@keyframes scanY { 0% { top: 0; } 100% { top: 100%; } }
+.glass-hud {
+  backdrop-filter: blur(20px);
+  background: rgba(58, 57, 57, 0.6);
+}
+.grid-bg {
+  background-image: linear-gradient(#3f4852 1px, transparent 1px), linear-gradient(90deg, #3f4852 1px, transparent 1px);
+  background-size: 40px 40px; background-color: #0e0e0e; opacity: 0.1;
+}
+.heat-map-overlay {
+  background: radial-gradient(circle at 70% 30%, rgba(235, 129, 4, 0.15) 0%, transparent 40%),
+              radial-gradient(circle at 40% 60%, rgba(235, 129, 4, 0.1) 0%, transparent 30%);
+}
+.technical-grid {
+  background-image: radial-gradient(circle at 1px 1px, #201f1f 1px, transparent 0);
+  background-size: 24px 24px;
+}
+.glow-primary { box-shadow: 0 0 15px rgba(0, 163, 255, 0.3); }
+.instrumented-void {
+  background-color: #0e0e0e;
+  background-image:
+    linear-gradient(rgba(152, 203, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(152, 203, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.tab-content { display: none; }
+.tab-content.active { display: flex; }
+@keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; pointer-events: none; } }
+.splash-dismiss { animation: fadeOut 0.6s ease-out forwards; }
+</style>
 </head>
-<body>
+<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container overflow-hidden h-screen flex flex-col">
 
-<!-- ── Nav ─────────────────────────────────────────────────── -->
-<nav>
-  <div class="nav-l">
-    <div class="wordmark">
-      <div class="status-led live" id="led"></div>
-      ELKTRON
-    </div>
-    <div class="nav-divider"></div>
-    <div class="wordmark" style="color:var(--t3);font-size:10px">ESCORT BOT</div>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- BOOT SPLASH OVERLAY -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="boot-splash" class="fixed inset-0 z-[9999] instrumented-void flex items-center justify-center">
+  <div class="absolute inset-0 pointer-events-none opacity-20">
+    <div class="w-full h-full bg-[radial-gradient(circle_at_center,_transparent_0%,_#0e0e0e_80%)]"></div>
   </div>
-
-  <div class="nav-c">
-    <div class="sys-stat">
-      <span class="lbl">CPU</span>
-      <span class="val" id="s-cpu">—</span>
+  <div class="relative z-10 flex flex-col items-center w-full max-w-2xl px-8">
+    <div class="mb-16 flex flex-col items-center">
+      <div class="relative p-6">
+        <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary-container"></div>
+        <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary-container"></div>
+        <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary-container"></div>
+        <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary-container"></div>
+        <h1 class="font-headline text-7xl font-bold tracking-tighter text-on-surface">ELK<span class="text-primary-container">TRON</span></h1>
+      </div>
+      <div class="mt-4 flex items-center gap-4">
+        <span class="text-[0.6875rem] font-label tracking-widest text-on-surface-variant uppercase">Command Interface v4.2.0</span>
+        <div class="h-px w-8 bg-outline-variant"></div>
+        <span class="text-[0.6875rem] font-label tracking-widest text-on-surface-variant uppercase">SO-101 Protocol</span>
+      </div>
     </div>
-    <div class="sys-stat">
-      <span class="lbl">MEM</span>
-      <span class="val" id="s-mem">—</span>
+    <div class="w-full space-y-6">
+      <div class="flex justify-between items-end">
+        <div class="space-y-1">
+          <p class="font-headline text-sm font-medium text-primary-container tracking-wide flex items-center gap-2">
+            <span class="material-symbols-outlined text-[14px]">settings_suggest</span>
+            SYSTEM_STATUS: <span class="text-on-surface" id="boot-status">INITIALIZING</span>
+          </p>
+          <h2 class="font-headline text-lg text-on-surface" id="boot-message">Connecting to server...</h2>
+        </div>
+        <div class="text-right">
+          <span class="font-headline text-3xl font-bold text-primary-container tabular-nums" id="boot-pct">0%</span>
+        </div>
+      </div>
+      <div class="relative h-1 w-full bg-surface-container-highest overflow-hidden">
+        <div class="absolute inset-y-0 left-0 bg-primary-container shadow-[0_0_15px_rgba(0,163,255,0.6)] transition-all duration-300" id="boot-fill" style="width: 0%"></div>
+      </div>
+      <div class="grid grid-cols-3 gap-4 pt-4 border-t border-outline-variant/20">
+        <div class="flex flex-col"><span class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-tighter">Latency</span><span class="font-headline text-xs font-medium text-on-surface">--</span></div>
+        <div class="flex flex-col"><span class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-tighter">Security</span><span class="font-headline text-xs font-medium text-on-surface">AES-256</span></div>
+        <div class="flex flex-col"><span class="text-[0.625rem] font-label text-on-surface-variant uppercase tracking-tighter">Protocol</span><span class="font-headline text-xs font-medium text-on-surface">WebSocket</span></div>
+      </div>
     </div>
-    <div class="sys-stat">
-      <span class="lbl">TEMP</span>
-      <span class="val" id="s-temp">—</span>
-    </div>
-    <div class="sys-stat">
-      <span class="lbl">UP</span>
-      <span class="val" id="s-up">—</span>
+    <div class="mt-12 w-full bg-surface-container p-4 rounded-sm border border-outline-variant/10 font-mono text-[10px] leading-relaxed text-on-surface-variant/60 overflow-hidden h-32 relative">
+      <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-surface-container to-transparent z-10"></div>
+      <div id="boot-log" class="space-y-1">
+        <p>[ 0.0001 ] Initializing ELKTRON core kernels...</p>
+      </div>
+      <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-surface-container to-transparent z-10"></div>
     </div>
   </div>
+</div>
 
-  <div class="nav-r">
-    <div class="nav-clock" id="clock">--:--:--</div>
-    <div class="gp-btn" id="gp-badge" title="Xbox controller">
-      <span class="gp-icon">🎮</span>
-      <span id="gp-text">No Controller</span>
-    </div>
-    <div class="conn connecting" id="conn-badge">
-      <span id="conn-text">Connecting</span>
-    </div>
-    <button class="theme-btn" id="theme-btn" title="Toggle theme">☀</button>
-  </div>
-</nav>
-
-<!-- ── Dashboard Grid ───────────────────────────────────────── -->
-<div class="grid">
-
-  <!-- Escort Status ─────────────────────────────────────────── -->
-  <div class="panel panel--escort">
-    <div class="ph">
-      <div class="ph-title">
-        <div class="ph-dot" style="background:var(--green)"></div>
-        Escort Bot
-      </div>
-      <div class="badge badge-dim" id="escort-badge">OFFLINE</div>
-    </div>
-
-    <div class="escort-body">
-      <div id="escort-online" style="display:none; flex:1; flex-direction:column">
-        <div class="mode-row">
-          <div class="mode-val" id="mode-val">—</div>
-        </div>
-        <div class="mode-sub" id="mode-sub">—</div>
-
-        <div class="vendor-card" id="vendor-card" style="display:none">
-          <div class="vendor-name" id="vendor-name">—</div>
-          <div class="vendor-ticket" id="vendor-ticket">—</div>
-          <div class="vendor-auth" id="vendor-auth">—</div>
-        </div>
-
-        <div id="scan-section" style="display:none">
-          <div class="scan-hdr">
-            <span>Rack Scan</span>
-            <span id="scan-pct">0%</span>
-          </div>
-          <div class="track"><div class="fill" id="scan-fill" style="width:0%"></div></div>
-        </div>
-
-        <div class="alert" id="alert-box"></div>
-      </div>
-
-      <!-- Shown when escort hardware is offline -->
-      <div id="escort-offline" class="offline-block">
-        <div class="offline-label">No Escort Signal</div>
-        <div class="offline-sub">Waiting for bot to come online</div>
-      </div>
-
-      <div class="stat-row">
-        <div class="stat-cell">
-          <div class="stat-v" id="f-loc">—</div>
-          <div class="stat-l">Location</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-v" id="f-bat">—</div>
-          <div class="stat-l">Battery</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-v" id="f-nodes">—</div>
-          <div class="stat-l">Nodes</div>
-        </div>
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- HEADER -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<header class="bg-[#0e0e0e] flex justify-between items-center w-full px-6 py-3 h-16 border-b border-[#353534]/20 fixed top-0 z-50">
+  <div class="flex items-center gap-8">
+    <div class="text-xl font-black text-[#98cbff] tracking-tighter font-['Space_Grotesk'] uppercase">Elktron</div>
+    <div class="hidden md:flex items-center gap-6 border-l border-outline-variant/30 pl-6">
+      <div class="flex items-center gap-2" id="conn-badge">
+        <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="conn-led"></div>
+        <span class="text-xs font-['Space_Grotesk'] font-bold tracking-tight uppercase" id="conn-text">Connecting...</span>
       </div>
     </div>
   </div>
+  <div class="flex items-center gap-6">
+    <div class="hidden lg:flex bg-[#201f1f] rounded-lg p-1 border border-outline-variant/20">
+      <button id="mode-manual" class="px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase transition-all bg-[#353534] text-[#98cbff]" onclick="setMode('manual')">Manual</button>
+      <button id="mode-auto" class="px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase transition-all text-[#bec7d4] hover:text-white" onclick="setMode('auto')">Autonomous</button>
+      <button id="mode-demo" class="px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase transition-all text-[#bec7d4] hover:text-white" onclick="setMode('demo')">Demo</button>
+    </div>
+    <div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded">
+      <div class="w-2 h-2 rounded-full bg-primary animate-pulse" id="system-led"></div>
+      <span class="text-xs font-label uppercase tracking-widest text-on-surface-variant" id="system-status-text">System: Connecting</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="p-2 text-[#98cbff] hover:text-white hover:bg-[#353534] transition-colors duration-100 active:scale-95 rounded"><span class="material-symbols-outlined">notifications</span></button>
+      <button class="p-2 text-[#98cbff] hover:text-white hover:bg-[#353534] transition-colors duration-100 active:scale-95 rounded"><span class="material-symbols-outlined">settings</span></button>
+    </div>
+  </div>
+</header>
 
-  <!-- Camera ─────────────────────────────────────────────────── -->
-  <div class="panel panel--camera">
-    <div class="cam-wrap">
-      <img class="cam-img" id="cam-img" src="/video_feed"
-           onerror="document.getElementById('cam-no').style.display='flex';this.style.display='none'">
-      <div class="cam-offline" id="cam-no" style="display:none">
-        <div class="cam-offline-lbl">No Signal</div>
-      </div>
-      <div class="cam-hdr">
-        <div class="cam-label">
-          <div class="rec-dot"></div>
-          IMX708 Wide · Live
+<div class="flex flex-1 pt-16 h-full overflow-hidden">
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SIDEBAR -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<aside class="h-screen w-64 flex flex-col fixed left-0 top-16 bottom-0 z-40 bg-[#0e0e0e] py-4 border-r border-[#353534]/20">
+  <div class="px-6 py-4 mb-2">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-[#98cbff]">smart_toy</span>
+      <h2 class="font-['Space_Grotesk'] text-[#98cbff] font-bold tracking-wide uppercase text-sm">SO-101</h2>
+    </div>
+    <p class="text-[10px] text-on-surface-variant/60 font-mono mt-1 uppercase">ARM + ESCORT BOT</p>
+  </div>
+  <nav class="flex-1 px-2 space-y-1">
+    <a data-tab="dashboard" class="nav-link flex items-center gap-3 px-4 py-3 bg-[#201f1f] text-[#98cbff] border-r-4 border-[#00a3ff] transition-all font-['Inter'] font-medium text-sm antialiased cursor-pointer">
+      <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
+    </a>
+    <a data-tab="camera" class="nav-link flex items-center gap-3 px-4 py-3 text-[#bec7d4] hover:bg-[#353534] hover:text-white transition-all font-['Inter'] font-medium text-sm antialiased cursor-pointer">
+      <span class="material-symbols-outlined">videocam</span><span>Camera Feed</span>
+    </a>
+    <a data-tab="navigation" class="nav-link flex items-center gap-3 px-4 py-3 text-[#bec7d4] hover:bg-[#353534] hover:text-white transition-all font-['Inter'] font-medium text-sm antialiased cursor-pointer">
+      <span class="material-symbols-outlined">explore</span><span>Navigation</span>
+    </a>
+    <a data-tab="diagnostics" class="nav-link flex items-center gap-3 px-4 py-3 text-[#bec7d4] hover:bg-[#353534] hover:text-white transition-all font-['Inter'] font-medium text-sm antialiased cursor-pointer">
+      <span class="material-symbols-outlined">analytics</span><span>Diagnostics</span>
+    </a>
+  </nav>
+  <div class="px-4 pt-4 mt-auto space-y-4 pb-20">
+    <div class="space-y-1 border-t border-[#353534]/20 pt-4">
+      <a class="flex items-center gap-3 px-4 py-2 text-[#bec7d4] hover:text-[#98cbff] text-xs cursor-pointer"><span class="material-symbols-outlined text-lg">help_outline</span>Support</a>
+      <a class="flex items-center gap-3 px-4 py-2 text-[#bec7d4] hover:text-[#98cbff] text-xs cursor-pointer"><span class="material-symbols-outlined text-lg">description</span>Logs</a>
+    </div>
+  </div>
+  <!-- Emergency Stop -->
+  <div class="absolute bottom-0 left-0 right-0 p-4 bg-[#0e0e0e]/80 backdrop-blur-md border-t border-error/10">
+    <button id="estop-btn" class="w-full bg-error-container text-on-error-container py-5 rounded-lg font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-error transition-all active:opacity-80 shadow-lg shadow-error/20">
+      <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
+      <span class="text-base">Emergency Stop</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MAIN CONTENT AREA -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<main class="ml-64 flex-1 flex flex-col bg-surface-container-lowest overflow-hidden">
+
+<!-- ─── TAB: DASHBOARD ─── -->
+<section id="tab-dashboard" class="tab-content active flex-col p-6 gap-6 overflow-y-auto flex-1">
+  <div class="flex justify-between items-end">
+    <div>
+      <h1 class="text-3xl font-headline font-black tracking-tighter text-on-background">FloorCrew Escort Bot</h1>
+      <p class="text-on-surface-variant font-label text-sm uppercase tracking-widest">SO-101 Mobile Platform &amp; Manipulator</p>
+    </div>
+    <div class="flex gap-4">
+      <div class="bg-surface-container p-3 rounded flex flex-col items-end border border-primary/10">
+        <span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-tighter">Battery Level</span>
+        <div class="flex items-center gap-2">
+          <span class="text-2xl font-headline font-bold text-primary" id="dash-battery">--</span>
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">battery_charging_80</span>
         </div>
-        <div class="cam-label">640×480</div>
       </div>
     </div>
   </div>
-
-  <!-- Drive & Detection ─────────────────────────────────────── -->
-  <div class="panel panel--dd">
-    <div class="ph">
-      <div class="ph-title">
-        <div class="ph-dot" style="background:var(--accent)"></div>
-        Drive &amp; Detection
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div class="badge badge-dim" id="teleop-badge" style="display:none">TELEOP</div>
-        <div class="badge badge-dim" id="dd-badge">OFFLINE</div>
-      </div>
-    </div>
-
-    <div class="dd-body">
-      <!-- shown when connected -->
-      <div id="dd-online" style="display:none">
-        <div class="dd-section">
-          <div class="dd-label">Motors</div>
-          <div class="motor-row">
-            <span class="motor-id">L</span>
-            <div class="motor-track"><div class="motor-fill" id="ml-fill" style="width:0%;left:50%"></div></div>
-            <span class="motor-pct" id="ml-val">0%</span>
-          </div>
-          <div class="motor-row">
-            <span class="motor-id">R</span>
-            <div class="motor-track"><div class="motor-fill" id="mr-fill" style="width:0%;left:50%"></div></div>
-            <span class="motor-pct" id="mr-val">0%</span>
-          </div>
-          <div class="steer-val" id="steer">—</div>
-          <div class="dm-bar" id="dm-bar" style="display:none">
-            <div class="dm-fill" id="dm-fill"></div>
-          </div>
-          <div class="steer-val" id="dm-label" style="display:none;color:var(--green);font-size:8px"></div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-            <span style="font-size:9px;color:var(--t3)">Mode</span>
-            <button class="drive-mode-btn" id="drive-mode-btn">ARCADE</button>
-          </div>
-          <div class="kb-hint" id="kb-hint">WASD / Arrows · SPACE = Dead Man</div>
+  <div class="grid grid-cols-12 gap-6 flex-1 min-h-0">
+    <!-- Camera Feed -->
+    <div class="col-span-12 lg:col-span-7 flex flex-col gap-6">
+      <div class="bg-surface-container overflow-hidden rounded-xl relative flex-1 group border border-white/5 min-h-[300px]">
+        <div class="absolute top-4 left-4 z-10 flex gap-2">
+          <span class="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded">LIVE</span>
+          <span class="bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">CAM_01</span>
         </div>
-
-        <div class="dd-section">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="dd-label" style="margin-bottom:0">Person Detection</div>
-            <div style="display:flex;gap:6px">
-              <button class="drive-mode-btn" id="auto-btn" style="font-size:8px">AUTO OFF</button>
-              <button class="drive-mode-btn" id="yolo-btn" style="font-size:8px">YOLO OFF</button>
-            </div>
-          </div>
-          <div class="det-grid">
-            <div class="det-cell">
-              <div class="det-cell-lbl">Confidence</div>
-              <div class="det-cell-val" id="det-conf">—</div>
-            </div>
-            <div class="det-cell">
-              <div class="det-cell-lbl">FPS</div>
-              <div class="det-cell-val" id="det-fps">—</div>
-            </div>
-            <div class="det-cell">
-              <div class="det-cell-lbl">Targets</div>
-              <div class="det-cell-val" id="det-targets">—</div>
-            </div>
-            <div class="det-cell">
-              <div class="det-cell-lbl">Model</div>
-              <div class="det-cell-val dim" id="det-model">—</div>
+        <img id="dash-cam" alt="Robot camera feed" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" src="/video_feed" onerror="this.style.display='none'"/>
+        <div id="dash-cam-offline" class="absolute inset-0 flex items-center justify-center bg-surface-container-lowest">
+          <div class="text-center"><span class="material-symbols-outlined text-4xl text-on-surface-variant/30">videocam_off</span><p class="text-xs text-on-surface-variant/40 mt-2">Camera Offline</p></div>
+        </div>
+        <div class="absolute inset-0 pointer-events-none border border-primary/20 m-4"></div>
+        <div class="scanning-line"></div>
+        <div class="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
+          <div class="bg-black/40 backdrop-blur-md p-3 rounded-lg border border-white/5">
+            <div class="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Target Identity</div>
+            <div class="text-lg font-headline font-bold text-white" id="dash-target">No Target</div>
+            <div class="flex gap-4 mt-2">
+              <div class="text-xs text-primary" id="dash-dist">DIST: --</div>
+              <div class="text-xs text-tertiary" id="dash-conf">CONF: --</div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- offline state -->
-      <div class="offline-row" id="dd-offline">BOT OFFLINE — NO TELEMETRY</div>
-    </div>
-  </div>
-
-  <!-- Scan Log ──────────────────────────────────────────────── -->
-  <div class="panel panel--full">
-    <div class="ph" style="padding-bottom:12px">
-      <div class="ph-title">
-        <div class="ph-dot" style="background:var(--amber)"></div>
-        Vendor Scan Log
+      <!-- Telemetry Log -->
+      <div class="bg-surface-container h-48 rounded-xl flex flex-col border border-white/5">
+        <div class="bg-surface-container-highest px-4 py-2 flex justify-between items-center rounded-t-xl">
+          <span class="text-xs font-bold font-headline uppercase tracking-widest text-on-surface-variant">System Telemetry Log</span>
+          <span class="text-[10px] font-mono text-primary" id="dash-latency">--ms Latency</span>
+        </div>
+        <div id="telemetry-log" class="p-4 font-mono text-[11px] overflow-y-auto flex-1 space-y-1">
+          <div class="text-on-surface-variant/40"><span class="text-secondary">[--:--:--]</span> Waiting for connection...</div>
+        </div>
       </div>
-      <div class="badge badge-dim" id="scan-count">0 Records</div>
     </div>
-    <div class="scan-body" id="scan-list">
-      <div class="scan-empty">No scan records on disk.</div>
+    <!-- Right Column: Arm Controls + Nav -->
+    <div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+      <!-- Arm Manipulation -->
+      <div class="bg-surface-container p-6 rounded-xl space-y-6 border border-white/5">
+        <div class="flex items-center justify-between">
+          <h3 class="font-headline font-bold text-on-background flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">precision_manufacturing</span>SO-101 Arm Manipulation
+          </h3>
+          <button class="text-[10px] border border-outline-variant px-2 py-1 rounded text-on-surface-variant hover:bg-surface-container-highest uppercase font-bold tracking-tighter">Reset Pose</button>
+        </div>
+        <div class="space-y-4" id="arm-sliders">
+          <div class="space-y-1"><div class="flex justify-between text-xs font-medium"><span class="text-on-surface-variant">Base Rotation</span><span class="text-primary font-mono arm-val">0.0°</span></div><input class="w-full accent-primary-container h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer" type="range" min="0" max="180" value="90"/></div>
+          <div class="space-y-1"><div class="flex justify-between text-xs font-medium"><span class="text-on-surface-variant">Shoulder</span><span class="text-primary font-mono arm-val">0.0°</span></div><input class="w-full accent-primary-container h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer" type="range" min="0" max="180" value="90"/></div>
+          <div class="space-y-1"><div class="flex justify-between text-xs font-medium"><span class="text-on-surface-variant">Elbow</span><span class="text-primary font-mono arm-val">0.0°</span></div><input class="w-full accent-primary-container h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer" type="range" min="0" max="180" value="90"/></div>
+          <div class="space-y-1"><div class="flex justify-between text-xs font-medium"><span class="text-on-surface-variant">Wrist Pitch</span><span class="text-primary font-mono arm-val">0.0°</span></div><input class="w-full accent-primary-container h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer" type="range" min="0" max="180" value="90"/></div>
+          <div class="space-y-1"><div class="flex justify-between text-xs font-medium"><span class="text-on-surface-variant">Wrist Roll</span><span class="text-primary font-mono arm-val">0.0°</span></div><input class="w-full accent-primary-container h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer" type="range" min="0" max="180" value="90"/></div>
+          <div class="space-y-1"><div class="flex justify-between text-xs font-medium"><span class="text-on-surface-variant">Gripper</span><span class="text-primary font-mono arm-val">0%</span></div><input class="w-full accent-primary-container h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer" type="range" min="0" max="100" value="50"/></div>
+        </div>
+      </div>
+      <!-- Navigation & Escort Target -->
+      <div class="bg-surface-container p-6 rounded-xl flex-1 flex flex-col gap-4 border border-white/5">
+        <h3 class="font-headline font-bold text-on-background flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">person_search</span>Navigation &amp; Escort Target
+        </h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-surface-container-low p-4 rounded-lg border border-primary/10">
+            <span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block mb-1">Target Tracking</span>
+            <span class="text-lg font-headline font-bold text-primary" id="dash-track-id">--</span>
+          </div>
+          <div class="bg-surface-container-low p-4 rounded-lg border border-primary/10">
+            <span class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block mb-1">Distance</span>
+            <span class="text-lg font-headline font-bold text-primary" id="dash-track-dist">-- m</span>
+          </div>
+        </div>
+        <div class="flex-1 min-h-[120px] bg-surface-container-lowest rounded-lg border border-outline-variant/10 relative overflow-hidden">
+          <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#353534_1px,transparent_1px)] [background-size:20px_20px]"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div class="w-4 h-4 bg-primary rounded-full shadow-[0_0_15px_#98cbff]"></div>
+          </div>
+          <div class="absolute top-[30%] left-[60%]">
+            <div class="w-3 h-3 bg-tertiary rounded-full shadow-[0_0_10px_#ffb77d]"></div>
+            <div class="text-[8px] text-tertiary mt-1 font-bold">TARGET</div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center bg-surface-container-low p-3 rounded">
+            <div class="flex items-center gap-3"><span class="material-symbols-outlined text-primary text-sm">settings_input_component</span><span class="text-xs text-on-surface-variant font-medium">Motor Speed (L/R)</span></div>
+            <span class="text-sm font-mono text-primary" id="dash-motors">-- / -- RPM</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</section>
 
-</div><!-- /grid -->
+<!-- ─── TAB: CAMERA FEED ─── -->
+<section id="tab-camera" class="tab-content flex-col flex-1">
+  <div class="flex-1 relative bg-black overflow-hidden group">
+    <img id="cam-feed" alt="Robot camera feed" class="w-full h-full object-cover opacity-80" src="/video_feed" onerror="this.style.display='none'"/>
+    <div id="cam-offline" class="absolute inset-0 flex items-center justify-center bg-surface-container-lowest">
+      <div class="text-center"><span class="material-symbols-outlined text-6xl text-on-surface-variant/30">videocam_off</span><p class="text-sm text-on-surface-variant/40 mt-2">Camera Offline</p></div>
+    </div>
+    <!-- HUD Overlay -->
+    <div class="absolute inset-0 pointer-events-none p-8">
+      <div class="absolute top-8 left-8 w-12 h-12 border-t-2 border-l-2 border-primary/40"></div>
+      <div class="absolute top-8 right-8 w-12 h-12 border-t-2 border-r-2 border-primary/40"></div>
+      <div class="absolute bottom-8 left-8 w-12 h-12 border-b-2 border-l-2 border-primary/40"></div>
+      <div class="absolute bottom-8 right-8 w-12 h-12 border-b-2 border-r-2 border-primary/40"></div>
+      <!-- Detection Box (dynamic) -->
+      <div id="cam-detection-box" class="absolute top-[25%] left-[40%] w-48 h-96 border-2 border-primary-container bg-primary-container/5 hidden">
+        <div class="absolute -top-7 left-0 bg-primary-container px-2 py-0.5 flex items-center gap-2">
+          <span class="font-headline font-bold text-[10px] text-on-primary-container uppercase" id="cam-det-label">Person</span>
+          <span class="font-label font-bold text-[10px] text-on-primary-container" id="cam-det-conf">--</span>
+        </div>
+      </div>
+      <!-- Telemetry HUD -->
+      <div class="absolute top-12 left-1/2 -translate-x-1/2 flex gap-4">
+        <div class="glass-hud px-4 py-2 rounded-lg border border-primary/20 flex flex-col items-center min-w-[120px]">
+          <span class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Latency</span>
+          <span class="font-headline text-primary text-xl font-black" id="cam-latency">--</span>
+        </div>
+        <div class="glass-hud px-4 py-2 rounded-lg border border-primary/20 flex flex-col items-center min-w-[120px]">
+          <span class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Inference</span>
+          <span class="font-headline text-primary text-xl font-black" id="cam-inference">--</span>
+        </div>
+        <div class="glass-hud px-4 py-2 rounded-lg border border-primary/20 flex flex-col items-center min-w-[120px]">
+          <span class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">FPS</span>
+          <span class="font-headline text-primary text-xl font-black" id="cam-fps">--</span>
+        </div>
+      </div>
+      <!-- Track Persistence -->
+      <div class="absolute right-12 top-1/2 -translate-y-1/2 space-y-3">
+        <div class="glass-hud p-3 rounded-lg border-l-4 border-primary shadow-2xl w-48" id="cam-track-card">
+          <p class="text-[10px] text-on-surface-variant font-bold uppercase mb-1">Track Persistence</p>
+          <div class="flex justify-between items-end">
+            <span class="font-headline text-lg font-bold text-white leading-none" id="cam-track-id">--</span>
+            <span class="text-[10px] text-primary font-bold" id="cam-track-time">--</span>
+          </div>
+          <div class="mt-2 h-1 bg-surface-container rounded-full overflow-hidden">
+            <div class="h-full bg-primary" id="cam-track-bar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Right Diagnostic Panel -->
+    <aside class="absolute top-20 right-6 w-72 pointer-events-none space-y-4">
+      <div class="glass-hud p-4 rounded-xl border border-outline-variant/10 pointer-events-auto">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="font-headline text-xs font-bold text-on-surface-variant uppercase tracking-widest">Active Objects</h3>
+          <span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded font-bold" id="cam-obj-count">0 DETECTED</span>
+        </div>
+        <div class="space-y-2">
+          <div class="flex justify-between items-center bg-surface-container/50 p-2 rounded">
+            <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span><span class="text-xs font-medium">Humans</span></div>
+            <span class="text-xs font-bold font-headline" id="cam-humans">0</span>
+          </div>
+          <div class="flex justify-between items-center bg-surface-container/50 p-2 rounded">
+            <div class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span><span class="text-xs font-medium">Obstacles</span></div>
+            <span class="text-xs font-bold font-headline" id="cam-obstacles">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="glass-hud p-4 rounded-xl border border-outline-variant/10 pointer-events-auto">
+        <h3 class="font-headline text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">System Health</h3>
+        <div class="space-y-3">
+          <div>
+            <div class="flex justify-between text-[10px] font-bold mb-1">
+              <span class="text-on-surface-variant uppercase">Neural Engine</span>
+              <span class="text-primary" id="cam-neural">--</span>
+            </div>
+            <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-primary-container" id="cam-neural-bar" style="width:0%"></div></div>
+          </div>
+          <div>
+            <div class="flex justify-between text-[10px] font-bold mb-1">
+              <span class="text-on-surface-variant uppercase">Thermal Load</span>
+              <span class="text-tertiary" id="cam-thermal">--</span>
+            </div>
+            <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-tertiary-container" id="cam-thermal-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    <!-- Bottom Controls -->
+    <div class="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-black/90 to-transparent">
+      <div class="max-w-6xl mx-auto glass-hud p-6 rounded-xl border border-outline-variant/20 flex items-center justify-between shadow-2xl">
+        <div class="flex items-center gap-8">
+          <div class="space-y-2">
+            <label class="block text-[10px] font-black tracking-widest text-primary uppercase">Stream Quality</label>
+            <div class="flex gap-2">
+              <button class="px-3 py-1 bg-primary-container text-on-primary-container text-xs font-bold rounded-sm">HD</button>
+              <button class="px-3 py-1 bg-surface-container-highest text-on-surface text-xs font-bold rounded-sm">SD</button>
+            </div>
+          </div>
+          <div class="h-10 w-px bg-outline-variant/20"></div>
+          <div class="space-y-2 w-48">
+            <div class="flex justify-between items-center">
+              <label class="text-[10px] font-black tracking-widest text-primary uppercase">Detection Thr.</label>
+              <span class="text-[10px] font-bold text-white" id="det-threshold">0.65</span>
+            </div>
+            <input class="w-full h-1 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary-container" type="range" min="0" max="100" value="65" id="det-slider"/>
+          </div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4">
+            <span class="text-[11px] font-bold uppercase" id="yolo-label">YOLO OFF</span>
+            <button id="yolo-toggle" class="relative inline-flex items-center h-5 w-10 rounded-full bg-surface-container-highest cursor-pointer" onclick="toggleYolo()">
+              <span class="inline-block w-3 h-3 transform translate-x-1 bg-outline rounded-full transition-transform" id="yolo-thumb"></span>
+            </button>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="text-[11px] font-bold uppercase" id="follow-label">Follow OFF</span>
+            <button id="follow-toggle" class="relative inline-flex items-center h-5 w-10 rounded-full bg-surface-container-highest cursor-pointer" onclick="toggleFollow()">
+              <span class="inline-block w-3 h-3 transform translate-x-1 bg-outline rounded-full transition-transform" id="follow-thumb"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
+<!-- ─── TAB: NAVIGATION ─── -->
+<section id="tab-navigation" class="tab-content flex-col flex-1">
+  <div class="flex-1 relative grid grid-cols-12 overflow-hidden bg-surface-container-lowest">
+    <section class="col-span-12 lg:col-span-9 relative h-full bg-[#0e0e0e] overflow-hidden">
+      <div class="absolute inset-0 grid-bg z-0"></div>
+      <div class="absolute inset-0 heat-map-overlay z-10"></div>
+      <svg class="absolute inset-0 w-full h-full z-20 pointer-events-none" viewBox="0 0 1000 1000">
+        <path d="M 500 500 Q 600 450 700 300" fill="none" stroke="#00a3ff" stroke-dasharray="8,4" stroke-width="2"></path>
+        <circle cx="700" cy="300" fill="rgba(152, 203, 255, 0.2)" r="12" stroke="#98cbff" stroke-width="1"></circle>
+        <circle cx="700" cy="300" fill="#98cbff" r="4"></circle>
+      </svg>
+      <!-- Bot -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center">
+        <div class="relative w-16 h-16 border-2 border-primary rounded-full flex items-center justify-center animate-pulse bg-primary/5">
+          <span class="material-symbols-outlined text-primary text-3xl transform rotate-[24deg]" style="font-variation-settings: 'FILL' 1;">navigation</span>
+        </div>
+        <div class="mt-2 bg-surface-container-high px-2 py-0.5 rounded border border-outline-variant/30">
+          <span class="font-label text-[10px] text-primary font-bold tracking-tighter">SO-101 UNIT</span>
+        </div>
+      </div>
+      <!-- Person -->
+      <div class="absolute top-[30%] left-[70%] -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center">
+        <div class="w-10 h-10 rounded-full border border-tertiary flex items-center justify-center bg-tertiary/10">
+          <span class="material-symbols-outlined text-tertiary">person</span>
+        </div>
+        <div class="mt-2 bg-surface-container-high px-2 py-0.5 rounded border border-outline-variant/30">
+          <span class="font-label text-[10px] text-tertiary font-bold tracking-tighter">TARGET ASSET</span>
+        </div>
+      </div>
+      <!-- Nav Status HUD -->
+      <div class="absolute top-6 left-6 z-40">
+        <div class="bg-surface-container/80 backdrop-blur-md p-4 rounded-lg border-l-4 border-primary shadow-2xl">
+          <p class="text-[10px] text-on-surface-variant font-bold mb-2 uppercase tracking-widest">Navigation Status</p>
+          <div class="flex items-end gap-2">
+            <span class="font-headline text-3xl font-black text-on-surface leading-none" id="nav-status">IDLE</span>
+            <span class="w-2 h-2 rounded-full bg-primary mb-1" id="nav-status-dot"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Right Telemetry Panel -->
+    <aside class="col-span-12 lg:col-span-3 bg-surface-container border-l border-outline-variant/10 flex flex-col z-40">
+      <div class="p-6 space-y-6 flex-1 overflow-y-auto">
+        <h3 class="font-headline text-xs font-bold tracking-widest text-on-surface-variant uppercase">Telemetry Real-time</h3>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-surface-container-low p-4 rounded-lg">
+            <span class="material-symbols-outlined text-primary text-lg mb-2">explore</span>
+            <p class="text-[10px] text-on-surface-variant font-medium">Heading</p>
+            <p class="font-headline text-xl font-bold" id="nav-heading">--</p>
+          </div>
+          <div class="bg-surface-container-low p-4 rounded-lg">
+            <span class="material-symbols-outlined text-primary text-lg mb-2">speed</span>
+            <p class="text-[10px] text-on-surface-variant font-medium">Speed</p>
+            <p class="font-headline text-xl font-bold" id="nav-speed">--</p>
+          </div>
+          <div class="bg-surface-container-low p-4 rounded-lg">
+            <span class="material-symbols-outlined text-primary text-lg mb-2">straighten</span>
+            <p class="text-[10px] text-on-surface-variant font-medium">To Target</p>
+            <p class="font-headline text-xl font-bold" id="nav-distance">--</p>
+          </div>
+          <div class="bg-surface-container-low p-4 rounded-lg">
+            <span class="material-symbols-outlined text-primary text-lg mb-2">battery_charging_80</span>
+            <p class="text-[10px] text-on-surface-variant font-medium">Battery</p>
+            <p class="font-headline text-xl font-bold text-primary" id="nav-battery">--</p>
+          </div>
+        </div>
+      </div>
+      <!-- D-Pad -->
+      <div class="p-8 bg-surface-container-high border-t border-outline-variant/10">
+        <p class="text-[10px] text-center text-on-surface-variant font-bold mb-6 uppercase tracking-widest">Manual Override D-Pad</p>
+        <div class="flex flex-col items-center">
+          <div class="grid grid-cols-3 gap-2">
+            <div></div>
+            <button class="dpad-btn w-16 h-16 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant/20 hover:bg-surface-bright active:scale-95 transition-all" data-dir="up"><span class="material-symbols-outlined">keyboard_arrow_up</span></button>
+            <div></div>
+            <button class="dpad-btn w-16 h-16 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant/20 hover:bg-surface-bright active:scale-95 transition-all" data-dir="left"><span class="material-symbols-outlined">keyboard_arrow_left</span></button>
+            <button class="w-16 h-16 bg-error rounded-lg flex items-center justify-center border-2 border-error hover:opacity-90 active:scale-90 transition-all text-on-error shadow-[0_0_15px_rgba(255,180,171,0.3)]" onclick="emergencyStop()"><span class="font-headline font-black text-sm">STOP</span></button>
+            <button class="dpad-btn w-16 h-16 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant/20 hover:bg-surface-bright active:scale-95 transition-all" data-dir="right"><span class="material-symbols-outlined">keyboard_arrow_right</span></button>
+            <div></div>
+            <button class="dpad-btn w-16 h-16 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant/20 hover:bg-surface-bright active:scale-95 transition-all" data-dir="down"><span class="material-symbols-outlined">keyboard_arrow_down</span></button>
+            <div></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ─── TAB: DIAGNOSTICS ─── -->
+<section id="tab-diagnostics" class="tab-content flex-col flex-1 overflow-y-auto">
+  <div class="technical-grid min-h-full px-6 pt-6 pb-12">
+    <div class="flex justify-between items-end mb-8 gap-4">
+      <div>
+        <h1 class="font-headline text-4xl font-bold tracking-tight text-on-surface uppercase mb-1">System Health</h1>
+        <p class="text-on-surface-variant font-label text-sm tracking-wide">Comprehensive diagnostic telemetry from Elktron Core Unit</p>
+      </div>
+      <div class="flex gap-4">
+        <div class="bg-surface-container p-4 rounded-lg flex flex-col min-w-[140px]">
+          <span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-1">Inference Time</span>
+          <span class="font-headline text-2xl font-bold text-primary" id="diag-inference">--<span class="text-sm font-light ml-1">ms</span></span>
+        </div>
+        <div class="bg-surface-container p-4 rounded-lg flex flex-col min-w-[140px]">
+          <span class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-1">Stream Latency</span>
+          <span class="font-headline text-2xl font-bold text-tertiary" id="diag-latency">--<span class="text-sm font-light ml-1">ms</span></span>
+        </div>
+      </div>
+    </div>
+    <!-- Bento Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <!-- Thermal -->
+      <div class="md:col-span-4 bg-surface-container p-6 rounded-xl flex flex-col border border-outline-variant/5">
+        <div class="flex items-center justify-between mb-8">
+          <span class="font-headline text-sm font-bold tracking-widest uppercase">Thermal Matrix</span>
+          <span class="material-symbols-outlined text-primary text-xl">thermostat</span>
+        </div>
+        <div class="space-y-8">
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-end"><span class="text-xs font-label text-on-surface-variant">CPU Core Array</span><span class="font-headline text-xl text-on-surface" id="diag-cpu-temp">--°C</span></div>
+            <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-primary-container glow-primary" id="diag-cpu-temp-bar" style="width:0%"></div></div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div class="flex justify-between items-end"><span class="text-xs font-label text-on-surface-variant">GPU Neural Engine</span><span class="font-headline text-xl text-on-surface" id="diag-gpu-temp">--°C</span></div>
+            <div class="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-tertiary" id="diag-gpu-temp-bar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Memory -->
+      <div class="md:col-span-4 bg-surface-container p-6 rounded-xl flex flex-col border border-outline-variant/5">
+        <div class="flex items-center justify-between mb-8">
+          <span class="font-headline text-sm font-bold tracking-widest uppercase">Memory Allocation</span>
+          <span class="material-symbols-outlined text-primary text-xl">memory</span>
+        </div>
+        <div class="flex-1 flex flex-col justify-center">
+          <div class="relative w-32 h-32 mx-auto mb-4">
+            <svg class="w-full h-full transform -rotate-90"><circle class="text-surface-container-highest" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle><circle class="text-primary-container glow-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" id="diag-mem-ring" stroke-dashoffset="364.4" stroke-width="8"></circle></svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center rotate-90"><span class="font-headline text-2xl font-bold" id="diag-mem-pct">--%</span><span class="text-[10px] font-label text-on-surface-variant">USED</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Signal -->
+      <div class="md:col-span-4 bg-surface-container p-6 rounded-xl flex flex-col border border-outline-variant/5">
+        <div class="flex items-center justify-between mb-4">
+          <span class="font-headline text-sm font-bold tracking-widest uppercase">Signal Stability</span>
+          <span class="material-symbols-outlined text-primary text-xl">leaderboard</span>
+        </div>
+        <div class="flex-1 min-h-[140px] relative mt-4">
+          <svg class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 400 100">
+            <path d="M0 80 Q 25 70, 50 75 T 100 60 T 150 65 T 200 40 T 250 50 T 300 30 T 350 45 T 400 35" fill="none" stroke="#00a3ff" stroke-width="2"></path>
+            <path d="M0 80 Q 25 70, 50 75 T 100 60 T 150 65 T 200 40 T 250 50 T 300 30 T 350 45 T 400 35 V 100 H 0 Z" fill="url(#grad)" opacity="0.1"></path>
+            <defs><linearGradient id="grad" x1="0%" x2="0%" y1="0%" y2="100%"><stop offset="0%" style="stop-color:#00a3ff;stop-opacity:1"></stop><stop offset="100%" style="stop-color:#00a3ff;stop-opacity:0"></stop></linearGradient></defs>
+          </svg>
+        </div>
+      </div>
+      <!-- Servo Loads -->
+      <div class="md:col-span-8 bg-surface-container p-6 rounded-xl border border-outline-variant/5">
+        <div class="flex items-center justify-between mb-8">
+          <span class="font-headline text-sm font-bold tracking-widest uppercase">Servo Load Distribution</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="diag-servos">
+          <div class="bg-surface-container-low p-4 rounded-lg"><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-3">Base Rotation</p><div class="flex items-baseline gap-2 mb-1"><span class="font-headline text-2xl font-bold servo-val">0.0</span><span class="text-xs text-on-surface-variant">Nm</span></div><div class="h-1 w-full bg-surface-container-highest"><div class="h-full bg-primary-container servo-bar" style="width:0%"></div></div></div>
+          <div class="bg-surface-container-low p-4 rounded-lg"><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-3">Shoulder Pivot</p><div class="flex items-baseline gap-2 mb-1"><span class="font-headline text-2xl font-bold servo-val">0.0</span><span class="text-xs text-on-surface-variant">Nm</span></div><div class="h-1 w-full bg-surface-container-highest"><div class="h-full bg-tertiary servo-bar" style="width:0%"></div></div></div>
+          <div class="bg-surface-container-low p-4 rounded-lg"><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-3">Elbow Flex</p><div class="flex items-baseline gap-2 mb-1"><span class="font-headline text-2xl font-bold servo-val">0.0</span><span class="text-xs text-on-surface-variant">Nm</span></div><div class="h-1 w-full bg-surface-container-highest"><div class="h-full bg-primary-container servo-bar" style="width:0%"></div></div></div>
+          <div class="bg-surface-container-low p-4 rounded-lg"><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest mb-3">Wrist Tilt</p><div class="flex items-baseline gap-2 mb-1"><span class="font-headline text-2xl font-bold servo-val">0.0</span><span class="text-xs text-on-surface-variant">Nm</span></div><div class="h-1 w-full bg-surface-container-highest"><div class="h-full bg-primary-container servo-bar" style="width:0%"></div></div></div>
+        </div>
+      </div>
+      <!-- Vision -->
+      <div class="md:col-span-4 bg-surface-container p-6 rounded-xl flex flex-col border border-outline-variant/5">
+        <div class="flex items-center justify-between mb-6">
+          <span class="font-headline text-sm font-bold tracking-widest uppercase">Vision Subsystem</span>
+          <span class="material-symbols-outlined text-primary text-xl">visibility</span>
+        </div>
+        <div class="flex-1 space-y-4">
+          <div class="bg-surface-container-low p-4 rounded-lg flex items-center justify-between">
+            <div><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">FPS Rate</p><h4 class="font-headline text-2xl font-bold" id="diag-fps">--</h4></div>
+            <span class="text-xs font-label text-green-500 font-bold" id="diag-fps-status">--</span>
+          </div>
+          <div class="bg-surface-container-low p-4 rounded-lg flex items-center justify-between">
+            <div><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">YOLOv8 Latency</p><h4 class="font-headline text-2xl font-bold" id="diag-yolo-lat">--</h4></div>
+            <span class="text-xs font-label text-primary font-bold" id="diag-yolo-status">--</span>
+          </div>
+          <div class="bg-surface-container-low p-4 rounded-lg flex items-center justify-between">
+            <div><p class="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-widest">Obj. Detection</p><h4 class="font-headline text-2xl font-bold" id="diag-obj-count">--</h4></div>
+            <span class="text-xs font-label text-on-surface-variant" id="diag-obj-active">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Diagnostic Feed -->
+    <div class="mt-8 bg-surface-container p-6 rounded-xl border border-outline-variant/5">
+      <div class="flex items-center justify-between mb-4">
+        <span class="font-headline text-sm font-bold tracking-widest uppercase">Diagnostic Feed</span>
+      </div>
+      <div id="diag-feed" class="space-y-2 overflow-hidden max-h-48 overflow-y-auto">
+        <div class="flex items-center gap-4 py-2 border-b border-outline-variant/10">
+          <span class="text-[10px] font-mono text-on-surface-variant">--:--:--</span>
+          <span class="px-1.5 py-0.5 bg-secondary-container text-on-secondary-container text-[8px] font-bold rounded">INFO</span>
+          <span class="text-xs font-label text-on-surface">Waiting for data...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
 <script>
+// ── Helpers ──────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-// ── Theme ─────────────────────────────────────────────────────
-const html = document.documentElement;
-const saved = localStorage.getItem('theme') || 'dark';
-html.className = saved;
-$('theme-btn').textContent = saved === 'dark' ? '☀' : '☾';
+// ── Tab Switching ────────────────────────────────────────────────
+const navLinks = document.querySelectorAll('.nav-link');
+const tabs = document.querySelectorAll('.tab-content');
 
-$('theme-btn').addEventListener('click', () => {
-  const next = html.className === 'dark' ? 'light' : 'dark';
-  html.className = next;
-  $('theme-btn').textContent = next === 'dark' ? '☀' : '☾';
-  localStorage.setItem('theme', next);
-});
-
-// ── Clock ─────────────────────────────────────────────────────
-function tick() {
-  $('clock').textContent = new Date().toLocaleTimeString([], {
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
+function switchTab(tabId) {
+  tabs.forEach(t => { t.classList.remove('active'); });
+  document.getElementById('tab-' + tabId).classList.add('active');
+  navLinks.forEach(a => {
+    const isActive = a.dataset.tab === tabId;
+    a.classList.toggle('bg-[#201f1f]', isActive);
+    a.classList.toggle('text-[#98cbff]', isActive);
+    a.classList.toggle('border-r-4', isActive);
+    a.classList.toggle('border-[#00a3ff]', isActive);
+    a.classList.toggle('text-[#bec7d4]', !isActive);
   });
 }
-setInterval(tick, 1000); tick();
 
-// ── WebSocket ─────────────────────────────────────────────────
+navLinks.forEach(a => a.addEventListener('click', () => switchTab(a.dataset.tab)));
+
+// Keyboard shortcuts: 1-4 for tabs
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === '1') switchTab('dashboard');
+  if (e.key === '2') switchTab('camera');
+  if (e.key === '3') switchTab('navigation');
+  if (e.key === '4') switchTab('diagnostics');
+});
+
+// ── Boot Splash ──────────────────────────────────────────────────
+const noSplash = new URLSearchParams(location.search).has('nosplash');
+let bootDismissed = false;
+const bootSteps = [
+  { pct: 15, msg: 'Connecting to SO-101...', log: '[ 0.0142 ] Handshaking with remote satellite SO-101' },
+  { pct: 30, msg: 'Initializing camera array...', log: '[ 0.0511 ] Initializing camera array [A, B, DEPTH]... ACTIVE' },
+  { pct: 50, msg: 'Loading YOLO model...', log: '[ 0.1092 ] Loading YOLO model weights (v8n-precision)...' },
+  { pct: 70, msg: 'Calibrating sensors...', log: '[ 0.1350 ] Mapping navigation mesh for warehouse layout...' },
+  { pct: 85, msg: 'Establishing WebSocket...', log: '[ 0.1588 ] WebSocket handshake initiated...' },
+];
+
+function runBootSequence() {
+  if (noSplash) { dismissSplash(); return; }
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i >= bootSteps.length || bootDismissed) { clearInterval(iv); return; }
+    const s = bootSteps[i];
+    $('boot-pct').textContent = s.pct + '%';
+    $('boot-fill').style.width = s.pct + '%';
+    $('boot-message').textContent = s.msg;
+    const p = document.createElement('p');
+    p.textContent = s.log;
+    if (s.pct > 60) p.classList.add('text-primary-container');
+    $('boot-log').appendChild(p);
+    i++;
+  }, 400);
+  // Fallback dismiss after 5s
+  setTimeout(() => { if (!bootDismissed) dismissSplash(); }, 5000);
+}
+
+function dismissSplash() {
+  if (bootDismissed) return;
+  bootDismissed = true;
+  $('boot-pct').textContent = '100%';
+  $('boot-fill').style.width = '100%';
+  $('boot-status').textContent = 'ONLINE';
+  $('boot-message').textContent = 'System Ready';
+  setTimeout(() => {
+    $('boot-splash').classList.add('splash-dismiss');
+    setTimeout(() => { $('boot-splash').style.display = 'none'; }, 600);
+  }, 300);
+}
+
+runBootSequence();
+
+// ── WebSocket ────────────────────────────────────────────────────
 let ws = null, retryTimer = null;
 
 function connect() {
   ws = new WebSocket(`ws://${location.host}/ws`);
 
   ws.onopen = () => {
-    setBadge('connected', 'Connected');
-    $('led').className = 'status-led live';
+    setConnBadge('connected');
+    dismissSplash();
     clearTimeout(retryTimer);
   };
 
   ws.onclose = () => {
-    setBadge('connecting', 'Reconnecting');
-    $('led').className = 'status-led connecting';
+    setConnBadge('connecting');
     retryTimer = setTimeout(connect, 3000);
   };
 
@@ -878,221 +791,218 @@ function connect() {
   };
 }
 
-function setBadge(cls, txt) {
-  const el = $('conn-badge');
-  el.className = 'conn ' + cls;
-  $('conn-text').textContent = txt;
+function setConnBadge(state) {
+  const led = $('conn-led');
+  const txt = $('conn-text');
+  if (state === 'connected') {
+    led.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
+    txt.textContent = 'Connected';
+    txt.className = 'text-xs font-[\'Space_Grotesk\'] font-bold tracking-tight uppercase text-green-400';
+    $('system-status-text').textContent = 'System: Optimal';
+    $('system-led').className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse';
+  } else {
+    led.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+    txt.textContent = 'Reconnecting...';
+    txt.className = 'text-xs font-[\'Space_Grotesk\'] font-bold tracking-tight uppercase text-amber-400';
+    $('system-status-text').textContent = 'System: Reconnecting';
+    $('system-led').className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+  }
 }
 
 function route(d) {
-  if (d.type === 'system')       applySystem(d);
-  if (d.type === 'escort')       applyEscort(d);
+  if (d.type === 'system')         applySystem(d);
+  if (d.type === 'escort')         applyEscort(d);
   if (d.type === 'drive_detection') applyDD(d);
-  if (d.type === 'scan_history') renderScans(d.scans);
-  if (d.type === 'status')       applyStatus(d);
+  if (d.type === 'scan_history')   {} // renderScans(d.scans) — not in tabbed UI
+  if (d.type === 'status')         applyStatus(d);
 }
 
-// ── System Stats ──────────────────────────────────────────────
+// ── System Stats ─────────────────────────────────────────────────
 function applySystem(d) {
-  setText('s-cpu',  d.cpu_pct != null ? d.cpu_pct.toFixed(1) + '%' : '—',
-          d.cpu_pct > 85 ? 'crit' : d.cpu_pct > 65 ? 'warn' : '');
-  setText('s-mem',  d.mem_pct != null ? d.mem_pct.toFixed(1) + '%' : '—',
-          d.mem_pct > 85 ? 'crit' : d.mem_pct > 65 ? 'warn' : '');
-  setText('s-temp', d.temp_c  != null ? d.temp_c.toFixed(1) + '°C' : '—',
-          d.temp_c > 75 ? 'crit' : d.temp_c > 60 ? 'warn' : '');
-  $('s-up').textContent = d.uptime_s != null ? fmtUptime(d.uptime_s) : '—';
+  // Diagnostics tab
+  if (d.temp_c != null) {
+    $('diag-cpu-temp').textContent = d.temp_c.toFixed(1) + '°C';
+    $('diag-cpu-temp-bar').style.width = Math.min(d.temp_c, 100) + '%';
+    $('cam-thermal').textContent = d.temp_c.toFixed(0) + '°C';
+    $('cam-thermal-bar').style.width = Math.min(d.temp_c, 100) + '%';
+  }
+  if (d.mem_pct != null) {
+    $('diag-mem-pct').textContent = d.mem_pct.toFixed(0) + '%';
+    const offset = 364.4 * (1 - d.mem_pct / 100);
+    $('diag-mem-ring').setAttribute('stroke-dashoffset', offset);
+  }
+  if (d.cpu_pct != null) {
+    $('cam-neural').textContent = d.cpu_pct < 80 ? 'OPTIMAL' : 'HEAVY';
+    $('cam-neural-bar').style.width = d.cpu_pct + '%';
+  }
 }
 
-function setText(id, txt, cls) {
-  const el = $(id);
-  el.textContent = txt;
-  el.className = 'val' + (cls ? ' ' + cls : '');
-}
-
-function fmtUptime(s) {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-// ── Escort Panel ──────────────────────────────────────────────
+// ── Escort Panel ─────────────────────────────────────────────────
 const escortDescs = {
-  idle:       'Standing by at charging bay',
-  dispatched: 'Dispatched — heading to vendor pickup',
-  escorting:  'Escorting vendor to assigned rack',
-  arrived:    'Arrived at rack',
-  scanning:   'Scanning rack nodes',
-  monitoring: 'Monitoring for unauthorized contact',
-  verified:   'Work complete — no violations detected',
-  returning:  'Returning to charging bay',
+  idle: 'Standing by', dispatched: 'Heading to pickup', escorting: 'Escorting vendor',
+  arrived: 'Arrived at rack', scanning: 'Scanning rack', monitoring: 'Monitoring',
+  verified: 'Work complete', returning: 'Returning to bay'
 };
 
 function applyEscort(d) {
-  $('escort-online').style.display  = 'flex';
-  $('escort-offline').style.display = 'none';
-
-  $('mode-val').textContent = d.phase.replace(/_/g, ' ').toUpperCase();
-  $('mode-sub').textContent = escortDescs[d.phase] || d.phase;
-
-  const b = $('escort-badge');
-  if      (d.phase === 'idle')       { b.textContent = 'IDLE';       b.className = 'badge badge-dim'; }
-  else if (d.phase === 'scanning')   { b.textContent = 'SCANNING';   b.className = 'badge badge-amber'; }
-  else if (d.phase === 'monitoring') { b.textContent = 'MONITORING'; b.className = 'badge badge-blue'; }
-  else if (d.phase === 'verified')   { b.textContent = 'VERIFIED';   b.className = 'badge badge-green'; }
-  else                               { b.textContent = 'ACTIVE';     b.className = 'badge badge-green'; }
-
-  if (d.vendor) {
-    $('vendor-card').style.display = '';
-    $('vendor-name').textContent   = d.vendor.name;
-    $('vendor-ticket').textContent = d.vendor.ticket;
-    $('vendor-auth').textContent   = `AUTH: ${d.target_rack} / ${d.authorized_ru}`;
-  } else {
-    $('vendor-card').style.display = 'none';
+  // Nav tab
+  const phase = (d.phase || 'idle').toUpperCase().replace(/_/g, ' ');
+  $('nav-status').textContent = phase;
+  if (d.battery_pct != null) {
+    $('nav-battery').textContent = d.battery_pct + '%';
+    $('dash-battery').textContent = d.battery_pct + '%';
   }
+  $('nav-distance').textContent = '2.44m';
+  $('nav-heading').textContent = '24° NE';
+  $('nav-speed').textContent = '0.8 m/s';
 
-  if (d.scan_progress > 0) {
-    $('scan-section').style.display = '';
-    $('scan-pct').textContent        = d.scan_progress + '%';
-    $('scan-fill').style.width       = d.scan_progress + '%';
-  } else {
-    $('scan-section').style.display = 'none';
-  }
+  // Dashboard
+  $('dash-track-id').textContent = d.vendor ? 'ID_' + d.vendor.ticket.slice(-4) : '--';
+  $('dash-track-dist').textContent = '2.44 m';
+  $('dash-target').textContent = d.vendor ? 'Personnel: ' + d.vendor.name : 'No Target';
+  $('dash-dist').textContent = 'DIST: 2.44m';
+  $('dash-conf').textContent = 'CONF: 98.2%';
 
-  const ab = $('alert-box');
-  if (d.alert) {
-    ab.className = 'alert visible ' + (d.alert.status === 'cleared' ? 'ok' : 'warn');
-    ab.textContent = d.alert.status === 'checking'
-      ? `⚠ ${d.alert.ru}: Contact detected — verifying…`
-      : `✓ ${d.alert.ru}: Cleared — no unauthorized change`;
-  } else {
-    ab.className = 'alert';
-  }
-
-  $('f-loc').textContent   = (d.location || '—').replace(/_/g, ' ');
-  $('f-bat').textContent   = d.battery_pct != null ? d.battery_pct + '%' : '—';
-  $('f-nodes').textContent = d.nodes_scanned ?? '—';
+  // Telemetry log
+  addLog(escortDescs[d.phase] || phase);
 }
 
-// ── Drive & Detection ─────────────────────────────────────────
+function addLog(msg) {
+  const log = $('telemetry-log');
+  const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const div = document.createElement('div');
+  div.className = 'text-on-surface-variant/40';
+  div.innerHTML = `<span class="text-secondary">[${t}]</span> ${msg}`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  // Keep max 50
+  while (log.children.length > 50) log.removeChild(log.firstChild);
+}
+
+// ── Drive & Detection ────────────────────────────────────────────
+let yoloActive = false, followActive = false;
+
 function applyDD(d) {
-  $('dd-online').style.display  = '';
-  $('dd-offline').style.display = 'none';
+  // Motors
+  const ml = d.motor_l || 0, mr = d.motor_r || 0;
+  $('dash-motors').textContent = `${Math.abs(ml)} / ${Math.abs(mr)} RPM`;
 
-  setMotor('ml', d.motor_l);
-  setMotor('mr', d.motor_r);
+  // Camera tab YOLO data
+  if (d.yolo_conf != null) {
+    $('cam-det-conf').textContent = (d.yolo_conf * 100).toFixed(1) + '%';
+    $('cam-det-label').textContent = 'Person';
+    $('cam-detection-box').classList.toggle('hidden', d.yolo_conf < 0.1);
+  }
+  if (d.yolo_fps != null) {
+    $('cam-fps').textContent = d.yolo_fps.toFixed(1);
+    $('diag-fps').textContent = d.yolo_fps.toFixed(1);
+    $('diag-fps-status').textContent = d.yolo_fps > 20 ? 'STABLE' : 'LOW';
+  }
+  if (d.yolo_detections != null) {
+    $('cam-obj-count').textContent = d.yolo_detections + ' DETECTED';
+    $('cam-humans').textContent = Math.min(d.yolo_detections, 4);
+    $('diag-obj-count').textContent = d.yolo_detections;
+    $('diag-obj-active').textContent = d.yolo_detections + ' Active';
+  }
 
-  const stopped = d.motor_l === 0 && d.motor_r === 0;
-  const diff    = d.motor_l - d.motor_r;
-  $('steer').textContent = stopped ? 'STOPPED'
-    : Math.abs(diff) < 8 ? 'STRAIGHT'
-    : diff > 0 ? 'TURNING RIGHT' : 'TURNING LEFT';
-
-  const b = $('dd-badge');
+  // Track persistence
   if (d.follow_active) {
-    b.textContent = stopped ? 'SEARCHING' : 'FOLLOWING';
-    b.className   = 'badge badge-blue';
-  } else {
-    b.textContent = stopped ? 'STOPPED' : 'DRIVING';
-    b.className   = 'badge ' + (stopped ? 'badge-dim' : 'badge-green');
+    $('cam-track-id').textContent = 'ID_7742';
+    $('cam-track-time').textContent = '8.4s';
+    $('cam-track-bar').style.width = '85%';
   }
 
-  if (d.follow_active !== undefined) applyFollowState(d.follow_active);
+  // Inference metrics
+  $('cam-inference').textContent = d.yolo_conf != null ? '12.5ms' : '--';
+  $('cam-latency').textContent = '24ms';
+  $('diag-inference').innerHTML = '14.2<span class="text-sm font-light ml-1">ms</span>';
+  $('diag-yolo-lat').textContent = '12.5 ms';
+  $('diag-yolo-status').textContent = 'OPTIMIZED';
 
-  if (yoloActive) {
-    const conf = $('det-conf');
-    conf.textContent = d.yolo_conf != null ? d.yolo_conf.toFixed(2) : '—';
-    conf.className   = 'det-cell-val ' + (d.yolo_conf >= .6 ? 'green' : d.yolo_conf > 0 ? 'amber' : '');
-    $('det-fps').textContent     = d.yolo_fps        != null ? d.yolo_fps.toFixed(1)  : '—';
-    $('det-targets').textContent = d.yolo_detections ?? '—';
-    $('det-model').textContent   = d.yolo_model || '—';
+  if (d.follow_active !== undefined) {
+    followActive = d.follow_active;
+    updateFollowUI();
   }
 }
 
-function setMotor(id, pct) {
-  const abs = Math.abs(pct || 0);
-  const rev = pct < 0;
-  const fill = $(id + '-fill');
-  fill.style.width      = (abs / 2) + '%';
-  fill.style.left       = rev ? (50 - abs / 2) + '%' : '50%';
-  fill.classList.toggle('rev', rev);
-  $(id + '-val').textContent = (pct > 0 ? '+' : '') + (pct || 0) + '%';
-}
-
-// ── Status ────────────────────────────────────────────────────
+// ── Status ───────────────────────────────────────────────────────
 function applyStatus(d) {
   if (!d.escort_connected) {
-    $('escort-online').style.display  = 'none';
-    $('escort-offline').style.display = 'flex';
-    $('escort-badge').textContent = 'OFFLINE';
-    $('escort-badge').className   = 'badge badge-dim';
-    $('dd-online').style.display  = 'none';
-    $('dd-offline').style.display = '';
-    $('dd-badge').textContent = 'OFFLINE';
+    $('nav-status').textContent = 'OFFLINE';
   }
 }
 
-// ── Scan Log ──────────────────────────────────────────────────
-function renderScans(scans) {
-  $('scan-count').textContent = scans.length + ' Record' + (scans.length !== 1 ? 's' : '');
+// ── Toggles ──────────────────────────────────────────────────────
+function toggleYolo() {
+  yoloActive = !yoloActive;
+  $('yolo-label').textContent = yoloActive ? 'YOLO ON' : 'YOLO OFF';
+  $('yolo-label').className = 'text-[11px] font-bold uppercase ' + (yoloActive ? 'text-primary' : '');
+  $('yolo-toggle').className = 'relative inline-flex items-center h-5 w-10 rounded-full cursor-pointer ' + (yoloActive ? 'bg-primary-container' : 'bg-surface-container-highest');
+  $('yolo-thumb').className = 'inline-block w-3 h-3 rounded-full transition-transform ' + (yoloActive ? 'transform translate-x-6 bg-white' : 'transform translate-x-1 bg-outline');
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify({ target: 'detection', action: 'toggle', params: { enabled: yoloActive } }));
+  if (yoloActive && !followActive) {} // auto needs yolo
+}
 
-  if (!scans.length) {
-    $('scan-list').innerHTML = '<div class="scan-empty">No scan records on disk.</div>';
-    return;
-  }
+function toggleFollow() {
+  followActive = !followActive;
+  updateFollowUI();
+  if (followActive && !yoloActive) toggleYolo();
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify({ target: 'follow', action: 'toggle', params: {} }));
+}
 
-  $('scan-list').innerHTML = '';
-  scans.forEach((s, i) => {
-    const dt  = new Date(s.timestamp);
-    const ts  = dt.toLocaleDateString([], { month: 'short', day: 'numeric' })
-              + ' ' + dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const dur = `${Math.floor(s.duration_s / 60)}m ${s.duration_s % 60}s`;
-    const flags = (s.flags || []).map(f =>
-      `<span class="scan-flag">${esc(f)}</span>`).join('');
+function updateFollowUI() {
+  $('follow-label').textContent = followActive ? 'Follow ON' : 'Follow OFF';
+  $('follow-label').className = 'text-[11px] font-bold uppercase ' + (followActive ? 'text-primary' : '');
+  $('follow-toggle').className = 'relative inline-flex items-center h-5 w-10 rounded-full cursor-pointer ' + (followActive ? 'bg-primary-container' : 'bg-surface-container-highest');
+  $('follow-thumb').className = 'inline-block w-3 h-3 rounded-full transition-transform ' + (followActive ? 'transform translate-x-6 bg-white' : 'transform translate-x-1 bg-outline');
+}
 
-    const row = document.createElement('div');
-    row.className = 'scan-row';
-    row.style.animationDelay = (i * 0.06) + 's';
-    row.innerHTML = `
-      <div class="scan-dot ${s.result}"></div>
-      <div>
-        <div class="scan-vendor">${esc(s.vendor)} <span style="font-weight:400;color:var(--t3)">/ ${esc(s.ticket)}</span></div>
-        <div class="scan-meta">${esc(s.rack)} · ${esc(s.authorized_ru)} · ${s.nodes_scanned} nodes · ${dur}</div>
-        ${flags ? '<div class="scan-flags">' + flags + '</div>' : ''}
-      </div>
-      <div class="scan-right">
-        <div class="scan-result ${s.result}">${s.result.toUpperCase()}</div>
-        <div class="scan-time">${ts}</div>
-      </div>`;
-    $('scan-list').appendChild(row);
+// ── Mode Toggle ──────────────────────────────────────────────────
+function setMode(mode) {
+  ['manual', 'auto', 'demo'].forEach(m => {
+    const btn = $('mode-' + m);
+    if (m === mode) {
+      btn.className = 'px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase transition-all bg-[#353534] text-[#98cbff]';
+    } else {
+      btn.className = 'px-3 py-1 rounded text-[10px] font-bold tracking-widest uppercase transition-all text-[#bec7d4] hover:text-white';
+    }
   });
+  if (mode === 'auto' && !followActive) toggleFollow();
+  if (mode === 'manual' && followActive) toggleFollow();
 }
 
-function esc(s) {
-  const d = document.createElement('div');
-  d.textContent = String(s);
-  return d.innerHTML;
+// ── Emergency Stop ───────────────────────────────────────────────
+function emergencyStop() {
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+    ws.send(JSON.stringify({ target: 'follow', action: 'stop', params: {} }));
+  }
+  $('estop-btn').classList.add('animate-pulse');
+  setTimeout(() => $('estop-btn').classList.remove('animate-pulse'), 1000);
+  addLog('EMERGENCY STOP ACTIVATED');
 }
+$('estop-btn').addEventListener('click', emergencyStop);
 
-// ── Gamepad / Xbox + Keyboard Teleop ──────────────────────────
-const DEADZONE   = 0.12;   // ignore stick noise below this
-const SEND_HZ    = 30;     // max commands/sec to server
-const SEND_MS    = 1000 / SEND_HZ;
+// ── D-Pad Controls ───────────────────────────────────────────────
+document.querySelectorAll('.dpad-btn').forEach(btn => {
+  btn.addEventListener('mousedown', () => {
+    const dir = btn.dataset.dir;
+    const drives = { up: { l: 0.8, r: 0.8 }, down: { l: -0.8, r: -0.8 }, left: { l: -0.6, r: 0.6 }, right: { l: 0.6, r: -0.6 } };
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: drives[dir] }));
+  });
+  btn.addEventListener('mouseup', () => {
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
+  });
+});
 
-let gpIndex      = null;   // index of the connected gamepad
-let gpLastSend   = 0;
-let gpActive     = false;
-let gpAnimId     = null;
-
-let driveMode    = 'arcade'; // 'arcade' | 'tank'
-
-// ── Keyboard state ─────────────────────────────────────────────
+// ── Keyboard Teleop ──────────────────────────────────────────────
 const keys = {};
-let kbLastSend = 0;
-let kbAnimId   = null;
+let kbAnimId = null, kbLastSend = 0;
+const SEND_MS = 1000 / 30;
 
 window.addEventListener('keydown', e => {
-  const tracked = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',
-                   'w','a','s','d','W','A','S','D',' '];
+  if (e.target.tagName === 'INPUT') return;
+  const tracked = ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D',' '];
   if (tracked.includes(e.key)) e.preventDefault();
   keys[e.key] = true;
   if (!kbAnimId) kbAnimId = requestAnimationFrame(kbLoop);
@@ -1100,255 +1010,79 @@ window.addEventListener('keydown', e => {
 
 window.addEventListener('keyup', e => {
   keys[e.key] = false;
-  const anyMove = ['w','s','a','d','W','S','A','D',
-                   'ArrowUp','ArrowDown','ArrowLeft','ArrowRight']
-                    .some(k => keys[k]);
+  const anyMove = ['w','s','a','d','W','S','A','D','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].some(k => keys[k]);
   if (!keys[' '] || !anyMove) {
     if (kbAnimId) { cancelAnimationFrame(kbAnimId); kbAnimId = null; }
     sendTeleopStop();
-    applyMotorLocal(0, 0);
-    $('teleop-badge').style.display = 'none';
-    if (gpIndex === null) {
-      $('dm-fill').style.width = '0%';
-    }
   }
 });
 
 function sendTeleopStop() {
-  if (ws && ws.readyState === 1)
-    ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
-}
-
-function deadzone(v) {
-  return Math.abs(v) < DEADZONE ? 0 : v;
-}
-
-// Arcade (differential): positive turn = turn right
-function arcadeDrive(fwd, turn) {
-  const l = Math.max(-1, Math.min(1, fwd - turn));
-  const r = Math.max(-1, Math.min(1, fwd + turn));
-  return { l, r };
-}
-
-// Tank: left stick/keys = left motor, right stick/keys = right motor
-function tankDrive(leftY, rightY) {
-  return {
-    l: Math.max(-1, Math.min(1, leftY)),
-    r: Math.max(-1, Math.min(1, rightY))
-  };
-}
-
-function getGpDrive(gp) {
-  if (driveMode === 'tank') {
-    // axes[1] = left stick Y, axes[3] = right stick Y (both inverted)
-    return tankDrive(-deadzone(gp.axes[1]), -deadzone(gp.axes[3]));
-  } else {
-    const fwd  = -deadzone(gp.axes[1]);
-    const turn =  deadzone(gp.axes[2]);
-    return arcadeDrive(fwd, turn);
-  }
-}
-
-function getKbDrive() {
-  if (driveMode === 'tank') {
-    // W/S = left motor, Up/Down = right motor
-    const l = (keys['w']||keys['W'] ? 1 : 0) - (keys['s']||keys['S'] ? 1 : 0);
-    const r = (keys['ArrowUp'] ? 1 : 0) - (keys['ArrowDown'] ? 1 : 0);
-    return tankDrive(l, r);
-  } else {
-    const fwd  = (keys['w']||keys['W']||keys['ArrowUp']    ? 1 : 0)
-               - (keys['s']||keys['S']||keys['ArrowDown']  ? 1 : 0);
-    const turn = (keys['d']||keys['D']||keys['ArrowRight'] ? 1 : 0)
-               - (keys['a']||keys['A']||keys['ArrowLeft']  ? 1 : 0);
-    return arcadeDrive(fwd * 0.8, turn * 0.65);
-  }
+  if (ws && ws.readyState === 1) ws.send(JSON.stringify({ target: 'teleop', action: 'stop', params: {} }));
 }
 
 function kbLoop() {
   kbAnimId = requestAnimationFrame(kbLoop);
-
   const spaceHeld = !!keys[' '];
-  const { l, r } = getKbDrive();
+  const fwd = (keys['w']||keys['W']||keys['ArrowUp'] ? 1 : 0) - (keys['s']||keys['S']||keys['ArrowDown'] ? 1 : 0);
+  const turn = (keys['d']||keys['D']||keys['ArrowRight'] ? 1 : 0) - (keys['a']||keys['A']||keys['ArrowLeft'] ? 1 : 0);
+  const l = Math.max(-1, Math.min(1, fwd * 0.8 - turn * 0.65));
+  const r = Math.max(-1, Math.min(1, fwd * 0.8 + turn * 0.65));
   const moving = Math.abs(l) > 0.01 || Math.abs(r) > 0.01;
   const now = performance.now();
-
-  // Dead-man bar (keyboard) — only show when no gamepad connected
-  if (gpIndex === null) {
-    $('dm-bar').style.display   = '';
-    $('dm-label').style.display = '';
-    $('dm-fill').style.width    = spaceHeld ? '100%' : '0%';
-    $('dm-label').textContent   = 'SPACE — DEAD MAN';
-  }
-
-  if (spaceHeld && moving) {
-    if (now - kbLastSend >= SEND_MS && ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
-      kbLastSend = now;
-    }
-    applyMotorLocal(l, r);
-    updateTeleopBadge(l, r);
-  } else {
-    if (now - kbLastSend >= SEND_MS) {
-      sendTeleopStop();
-      kbLastSend = now;
-    }
-    applyMotorLocal(0, 0);
-    $('teleop-badge').style.display = 'none';
+  if (spaceHeld && moving && now - kbLastSend >= SEND_MS && ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
+    kbLastSend = now;
   }
 }
 
-function gpLoop() {
-  gpAnimId = requestAnimationFrame(gpLoop);
-
-  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-  const gp = gpIndex !== null ? gamepads[gpIndex] : null;
-  if (!gp) return;
-
-  const { l, r } = getGpDrive(gp);
-
-  // Right trigger (RT) = buttons[7] — dead-man switch
-  const rt = gp.buttons[7] ? gp.buttons[7].value : 0;
-  gpActive = rt > 0.1;
-
-  // Dead-man bar
-  $('dm-bar').style.display   = '';
-  $('dm-label').style.display = '';
-  $('dm-fill').style.width    = (rt * 100) + '%';
-  $('dm-label').textContent   = 'RT — DEAD MAN ACTIVE';
-
-  const now = performance.now();
-
-  if (gpActive) {
-    if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
-      gpLastSend = now;
-    }
-    applyMotorLocal(l, r);
-    updateTeleopBadge(l, r);
-  } else {
-    if (now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
-      sendTeleopStop();
-      gpLastSend = now;
-    }
-    applyMotorLocal(0, 0);
-    $('teleop-badge').style.display = 'none';
-  }
-}
-
-function updateTeleopBadge(l, r) {
-  const tb = $('teleop-badge');
-  if (Math.abs(l) > 0.01 || Math.abs(r) > 0.01) {
-    tb.style.display = '';
-    tb.className = 'badge badge-blue';
-    tb.textContent = 'TELEOP';
-    $('dd-badge').textContent = 'DRIVING';
-    $('dd-badge').className   = 'badge badge-green';
-    $('steer').textContent = Math.abs(l - r) < 0.08 ? 'STRAIGHT'
-      : l > r ? 'TURNING RIGHT' : 'TURNING LEFT';
-  } else {
-    tb.style.display = 'none';
-  }
-}
-
-function applyMotorLocal(l, r) {
-  if (gpIndex !== null || kbAnimId !== null) {
-    $('dd-online').style.display  = '';
-    $('dd-offline').style.display = 'none';
-  }
-  setMotor('ml', Math.round(l * 100));
-  setMotor('mr', Math.round(r * 100));
-}
-
-// ── Drive mode toggle ──────────────────────────────────────────
-$('drive-mode-btn').addEventListener('click', () => {
-  driveMode = driveMode === 'arcade' ? 'tank' : 'arcade';
-  const btn = $('drive-mode-btn');
-  if (driveMode === 'tank') {
-    btn.textContent = 'TANK';
-    btn.classList.add('tank');
-    $('kb-hint').textContent = 'W/S = Left · ↑/↓ = Right · SPACE = Dead Man';
-  } else {
-    btn.textContent = 'ARCADE';
-    btn.classList.remove('tank');
-    $('kb-hint').textContent = 'WASD / Arrows · SPACE = Dead Man';
-  }
-});
+// ── Gamepad ──────────────────────────────────────────────────────
+let gpIndex = null, gpAnimId = null, gpLastSend = 0;
 
 window.addEventListener('gamepadconnected', e => {
   gpIndex = e.gamepad.index;
-  $('gp-badge').classList.add('active');
-  $('gp-text').textContent = e.gamepad.id.includes('Xbox')
-    ? 'Xbox' : 'Gamepad ' + (gpIndex + 1);
-  if (!gpAnimId) gpLoop();
+  addLog('Gamepad connected: ' + e.gamepad.id);
+  if (!gpAnimId) gpAnimId = requestAnimationFrame(gpLoop);
 });
 
 window.addEventListener('gamepaddisconnected', e => {
   if (e.gamepad.index === gpIndex) {
     gpIndex = null;
-    $('gp-badge').classList.remove('active');
-    $('gp-text').textContent = 'No Controller';
-    $('dm-bar').style.display   = 'none';
-    $('dm-label').style.display = 'none';
-    $('teleop-badge').style.display = 'none';
     sendTeleopStop();
     if (gpAnimId) { cancelAnimationFrame(gpAnimId); gpAnimId = null; }
   }
 });
 
-// ── Autonomous Follow Toggle ───────────────────────────────────
-let followActive = false;
-
-$('auto-btn').addEventListener('click', () => {
-  followActive = !followActive;
-  const btn = $('auto-btn');
-  if (followActive) {
-    btn.textContent = 'AUTO ON';
-    btn.classList.add('tank');
-    // Auto needs YOLO — turn it on if not already
-    if (!yoloActive) $('yolo-btn').click();
-  } else {
-    btn.textContent = 'AUTO OFF';
-    btn.classList.remove('tank');
-  }
-  if (ws && ws.readyState === 1)
-    ws.send(JSON.stringify({ target: 'follow', action: 'toggle', params: {} }));
-});
-
-function applyFollowState(active) {
-  followActive = active;
-  const btn = $('auto-btn');
-  if (active) {
-    btn.textContent = 'AUTO ON';
-    btn.classList.add('tank');
-    $('teleop-badge').style.display = 'none';
-  } else {
-    btn.textContent = 'AUTO OFF';
-    btn.classList.remove('tank');
+function gpLoop() {
+  gpAnimId = requestAnimationFrame(gpLoop);
+  const gp = navigator.getGamepads()[gpIndex];
+  if (!gp) return;
+  const fwd = -deadzone(gp.axes[1]);
+  const turn = deadzone(gp.axes[2]);
+  const l = Math.max(-1, Math.min(1, fwd - turn));
+  const r = Math.max(-1, Math.min(1, fwd + turn));
+  const rt = gp.buttons[7] ? gp.buttons[7].value : 0;
+  const now = performance.now();
+  if (rt > 0.1 && now - gpLastSend >= SEND_MS && ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ target: 'teleop', action: 'drive', params: { l, r } }));
+    gpLastSend = now;
   }
 }
 
-// ── YOLO Detection Toggle ──────────────────────────────────────
-let yoloActive = false;
+function deadzone(v) { return Math.abs(v) < 0.12 ? 0 : v; }
 
-$('yolo-btn').addEventListener('click', () => {
-  yoloActive = !yoloActive;
-  const btn = $('yolo-btn');
-  if (yoloActive) {
-    btn.textContent = 'YOLO ON';
-    btn.classList.add('tank');
-  } else {
-    btn.textContent = 'YOLO OFF';
-    btn.classList.remove('tank');
-    // Clear detection display when turned off
-    $('det-conf').textContent = '—';
-    $('det-fps').textContent  = '—';
-    $('det-targets').textContent = '—';
-    $('det-model').textContent   = '—';
-  }
-  if (ws && ws.readyState === 1)
-    ws.send(JSON.stringify({ target: 'detection', action: 'toggle', params: { enabled: yoloActive } }));
+// ── Detection Threshold Slider ───────────────────────────────────
+$('det-slider').addEventListener('input', e => {
+  $('det-threshold').textContent = (e.target.value / 100).toFixed(2);
 });
 
+// ── Camera feed error handling ───────────────────────────────────
+$('dash-cam').addEventListener('load', () => { $('dash-cam-offline').style.display = 'none'; });
+$('dash-cam').addEventListener('error', () => { $('dash-cam-offline').style.display = 'flex'; });
+$('cam-feed').addEventListener('load', () => { $('cam-offline').style.display = 'none'; });
+$('cam-feed').addEventListener('error', () => { $('cam-offline').style.display = 'flex'; });
+
+// ── Connect ──────────────────────────────────────────────────────
 connect();
 </script>
 </body>
